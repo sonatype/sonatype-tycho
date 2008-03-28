@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codehaus.tycho</groupId>
+  <artifactId>tycho</artifactId>
+  <version>1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Tycho</name>
+  <description>Tycho integrates Maven with Eclipse and OSGi</description>
+  <modules>
+    <module>maven-tycho-plugin</module>
+    <module>maven-osgi-lifecycle-plugin</module>
+    <module>maven-targetplatform-plugin</module>
+    <module>maven-osgi-packaging-plugin</module>
+    <module>maven-osgi-compiler-plugin</module>
+    <module>tycho-compiler-jdt</module>
+    <module>tycho-osgi-components</module>
+  </modules>
+  
+  <build>
+  <pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.3-SNAPSHOT</version>
+      </plugin>
+    </plugins>
+  </pluginManagement>
+  </build>
+  
+  <distributionManagement>
+    <repository>
+      <id>sonatype-eclipse</id>
+      <name>sonatype-eclipse</name>
+      <url>scp://svn.sonatype.com/opt/mvnrepos/eclipse/</url>
+    </repository>
+  </distributionManagement>
+  
+	<repositories>
+		<repository>
+			<id>eclipse</id>
+			<name>Eclipse Repository</name>
+			<url>http://repo1.maven.org/eclipse</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Maven Snapshots</name>
+      <url>http://people.apache.org/maven-snapshot-repository</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+        <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+	<pluginRepositories>
+    <pluginRepository>
+      <id>apache.snapshots</id>
+      <name>Maven Snapshots</name>
+      <url>http://people.apache.org/maven-snapshot-repository</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+        <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-archiver</artifactId>
+        <version>1.0-alpha-9</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <profiles>
+    <profile>
+      <id>not-bootstrap</id>
+      <activation>
+        <property>
+          <name>bootstrap</name>
+          <value>false</value>
+        </property>
+      </activation>
+      <modules>
+        <module>org.codehaus.tycho.junit4.runner</module>
+        <module>maven-osgi-test-plugin</module>
+      </modules>
+    </profile>
+  </profiles>
+</project>
