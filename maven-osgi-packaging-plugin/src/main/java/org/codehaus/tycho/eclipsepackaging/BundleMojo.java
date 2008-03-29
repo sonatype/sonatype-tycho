@@ -309,6 +309,10 @@ public class BundleMojo extends AbstractMojo {
 	}
 
 	private String getExportedPackages() throws MojoExecutionException {
+		if (exportPackages == null) {
+			return null;
+		}
+		
 		Set allpackages = new HashSet();
 
 		ArrayList instructions = new ArrayList();

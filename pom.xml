@@ -32,7 +32,7 @@
     <repository>
       <id>sonatype-eclipse</id>
       <name>sonatype-eclipse</name>
-      <url>scp://svn.sonatype.com/opt/mvnrepos/eclipse/</url>
+      <url>http://repository.sonatype.org:8081/nexus/content/repositories/eclipse/</url>
     </repository>
   </distributionManagement>
   
