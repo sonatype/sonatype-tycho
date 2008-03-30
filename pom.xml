@@ -77,16 +77,6 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
-  
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-archiver</artifactId>
-        <version>1.0-alpha-9</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <profiles>
     <profile>

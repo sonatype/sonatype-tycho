@@ -36,6 +36,9 @@ public class Util {
 					+ "to: " + target, e);
 		} catch (NoSuchArchiverException e) {
 			throw new MojoExecutionException("Nu unarchiver");
+		} catch (IOException e) {
+			throw new MojoExecutionException("Error unpacking file: " + archive
+					+ "to: " + target, e);
 		}
 	}
 	

@@ -34,6 +34,8 @@ import org.codehaus.tycho.osgicompiler.ClasspathComputer3_0.ClasspathElement;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.OsgiStateController;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.ResolverError;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
@@ -88,7 +90,11 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		OsgiStateController state = helper.createOSGiState(artifacts, failOnError);
 
 		ClasspathComputer3_0 cc = new ClasspathComputer3_0(state, helper.getEPM());
-		List classpath = cc.getClasspath(helper.getThisBundle());
+		BundleDescription thisBundle = helper.getThisBundle();
+
+		ResolverError[] bundleErrors = state.getState().getResolverErrors(thisBundle);
+		
+		List classpath = cc.getClasspath(thisBundle);
 		List result = new ArrayList(classpath.size());
 		for (Iterator it = classpath.iterator(); it.hasNext();) {
 			ClasspathElement cp = (ClasspathElement) it.next();

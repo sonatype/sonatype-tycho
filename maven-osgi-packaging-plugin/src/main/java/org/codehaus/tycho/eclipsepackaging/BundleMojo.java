@@ -27,7 +27,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -38,9 +37,12 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.shared.osgi.DefaultMaven2OsgiConverter;
 import org.apache.maven.shared.osgi.Maven2OsgiConverter;
+import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.codehaus.plexus.context.Context;
+import org.codehaus.plexus.context.ContextException;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -51,7 +53,7 @@ import aQute.lib.osgi.Instruction;
  * @requiresProject
  * @requiresDependencyResolution runtime
  */
-public class BundleMojo extends AbstractMojo {
+public class BundleMojo extends AbstractMojo implements Contextualizable {
 
 //	private static final String PACKAGING_DIRECTORY_PLUGIN = "osgi-bundle";
 
@@ -93,7 +95,6 @@ public class BundleMojo extends AbstractMojo {
 	/** @component */
 	private ArtifactResolver resolver;
 	
-	/** @component */
 	private PlexusContainer plexus;
 	
 	/** @parameter */
@@ -227,26 +228,26 @@ public class BundleMojo extends AbstractMojo {
 
 	private void packageSources(List includedArtifacts) throws Exception {
 
-		ZipArchiver archiver = (ZipArchiver) plexus.lookup(ZipArchiver.ROLE, "zip");
-		archiver.setDestFile(new File(project.getBasedir(), project.getArtifact().getGroupId() + "." + project.getArtifact().getArtifactId() + "src.zip").getCanonicalFile());
-
-        for (Iterator i = getIncludedArtifacts().iterator(); i.hasNext(); ) {
-        	Artifact a = (Artifact) i.next();
-        	ArtifactRepository localRepository = session.getLocalRepository();
-        	List remoteRepositories = project.getRemoteArtifactRepositories();
-
-			Artifact srcArtifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), a.getClassifier(), "java-source");
-			try {
-				resolver.resolve(srcArtifact, remoteRepositories, localRepository);
-				archiver.addArchivedFileSet(srcArtifact.getFile());
-			} catch (ArtifactNotFoundException e) {
-				// too bad
-			}
-        }
-        
-        if (archiver.getFiles().size() > 0) {
-        	archiver.createArchive();
-        }
+//		ZipArchiver archiver = (ZipArchiver) plexus.lookup(ZipArchiver.ROLE, "zip");
+//		archiver.setDestFile(new File(project.getBasedir(), project.getArtifact().getGroupId() + "." + project.getArtifact().getArtifactId() + "src.zip").getCanonicalFile());
+//
+//        for (Iterator i = getIncludedArtifacts().iterator(); i.hasNext(); ) {
+//        	Artifact a = (Artifact) i.next();
+//        	ArtifactRepository localRepository = session.getLocalRepository();
+//        	List remoteRepositories = project.getRemoteArtifactRepositories();
+//
+//			Artifact srcArtifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), a.getClassifier(), "java-source");
+//			try {
+//				resolver.resolve(srcArtifact, remoteRepositories, localRepository);
+//				archiver.addArchivedFileSet(srcArtifact.getFile());
+//			} catch (ArtifactNotFoundException e) {
+//				// too bad
+//			}
+//        }
+//        
+//        if (archiver.getFiles().size() > 0) {
+//        	archiver.createArchive();
+//        }
 	}
 
 	public Manifest getManifest() throws MojoExecutionException  {
@@ -514,5 +515,9 @@ public class BundleMojo extends AbstractMojo {
 
         return inlcudedArtifacts;
     }
+
+	public void contextualize(Context ctx) throws ContextException {
+		plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
+	}
 
 }

@@ -24,8 +24,12 @@ import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.context.Context;
+import org.codehaus.plexus.context.ContextException;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -38,7 +42,7 @@ import org.jdom.output.XMLOutputter;
  * 
  * @goal update-site
  */
-public class UpdateSiteMojo extends AbstractMojo {
+public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
@@ -49,7 +53,6 @@ public class UpdateSiteMojo extends AbstractMojo {
 	/** @parameter expression="${project.basedir}" */
 	private File basedir;
 
-	/** @component */
 	private PlexusContainer plexus;
 
 	/** @component */
@@ -205,6 +208,10 @@ public class UpdateSiteMojo extends AbstractMojo {
 
 		plugin.setAttribute("download-size", Long.toString(outputJar.length()));
 		plugin.setAttribute("install-size", Long.toString(installSize));
+	}
+
+	public void contextualize(Context ctx) throws ContextException {
+		plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
 	}
 
 }
