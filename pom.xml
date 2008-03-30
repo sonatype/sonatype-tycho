@@ -29,11 +29,11 @@
   </build>
   
   <distributionManagement>
-    <repository>
+    <snapshotRepository>
       <id>sonatype-eclipse</id>
       <name>sonatype-eclipse</name>
-      <url>http://repository.sonatype.org:8081/nexus/content/repositories/eclipse/</url>
-    </repository>
+      <url>http://repository.sonatype.org:8081/nexus/content/repositories/eclipse-snapshots/</url>
+    </snapshotRepository>
   </distributionManagement>
   
 	<repositories>
