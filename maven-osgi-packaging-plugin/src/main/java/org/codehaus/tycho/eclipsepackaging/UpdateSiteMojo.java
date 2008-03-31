@@ -44,6 +44,8 @@ import org.jdom.output.XMLOutputter;
  */
 public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
+	private static final int KBYTE = 1024;
+
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
 
@@ -206,8 +208,8 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		outputJar.getParentFile().mkdirs();
 		FileUtils.copyFile(artifact.getFile(), outputJar);
 
-		plugin.setAttribute("download-size", Long.toString(outputJar.length()));
-		plugin.setAttribute("install-size", Long.toString(installSize));
+		plugin.setAttribute("download-size", Long.toString(outputJar.length() / KBYTE));
+		plugin.setAttribute("install-size", Long.toString(installSize / KBYTE) );
 	}
 
 	public void contextualize(Context ctx) throws ContextException {
