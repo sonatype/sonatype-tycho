@@ -574,7 +574,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 	 *       it does not need to be calculated continuously - or should the
 	 *       plugins accept empty source roots as is?
 	 */
-	private static List removeEmptyCompileSourceRoots(
+	protected static List removeEmptyCompileSourceRoots(
 			List compileSourceRootsList) {
 		List newCompileSourceRootsList = new ArrayList();
 		if (compileSourceRootsList != null) {

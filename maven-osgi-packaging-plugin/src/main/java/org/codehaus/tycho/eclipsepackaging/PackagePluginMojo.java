@@ -136,7 +136,9 @@ public class PackagePluginMojo extends AbstractMojo {
 				addToArchiver(archiver, includes, false);
 			}
 
-			archiver.getArchiver().addDirectory(outputDirectory);
+			if (outputDirectory.exists()) {
+				archiver.getArchiver().addDirectory(outputDirectory);
+			}
 			
 			String[] binIncludes = buildProperties.getProperty("bin.includes")
 					.split(",");
@@ -171,6 +173,7 @@ public class PackagePluginMojo extends AbstractMojo {
 
 		if (expandVersion(mf)) {
 			mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
+			mfile.getParentFile().mkdirs();
 			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(mfile));
 			try {
 				mf.write(os);

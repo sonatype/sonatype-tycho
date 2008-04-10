@@ -69,6 +69,14 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
 	public void execute() throws MojoExecutionException,
 			CompilationFailureException {
+		List compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
+
+		if (compileSourceRoots.isEmpty()) {
+			getLog().info("No sources to compile");
+
+			return;
+		}
+
 		classPathElements = computeClassPath(project.getBasedir(),
 				getCompileArtifacts());
 
@@ -92,7 +100,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		ClasspathComputer3_0 cc = new ClasspathComputer3_0(state, helper.getEPM());
 		BundleDescription thisBundle = helper.getThisBundle();
 
-		ResolverError[] bundleErrors = state.getState().getResolverErrors(thisBundle);
+//		ResolverError[] bundleErrors = state.getState().getResolverErrors(thisBundle);
 		
 		List classpath = cc.getClasspath(thisBundle);
 		List result = new ArrayList(classpath.size());
@@ -101,8 +109,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			result.add(cp.getPath() + cp.getAccessRules());
 		}
 		result.add(getOutputDirectory() + "[+**/*]");
-		
-		
 		
 		return result;
 

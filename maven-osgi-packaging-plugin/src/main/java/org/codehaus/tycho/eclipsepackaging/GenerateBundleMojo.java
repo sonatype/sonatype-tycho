@@ -49,11 +49,11 @@ import org.codehaus.plexus.util.FileUtils;
 import aQute.lib.osgi.Instruction;
 
 /**
- * @goal osgi-bundle2
+ * @goal generate-bundle
  * @requiresProject
  * @requiresDependencyResolution runtime
  */
-public class BundleMojo extends AbstractMojo implements Contextualizable {
+public class GenerateBundleMojo extends AbstractMojo implements Contextualizable {
 
 //	private static final String PACKAGING_DIRECTORY_PLUGIN = "osgi-bundle";
 
@@ -136,7 +136,7 @@ public class BundleMojo extends AbstractMojo implements Contextualizable {
 			manifest.write(os);
 			os.close();
 
-			packageBundle();
+//			packageBundle();
         } catch (Exception e) {
         	throw new MojoExecutionException(e.getMessage(), e);
         }
