@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -21,9 +23,11 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
@@ -65,6 +69,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	/** @parameter expression="${localRepository}" */
 	private ArtifactRepository localRepository;
+
+	/** @parameter expression="${session}" */
+	private MavenSession session;
 
 	private static final SAXBuilder builder = new SAXBuilder();
 	private static final Format format = Format.getPrettyFormat();
@@ -160,26 +167,53 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		String artifactId = plugin.getAttributeValue("id");
 		String version = plugin.getAttributeValue("version");
 
-		if (version.endsWith(".qualifier")) {
-			version = version.substring(0, version.lastIndexOf('.')) + "-SNAPSHOT";
-		}
-
 		Artifact artifact = null;
-		Exception exception = null;
+
+		// we don't have good way to map Bundle-SymbolicName into groupId/artifactId
+		// so lets try to guess
+		Set groupIds = new LinkedHashSet();
 		String groupId = artifactId;
 		do {
-			artifact = artifactFactory.createBuildArtifact(groupId, artifactId, version, "jar");
-			try {
-				resolver.resolve(artifact, new ArrayList(), localRepository);
-				break;
-			} catch (ArtifactNotFoundException e) {
-				exception = e;
-			}
+			groupIds.add(groupId);
 			int idx = groupId.lastIndexOf('.');
 			groupId = idx > 0 ? groupId.substring(0, idx): null;
 		} while (groupId != null);
 
-		if (artifact == null || !artifact.isResolved()) {
+		if ("0.0.0".equals(version)) {
+			// look in the reactor first (is there a better way?)
+			List projects = session.getSortedProjects();
+			for (Iterator i = projects.iterator(); i.hasNext(); ) {
+				MavenProject other = (MavenProject) i.next();
+				if (artifactId.equals(other.getArtifactId()) && groupIds.contains(other.getGroupId())) {
+					artifact = other.getArtifact();
+					break;
+				}
+			}
+
+			// find latest available
+			if (artifact == null) {
+				// XXX how do I find latest version?
+			}
+		}
+
+		Exception exception = null;
+		if (artifact == null) {
+			if (version.endsWith(".qualifier")) {
+				version = version.substring(0, version.lastIndexOf('.')) + "-SNAPSHOT";
+			}
+			for (Iterator i = groupIds.iterator(); i.hasNext(); ) {
+				groupId = (String) i.next();
+				artifact = artifactFactory.createBuildArtifact(groupId, artifactId, version, "jar");
+				try {
+					resolver.resolve(artifact, new ArrayList(), localRepository);
+					break;
+				} catch (ArtifactNotFoundException e) {
+					exception = e;
+				}
+			}
+		}
+
+		if (artifact == null || artifact.getFile() == null) {
 			throw new MojoExecutionException("Can't find artifact for bundle " + artifactId, exception);
 		}
 

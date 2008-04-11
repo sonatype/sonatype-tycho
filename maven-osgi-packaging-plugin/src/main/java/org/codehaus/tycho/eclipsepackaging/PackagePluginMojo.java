@@ -86,8 +86,11 @@ public class PackagePluginMojo extends AbstractMojo {
 	private void createPlugin() throws MojoExecutionException {
 		try {
 			buildProperties = new Properties();
-			buildProperties.load(new FileInputStream(new File(project
-					.getBasedir(), "build.properties")));
+
+			File file = new File(project.getBasedir(), "build.properties");
+			if (file.canRead()) {
+				buildProperties.load(new FileInputStream(file));
+			}
 
 			createSubJars();
 
@@ -140,9 +143,11 @@ public class PackagePluginMojo extends AbstractMojo {
 				archiver.getArchiver().addDirectory(outputDirectory);
 			}
 			
-			String[] binIncludes = buildProperties.getProperty("bin.includes")
-					.split(",");
-			addToArchiver(archiver, binIncludes, true);
+			if (buildProperties.containsKey("bin.includes")) {
+				String[] binIncludes = buildProperties.getProperty("bin.includes")
+						.split(",");
+				addToArchiver(archiver, binIncludes, true);
+			}
 
 			File manifest = expandVersion(new File(project.getBasedir(), "META-INF/MANIFEST.MF"));
 			if (manifest.exists()) {
