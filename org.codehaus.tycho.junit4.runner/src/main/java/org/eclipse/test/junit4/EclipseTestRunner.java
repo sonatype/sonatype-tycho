@@ -29,6 +29,7 @@ import junit.framework.JUnit4TestAdapter;
 import junit.framework.Test;
 import junit.framework.TestListener;
 import junit.framework.TestResult;
+import junit.framework.TestSuite;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -281,13 +282,46 @@ public class EclipseTestRunner implements TestListener {
 				suite = (Test) suiteMethod.invoke(null, new Class[0]);
 
 			} else {
-				suite = new JUnit4TestAdapter(testClass);
+                Class junit4TestAdapterClass = null;
+
+                // Check for JDK 5 first. Will *not* help on JDK 1.4
+                // if only junit-4.0.jar in CP because in that case
+                // linkage of whole task will already have failed! But
+                // will help if CP has junit-3.8.2.jar:junit-4.0.jar.
+
+                // In that case first C.fN will fail with CNFE and we
+                // will avoid UnsupportedClassVersionError.
+
+                boolean junit4;
+                try {
+                    Class.forName("java.lang.annotation.Annotation");
+                        junit4TestAdapterClass =
+                            Class.forName("junit.framework.JUnit4TestAdapter");
+                } catch (ClassNotFoundException e) {
+                    // OK, fall back to JUnit 3.
+                }
+                junit4 = junit4TestAdapterClass != null;
+
+                if (junit4) {
+                    // Let's use it!
+                    suite =
+                        (Test) junit4TestAdapterClass
+                        .getConstructor(new Class[] {Class.class}).
+                        newInstance(new Object[] {testClass});
+                } else {
+                    // Use JUnit 3.
+
+                    // try to extract a test suite automatically this
+                    // will generate warnings if the class is no
+                    // suitable Test
+                    suite = new TestSuite(testClass);
+                }
 			}
 		} catch (InvocationTargetException e) {
 			runFailed("Failed to invoke suite():"
 					+ e.getTargetException().toString());
 			return null;
-		} catch (IllegalAccessException e) {
+		} catch (Throwable e) {
 			runFailed("Failed to invoke suite():" + e.toString());
 			return null;
 		}

@@ -5,7 +5,8 @@ Bundle-SymbolicName: org.codehaus.tycho.junit4.runner;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: org.eclipse.test.junit4.Activator
 Bundle-Localization: plugin
-Require-Bundle: org.junit4
+Require-Bundle: org.junit4;resolution:=optional,
+ org.junit;resolution:=optional
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Import-Package: org.apache.tools.ant,org.apache.tools.ant.types,org.apache.tools.ant.util,org.eclipse.core.runtime,org.osgi.framework;version="1.3.0",org.osgi.service.packageadmin;version="1.2.0"
 Eclipse-LazyStart: true
