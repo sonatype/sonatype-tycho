@@ -97,7 +97,7 @@ public class OSGiStateHelper {
 		File baseDirectory = project.getBasedir();
 		File outputDirectory = new File(project.getBuild().getOutputDirectory());
 		File manifest = new File(baseDirectory, "META-INF/MANIFEST.MF");
-		OsgiStateController state = new OsgiStateController();
+		OsgiStateController state = new OsgiStateController(new File(project.getBuild().getDirectory()));
 		try {
 			if (manifest.exists()) {
 				if (!outputDirectory.exists()) {
@@ -127,7 +127,7 @@ public class OSGiStateHelper {
 				String path = bsm.addBundle(a.getFile());
 				BundleDescription bundle = state.addBundle(new File(path));
 				systemBundleFound |= isSystemBundle(bundle);
-				getLog().debug("Added artifact to osgi state: " + a.getFile());
+				getLog().info("Added artifact to osgi state: " + a.getFile());
 			} catch (Exception e) {
 				getLog().warn("Could not add artifact " + a.getFile());
 				getLog().debug(e);
@@ -144,7 +144,7 @@ public class OSGiStateHelper {
 
 		state.resolveState();
 		
-		ResolverError[] errors = state.getRelevantErrors();
+		ResolverError[] errors = state.getRelevantErrors(thisBundle);
 		for (int i = 0; i < errors.length; i++) {
 			ResolverError error = errors[i];
 			getLog().error("Bundle "  + error.getBundle().getSymbolicName() + " - " + error.toString());

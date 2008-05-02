@@ -14,48 +14,34 @@ public class BundleFile {
 
 	private Properties p = new Properties();
 
-	public BundleFile(File file) {
-		try {
-			String localization;
-			if (file.isDirectory()) {
-				manifest = new Manifest(new FileInputStream(new File(file,
-						JarFile.MANIFEST_NAME)));
-				localization = manifest.getMainAttributes().getValue(
-						"Bundle-Localization");
+	public BundleFile(Manifest manifest, File file) {
+		this.manifest = manifest;
 
-				if (localization != null) {
+		String localization = manifest.getMainAttributes().getValue("Bundle-Localization");
+		if (!file.getName().equalsIgnoreCase("manifest.mf") && localization != null) {
+			try {
+				if (file.isDirectory()) {
 					File localizationFile = new File(file, localization
 							+ ".properties");
 					if (localizationFile.exists()) {
-						FileInputStream fis = new FileInputStream(
-								localizationFile);
+						FileInputStream fis = new FileInputStream(localizationFile);
 						p.load(fis);
 						fis.close();
 					}
-
-				}
-			} else if (file.getName().equalsIgnoreCase("manifest.mf")) {
-				manifest = new Manifest();
-				FileInputStream fis = new FileInputStream(file);
-				manifest.read(fis);
-				fis.close();
-			} else {
-				JarFile jar = new JarFile(file, false);
-				manifest = jar.getManifest();
-
-				localization = manifest.getMainAttributes().getValue(
-						"Bundle-Localization");
-				if (localization != null) {
-					JarEntry je = jar.getJarEntry(localization + ".properties");
-					if (je != null) {
-						p.load(jar.getInputStream(je));
+				} else {
+					JarFile jar = new JarFile(file, false);
+					try {
+						JarEntry je = jar.getJarEntry(localization + ".properties");
+						if (je != null) {
+							p.load(jar.getInputStream(je));
+						}
+					} finally {
+						jar.close();
 					}
 				}
-				jar.close();
+			} catch (IOException ex) {
+				throw new RuntimeException(ex);
 			}
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 

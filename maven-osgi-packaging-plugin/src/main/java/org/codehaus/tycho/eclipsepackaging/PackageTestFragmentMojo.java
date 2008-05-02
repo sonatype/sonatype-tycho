@@ -30,6 +30,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.osgitools.BundleFile;
+import org.codehaus.tycho.osgitools.OsgiStateController;
 
 /**
  * Creates a jar-based plugin and attaches it as an artifact
@@ -79,6 +80,9 @@ public class PackageTestFragmentMojo extends AbstractMojo {
 	 */
 	private boolean skip;
 
+	/** @parameter expression="${project.build.directory}" */
+	private File outputDir;
+
 	public void execute() throws MojoExecutionException {
 		createPlugin();
 	}
@@ -112,7 +116,9 @@ public class PackageTestFragmentMojo extends AbstractMojo {
 	}
 
 	private File createFragmentManifest() throws IOException {
-		BundleFile bundle = new BundleFile(new File(project.getBasedir(), "META-INF/MANIFEST.MF"));
+		File file = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
+		OsgiStateController state = new OsgiStateController(outputDir);
+		BundleFile bundle = new BundleFile(state.loadManifest(file), file);
 		
 		Manifest mft = new Manifest();
 		Attributes attr = mft.getMainAttributes();

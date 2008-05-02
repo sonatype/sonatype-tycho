@@ -9,7 +9,7 @@ public interface OsgiDependencyVerifier
 {
 	static final String ROLE = OsgiDependencyVerifier.class.getName();
 	
-	ResolverError[] resolve(File[] bundles);
-	ResolverError[] resolve(Artifact[] artifacts);
+	ResolverError[] resolve(File outputDir, File[] bundles);
+	ResolverError[] resolve(File outputDir, Artifact[] artifacts);
 	
 }

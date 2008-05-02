@@ -127,6 +127,9 @@ public abstract class AbstractDeployBundlesMojo extends AbstractMojo {
 	/** @parameter expression="${project.remoteArtifactRepositories}" */
 	private List remoteRepositories;
 
+	/** @parameter expression="${project.build.directory}" */
+	private File outputDir;
+
 	private Artifact targetPlatformArtifact;
 
 	private List sourceArtifacts = new ArrayList();
@@ -242,7 +245,7 @@ public abstract class AbstractDeployBundlesMojo extends AbstractMojo {
 
 	private OsgiStateController createOsgiState()
 			throws MojoExecutionException, TychoException {
-		OsgiStateController state = new OsgiStateController();
+		OsgiStateController state = new OsgiStateController(outputDir);
 		File[] bundles = new File(baseDir, "plugins")
 				.listFiles(new FileFilter() {
 					public boolean accept(File pathname) {

@@ -28,11 +28,11 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.tycho.osgitools.BundleFile;
+import org.codehaus.tycho.osgitools.OsgiStateController;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
-import org.codehaus.tycho.osgitools.BundleFile;
 
 /**
  * This goal will create a feature with all the dependencies listed in the POM.
@@ -79,6 +79,9 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 	 */
 	private boolean failOnError;
 
+	/** @parameter expression="${project.build.directory}" */
+	private File outputDir;
+
 	public void execute() throws MojoExecutionException, MojoFailureException
 	{
 		if (!generateFeatureXML)
@@ -103,7 +106,8 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 				try
 				{
 					File bundleLocation = a.getFile();
-					BundleFile b = new BundleFile(bundleLocation);
+					OsgiStateController state = new OsgiStateController(outputDir);
+					BundleFile b = new BundleFile(state.loadManifest(bundleLocation), bundleLocation);
 					String bundleFileName = b.getSymbolicName() + "_"
 							+ b.getVersion() + ".jar";
 					files.add(b);

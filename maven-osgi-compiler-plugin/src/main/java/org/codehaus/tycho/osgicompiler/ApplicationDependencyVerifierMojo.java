@@ -48,8 +48,11 @@ public class ApplicationDependencyVerifierMojo extends AbstractMojo {
 	 */
 	private boolean failOnError;
 
+	/** @parameter expression="${project.build.directory}" */
+	private File outputDir;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		OsgiStateController state = new OsgiStateController();
+		OsgiStateController state = new OsgiStateController(outputDir);
 
 		File[] jars = pluginDirectory.listFiles(new FileFilter() {
 			public boolean accept(File pathname) {

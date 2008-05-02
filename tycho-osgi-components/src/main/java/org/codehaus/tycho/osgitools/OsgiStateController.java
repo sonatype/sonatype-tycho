@@ -23,15 +23,20 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl_;
+import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
+import org.eclipse.osgi.service.pluginconversion.PluginConverter;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.service.resolver.ExportPackageDescription;
@@ -72,6 +77,8 @@ public class OsgiStateController {
 
 	private Map/* <Long, String> */patchBundles;
 
+	private File outputDir;
+
 	public static BundleDescription[] getDependentBundles(BundleDescription root) {
 		if (root == null)
 			return new BundleDescription[0];
@@ -106,10 +113,20 @@ public class OsgiStateController {
 		return root.getResolvedRequires();
 	}
 
-	public OsgiStateController() {
+	public OsgiStateController(File outputDir) {
 		bundleClasspaths = new HashMap();
 		patchBundles = new HashMap();
 		state = factory.createState(true);
+		if (outputDir != null) {
+			this.outputDir = new File(outputDir, "plugins");
+		} else {
+			try {
+				this.outputDir = new File("TYCHO").getCanonicalFile();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		this.outputDir.mkdirs();
 	}
 
 	private long getNextId() {
@@ -121,7 +138,7 @@ public class OsgiStateController {
 		if (bundleLocation == null || !bundleLocation.exists())
 			throw new IllegalArgumentException("bundleLocation not found: "
 					+ bundleLocation);
-		Dictionary manifest = loadManifest(bundleLocation);
+		Dictionary manifest = loadManifestAttributes(bundleLocation);
 		if (manifest == null)
 			throw new BundleException("manifest not found in " + bundleLocation);
 		return addBundle(manifest, bundleLocation);
@@ -132,17 +149,20 @@ public class OsgiStateController {
 		if (bundleLocation == null || !bundleLocation.exists())
 			throw new IllegalArgumentException("bundleLocation not found: "
 					+ bundleLocation);
-		Dictionary manifest = loadManifest(manifestLocation);
+		Dictionary manifest = loadManifestAttributes(manifestLocation);
 		if (manifest == null)
 			throw new IllegalArgumentException("manifest not found in "
 					+ manifestLocation);
 		return addBundle(manifest, bundleLocation);
 	}
 
-	public Dictionary loadManifest(File bundleLocation) {
-		Dictionary manifest = basicLoadManifest(bundleLocation);
-		if (manifest == null)
+	private Dictionary loadManifestAttributes(File bundleLocation) throws BundleException {
+		Manifest m = loadManifest(bundleLocation);
+		if (m == null) {
 			return null;
+		}
+
+		Dictionary manifest = manifestToProperties(m.getMainAttributes());
 
 		// enforce symbolic name
 		if (manifest.get(Constants.BUNDLE_SYMBOLICNAME) == null) {
@@ -161,19 +181,22 @@ public class OsgiStateController {
 
 	// Return a dictionary representing a manifest. The data may result from
 	// plugin.xml conversion
-	private Dictionary basicLoadManifest(File bundleLocation) {
+	public Manifest loadManifest(File bundleLocation) {
 		InputStream manifestStream = null;
 		ZipFile jarFile = null;
 		try {
 			if (bundleLocation.isFile()) {
 				String name = bundleLocation.getName();
-				if (".jar".equalsIgnoreCase(name.substring(name.length() - 4,
-						name.length()))) {
+				if (name.toLowerCase().endsWith(".jar")) {
 					jarFile = new ZipFile(bundleLocation, ZipFile.OPEN_READ);
 					ZipEntry manifestEntry = jarFile
 							.getEntry(JarFile.MANIFEST_NAME);
 					if (manifestEntry != null) {
 						manifestStream = jarFile.getInputStream(manifestEntry);
+					} else {
+						File converted = convertPluginManifest(bundleLocation);
+						manifestStream = new FileInputStream(new File(converted,
+								JarFile.MANIFEST_NAME));
 					}
 				} else {
 					manifestStream = new FileInputStream(bundleLocation);
@@ -182,40 +205,39 @@ public class OsgiStateController {
 				manifestStream = new FileInputStream(new File(bundleLocation,
 						JarFile.MANIFEST_NAME));
 			}
-		} catch (IOException e) {
-			// ignore
-		}
-
-		Dictionary manifest = null;
-
-		// It is not a manifest, but a plugin or a fragment
-		// if (manifestStream == null) {
-		// manifest = convertPluginManifest(bundleLocation, true);
-		// if (manifest == null)
-		// return null;
-		// }
-
-		if (manifestStream != null) {
-			try {
-				Manifest m = new Manifest(manifestStream);
-				manifest = manifestToProperties(m.getMainAttributes());
-			} catch (IOException ioe) {
-				return null;
-			} finally {
-				try {
-					manifestStream.close();
-				} catch (IOException e1) {
-					// Ignore
-				}
-				try {
-					if (jarFile != null)
-						jarFile.close();
-				} catch (IOException e2) {
-					// Ignore
-				}
+			
+			if (manifestStream != null) {
+				return new Manifest(manifestStream);
 			}
+		} catch (IOException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		} catch (PluginConversionException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		} finally {
+			
 		}
-		return manifest;
+		return null;
+	}
+
+	private File convertPluginManifest(File bundleLocation) throws PluginConversionException {
+		PluginConverter converter = new PluginConverterImpl_(null, null);
+		String name = bundleLocation.getName();
+		if (name.endsWith(".jar")) {
+			name = name.substring(0, name.length() - 4);
+		}
+		File manifestFile = new File(outputDir, name + "/META-INF/MANIFEST.MF");
+		manifestFile.getParentFile().mkdirs();
+		converter.convertManifest(
+				bundleLocation,
+				manifestFile,
+				false /*compatibility*/, 
+				"3.2" /*target version*/, 
+				false /*don't analyse jars to set export-package*/,
+				null /*devProperties*/);
+		if (manifestFile.exists()) {
+			return manifestFile.getParentFile().getParentFile();
+		}
+		return null;
 	}
 
 	private Properties manifestToProperties(Attributes d) {
@@ -479,6 +501,10 @@ public class OsgiStateController {
 		return state;
 	}
 
+	public ResolverError[] getResolverErrors(BundleDescription bundle) {
+		return state.getResolverErrors(bundle);
+	}
+
 	public ResolverError[] getRelevantErrors() {
         BundleDescription[] bundles = state.getBundles();
         List errors = new ArrayList();
@@ -517,4 +543,45 @@ public class OsgiStateController {
         return (ResolverError[]) errors
                 .toArray(new ResolverError[errors.size()]);
     }
+
+	public ResolverError[] getRelevantErrors(BundleDescription bundle) {
+		Set errors = new LinkedHashSet();
+		getRelevantErrors(errors, bundle);
+        return (ResolverError[]) errors.toArray(new ResolverError[errors.size()]);
+	}
+
+	private void getRelevantErrors(Set errors, BundleDescription bundle) {
+		ResolverError[] bundleErrors = state.getResolverErrors(bundle);
+        for (int j = 0; j < bundleErrors.length; j++) {
+            ResolverError error = bundleErrors[j];
+            System.err.println(error);
+
+            VersionConstraint constraint = error.getUnsatisfiedConstraint();
+            String required = constraint.getName();
+            
+            if (constraint instanceof BundleSpecification || constraint instanceof HostSpecification) {
+                BundleDescription[] requiredBundles = state.getBundles(required);
+                for (int i = 0; i < requiredBundles.length; i++) {
+                	getRelevantErrors(errors, requiredBundles[i]);
+                }
+            } else if (constraint instanceof ImportPackageSpecification) {
+                boolean found = false;
+                BundleDescription[] bds = state.getBundles();
+                for (int k = 0; k < bds.length; k++) {
+                    BundleDescription bd = bds[k];
+                    for (int l = 0; l < bd.getExportPackages().length; l++) {
+						ExportPackageDescription d = bd.getExportPackages()[l];
+                        if (d.getName().equals(required)) {
+                            found = true;
+                        }
+                    }
+                }
+                if (!found) {
+                    errors.add(error);
+                }
+            } else {
+                errors.add(error);
+            }
+        }
+	}
 }

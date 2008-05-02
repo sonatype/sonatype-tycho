@@ -48,6 +48,9 @@ public class SynchronizePluginPomMojo extends AbstractMojo {
 	 */
 	private File baseDir;
 
+	/** @parameter expression="${project.build.directory}" */
+	private File outputDir;
+
 	private Map versions = new HashMap();
 
 	/**
@@ -57,7 +60,7 @@ public class SynchronizePluginPomMojo extends AbstractMojo {
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
-			OsgiStateController state = new OsgiStateController();
+			OsgiStateController state = new OsgiStateController(outputDir);
 			BundleDescription thisBundle;
 			try {
 				thisBundle = state.addBundle(baseDir);

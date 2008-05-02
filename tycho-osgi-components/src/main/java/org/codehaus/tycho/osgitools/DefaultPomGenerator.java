@@ -36,7 +36,9 @@ public class DefaultPomGenerator extends AbstractLogEnabled implements
 			List deployedArtifacts, String versionQualifier,
 			BundleDescription bundle) {
 		Model pom = new Model();
-		BundleFile b = new BundleFile(new File(bundle.getLocation()));
+		File file = new File(bundle.getLocation());
+		OsgiStateController state = new OsgiStateController(null);
+		BundleFile b = new BundleFile(state.loadManifest(file), file);
 		pom.setModelVersion("4.0.0");
 		pom.setArtifactId(bundle.getSymbolicName());
 		pom.setGroupId(groupMapper.getGroupId(bundle.getSymbolicName()));

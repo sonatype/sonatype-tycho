@@ -23,6 +23,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.osgitools.BundleFile;
+import org.codehaus.tycho.osgitools.OsgiStateController;
 
 /**
  * @phase integration-test
@@ -126,6 +127,9 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private List pluginArtifacts;
 
+	/** @parameter expression="${project.build.directory}" */
+	private File outputDir;
+
 	public void execute() throws MojoExecutionException {
 		if (skip || skipExec) {
 			return;
@@ -142,8 +146,10 @@ public class TestMojo extends AbstractMojo {
 
 		reportsDirectory.mkdirs();
 
-		String testBundle = new BundleFile(new File(project.getBasedir(),
-				JarFile.MANIFEST_NAME)).getSymbolicName();
+		File file = new File(project.getBasedir(), JarFile.MANIFEST_NAME);
+		OsgiStateController state = new OsgiStateController(outputDir);
+		BundleFile bundle = new BundleFile(state.loadManifest(file), file);
+		String testBundle = bundle.getSymbolicName();
 
 		List tests = getTests();
 		for (Iterator iter = tests.iterator(); iter.hasNext();) {
@@ -306,7 +312,8 @@ public class TestMojo extends AbstractMojo {
 			if (!file.exists()) {
 				throw new MojoExecutionException("File " + file.getAbsolutePath() + "  does not exist");
 			}
-			BundleFile bundleFile = new BundleFile(file);
+			OsgiStateController state = new OsgiStateController(outputDir);
+			BundleFile bundleFile = new BundleFile(state.loadManifest(file), file);
 			String symbolicName = bundleFile.getSymbolicName();
 			if (symbolicName == null || symbolicName.equals("org.eclipse.osgi")) {
 				continue;
