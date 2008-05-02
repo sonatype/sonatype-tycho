@@ -554,7 +554,6 @@ public class OsgiStateController {
 		ResolverError[] bundleErrors = state.getResolverErrors(bundle);
         for (int j = 0; j < bundleErrors.length; j++) {
             ResolverError error = bundleErrors[j];
-            System.err.println(error);
 
             VersionConstraint constraint = error.getUnsatisfiedConstraint();
             String required = constraint.getName();

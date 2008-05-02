@@ -153,7 +153,7 @@ public class OSGiStateHelper {
 		if (errors.length > 0 && failOnError)
 		{
 			throw new MojoExecutionException(
-					"Errors found while verifying installation");
+					"Errors found while verifying installation " + thisBundle.toString());
 		}
 
 		return state;
