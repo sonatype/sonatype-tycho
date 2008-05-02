@@ -583,4 +583,17 @@ public class OsgiStateController {
             }
         }
 	}
+
+	public ResolverError[] getAllErrors() {
+        BundleDescription[] bundles = state.getBundles();
+        Set errors = new LinkedHashSet();
+        for (int i = 0; i < bundles.length; i++) {
+            BundleDescription bundle = bundles[i];
+            ResolverError[] bundleErrors = state.getResolverErrors(bundle);
+            if (bundleErrors != null ) {
+            	errors.addAll(Arrays.asList(bundleErrors));
+            }
+        }
+        return (ResolverError[]) errors.toArray(new ResolverError[errors.size()]);
+	}
 }

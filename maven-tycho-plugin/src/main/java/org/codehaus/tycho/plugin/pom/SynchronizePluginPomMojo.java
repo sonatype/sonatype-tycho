@@ -92,6 +92,21 @@ public class SynchronizePluginPomMojo extends AbstractMojo {
 			File rootProject = findRootProject(baseDir);
 			collectPluginProjects(state, rootProject);
 			resolveState(state);
+			
+			if (!thisBundle.isResolved()) {
+				ResolverError[] errors = state.getRelevantErrors(thisBundle);
+				if (errors == null || errors.length == 0) {
+					errors = state.getAllErrors();
+				}
+				for (int i = 0; i < errors.length; i++) {
+					ResolverError error = errors[i];
+					getLog().error("Bundle "  + error.getBundle().getSymbolicName() + " - " + error.toString());
+				}
+
+				throw new MojoExecutionException(
+						"Errors found while verifying installation " + thisBundle.toString());
+			}
+
 			BundleDescription[] dependent = OsgiStateController
 					.getDependentBundles(thisBundle);
 

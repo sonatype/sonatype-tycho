@@ -144,14 +144,17 @@ public class OSGiStateHelper {
 
 		state.resolveState();
 		
-		ResolverError[] errors = state.getRelevantErrors(thisBundle);
-		for (int i = 0; i < errors.length; i++) {
-			ResolverError error = errors[i];
-			getLog().error("Bundle "  + error.getBundle().getSymbolicName() + " - " + error.toString());
-		}
-		
-		if (errors.length > 0 && failOnError)
+		if (!thisBundle.isResolved() && failOnError)
 		{
+			ResolverError[] errors = state.getRelevantErrors(thisBundle);
+			if (errors == null || errors.length == 0) {
+				errors = state.getAllErrors();
+			}
+			for (int i = 0; i < errors.length; i++) {
+				ResolverError error = errors[i];
+				getLog().error("Bundle "  + error.getBundle().getSymbolicName() + " - " + error.toString());
+			}
+
 			throw new MojoExecutionException(
 					"Errors found while verifying installation " + thisBundle.toString());
 		}
