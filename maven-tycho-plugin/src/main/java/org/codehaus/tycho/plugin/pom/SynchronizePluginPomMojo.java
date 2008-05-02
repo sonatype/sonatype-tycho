@@ -76,6 +76,10 @@ public class SynchronizePluginPomMojo extends AbstractMojo {
 									JarFile.MANIFEST_NAME).exists());
 				}
 			});
+			if(pluginFiles==null) {
+        throw new MojoExecutionException("Specified targetPlatform location does not have plugins folder");
+			}
+			
 			for (int i = 0; i < pluginFiles.length; i++) {
 				File f = pluginFiles[i];
 				try {
