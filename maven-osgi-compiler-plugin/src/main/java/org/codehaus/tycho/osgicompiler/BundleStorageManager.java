@@ -19,6 +19,7 @@ package org.codehaus.tycho.osgicompiler;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,6 +36,7 @@ import java.util.zip.ZipEntry;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 
 /**
  * This class is responsible for extracting bundles with embedded jars to a
@@ -84,7 +86,7 @@ public class BundleStorageManager {
 	 * @param f
 	 * @return
 	 */
-	public String addBundle(File f) throws MojoExecutionException {
+	public String addBundleFile(File f) throws MojoExecutionException {
 
 		JarFile jarFile = null;
 		try {
@@ -136,7 +138,7 @@ public class BundleStorageManager {
 			}
 		} catch (IOException e) {
 			throw new MojoExecutionException("Error while processing file: "
-					+ f);
+					+ f, e);
 		} finally {
 			if (jarFile != null) {
 				try {
@@ -244,5 +246,81 @@ public class BundleStorageManager {
 		in.close();
 
 		return efile;
+	}
+
+	public String addBundleDirectory(File f) throws MojoExecutionException {
+		try {
+			String canonicalOriginal = f.getCanonicalPath();
+			BundleInfo bundleInfo = getBundleInfoByOriginal(canonicalOriginal);
+	
+			if (bundleInfo != null) {
+				return bundleInfo.extracted;
+			}
+	
+			bundleInfo = new BundleInfo();
+			bundleInfo.original = canonicalOriginal;
+			bundleInfo.extracted = canonicalOriginal;
+	
+			Manifest mft = new Manifest();
+			InputStream is = new FileInputStream(new File(f, "META-INF/MANIFEST.MF"));
+			try {
+				mft.read(is);
+			} finally {
+				is.close();
+			}
+
+			String bundleClassPath = getClassPath(mft);
+	
+			String[] elements = bundleClassPath.trim().split(",");
+			List libs = new ArrayList();
+			for (int i = 0; i < elements.length; i++) {
+				String element = elements[i];
+				element = element.trim();
+				File library = new File(f, element);
+				if (library.exists()) {
+					libs.add(library.getCanonicalPath());
+				}
+			}
+			bundleInfo.libraries = libs;
+			bundleInfos.add(bundleInfo);
+			
+			return canonicalOriginal;
+		} catch (IOException ex) {
+			throw new MojoExecutionException("Error while processing file: "
+					+ f);
+		}
+
+	}
+
+	public File getLibraryFile(BundleDescription desc, String basePath, String libraryName) throws IOException {
+		File base = new File(basePath);
+
+		if (".".equals(libraryName)) {
+			return base;
+		}
+
+		if (base.isDirectory()) {
+			File library = new File(base, libraryName);
+			return library;
+		}
+
+		JarFile jarFile = new JarFile(base);
+		try {
+			File target = new File(storage, desc.getSymbolicName() + "_" + desc.getVersion());
+			return extract(jarFile, libraryName, target);
+		} finally {
+			jarFile.close();
+		}
+
+//		if (base.isFile()) { // &&"jar".equalsIgnoreCase(basePath.getFileExtension())) { //$NON-NLS-1$
+//			path = base.getCanonicalPath();
+//		} else {
+//			if (libraryName.equals(".") && model != theBundle) {
+//				path = epm.getOriginalFile(basePath);
+//			} else {
+//				path = new File(base, libraryName).getCanonicalPath();//basePath.append(libraryName).toString();
+//			}
+//		}
+
 	}
 }

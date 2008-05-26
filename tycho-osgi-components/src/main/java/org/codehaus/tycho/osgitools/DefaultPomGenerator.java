@@ -23,6 +23,9 @@ import org.osgi.framework.Constants;
 public class DefaultPomGenerator extends AbstractLogEnabled implements
 		PomGenerator {
 
+	/** @component */
+	private OsgiState state;
+
 	/**
 	 * 
 	 * @param groupMapper
@@ -37,7 +40,6 @@ public class DefaultPomGenerator extends AbstractLogEnabled implements
 			BundleDescription bundle) {
 		Model pom = new Model();
 		File file = new File(bundle.getLocation());
-		OsgiStateController state = new OsgiStateController(null);
 		BundleFile b = new BundleFile(state.loadManifest(file), file);
 		pom.setModelVersion("4.0.0");
 		pom.setArtifactId(bundle.getSymbolicName());

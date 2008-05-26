@@ -26,6 +26,7 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ResolverError;
 import org.osgi.framework.BundleException;
 
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.OsgiStateController;
 
 /**
@@ -51,8 +52,10 @@ public class ApplicationDependencyVerifierMojo extends AbstractMojo {
 	/** @parameter expression="${project.build.directory}" */
 	private File outputDir;
 
+	/** @component */
+	private OsgiState state;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		OsgiStateController state = new OsgiStateController(outputDir);
 
 		File[] jars = pluginDirectory.listFiles(new FileFilter() {
 			public boolean accept(File pathname) {
@@ -74,20 +77,20 @@ public class ApplicationDependencyVerifierMojo extends AbstractMojo {
 
 		boolean errorsFound = false;
 
-		BundleDescription[] bundles = state.getState().getBundles();
-		for (int i = 0; i < bundles.length; i++) {
-			BundleDescription bundle = bundles[i];
-			ResolverError[] errors = state.getState().getResolverErrors(bundle);
-			if (errors.length > 0) {
-				getLog()
-						.error("Errors for bundle: " + bundle.getSymbolicName());
-				errorsFound = true;
-				for (int j = 0; j < errors.length; j++) {
-					ResolverError error = errors[j];
-					getLog().error(error.toString());
-				}
-			}
-		}
+//		BundleDescription[] bundles = state.getState().getBundles();
+//		for (int i = 0; i < bundles.length; i++) {
+//			BundleDescription bundle = bundles[i];
+//			ResolverError[] errors = state.getState().getResolverErrors(bundle);
+//			if (errors.length > 0) {
+//				getLog()
+//						.error("Errors for bundle: " + bundle.getSymbolicName());
+//				errorsFound = true;
+//				for (int j = 0; j < errors.length; j++) {
+//					ResolverError error = errors[j];
+//					getLog().error(error.toString());
+//				}
+//			}
+//		}
 
 		if (!errorsFound) {
 			getLog().info("Configuration verified: no resolving errors");

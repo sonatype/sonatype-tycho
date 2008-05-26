@@ -30,6 +30,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.osgitools.BundleFile;
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.OsgiStateController;
 
 /**
@@ -83,6 +84,9 @@ public class PackageTestFragmentMojo extends AbstractMojo {
 	/** @parameter expression="${project.build.directory}" */
 	private File outputDir;
 
+	/** @component */
+	private OsgiState state;
+
 	public void execute() throws MojoExecutionException {
 		createPlugin();
 	}
@@ -117,7 +121,6 @@ public class PackageTestFragmentMojo extends AbstractMojo {
 
 	private File createFragmentManifest() throws IOException {
 		File file = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
-		OsgiStateController state = new OsgiStateController(outputDir);
 		BundleFile bundle = new BundleFile(state.loadManifest(file), file);
 		
 		Manifest mft = new Manifest();

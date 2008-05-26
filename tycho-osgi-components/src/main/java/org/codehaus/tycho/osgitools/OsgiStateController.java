@@ -11,6 +11,7 @@
 package org.codehaus.tycho.osgitools;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -21,19 +22,21 @@ import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl_;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.pluginconversion.PluginConverter;
@@ -50,8 +53,13 @@ import org.eclipse.osgi.service.resolver.VersionConstraint;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
-public class OsgiStateController {
+/**
+ * @plexus.component role="org.codehaus.tycho.osgitools.OsgiState"
+ */
+public class OsgiStateController extends AbstractLogEnabled implements OsgiState {
+	
 	// Filter properties
 	public final static String OSGI_WS = "osgi.ws"; //$NON-NLS-1$
 
@@ -67,6 +75,11 @@ public class OsgiStateController {
 
 	public final static String SYSTEM_PACKAGES = "org.osgi.framework.system.packages"; //$NON-NLS-1$
 
+	/** maven project bundle user property */
+	private static final String PROP_MAVEN_PROJECT = "MavenProject";
+
+	private static final String PROP_MANIFEST = "BundleManifest";
+
 	private StateObjectFactory factory = StateObjectFactory.defaultFactory;
 
 	private State state;
@@ -78,6 +91,8 @@ public class OsgiStateController {
 	private Map/* <Long, String> */patchBundles;
 
 	private File outputDir;
+
+	private Properties platformProperties;
 
 	public static BundleDescription[] getDependentBundles(BundleDescription root) {
 		if (root == null)
@@ -113,10 +128,10 @@ public class OsgiStateController {
 		return root.getResolvedRequires();
 	}
 
-	public OsgiStateController(File outputDir) {
+	public OsgiStateController() {
 		bundleClasspaths = new HashMap();
 		patchBundles = new HashMap();
-		state = factory.createState(true);
+
 		if (outputDir != null) {
 			this.outputDir = new File(outputDir, "plugins");
 		} else {
@@ -127,6 +142,35 @@ public class OsgiStateController {
 			}
 		}
 		this.outputDir.mkdirs();
+	}
+
+	private void loadTargetPlatform(File platform) {
+		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
+		
+		File[] bundles = new File(platform, "plugins")
+			.listFiles(new FileFilter() {
+				public boolean accept(File pathname) {
+					return pathname.getName().endsWith(".jar")
+							|| (pathname.isDirectory() && (new File(
+									pathname, JarFile.MANIFEST_NAME)
+									.exists() || new File(pathname,
+									"plugin.xml").exists()));
+				}
+			});
+
+		if (bundles == null) {
+			throw new RuntimeException("No bundles found!");
+		}
+		
+		for (int i = 0; i < bundles.length; i++) {
+			File bundle = bundles[i];
+			try {
+				BundleDescription bd = addBundle(bundle);
+				bd.setUserObject(bundle);
+			} catch (BundleException e) {
+				getLogger().info("Could not add bundle: " + bundle);
+			}
+		}
 	}
 
 	private long getNextId() {
@@ -295,7 +339,7 @@ public class OsgiStateController {
 			patchBundles.put(new Long(descriptor.getBundleId()), patchValue);
 		// rememberQualifierTagPresence(descriptor);
 
-		descriptor.setUserObject(enhancedManifest);
+		setUserProperty(descriptor, PROP_MANIFEST, enhancedManifest);
 
 		state.addBundle(descriptor);
 		return descriptor;
@@ -325,24 +369,9 @@ public class OsgiStateController {
 	}
 
 	public void resolveState() {
-		Hashtable properties = new Hashtable(3);
-		properties.put(OSGI_WS, CatchAllValue.singleton);
-		properties.put(OSGI_OS, CatchAllValue.singleton);
-		properties.put(OSGI_ARCH, CatchAllValue.singleton);
-
-		// Set the JRE profile
-		Properties profileProps = getJavaProfileProperties();
-		if (profileProps != null) {
-			String systemPackages = profileProps.getProperty(SYSTEM_PACKAGES);
-			if (systemPackages != null)
-				properties.put(SYSTEM_PACKAGES, systemPackages);
-			String ee = profileProps
-					.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-			if (ee != null)
-				properties.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee);
+		if (platformProperties != null) {
+			state.setPlatformProperties(platformProperties);
 		}
-
-		state.setPlatformProperties(properties);
 		state.resolve(false);
 	}
 
@@ -501,6 +530,10 @@ public class OsgiStateController {
 		return state;
 	}
 
+	public BundleDescription[] getBundles() {
+		return state.getBundles();
+	}
+
 	public ResolverError[] getResolverErrors(BundleDescription bundle) {
 		return state.getResolverErrors(bundle);
 	}
@@ -596,4 +629,138 @@ public class OsgiStateController {
         }
         return (ResolverError[]) errors.toArray(new ResolverError[errors.size()]);
 	}
+
+	public BundleDescription[] getDependencies(BundleDescription desc) {
+		Set set = new TreeSet();
+		addBundleAndDependencies(desc, set, true);
+		BundleDescription[] dependencies = new BundleDescription[set.size() - 1];
+		int i = 0;
+		for (Iterator it = set.iterator(); it.hasNext(); ) {
+			long bundleId = ((Long)it.next()).longValue();
+			if (desc.getBundleId() != bundleId) {
+				dependencies[i] = state.getBundle(bundleId);
+				i++;
+			}
+		}
+		return dependencies;
+	}
+	
+	// copy&paste from org.eclipse.pde.internal.core.DependencyManager
+	private static void addBundleAndDependencies(BundleDescription desc, Set set, boolean includeOptional) {
+		if (desc != null && set.add(new Long(desc.getBundleId()))) {
+			BundleSpecification[] required = desc.getRequiredBundles();
+			for (int i = 0; i < required.length; i++) {
+				if (includeOptional || !required[i].isOptional())
+					addBundleAndDependencies((BundleDescription) required[i].getSupplier(), set, includeOptional);
+			}
+			ImportPackageSpecification[] importedPkgs = desc.getImportPackages();
+			for (int i = 0; i < importedPkgs.length; i++) {
+				ExportPackageDescription exporter = (ExportPackageDescription) importedPkgs[i].getSupplier();
+				// Continue if the Imported Package is unresolved of the package is optional and don't want optional packages
+				if (exporter == null || (!includeOptional && Constants.RESOLUTION_OPTIONAL.equals(importedPkgs[i].getDirective(Constants.RESOLUTION_DIRECTIVE))))
+					continue;
+				addBundleAndDependencies(exporter.getExporter(), set, includeOptional);
+			}
+			BundleDescription[] fragments = desc.getFragments();
+			for (int i = 0; i < fragments.length; i++) {
+				if (!fragments[i].isResolved())
+					continue;
+				String id = fragments[i].getSymbolicName();
+				if (!"org.eclipse.ui.workbench.compatibility".equals(id)) //$NON-NLS-1$
+					addBundleAndDependencies(fragments[i], set, includeOptional);
+			}
+			HostSpecification host = desc.getHost();
+			if (host != null)
+				addBundleAndDependencies((BundleDescription) host.getSupplier(), set, includeOptional);
+		}
+	}
+
+	public BundleDescription getBundleDescription(MavenProject project) {
+		String location = project.getFile().getParentFile().getAbsolutePath();
+		return state.getBundleByLocation(location);
+	}
+
+	public BundleDescription addBundle(MavenProject project) throws BundleException {
+		File basedir = project.getBasedir();
+		File mf = new File(basedir, "META-INF/MANIFEST.MF");
+		if (mf.canRead()) {
+			BundleDescription desc = addBundle(mf, basedir);
+			setUserProperty(desc, PROP_MAVEN_PROJECT, project);
+			return desc;
+		}
+		return null;
+	}
+
+	private static void setUserProperty(BundleDescription desc, String name, Object value) throws BundleException {
+		Object userObject = desc.getUserObject();
+		
+		if (userObject != null && !(userObject instanceof Map)) {
+			throw new BundleException("Unexpected user object " + desc.toString());
+		}
+	
+		Map props = (Map) userObject;
+		if (props == null) {
+			props = new HashMap();
+			desc.setUserObject(props);
+		}
+		
+		props.put(name, value);
+	}
+
+	private static Object getUserProperty(BundleDescription desc, String name) {
+		Object userObject = desc.getUserObject();
+		if (userObject instanceof Map) {
+			return ((Map) userObject).get(name);
+		}
+		return null;
+	}
+
+	public MavenProject getMavenProject(BundleDescription desc) {
+		return (MavenProject) getUserProperty(desc, PROP_MAVEN_PROJECT);
+	}
+
+	public String getGroupId(BundleDescription desc) {
+		Dictionary mf =  (Dictionary) getUserProperty(desc, PROP_MANIFEST);
+		if (mf != null) {
+			return (String) mf.get(ATTR_GROUP_ID);
+		}
+		return null;
+	}
+
+	public void init(Properties props) {
+		state = factory.createState(true);
+		platformProperties = new Properties();
+
+		File location = new File(props.getProperty("tycho.targetPlatform"));
+		loadTargetPlatform(location);
+
+		platformProperties.put(OSGI_OS, props.getProperty("tycho." + OSGI_OS, "win32"));
+		platformProperties.put(OSGI_WS, props.getProperty("tycho." + OSGI_WS, "win32"));
+		platformProperties.put(OSGI_ARCH, props.getProperty("tycho." + OSGI_ARCH, "x86"));
+		platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
+
+		// Set the JRE profile
+		Properties profileProps = getJavaProfileProperties();
+		if (profileProps != null) {
+			String systemPackages = profileProps.getProperty(SYSTEM_PACKAGES);
+			if (systemPackages != null) {
+				platformProperties.put(SYSTEM_PACKAGES, systemPackages);
+			}
+			String ee = profileProps.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+			if (ee != null) {
+				platformProperties.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee);
+			}
+		}
+	}
+
+	public BundleDescription getBundleDescription(String symbolicName, String version) {
+		try {
+			return state.getBundle(symbolicName, new Version(version));
+		} catch (NumberFormatException e) {
+			return null;
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
 }
+ 

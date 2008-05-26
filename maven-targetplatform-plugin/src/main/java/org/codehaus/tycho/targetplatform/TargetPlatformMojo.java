@@ -187,9 +187,6 @@ public class TargetPlatformMojo extends AbstractMojo {
 		} catch (MojoExecutionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (InvalidDependencyVersionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 

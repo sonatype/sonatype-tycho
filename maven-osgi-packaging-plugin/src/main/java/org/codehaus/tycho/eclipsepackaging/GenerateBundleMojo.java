@@ -45,6 +45,7 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.tycho.osgitools.OsgiState;
 
 import aQute.lib.osgi.Instruction;
 
@@ -286,9 +287,9 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 			}
 		}
 
-		attributes.putValue("MavenArtifact-GroupId", project.getGroupId());
-		attributes.putValue("MavenArtifact-ArtifactId", project.getArtifactId());
-		attributes.putValue("MavenArtifact-BaseVersion", artifact.getBaseVersion());
+		attributes.putValue(OsgiState.ATTR_GROUP_ID, project.getGroupId());
+		attributes.putValue(OsgiState.ATTR_ARTIFACT_ID, project.getArtifactId());
+		attributes.putValue(OsgiState.ATTR_BASE_VERSION, artifact.getBaseVersion());
 		// XXX deal with different plugin packaging
 //		attributes.putValue("MavenArtifact-Type", TYPE_DIRECTORY_PLUGIN);
 //		attributes.putValue("MavenArtifact-Classifier", CLASSIFIER_DIRECTORY_PLUGIN);

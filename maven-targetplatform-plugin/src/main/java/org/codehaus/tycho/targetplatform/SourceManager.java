@@ -1,7 +1,6 @@
 package org.codehaus.tycho.targetplatform;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
@@ -14,7 +13,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.codehaus.tycho.osgitools.OsgiStateController;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
@@ -22,13 +20,10 @@ public class SourceManager {
 
 	private File base;
 
-	private OsgiStateController state;
-
 	private File[] sourceDirs;
 
-	public SourceManager(File base, OsgiStateController state) {
+	public SourceManager(File base) {
 		this.base = base;
-		this.state = state;
 
 		sourceDirs = findSourcePlugins();
 	}

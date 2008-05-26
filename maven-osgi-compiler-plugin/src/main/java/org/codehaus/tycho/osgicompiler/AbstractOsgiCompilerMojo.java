@@ -33,9 +33,8 @@ import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.tycho.osgicompiler.ClasspathComputer3_0.ClasspathElement;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
-import org.codehaus.tycho.osgitools.OsgiStateController;
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.eclipse.osgi.service.resolver.ResolverError;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
@@ -64,6 +63,9 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * @parameter expression="${project}"
 	 */
 	private MavenProject project;
+
+	/** @component */
+	private OsgiState state;
 
 	private List/* <String> */classPathElements = new ArrayList/* <String> */();
 
@@ -94,8 +96,8 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	public List/* <String> */ computeClassPath(File baseDir,
 			List/* <Artifact> */ artifacts) throws MojoExecutionException {
 
-		OSGiStateHelper helper = new OSGiStateHelper(project, getLog(), pluginArtifacts, storage);
-		OsgiStateController state = helper.createOSGiState(artifacts, failOnError);
+		OSGiStateHelper helper = new OSGiStateHelper(state, project, getLog(), pluginArtifacts, storage);
+		helper.createOSGiState(artifacts, failOnError);
 
 		ClasspathComputer3_0 cc = new ClasspathComputer3_0(state, helper.getEPM());
 		BundleDescription thisBundle = helper.getThisBundle();

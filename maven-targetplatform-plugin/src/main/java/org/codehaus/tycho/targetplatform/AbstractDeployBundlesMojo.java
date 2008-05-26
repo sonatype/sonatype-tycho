@@ -1,7 +1,6 @@
 package org.codehaus.tycho.targetplatform;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,11 +35,9 @@ import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.tycho.CLITools;
 import org.codehaus.tycho.TychoException;
 import org.codehaus.tycho.osgitools.GroupMapper;
-import org.codehaus.tycho.osgitools.OsgiStateController;
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.PomGenerator;
 import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.eclipse.osgi.service.resolver.ResolverError;
-import org.osgi.framework.BundleException;
 
 /**
  * Installs or deploys a group of bundles from a a valid Eclipse install to the
@@ -127,8 +124,8 @@ public abstract class AbstractDeployBundlesMojo extends AbstractMojo {
 	/** @parameter expression="${project.remoteArtifactRepositories}" */
 	private List remoteRepositories;
 
-	/** @parameter expression="${project.build.directory}" */
-	private File outputDir;
+	/** @component */
+	OsgiState state;
 
 	private Artifact targetPlatformArtifact;
 
@@ -161,8 +158,6 @@ public abstract class AbstractDeployBundlesMojo extends AbstractMojo {
 				}
 			}
 
-			OsgiStateController state = createOsgiState();
-
 			String filters[] = include.split(",");
 			Pattern[] patterns = new Pattern[filters.length];
 			for (int i = 0; i < patterns.length; i++) {
@@ -170,14 +165,14 @@ public abstract class AbstractDeployBundlesMojo extends AbstractMojo {
 			}
 
 			GroupMapper groupMapper = new GroupMapper(groupList);
-			BundleDescription[] bundles = state.getState().getBundles();
+			BundleDescription[] bundles = state.getBundles();
 			List deployed = filterDeployed(patterns, bundles);
 
-			sourceManager = new SourceManager(baseDir, state);
+			sourceManager = new SourceManager(baseDir);
 
 			for (Iterator iterator = deployed.iterator(); iterator.hasNext();) {
 				BundleDescription bundle = (BundleDescription) iterator.next();
-				if (state.getState().getResolverErrors(bundle).length == 0) {
+				if (bundle.isResolved()) {
 					Model model = pomGenerator.createBundlePom(groupMapper,
 							deployed, versionQualifier, bundle);
 					deploy(bundle, model);
@@ -241,74 +236,6 @@ public abstract class AbstractDeployBundlesMojo extends AbstractMojo {
 			}
 		}
 		return result;
-	}
-
-	private OsgiStateController createOsgiState()
-			throws MojoExecutionException, TychoException {
-		OsgiStateController state = new OsgiStateController(outputDir);
-		File[] bundles = new File(baseDir, "plugins")
-				.listFiles(new FileFilter() {
-					public boolean accept(File pathname) {
-						return pathname.getName().endsWith(".jar")
-								|| (pathname.isDirectory() && (new File(
-										pathname, JarFile.MANIFEST_NAME)
-										.exists() || new File(pathname,
-										"plugin.xml").exists()));
-					}
-				});
-
-		if (bundles == null) {
-			throw new MojoExecutionException("No bundles found!");
-		}
-
-		Set deployed = new HashSet();
-
-		for (int i = 0; i < bundles.length; i++) {
-			File bundle = bundles[i];
-			try {
-				BundleDescription bd = state.addBundle(bundle);
-				bd.setUserObject(bundle);
-				deployed.add(bd.getSymbolicName());
-			} catch (BundleException e) {
-				getLog().info("Could not add bundle: " + bundle);
-			}
-		}
-		Iterator it = sourceArtifacts.iterator();
-		while (it.hasNext()) {
-			Artifact a = (Artifact) it.next();
-			try {
-				BundleDescription bd = state.addBundle(a.getFile());
-				if (!deployed.contains(bd.getSymbolicName())) {
-					bd.setUserObject(a.getFile());
-					deployed.add(bd.getSymbolicName());
-				} else {
-					state.getState().removeBundle(bd);
-					getLog().info(
-							"Duplicate bundles - ignoring in target platform:"
-									+ bd.getSymbolicName());
-				}
-			} catch (BundleException e) {
-				getLog().info("Could not add bundle: " + a.getFile());
-			}
-		}
-
-		state.resolveState();
-
-		BundleDescription[] bds = state.getState().getBundles();
-		for (int i = 0; i < bds.length; i++) {
-			BundleDescription bundle = bds[i];
-			ResolverError[] errors = state.getState().getResolverErrors(bundle);
-			if (errors.length > 0) {
-				getLog()
-						.error("Errors for bundle: " + bundle.getSymbolicName());
-				for (int j = 0; j < errors.length; j++) {
-					ResolverError error = errors[j];
-					getLog().error(error.toString());
-				}
-			}
-		}
-
-		return state;
 	}
 
 	private void deploy(BundleDescription bundle, Model model)

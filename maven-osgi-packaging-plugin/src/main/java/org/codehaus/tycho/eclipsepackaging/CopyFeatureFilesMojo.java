@@ -29,6 +29,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgitools.BundleFile;
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.OsgiStateController;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -82,6 +83,9 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 	/** @parameter expression="${project.build.directory}" */
 	private File outputDir;
 
+	/** @component */
+	private OsgiState state;
+
 	public void execute() throws MojoExecutionException, MojoFailureException
 	{
 		if (!generateFeatureXML)
@@ -106,13 +110,10 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 				try
 				{
 					File bundleLocation = a.getFile();
-					OsgiStateController state = new OsgiStateController(outputDir);
 					BundleFile b = new BundleFile(state.loadManifest(bundleLocation), bundleLocation);
-					String bundleFileName = b.getSymbolicName() + "_"
-							+ b.getVersion() + ".jar";
+					String bundleFileName = b.getSymbolicName() + "_" + b.getVersion() + ".jar";
 					files.add(b);
-					FileUtils.copyFile(bundleLocation, new File(destination,
-							bundleFileName));
+					FileUtils.copyFile(bundleLocation, new File(destination, bundleFileName));
 				}
 				catch (IOException e)
 				{

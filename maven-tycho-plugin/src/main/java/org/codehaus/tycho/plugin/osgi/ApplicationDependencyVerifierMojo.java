@@ -6,7 +6,7 @@ import java.io.FileFilter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.tycho.osgitools.OsgiStateController;
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.ResolverError;
 
 /**
@@ -32,12 +32,11 @@ public class ApplicationDependencyVerifierMojo extends AbstractMojo
 	 */
 	private boolean failOnError;
 
-	/** @parameter expression="${project.build.directory}" */
-	private File outputDir;
+	/** @component */
+	private OsgiState state;
 
 	public void execute() throws MojoExecutionException, MojoFailureException
 	{
-		OsgiStateController state = new OsgiStateController(outputDir);
 
 		File[] jars = install.listFiles(new FileFilter()
 		{
@@ -62,7 +61,7 @@ public class ApplicationDependencyVerifierMojo extends AbstractMojo
 		}
 		state.resolveState();
 
-		ResolverError[] errors = state.getRelevantErrors();
+		ResolverError[] errors = null; //state.getRelevantErrors();
 
 		for (int i = 0; i < errors.length; i++) {
 			ResolverError error = errors[i];

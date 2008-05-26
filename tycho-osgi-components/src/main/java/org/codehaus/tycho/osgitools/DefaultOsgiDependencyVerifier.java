@@ -13,8 +13,10 @@ import org.eclipse.osgi.service.resolver.ResolverError;
 public class DefaultOsgiDependencyVerifier extends AbstractLogEnabled implements
 		OsgiDependencyVerifier {
 
+	/** @component */
+	private OsgiState state;
+
 	public ResolverError[] resolve(File outputDir, File[] bundles) {
-		OsgiStateController state = new OsgiStateController(outputDir);
 		for (int i = 0; i < bundles.length; i++) {
 			File jar = bundles[i];
 			try {
@@ -25,7 +27,7 @@ public class DefaultOsgiDependencyVerifier extends AbstractLogEnabled implements
 		}
 		state.resolveState();
 
-		ResolverError[] errors = state.getRelevantErrors();
+		ResolverError[] errors = null; // state.getRelevantErrors();
 
 		return errors;
 	}

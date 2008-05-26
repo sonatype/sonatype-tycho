@@ -26,13 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.OsgiStateController;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ExportPackageDescription;
 import org.eclipse.osgi.service.resolver.HostSpecification;
 import org.eclipse.osgi.service.resolver.StateHelper;
 import org.eclipse.osgi.util.NLS;
-
-import org.codehaus.tycho.osgitools.OsgiStateController;
 
 public class ClasspathComputer3_0 {
 	public static class ClasspathElement {
@@ -94,11 +95,11 @@ public class ClasspathComputer3_0 {
 	
 	private Map visiblePackages = null;
 	private Map/*<String,ClasspathElement>*/ pathElements = null;
-	private OsgiStateController state;
+	private OsgiState state;
 	private BundleDescription theBundle;
 	private BundleStorageManager epm;
 	
-	public ClasspathComputer3_0(OsgiStateController osgiState, BundleStorageManager epm) {
+	public ClasspathComputer3_0(OsgiState osgiState, BundleStorageManager epm) {
 		this.state = osgiState;
 		this.epm = epm;
 	}
@@ -122,7 +123,10 @@ public class ClasspathComputer3_0 {
 		visiblePackages = getVisiblePackages(model);
 
 		//PREREQUISITE
-		addPrerequisites(model, classpath, pluginChain, addedPlugins);
+		BundleDescription[] dependencies = state.getDependencies(model);
+		for (int i = 0; i < dependencies.length; i++) {
+			addPlugin(dependencies[i], classpath);
+		}
 
 		//SELF
 		addSelf(model,  classpath, pluginChain, addedPlugins);
@@ -170,14 +174,13 @@ public class ClasspathComputer3_0 {
 	 * @
 	 */
 	private void addPlugin(BundleDescription plugin, List classpath)  {
-		boolean allFragments = true;
-		String patchInfo = (String)state.getPatchData().get(new Long(plugin.getBundleId()));
-		if (patchInfo != null && plugin != theBundle) {
-			addFragmentsLibraries(plugin, classpath,false, false);
-			allFragments = false;
-		}
+//		boolean allFragments = true;
+//		String patchInfo = (String)state.getPatchData().get(new Long(plugin.getBundleId()));
+//		if (patchInfo != null && plugin != theBundle) {
+//			addFragmentsLibraries(plugin, classpath,false, false);
+//			allFragments = false;
+//		}
 		addRuntimeLibraries(plugin, classpath);
-		addFragmentsLibraries(plugin, classpath, true, allFragments);
 	}
 
 	/**
@@ -189,7 +192,17 @@ public class ClasspathComputer3_0 {
 	 */
 	private void addRuntimeLibraries(BundleDescription model, List classpath)  {
 		String[] libraries = getClasspathEntries(model);
-		String base = model.getLocation();
+		MavenProject project = state.getMavenProject(model);
+		String base = null;
+		if (project != null && project.getArtifact().getFile() != null) {
+			File file = project.getArtifact().getFile();
+			if (file.isFile() && file.canRead()) {
+				base = file.getAbsolutePath();
+			}
+		} 
+		if (base == null) {
+			base = model.getLocation();
+		}
 
 		for (int i = 0; i < libraries.length; i++) {
 //			addDevEntries(model, baseLocation, classpath, Utils.getArrayFromString(modelProps.getProperty(PROPERTY_OUTPUT_PREFIX + libraries[i])));
@@ -283,16 +296,10 @@ public class ClasspathComputer3_0 {
 		}
 
 		String path = null;
-		File base = new File(basePath);
 		try {
-			if (base.isFile()) { // &&"jar".equalsIgnoreCase(basePath.getFileExtension())) { //$NON-NLS-1$
-				path = base.getCanonicalPath();
-			} else {
-				if (libraryName.equals(".") && model != theBundle) {
-					path = epm.getOriginalFile(basePath);
-				} else {
-					path = new File(base, libraryName).getCanonicalPath();//basePath.append(libraryName).toString();
-				}
+			File libraryFile = epm.getLibraryFile(model, basePath, libraryName);
+			if (libraryFile != null && libraryFile.exists()) {
+				path = libraryFile.getAbsolutePath();
 			}
 		} catch(IOException e ) {
 			

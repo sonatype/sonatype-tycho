@@ -18,17 +18,13 @@ package org.codehaus.tycho.osgicompiler;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.osgitools.OsgiStateController;
+import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.eclipse.osgi.service.resolver.ExportPackageDescription;
 import org.eclipse.osgi.service.resolver.ResolverError;
 
 public class OSGiStateHelper {
@@ -39,6 +35,7 @@ public class OSGiStateHelper {
 	private BundleDescription thisBundle;
 	private File storage;
 	private BundleStorageManager bsm;
+	private OsgiState state;
 
     /**
      * @todo make a plexus component out of this
@@ -48,8 +45,9 @@ public class OSGiStateHelper {
      * @param pluginArtifacts
      * @param storage
      */
-    public OSGiStateHelper(MavenProject project, Log log,
+    public OSGiStateHelper(OsgiState state, MavenProject project, Log log,
 			List/*<Artifact>*/ pluginArtifacts, File storage) {
+    	this.state = state;
 		this.project = project;
 		this.log = log;
 		this.pluginArtifacts = pluginArtifacts;
@@ -60,96 +58,109 @@ public class OSGiStateHelper {
 		return log;
 	}
 
-	/**
-	 * Check if the bundle exports the org.osgi.framework package.
-	 * 
-	 * @param bd
-	 * @return
-	 */
-	private boolean isSystemBundle(BundleDescription bd) {
-		ExportPackageDescription[] exports = bd.getExportPackages();
-		for (int i = 0; i < exports.length; i++) {
-			if ("org.osgi.framework".equals(exports[i].getName())) {
-				return true;
-			}
-		}
-		return false;
-	}
+//	/**
+//	 * Check if the bundle exports the org.osgi.framework package.
+//	 * 
+//	 * @param bd
+//	 * @return
+//	 */
+//	private boolean isSystemBundle(BundleDescription bd) {
+//		ExportPackageDescription[] exports = bd.getExportPackages();
+//		for (int i = 0; i < exports.length; i++) {
+//			if ("org.osgi.framework".equals(exports[i].getName())) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+//
+//	/**
+//	 * TODO resolve this from the repository
+//	 * @return
+//	 * @throws MojoFailureException
+//	 */
+//	private Artifact getOSGIArtifact() throws MojoFailureException {
+//		for (Iterator it = pluginArtifacts.iterator(); it.hasNext(); ) {
+//			Artifact a= (Artifact) it.next();
+//			if (a.getGroupId().equals("org.eclipse.osgi")
+//					&& a.getArtifactId().equals("org.eclipse.osgi")) {
+//				return a;
+//			}
+//		}
+//		throw new MojoFailureException("OSGi bundle not found");
+//	}
 
-	/**
-	 * TODO resolve this from the repository
-	 * @return
-	 * @throws MojoFailureException
-	 */
-	private Artifact getOSGIArtifact() throws MojoFailureException {
-		for (Iterator it = pluginArtifacts.iterator(); it.hasNext(); ) {
-			Artifact a= (Artifact) it.next();
-			if (a.getGroupId().equals("org.eclipse.osgi")
-					&& a.getArtifactId().equals("org.eclipse.osgi")) {
-				return a;
-			}
-		}
-		throw new MojoFailureException("OSGi bundle not found");
-	}
-
-	public OsgiStateController createOSGiState(Collection/*<Artifact>*/ artifacts,
+	public void createOSGiState(Collection/*<Artifact>*/ artifacts,
 			boolean failOnError) throws MojoExecutionException {
-		File baseDirectory = project.getBasedir();
-		File outputDirectory = new File(project.getBuild().getOutputDirectory());
-		File manifest = new File(baseDirectory, "META-INF/MANIFEST.MF");
-		OsgiStateController state = new OsgiStateController(new File(project.getBuild().getDirectory()));
-		try {
-			if (manifest.exists()) {
-				if (!outputDirectory.exists()) {
-					outputDirectory.mkdirs();
-				}
-				getLog().debug("Adding META-INF/MANIFEST.MF");
-				thisBundle = state.addBundle(manifest, baseDirectory);
-			} else {
-
-				File bundle = new File(project.getBuild().getDirectory(),
-						project.getBuild().getFinalName() + ".jar");
-				getLog().debug("Adding " + bundle);
-				thisBundle = state.addBundle(bundle);
-			}
-		} catch (Exception e) {
-			getLog()
-					.warn(
-							"Could not add project as a bundle. Not a plugin project ?");
-			getLog().debug(e);
-		}
-
-		bsm = new BundleStorageManager(storage);
-		boolean systemBundleFound = false;
-		for (Iterator it = artifacts.iterator(); it.hasNext(); ) {
-			Artifact a = (Artifact) it.next();
-			try {
-				String path = bsm.addBundle(a.getFile());
-				BundleDescription bundle = state.addBundle(new File(path));
-				systemBundleFound |= isSystemBundle(bundle);
-				getLog().info("Added artifact to osgi state: " + a.getFile());
-			} catch (Exception e) {
-				getLog().warn("Could not add artifact " + a.getFile());
-				getLog().debug(e);
-			}
-		}
-
-		try {
-			if (!systemBundleFound) {
-				state.addBundle(getOSGIArtifact().getFile());
-			}
-		} catch (Exception e) {
-			throw new MojoExecutionException("Could not find system artifact!", e);
-		}
+//		File baseDirectory = project.getBasedir();
+//		File outputDirectory = new File(project.getBuild().getOutputDirectory());
+//		File manifest = new File(baseDirectory, "META-INF/MANIFEST.MF");
+//		OsgiStateController state = new OsgiStateController(new File(project.getBuild().getDirectory()));
+//		try {
+//			if (manifest.exists()) {
+//				if (!outputDirectory.exists()) {
+//					outputDirectory.mkdirs();
+//				}
+//				getLog().debug("Adding META-INF/MANIFEST.MF");
+//				thisBundle = state.addBundle(manifest, baseDirectory);
+//			} else {
+//
+//				File bundle = new File(project.getBuild().getDirectory(),
+//						project.getBuild().getFinalName() + ".jar");
+//				getLog().debug("Adding " + bundle);
+//				thisBundle = state.addBundle(bundle);
+//			}
+//		} catch (Exception e) {
+//			getLog()
+//					.warn(
+//							"Could not add project as a bundle. Not a plugin project ?");
+//			getLog().debug(e);
+//		}
 
 		state.resolveState();
+		thisBundle = state.getBundleDescription(project);
+		bsm = new BundleStorageManager(storage);
+		BundleDescription[] dependencies = state.getDependencies(thisBundle);
+		for (int i = 0; i < dependencies.length; i++) {
+			File location = new File(dependencies[i].getLocation());
+			if (!location.isDirectory()) {
+				if (!"MANIFEST.MF".equalsIgnoreCase(location.getName())) {
+					bsm.addBundleFile(location);
+				} else {
+					bsm.addBundleDirectory(location.getParentFile().getParentFile());
+				}
+			} else {
+				bsm.addBundleDirectory(location);
+			}
+		}
+
+//		boolean systemBundleFound = false;
+//		for (Iterator it = artifacts.iterator(); it.hasNext(); ) {
+//			Artifact a = (Artifact) it.next();
+//			try {
+//				String path = bsm.addBundle(a.getFile());
+//				BundleDescription bundle = state.addBundle(new File(path));
+//				systemBundleFound |= isSystemBundle(bundle);
+//				getLog().info("Added artifact to osgi state: " + a.getFile());
+//			} catch (Exception e) {
+//				getLog().warn("Could not add artifact " + a.getFile());
+//				getLog().debug(e);
+//			}
+//		}
+//
+//		try {
+//			if (!systemBundleFound) {
+//				state.addBundle(getOSGIArtifact().getFile());
+//			}
+//		} catch (Exception e) {
+//			throw new MojoExecutionException("Could not find system artifact!", e);
+//		}
+//
+//		state.resolveState();
 		
 		if (!thisBundle.isResolved() && failOnError)
 		{
-			ResolverError[] errors = state.getRelevantErrors(thisBundle);
-			if (errors == null || errors.length == 0) {
-				errors = state.getAllErrors();
-			}
+			ResolverError[] errors = state.getResolverErrors(thisBundle);
 			for (int i = 0; i < errors.length; i++) {
 				ResolverError error = errors[i];
 				getLog().error("Bundle "  + error.getBundle().getSymbolicName() + " - " + error.toString());
@@ -158,8 +169,6 @@ public class OSGiStateHelper {
 			throw new MojoExecutionException(
 					"Errors found while verifying installation " + thisBundle.toString());
 		}
-
-		return state;
 	}
 
 	public BundleDescription getThisBundle() {
