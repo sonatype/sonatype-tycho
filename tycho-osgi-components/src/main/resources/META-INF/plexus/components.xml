@@ -161,21 +161,21 @@
 						org.apache.maven.plugins:maven-resources-plugin:resources
 					</process-resources>
 					<compile>
-						org.codehaus.tycho:maven-osgi-compiler-plugin:${project.version}:compile
+						org.codehaus.tycho:maven-osgi-compiler-plugin:compile
 					</compile>
 					<process-test-resources>
 						org.apache.maven.plugins:maven-resources-plugin:testResources
 					</process-test-resources>
 					<test-compile>
-						org.codehaus.tycho:maven-osgi-compiler-plugin:${project.version}:testCompile
+						org.codehaus.tycho:maven-osgi-compiler-plugin:testCompile
 					</test-compile>
 					<test><!-- todo --></test>
 					<package>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
-						org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-test-fragment
+						org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin,
+						org.codehaus.tycho:maven-osgi-packaging-plugin:package-test-fragment
 					</package>
 					<integration-test>
-						org.codehaus.tycho:maven-osgi-test-plugin:${project.version}:test
+						org.codehaus.tycho:maven-osgi-test-plugin:test
 					</integration-test>
 					<install>
 						org.apache.maven.plugins:maven-install-plugin:install
@@ -215,10 +215,10 @@
 			<configuration>
 				<phases>
 					<generate-resources>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:copy-feature-files
+						org.codehaus.tycho:maven-osgi-packaging-plugin:copy-feature-files
 					</generate-resources>
 					<package>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-feature
+						org.codehaus.tycho:maven-osgi-packaging-plugin:package-feature
 					</package>
 					<install>
 						org.apache.maven.plugins:maven-install-plugin:install
@@ -258,7 +258,7 @@
 			<configuration>
 				<phases>
 					<package>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-application
+						org.codehaus.tycho:maven-osgi-packaging-plugin:package-application
 					</package>
 					<install>
 						org.apache.maven.plugins:maven-install-plugin:install
@@ -287,5 +287,49 @@
 				<includesDependencies>true</includesDependencies>
 			</configuration>
 		</component>
+
+
+
+        <component>
+            <role>
+                org.apache.maven.artifact.handler.ArtifactHandler
+            </role>
+            <role-hint>eclipse-update-site</role-hint>
+            <implementation>
+                org.apache.maven.artifact.handler.DefaultArtifactHandler
+            </implementation>
+            <configuration>
+                <classifier></classifier>
+                <extension>jar</extension>
+                <type>eclipse-update-site</type>
+                <packaging>eclipse-update-site</packaging>
+                <language>java</language>
+                <addedToClasspath>false</addedToClasspath>
+                <includesDependencies>false</includesDependencies>
+            </configuration>
+        </component>
+        <component>
+            <role>
+                org.apache.maven.lifecycle.mapping.LifecycleMapping
+            </role>
+            <role-hint>eclipse-update-site</role-hint>
+            <implementation>
+                org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
+            </implementation>
+            <configuration>
+                <phases>
+                    <package>
+                        org.codehaus.tycho:maven-osgi-packaging-plugin:update-site
+                    </package>
+                    <install>
+                        org.apache.maven.plugins:maven-install-plugin:install
+                    </install>
+                    <deploy>
+                        org.apache.maven.plugins:maven-deploy-plugin:deploy
+                    </deploy>
+                </phases>
+            </configuration>
+        </component>
+
 	</components>
 </component-set>

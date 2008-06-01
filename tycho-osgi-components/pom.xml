@@ -18,20 +18,13 @@
     <resources>
       <resource>
         <directory>src/main/resources</directory>
-        <filtering>true</filtering>
+        <excludes>
+          <exclude>META-INF/plexus/components.xml</exclude>
+        </excludes>
       </resource>
     </resources>
 
     <plugins>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <configuration>
-          <outputDirectory>target/crap</outputDirectory>
-        </configuration>
-      </plugin>
-
       <plugin>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-maven-plugin</artifactId>
@@ -47,7 +40,7 @@
               <fileName>generated-components.xml</fileName>
               <descriptors>
                 <descriptor>${project.build.outputDirectory}/generated-components.xml</descriptor>
-                <descriptor>target/crap/META-INF/plexus/components.xml</descriptor>
+                <descriptor>src/main/resources/META-INF/plexus/components.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>

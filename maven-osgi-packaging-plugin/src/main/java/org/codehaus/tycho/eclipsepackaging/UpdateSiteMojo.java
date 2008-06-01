@@ -104,7 +104,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		String artifactId = feature.getAttribute("id").getValue();
 		String version = expandVerstion(feature.getAttribute("version").getValue());
 
-		File basedir = new File("..", artifactId).getAbsoluteFile();
+		File basedir = new File(this.basedir, "../" + artifactId).getAbsoluteFile();
 
 		if (basedir.exists() && new File(basedir, "build.properties").exists()) {
 			Document doc = builder.build(new File(basedir, "feature.xml"));
