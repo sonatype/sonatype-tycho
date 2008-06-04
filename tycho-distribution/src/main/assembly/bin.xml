@@ -27,14 +27,6 @@
         <include>org.eclipse:org.eclipse.osgi</include>
       </includes>
     </dependencySet>
-    <dependencySet>
-      <outputDirectory>tychoplugins</outputDirectory>
-      <includes>
-        <include>org.codehaus.tycho:maven-osgi-compiler-plugin</include>
-        <include>org.codehaus.tycho:maven-osgi-lifecycle-plugin</include>
-        <include>org.codehaus.tycho:maven-osgi-packaging-plugin</include>
-      </includes>
-    </dependencySet>
   </dependencySets>
 
 </assembly>

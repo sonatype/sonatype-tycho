@@ -73,7 +73,7 @@
             <id>create-distro</id>
             <phase>process-sources</phase>
             <goals>
-              <goal>directory-single</goal>
+              <goal>single</goal>
             </goals>
             <configuration>
               <descriptor>src/main/assembly/bin.xml</descriptor>

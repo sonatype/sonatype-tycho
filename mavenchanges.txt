@@ -1,0 +1,3 @@
+Two components
+
+New super pom to lock tycho plugin versions.

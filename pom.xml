@@ -194,8 +194,8 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>sonatype-eclipse</id>
-      <name>sonatype-eclipse</name>
+      <id>forge-snapshots</id>
+      <name>forge-snapshots</name>
       <url>http://repository.sonatype.org:8081/nexus/content/repositories/eclipse-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>

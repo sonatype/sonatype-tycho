@@ -1,0 +1,19 @@
+As of 0.2.0, tycho only needs two eclipse artifacts to successfully compile and run.
+To install these artifacts from local eclipse/pligins directory
+
+mvn install:install-file \
+  -Dfile=org.eclipse.osgi_3.4.0.v20080521-1400.jar \
+  -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.4.0.v20080521-1400 \
+  -Dpackaging=jar -DgeneratePom=true
+
+mvn install:install-file -Dfile=org.eclipse.jdt.core_3.4.0.v_868.jar \
+  -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.4.0.v_868 \
+  -Dpackaging=jar -DgeneratePom=true
+
+
+Note, versions are from Eclipse 3.4RC2.
+
+
+mvn install:install-file -Dfile=org.eclipse.osgi_3.4.0.v20080521-1400.jar -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.4.0.v20080521-1400 -Dpackaging=jar -DgeneratePom=true
+
+mvn install:install-file -Dfile=org.eclipse.jdt.core_3.4.0.v_868.jar  -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.4.0.v_868 -Dpackaging=jar -DgeneratePom=true
