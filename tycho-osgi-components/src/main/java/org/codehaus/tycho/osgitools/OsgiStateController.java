@@ -731,24 +731,27 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		state = factory.createState(true);
 		platformProperties = new Properties();
 
-		File location = new File(props.getProperty("tycho.targetPlatform"));
-		loadTargetPlatform(location);
-
-		platformProperties.put(OSGI_OS, props.getProperty("tycho." + OSGI_OS, "win32"));
-		platformProperties.put(OSGI_WS, props.getProperty("tycho." + OSGI_WS, "win32"));
-		platformProperties.put(OSGI_ARCH, props.getProperty("tycho." + OSGI_ARCH, "x86"));
-		platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
-
-		// Set the JRE profile
-		Properties profileProps = getJavaProfileProperties();
-		if (profileProps != null) {
-			String systemPackages = profileProps.getProperty(SYSTEM_PACKAGES);
-			if (systemPackages != null) {
-				platformProperties.put(SYSTEM_PACKAGES, systemPackages);
-			}
-			String ee = profileProps.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-			if (ee != null) {
-				platformProperties.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee);
+		String property = props.getProperty("tycho.targetPlatform");
+		if (property != null) {
+			File location = new File(property);
+			loadTargetPlatform(location);
+	
+			platformProperties.put(OSGI_OS, props.getProperty("tycho." + OSGI_OS, "win32"));
+			platformProperties.put(OSGI_WS, props.getProperty("tycho." + OSGI_WS, "win32"));
+			platformProperties.put(OSGI_ARCH, props.getProperty("tycho." + OSGI_ARCH, "x86"));
+			platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
+	
+			// Set the JRE profile
+			Properties profileProps = getJavaProfileProperties();
+			if (profileProps != null) {
+				String systemPackages = profileProps.getProperty(SYSTEM_PACKAGES);
+				if (systemPackages != null) {
+					platformProperties.put(SYSTEM_PACKAGES, systemPackages);
+				}
+				String ee = profileProps.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+				if (ee != null) {
+					platformProperties.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee);
+				}
 			}
 		}
 	}
