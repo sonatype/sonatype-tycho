@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.apache.maven.DefaultMaven;
 import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.model.Activation;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Profile;
 import org.apache.maven.project.MavenProject;
@@ -64,16 +65,18 @@ public class EclipseMaven extends DefaultMaven {
 		}
 		return projects;
 	}
-	
+
 	// XXX must be an easier way
 	private Properties getGlobalProperties(MavenExecutionRequest request) {
 		List<String> activeProfiles = request.getActiveProfiles();
 		Map<String, Profile> profiles = request.getProfileManager().getProfilesById();
 
 		Properties props = new Properties();
-		for (String profileName : activeProfiles) {
-			Profile profile = profiles.get(profileName);
-			props.putAll(profile.getProperties());
+		for (Profile profile : profiles.values()) {
+			Activation activation = profile.getActivation();
+			if ((activation != null && activation.isActiveByDefault()) || activeProfiles.contains(profile.getId())) {
+				props.putAll(profile.getProperties());
+			}
 		}
 
 		props.putAll(request.getProperties());

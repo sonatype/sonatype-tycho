@@ -15,5 +15,8 @@ Note, versions are from Eclipse 3.4RC3.
 
 
 mvn install:install-file -Dfile=org.eclipse.osgi_3.4.0.v20080529-1200.jar -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.4.0.v20080529-1200 -Dpackaging=jar -DgeneratePom=true
-
 mvn install:install-file -Dfile=org.eclipse.jdt.core_3.4.0.v_871.jar  -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.4.0.v_871 -Dpackaging=jar -DgeneratePom=true
+
+mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.4.0.v20080529-1200.jar -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.4.0.v20080529-1200 -Dpackaging=jar -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org:8081/nexus/content/repositories/eclipse
+mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.4.0.v_871.jar  -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.4.0.v_871 -Dpackaging=jar -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org:8081/nexus/content/repositories/eclipse
+

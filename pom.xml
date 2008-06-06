@@ -19,7 +19,6 @@
     <module>tycho-compiler-jdt</module>
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
-    <module>tycho-wagon</module>
   </modules>
 
   <properties>

@@ -41,7 +41,7 @@ public class EclipseTargetPlatformWagon extends AbstractWagon implements Context
 
 	public void get(String resourceName, File destination) throws TransferFailedException,	ResourceDoesNotExistException, AuthorizationException {
 		// javax/xml/javax.xml/1.3.4.v2008041723/javax.xml-1.3.4.v2008041723.jar
-		System.err.println(">>> " + resourceName);
+//		System.err.println(">>> " + resourceName);
 		String[] elements = resourceName.split("/");
 		if (resourceName.endsWith(".jar") && elements.length >= 3) {
 			String version = elements[elements.length - 2];
