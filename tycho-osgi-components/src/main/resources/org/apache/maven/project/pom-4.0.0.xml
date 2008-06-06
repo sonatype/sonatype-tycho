@@ -186,6 +186,15 @@ under the License.
 
        </plugins>
      </pluginManagement>
+
+    <extensions>
+      <extension>
+        <groupId>org.codehaus.tycho</groupId>
+        <artifactId>tycho-wagon</artifactId>
+        <version>0.2.0-SNAPSHOT</version>
+      </extension>
+    </extensions>
+
   </build>
 
   <reporting>
