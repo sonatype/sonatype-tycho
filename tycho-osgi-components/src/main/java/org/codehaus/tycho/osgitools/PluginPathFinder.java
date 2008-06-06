@@ -58,7 +58,13 @@ public class PluginPathFinder {
 		for (File site : getSites(targetPlatform)) {
 			File[] plugins = new File(site, "plugins").listFiles();
 			if (plugins != null) {
-				result.addAll(Arrays.asList(plugins));
+				for (File plugin : plugins) {
+					if (plugin.isDirectory() && new File(plugin, "META-INF/MANIFEST.MF").canRead()) {
+						result.add(plugin);
+					} else if (plugin.isFile()) {
+						result.add(plugin);
+					}
+				}
 			}
 		}
 
