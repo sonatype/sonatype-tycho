@@ -36,7 +36,6 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl_;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.pluginconversion.PluginConverter;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -53,6 +52,8 @@ import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+
+import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 
 /**
  * @plexus.component role="org.codehaus.tycho.osgitools.OsgiState"
@@ -130,17 +131,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	public OsgiStateController() {
 		bundleClasspaths = new HashMap();
 		patchBundles = new HashMap();
-
-		if (outputDir != null) {
-			this.outputDir = new File(outputDir, "plugins");
-		} else {
-			try {
-				this.outputDir = new File("TYCHO").getCanonicalFile();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		this.outputDir.mkdirs();
 	}
 
 	private void loadTargetPlatform(File platform) {
@@ -257,7 +247,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	private File convertPluginManifest(File bundleLocation) throws PluginConversionException {
-		PluginConverter converter = new PluginConverterImpl_(null, null);
+		PluginConverterImpl converter = new PluginConverterImpl(null, null);
 		String name = bundleLocation.getName();
 		if (name.endsWith(".jar")) {
 			name = name.substring(0, name.length() - 4);
@@ -720,12 +710,29 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return null;
 	}
 
-	public void init(Properties props) {
+	public void init(File workspace, Properties props) {
 		state = factory.createState(true);
 		platformProperties = new Properties();
 
 		String property = props.getProperty("tycho.targetPlatform");
 		if (property != null) {
+			if (workspace != null) {
+				try {
+					this.outputDir = new File(workspace, "TYCHO").getCanonicalFile();
+				} catch (IOException e) {
+					// hmmm
+				}
+			}
+			if (this.outputDir == null) {
+				try {
+					this.outputDir = File.createTempFile("TYCHO", null);
+				} catch (IOException e) {
+					// double hmmm
+					throw new RuntimeException(e);
+				}
+			}
+			this.outputDir.mkdirs();
+			
 			File location = new File(property);
 			loadTargetPlatform(location);
 	

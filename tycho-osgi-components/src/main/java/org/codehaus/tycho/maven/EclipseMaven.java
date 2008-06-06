@@ -1,5 +1,6 @@
 package org.codehaus.tycho.maven;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,10 +22,16 @@ public class EclipseMaven extends DefaultMaven {
 
 	@Override
 	protected List getProjects(MavenExecutionRequest request) throws MavenExecutionException {
-		List projects = super.getProjects(request);
+		List<MavenProject> projects = super.getProjects(request);
+
+		File workspace = null;
+		if (projects.size() > 0) {
+			MavenProject parent = projects.get(0);
+			workspace = new File(parent.getBuild().getDirectory());
+		}
 
 		Properties props = getGlobalProperties(request);
-		state.init(props);
+		state.init(workspace, props);
 
 		for (Iterator it = projects.iterator(); it.hasNext(); ) {
 			MavenProject project = (MavenProject) it.next();

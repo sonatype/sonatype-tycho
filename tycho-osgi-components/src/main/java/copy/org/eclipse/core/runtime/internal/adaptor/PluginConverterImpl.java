@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.core.runtime.internal.adaptor;
+package copy.org.eclipse.core.runtime.internal.adaptor;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -37,6 +37,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.eclipse.core.runtime.adaptor.LocationManager;
+import org.eclipse.core.runtime.internal.adaptor.EclipseAdaptorMsg;
+import org.eclipse.core.runtime.internal.adaptor.IModel;
+import org.eclipse.core.runtime.internal.adaptor.IPluginInfo;
 import org.eclipse.osgi.framework.adaptor.FrameworkAdaptor;
 import org.eclipse.osgi.framework.internal.core.Constants;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
@@ -54,7 +57,7 @@ import org.osgi.framework.Version;
 /**
  * Internal class.
  */
-public class PluginConverterImpl_ implements PluginConverter {
+public class PluginConverterImpl implements PluginConverter {
 	public static boolean DEBUG = false;
 	/** bundle manifest type unknown */
 	static public final byte MANIFEST_TYPE_UNKNOWN = 0x00;
@@ -85,7 +88,7 @@ public class PluginConverterImpl_ implements PluginConverter {
 	static final Version TARGET32 = new Version(3, 2, 0);
 	private static final String MANIFEST_VERSION = "Manifest-Version"; //$NON-NLS-1$
 	private static final String PLUGIN_PROPERTIES_FILENAME = "plugin"; //$NON-NLS-1$
-	private static PluginConverterImpl_ instance;
+	private static PluginConverterImpl instance;
 	private static final String[] ARCH_LIST = {org.eclipse.osgi.service.environment.Constants.ARCH_PA_RISC, org.eclipse.osgi.service.environment.Constants.ARCH_PPC, org.eclipse.osgi.service.environment.Constants.ARCH_SPARC, org.eclipse.osgi.service.environment.Constants.ARCH_X86, org.eclipse.osgi.service.environment.Constants.ARCH_AMD64, org.eclipse.osgi.service.environment.Constants.ARCH_IA64};
 	static public final String FRAGMENT_MANIFEST = "fragment.xml"; //$NON-NLS-1$
 	static public final String GENERATED_FROM = "Generated-from"; //$NON-NLS-1$
@@ -99,11 +102,11 @@ public class PluginConverterImpl_ implements PluginConverter {
 	private static final String[] WS_LIST = {org.eclipse.osgi.service.environment.Constants.WS_CARBON, org.eclipse.osgi.service.environment.Constants.WS_GTK, org.eclipse.osgi.service.environment.Constants.WS_MOTIF, org.eclipse.osgi.service.environment.Constants.WS_PHOTON, org.eclipse.osgi.service.environment.Constants.WS_WIN32};
 	private static final String IGNORE_DOT = "@ignoredot@"; //$NON-NLS-1$
 
-	public static PluginConverterImpl_ getDefault() {
+	public static PluginConverterImpl getDefault() {
 		return instance;
 	}
 
-	public PluginConverterImpl_(FrameworkAdaptor adaptor, BundleContext context) {
+	public PluginConverterImpl(FrameworkAdaptor adaptor, BundleContext context) {
 //		this.context = context;
 //		this.adaptor = adaptor;
 		instance = this;
@@ -319,7 +322,7 @@ public class PluginConverterImpl_ implements PluginConverter {
 	private boolean requireRuntimeCompatibility() {
 		ArrayList requireList = pluginInfo.getRequires();
 		for (Iterator iter = requireList.iterator(); iter.hasNext();) {
-			if (((PluginParser_.Prerequisite) iter.next()).getName().equalsIgnoreCase(PI_RUNTIME_COMPATIBILITY))
+			if (((PluginParser.Prerequisite) iter.next()).getName().equalsIgnoreCase(PI_RUNTIME_COMPATIBILITY))
 				return true;
 		}
 		return false;
@@ -398,7 +401,7 @@ public class PluginConverterImpl_ implements PluginConverter {
 			return;
 		StringBuffer bundleRequire = new StringBuffer();
 		for (Iterator iter = requiredBundles.iterator(); iter.hasNext();) {
-			PluginParser_.Prerequisite element = (PluginParser_.Prerequisite) iter.next();
+			PluginParser.Prerequisite element = (PluginParser.Prerequisite) iter.next();
 			StringBuffer modImport = new StringBuffer(element.getName());
 			String versionRange = getVersionRange(element.getVersion(), element.getMatch());
 			if (versionRange != null)
@@ -608,7 +611,7 @@ public class PluginConverterImpl_ implements PluginConverter {
 		InputStream input = null;
 		try {
 			input = new BufferedInputStream(pluginLocation.openStream());
-			return new PluginParser_(null, null, target).parsePlugin(input);
+			return new PluginParser(null, null, target).parsePlugin(input);
 		} catch (Exception e) {
 			String message = NLS.bind(EclipseAdaptorMsg.ECLIPSE_CONVERTER_ERROR_PARSING_PLUGIN_MANIFEST, pluginManifestLocation);
 			throw new PluginConversionException(message, e);
@@ -649,7 +652,7 @@ public class PluginConverterImpl_ implements PluginConverter {
 		secondLine = secondLine.substring(tag.length());
 		ManifestElement generatedFrom;
 		try {
-			generatedFrom = ManifestElement.parseHeader(PluginConverterImpl_.GENERATED_FROM, secondLine)[0];
+			generatedFrom = ManifestElement.parseHeader(PluginConverterImpl.GENERATED_FROM, secondLine)[0];
 		} catch (BundleException be) {
 			return false;
 		}

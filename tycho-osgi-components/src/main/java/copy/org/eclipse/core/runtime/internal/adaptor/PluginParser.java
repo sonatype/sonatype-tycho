@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.core.runtime.internal.adaptor;
+package copy.org.eclipse.core.runtime.internal.adaptor;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,6 +21,9 @@ import java.util.Vector;
 
 import javax.xml.parsers.SAXParserFactory;
 
+import org.eclipse.core.runtime.internal.adaptor.EclipseAdaptorMsg;
+import org.eclipse.core.runtime.internal.adaptor.IModel;
+import org.eclipse.core.runtime.internal.adaptor.IPluginInfo;
 import org.eclipse.osgi.framework.adaptor.FrameworkAdaptor;
 import org.eclipse.osgi.framework.log.FrameworkLogEntry;
 import org.eclipse.osgi.util.NLS;
@@ -36,7 +39,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * Internal class.
  */
-public class PluginParser_ extends DefaultHandler implements IModel {
+public class PluginParser extends DefaultHandler implements IModel {
 	private static ServiceTracker xmlTracker = null;
 
 	private PluginInfo manifestInfo = new PluginInfo();
@@ -90,8 +93,8 @@ public class PluginParser_ extends DefaultHandler implements IModel {
 				requiresExpanded = true;
 				if (requires == null) {
 					requires = new ArrayList(1);
-					requires.add(new Prerequisite(PluginConverterImpl_.PI_RUNTIME, TARGET21_STRING, false, false, IModel.PLUGIN_REQUIRES_MATCH_GREATER_OR_EQUAL));
-					requires.add(new Prerequisite(PluginConverterImpl_.PI_RUNTIME_COMPATIBILITY, null, false, false, null));
+					requires.add(new Prerequisite(PluginConverterImpl.PI_RUNTIME, TARGET21_STRING, false, false, IModel.PLUGIN_REQUIRES_MATCH_GREATER_OR_EQUAL));
+					requires.add(new Prerequisite(PluginConverterImpl.PI_RUNTIME_COMPATIBILITY, null, false, false, null));
 				} else {
 					//Add elements on the requirement list of ui and help.
 					for (int i = 0; i < requires.size(); i++) {
@@ -104,18 +107,18 @@ public class PluginParser_ extends DefaultHandler implements IModel {
 							requires.add(i + 1, new Prerequisite("org.eclipse.ui.ide", null, true, analyzed.isExported(), null)); //$NON-NLS-1$ 
 						} else if ("org.eclipse.help".equals(analyzed.getName())) { //$NON-NLS-1$ 
 							requires.add(i + 1, new Prerequisite("org.eclipse.help.base", null, true, analyzed.isExported(), null)); //$NON-NLS-1$ 
-						} else if (PluginConverterImpl_.PI_RUNTIME.equals(analyzed.getName()) && !compatibilityFound) {
-							requires.add(i + 1, new Prerequisite(PluginConverterImpl_.PI_RUNTIME_COMPATIBILITY, null, false, analyzed.isExported(), null));
+						} else if (PluginConverterImpl.PI_RUNTIME.equals(analyzed.getName()) && !compatibilityFound) {
+							requires.add(i + 1, new Prerequisite(PluginConverterImpl.PI_RUNTIME_COMPATIBILITY, null, false, analyzed.isExported(), null));
 						}
 					}
-					if (!requires.contains(new Prerequisite(PluginConverterImpl_.PI_RUNTIME_COMPATIBILITY, null, false, false, null))) {
-						requires.add(new Prerequisite(PluginConverterImpl_.PI_RUNTIME_COMPATIBILITY, null, false, false, null));
+					if (!requires.contains(new Prerequisite(PluginConverterImpl.PI_RUNTIME_COMPATIBILITY, null, false, false, null))) {
+						requires.add(new Prerequisite(PluginConverterImpl.PI_RUNTIME_COMPATIBILITY, null, false, false, null));
 					}
 					//Remove any prereq on runtime and add a prereq on runtime 2.1
 					//This is used to recognize the version for which the given plugin was initially targeted.
-					Prerequisite runtimePrereq = new Prerequisite(PluginConverterImpl_.PI_RUNTIME, null, false, false, null);
+					Prerequisite runtimePrereq = new Prerequisite(PluginConverterImpl.PI_RUNTIME, null, false, false, null);
 					requires.remove(runtimePrereq);
-					requires.add(new Prerequisite(PluginConverterImpl_.PI_RUNTIME, TARGET21_STRING, false, false, IModel.PLUGIN_REQUIRES_MATCH_GREATER_OR_EQUAL));
+					requires.add(new Prerequisite(PluginConverterImpl.PI_RUNTIME, TARGET21_STRING, false, false, IModel.PLUGIN_REQUIRES_MATCH_GREATER_OR_EQUAL));
 				}
 			}
 			if (requires == null)
@@ -217,7 +220,7 @@ public class PluginParser_ extends DefaultHandler implements IModel {
 	private static final int PLUGIN_REQUIRES_IMPORT_STATE = 9;
 	private static final int FRAGMENT_STATE = 11;
 
-	public PluginParser_(FrameworkAdaptor adaptor, BundleContext context, Version target) {
+	public PluginParser(FrameworkAdaptor adaptor, BundleContext context, Version target) {
 		super();
 //		this.context = context;
 //		this.adaptor = adaptor;
@@ -608,9 +611,9 @@ public class PluginParser_ extends DefaultHandler implements IModel {
 		String plugin = attributes.getValue("", PLUGIN_REQUIRES_PLUGIN); //$NON-NLS-1$ 
 		if (plugin == null)
 			return;
-		if (plugin.equals(PluginConverterImpl_.PI_BOOT)) 
+		if (plugin.equals(PluginConverterImpl.PI_BOOT)) 
 			return;
-		if (plugin.equals(PluginConverterImpl_.PI_RUNTIME_COMPATIBILITY))
+		if (plugin.equals(PluginConverterImpl.PI_RUNTIME_COMPATIBILITY))
 			manifestInfo.compatibilityFound = true;
 		String version = attributes.getValue("", PLUGIN_REQUIRES_PLUGIN_VERSION); //$NON-NLS-1$ 
 		String optional = attributes.getValue("", PLUGIN_REQUIRES_OPTIONAL); //$NON-NLS-1$ 
