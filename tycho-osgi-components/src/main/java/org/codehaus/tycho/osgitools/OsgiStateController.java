@@ -11,7 +11,6 @@
 package org.codehaus.tycho.osgitools;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -146,24 +145,18 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private void loadTargetPlatform(File platform) {
 		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
-		
-		File[] bundles = new File(platform, "plugins")
-			.listFiles(new FileFilter() {
-				public boolean accept(File pathname) {
-					return pathname.getName().endsWith(".jar")
-							|| (pathname.isDirectory() && (new File(
-									pathname, JarFile.MANIFEST_NAME)
-									.exists() || new File(pathname,
-									"plugin.xml").exists()));
-				}
-			});
 
-		if (bundles == null) {
+		PluginPathFinder finder = new PluginPathFinder();
+
+		List<File> bundles = finder.getPlugins(platform);
+
+		if (bundles == null || bundles.size() == 0) {
 			throw new RuntimeException("No bundles found!");
 		}
-		
-		for (int i = 0; i < bundles.length; i++) {
-			File bundle = bundles[i];
+
+		getLogger().info("Found " + bundles.size() + " bundles");
+
+		for (File bundle : bundles) {
 			try {
 				BundleDescription bd = addBundle(bundle);
 				bd.setUserObject(bundle);

@@ -74,17 +74,12 @@
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
-        <version>3.2.1.R32x_v20060919</version>
+        <version>3.4.0.v20080529-1200</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.jdt.core</artifactId>
-        <version>3.2.1.v_677_R32x</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse</groupId>
-        <artifactId>org.eclipse.core.runtime</artifactId>
-        <version>3.2.0.v20060603</version>
+        <version>3.4.0.v_871</version>
       </dependency>
 
       <dependency>
@@ -243,19 +238,4 @@
     </pluginRepository>
   </pluginRepositories>
 
-  <profiles>
-    <profile>
-      <id>not-bootstrap</id>
-      <activation>
-        <property>
-          <name>bootstrap</name>
-          <value>false</value>
-        </property>
-      </activation>
-      <modules>
-        <module>org.codehaus.tycho.junit4.runner</module>
-        <module>maven-osgi-test-plugin</module>
-      </modules>
-    </profile>
-  </profiles>
 </project>
