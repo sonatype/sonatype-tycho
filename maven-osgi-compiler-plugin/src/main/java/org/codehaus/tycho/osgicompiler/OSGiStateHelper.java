@@ -160,14 +160,17 @@ public class OSGiStateHelper {
 		
 		if (!thisBundle.isResolved() && failOnError)
 		{
+			StringBuffer msg = new StringBuffer();
+			msg.append("Bundle ").append(thisBundle.getSymbolicName()).append(" cannot be resolved\n");
+			msg.append("Resolution errors:\n");
 			ResolverError[] errors = state.getResolverErrors(thisBundle);
 			for (int i = 0; i < errors.length; i++) {
 				ResolverError error = errors[i];
-				getLog().error("Bundle "  + error.getBundle().getSymbolicName() + " - " + error.toString());
+				msg.append("   Bundle ").append(error.getBundle().getSymbolicName())
+						.append(" - ").append(error.toString()).append("\n");
 			}
 
-			throw new MojoExecutionException(
-					"Errors found while verifying installation " + thisBundle.toString());
+			throw new MojoExecutionException(msg.toString());
 		}
 	}
 
