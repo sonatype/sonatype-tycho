@@ -46,15 +46,7 @@ public class TychoTest extends PlexusTestCase {
 	public void testModuleOrder() throws Exception {
 		File pom = new File("src/test/resources/projects/moduleorder/pom.xml");
 
-        Properties props = System.getProperties();
-        ProfileActivationContext ctx = new DefaultProfileActivationContext( props, false );
-
-        MavenExecutionRequest request = new DefaultMavenExecutionRequest();
-		request.setBaseDirectory(pom.getParentFile());
-		request.setPom(pom);
-		request.setProfileManager(new DefaultProfileManager( getContainer(), ctx ));
-		request.setProperties(props);
-		request.setUserProperties(props);
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
 
 		MavenExecutionResult result = new DefaultMavenExecutionResult();
 
@@ -67,5 +59,30 @@ public class TychoTest extends PlexusTestCase {
 
 		assertEquals("moduleorder.p001", p001.getArtifactId());
 		assertEquals("moduleorder.p002", p002.getArtifactId());
+	}
+
+	private MavenExecutionRequest newMavenExecutionRequest(File pom) {
+		Properties props = System.getProperties();
+        ProfileActivationContext ctx = new DefaultProfileActivationContext( props, false );
+
+        MavenExecutionRequest request = new DefaultMavenExecutionRequest();
+		request.setBaseDirectory(pom.getParentFile());
+		request.setPom(pom);
+		request.setProfileManager(new DefaultProfileManager( getContainer(), ctx ));
+		request.setProperties(props);
+		request.setUserProperties(props);
+		return request;
+	}
+
+	public void testResolutionError() throws Exception {
+		File pom = new File("src/test/resources/projects/resolutionerror/p001/pom.xml");
+
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+
+		maven.createReactorManager(request, result);
+
+		assertEquals(1, result.getExceptions().size());
 	}
 }

@@ -47,4 +47,6 @@ public interface OsgiState {
 	BundleDescription getBundleDescription(String symbolicName, String version);
 
 	String getGroupId(BundleDescription desc);
+
+	void assertResolved(BundleDescription desc) throws BundleException;
 }

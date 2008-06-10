@@ -34,6 +34,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
@@ -763,6 +764,23 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			return null;
 		} catch (IllegalArgumentException e) {
 			return null;
+		}
+	}
+
+	public void assertResolved(BundleDescription desc) throws BundleException {
+		if (!desc.isResolved())
+		{
+			StringBuffer msg = new StringBuffer();
+			msg.append("Bundle ").append(desc.getSymbolicName()).append(" cannot be resolved\n");
+			msg.append("Resolution errors:\n");
+			ResolverError[] errors = getResolverErrors(desc);
+			for (int i = 0; i < errors.length; i++) {
+				ResolverError error = errors[i];
+				msg.append("   Bundle ").append(error.getBundle().getSymbolicName())
+						.append(" - ").append(error.toString()).append("\n");
+			}
+
+			throw new BundleException(msg.toString());
 		}
 	}
 }

@@ -52,6 +52,12 @@ public class EclipseMaven extends DefaultMaven {
 				continue;
 			}
 
+			try {
+				state.assertResolved(bundleDescription);
+			} catch (BundleException e) {
+				throw new MavenExecutionException(e.getMessage(), project.getFile());
+			}
+
 			BundleDescription[] requiredBundles = state.getDependencies(bundleDescription);
 			for (int i = 0; i < requiredBundles.length; i++) {
 				Dependency dependency = new Dependency();
