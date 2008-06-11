@@ -32,7 +32,6 @@ public class OSGiStateHelper {
 	private MavenProject project;
 	private Log log;
 	private List/*<Artifact>*/ pluginArtifacts;
-	private BundleDescription thisBundle;
 	private File storage;
 	private BundleStorageManager bsm;
 	private OsgiState state;
@@ -118,6 +117,7 @@ public class OSGiStateHelper {
 //		}
 
 		state.resolveState();
+		BundleDescription thisBundle = state.getBundleDescription(project);
 
 		try {
 			state.assertResolved(thisBundle);
@@ -125,7 +125,6 @@ public class OSGiStateHelper {
 			throw new MojoExecutionException("Cannot resolve bundle " + thisBundle.toString(), e);
 		}
 
-		thisBundle = state.getBundleDescription(project);
 		bsm = new BundleStorageManager(storage);
 		BundleDescription[] dependencies = state.getDependencies(thisBundle);
 		for (int i = 0; i < dependencies.length; i++) {
@@ -167,7 +166,7 @@ public class OSGiStateHelper {
 	}
 
 	public BundleDescription getThisBundle() {
-		return thisBundle;
+		return state.getBundleDescription(project);
 	}
 
 	public BundleStorageManager getEPM() {

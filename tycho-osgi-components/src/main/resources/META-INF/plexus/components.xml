@@ -151,7 +151,7 @@
 			<role>
 				org.apache.maven.lifecycle.mapping.LifecycleMapping
 			</role>
-			<role-hint>osgi-bundle</role-hint>
+			<role-hint>eclipse-plugin</role-hint>
 			<implementation>
 				org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
 			</implementation>
@@ -190,7 +190,7 @@
 			<role>
 				org.apache.maven.artifact.handler.ArtifactHandler
 			</role>
-			<role-hint>osgi-bundle</role-hint>
+			<role-hint>eclipse-plugin</role-hint>
 			<implementation>
 				org.apache.maven.artifact.handler.DefaultArtifactHandler
 			</implementation>
