@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.plexus.PlexusTestCase;
-import org.codehaus.tycho.osgitools.PluginPathFinder;
+import org.codehaus.tycho.osgitools.EclipsePluginPathFinder;
 
 public class PluginPathFinderTest extends PlexusTestCase {
 
 	public void testTargetPlatform() throws Exception {
-		PluginPathFinder finder = new PluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
 		List<File> sites = new ArrayList<File>(finder.getSites(targetPlatform));
@@ -22,7 +22,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testPlugins33() throws Exception {
-		PluginPathFinder finder = new PluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
 		List<File> plugins = new ArrayList<File>(finder.getPlugins(targetPlatform));
@@ -33,7 +33,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testPlugins34() throws Exception {
-		PluginPathFinder finder = new PluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
 		List<File> plugins = new ArrayList<File>(finder.getPlugins(targetPlatform));
@@ -46,7 +46,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSites34() throws Exception {
-		PluginPathFinder finder = new PluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
 		List<File> sites = new ArrayList<File>(finder.getSites(targetPlatform));

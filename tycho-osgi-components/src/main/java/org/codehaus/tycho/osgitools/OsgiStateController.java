@@ -36,6 +36,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -135,7 +136,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private void loadTargetPlatform(File platform) {
 		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
 
-		PluginPathFinder finder = new PluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
 
 		Set<File> bundles = finder.getPlugins(platform);
 
@@ -731,15 +732,15 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 				}
 			}
 			this.outputDir.mkdirs();
-			
+
 			File location = new File(property);
 			loadTargetPlatform(location);
-	
-			platformProperties.put(OSGI_OS, props.getProperty("tycho." + OSGI_OS, "win32"));
-			platformProperties.put(OSGI_WS, props.getProperty("tycho." + OSGI_WS, "win32"));
-			platformProperties.put(OSGI_ARCH, props.getProperty("tycho." + OSGI_ARCH, "x86"));
-			platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
-	
+
+			platformProperties.put(OSGI_OS, PlatformPropertiesUtils.getOS(props));
+			platformProperties.put(OSGI_WS, PlatformPropertiesUtils.getWS(props));
+			platformProperties.put(OSGI_ARCH, PlatformPropertiesUtils.getArch(props));
+//			platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
+
 			// Set the JRE profile
 			Properties profileProps = getJavaProfileProperties();
 			if (profileProps != null) {

@@ -19,6 +19,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 
 /**
+ * Finds bundles in Eclipse installation. 
  * 
  * See http://wiki.eclipse.org/Equinox_p2_Getting_Started
  * See http://mea-bloga.blogspot.com/2008/04/new-target-platform-preference.html
@@ -26,7 +27,7 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
  * @author igor
  *
  */
-public class PluginPathFinder {
+public class EclipsePluginPathFinder {
 
 	public List<File> getFeatures(File targetPlatform) {
 		List<File> result = new ArrayList<File>();
