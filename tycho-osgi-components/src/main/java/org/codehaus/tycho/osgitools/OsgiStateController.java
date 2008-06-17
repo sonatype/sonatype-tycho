@@ -137,7 +137,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 		PluginPathFinder finder = new PluginPathFinder();
 
-		List<File> bundles = finder.getPlugins(platform);
+		Set<File> bundles = finder.getPlugins(platform);
 
 		if (bundles == null || bundles.size() == 0) {
 			throw new RuntimeException("No bundles found!");

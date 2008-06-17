@@ -8,8 +8,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.codehaus.plexus.util.xml.XmlStreamReader;
@@ -19,6 +21,7 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 /**
  * 
  * See http://wiki.eclipse.org/Equinox_p2_Getting_Started
+ * See http://mea-bloga.blogspot.com/2008/04/new-target-platform-preference.html
  * 
  * @author igor
  *
@@ -38,41 +41,44 @@ public class PluginPathFinder {
 		return result;
 	}
 
-	public List<File> getPlugins(File targetPlatform) {
+	public Set<File> getPlugins(File targetPlatform) {
 
-		List<File> result = null;
+		Set<File> result = null;
 
-		try {
-			result = readBundlesTxt(targetPlatform);
-		} catch (IOException e) {
-			// oops
-		}
-		
-		if (result != null) {
-			return result;
-		}
-		
-		result = new ArrayList<File>();
+//		try {
+//			result = new LinkedHashSet<File>(readBundlesTxt(targetPlatform));
+//		} catch (IOException e) {
+//			// oops
+//		}
+//
+//		if (result != null) {
+//			return result;
+//		}
 
-		// configuration/org.eclipse.update/platform.xml
+		result = new LinkedHashSet<File>();
+
 		for (File site : getSites(targetPlatform)) {
-			File[] plugins = new File(site, "plugins").listFiles();
-			if (plugins != null) {
-				for (File plugin : plugins) {
-					if (plugin.isDirectory() && new File(plugin, "META-INF/MANIFEST.MF").canRead()) {
-						result.add(plugin);
-					} else if (plugin.isFile()) {
-						result.add(plugin);
-					}
-				}
-			}
+			addPlugins(result, new File(site, "plugins").listFiles());
 		}
+		addPlugins(result, new File(targetPlatform, "dropins").listFiles());
 
 		return result;
 	}
 
-	public List<File> getSites(File targetPlatform) {
-		ArrayList<File> result = new ArrayList<File>();
+	private void addPlugins(Set<File> result, File[] plugins) {
+		if (plugins != null) {
+			for (File plugin : plugins) {
+				if (plugin.isDirectory() && new File(plugin, "META-INF/MANIFEST.MF").canRead()) {
+					result.add(plugin);
+				} else if (plugin.isFile() && plugin.getName().endsWith(".jar")) {
+					result.add(plugin);
+				}
+			}
+		}
+	}
+
+	public Set<File> getSites(File targetPlatform) {
+		Set<File> result = new LinkedHashSet<File>();
 		File platform = new File(targetPlatform, "configuration/org.eclipse.update/platform.xml");
 		if (platform.canRead()) {
 			try {
@@ -98,7 +104,33 @@ public class PluginPathFinder {
 			}
 		}
 
-		File[] links = new File(targetPlatform, "links").listFiles();
+		addLinks(result, targetPlatform, new File(targetPlatform, "links"));
+
+		// deal with dropins folder
+		File dropins = new File(targetPlatform, "dropins");
+
+		File[] dropinsFiles = dropins.listFiles();
+		if (dropinsFiles != null) {
+			for (File dropinsFile : dropinsFiles) {
+				File plugins = new File(dropinsFile, "plugins");
+				if (plugins.isDirectory()) {
+					result.add(plugins.getParentFile());
+					continue;
+				}
+				plugins = new File(dropinsFile, "eclipse/plugins");
+				if (plugins.isDirectory()) {
+					result.add(plugins.getParentFile());
+				}
+			}
+		}
+
+		addLinks(result, targetPlatform, dropins);
+
+		return result;
+	}
+
+	private void addLinks(Set<File> result, File targetPlatform, File linksFolder) {
+		File[] links = linksFolder.listFiles();
 		if (links != null) { 
 			for (File link : links) {
 				if (link.isFile() && link.canRead() && link.getName().endsWith(".link")) {
@@ -112,7 +144,13 @@ public class PluginPathFinder {
 						}
 						String path = props.getProperty("path");
 						if (path != null && path.length() > 0) {
-							File dir = new File(path);
+							File dir;
+							if (path.startsWith(".")) {
+								dir = new File(targetPlatform, path);
+							} else {
+								dir = new File(path);
+							}
+							dir = dir.getCanonicalFile();
 							if (dir.isDirectory()) {
 								result.add(dir);
 							}
@@ -123,7 +161,6 @@ public class PluginPathFinder {
 				}
 			}
 		}
-		return result;
 	}
 
 	private static final String PLATFORM_BASE_PREFIX = "platform:/base/";
