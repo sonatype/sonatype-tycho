@@ -163,6 +163,11 @@
         <artifactId>bcel</artifactId>
         <version>5.1</version>
       </dependency>
+      <dependency>
+      	<groupId>org.codehaus.plexus</groupId>
+      	<artifactId>plexus-container-default</artifactId>
+      	<version>1.0-alpha-47</version>
+      </dependency>
 
     </dependencies>
   </dependencyManagement>
@@ -196,35 +201,6 @@
       <url>http://repository.sonatype.org:8081/nexus/content/repositories/eclipse-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
-
-  <repositories>
-    <repository>
-      <id>eclipse</id>
-      <name>Eclipse Repository</name>
-      <url>http://repo1.maven.org/eclipse</url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>apache.snapshots</id>
-      <name>Maven Snapshots</name>
-      <url>http://people.apache.org/maven-snapshot-repository</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <pluginRepositories>
     <pluginRepository>

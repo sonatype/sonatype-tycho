@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="p002"
+      label="p002"
+      version="1.0.0"
+      provider-name="Sonatype, Inc."
+      plugin="org.maven.ide.eclipse">
+
+</feature>
