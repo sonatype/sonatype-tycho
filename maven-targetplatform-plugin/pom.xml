@@ -12,7 +12,7 @@
   <artifactId>maven-targetplatform-plugin</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>Tycho Maven Plugin</name>
+  <name>Tycho Target Platform Plugin</name>
   <description>The maven-targetplatform-plugin creates a target platform directory based on the dependencies in a POM.</description>
 
   <dependencies>
