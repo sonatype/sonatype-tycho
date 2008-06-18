@@ -18,9 +18,9 @@ public class PluginPathFinderTest extends PlexusTestCase {
 		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
 
 		assertEquals(3, sites.size());
-		assertTrue(sites.contains(targetPlatform));
-		assertTrue(sites.contains(new File(targetPlatform, "dropins/zest-3.4")));
-		assertTrue(sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
+		assertTrue(sites.toString(), sites.contains(targetPlatform));
+		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/zest-3.4")));
+		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
 	}
 
 	public void testPlugins33() throws Exception {

@@ -177,6 +177,8 @@ public class EclipsePluginPathFinder {
 			return null;
 		}
 
+		url = url.replace('\\', '/');
+
 		String relPath = null;
 		if (url.startsWith(PLATFORM_BASE_PREFIX)) {
 			relPath = url.substring(PLATFORM_BASE_PREFIX.length());
