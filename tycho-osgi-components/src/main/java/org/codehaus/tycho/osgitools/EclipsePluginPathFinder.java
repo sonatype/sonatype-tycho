@@ -80,6 +80,11 @@ public class EclipsePluginPathFinder {
 
 	public Set<File> getSites(File targetPlatform) {
 		Set<File> result = new LinkedHashSet<File>();
+
+		if (new File(targetPlatform, "plugins").isDirectory()) {
+			result.add(targetPlatform);
+		}
+
 		File platform = new File(targetPlatform, "configuration/org.eclipse.update/platform.xml");
 		if (platform.canRead()) {
 			try {

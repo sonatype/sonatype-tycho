@@ -58,4 +58,14 @@ public class PluginPathFinderTest extends PlexusTestCase {
 		assertEquals(new File(targetPlatform, "dropins/emf/eclipse"), sites.get(3).getCanonicalFile());
 		assertEquals(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile(), sites.get(4).getCanonicalFile());
 	}
+
+	public void testSitesSimple() throws Exception {
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+
+		File targetPlatform = new File("src/test/resources/targetplatforms/simple").getCanonicalFile();
+		List<File> sites = new ArrayList<File>(finder.getSites(targetPlatform));
+
+		assertEquals(1, sites.size());
+		assertEquals(targetPlatform, sites.get(0));
+	}
 }

@@ -168,11 +168,11 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		Dictionary manifest = loadManifestAttributes(bundleLocation);
 		if (manifest == null)
 			throw new BundleException("manifest not found in " + bundleLocation);
-		return addBundle(manifest, bundleLocation);
+		return addBundle(manifest, bundleLocation, false);
 	}
 
 	public BundleDescription addBundle(File manifestLocation,
-			File bundleLocation) throws BundleException {
+			File bundleLocation, boolean override) throws BundleException {
 		if (bundleLocation == null || !bundleLocation.exists())
 			throw new IllegalArgumentException("bundleLocation not found: "
 					+ bundleLocation);
@@ -180,7 +180,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		if (manifest == null)
 			throw new IllegalArgumentException("manifest not found in "
 					+ manifestLocation);
-		return addBundle(manifest, bundleLocation);
+		return addBundle(manifest, bundleLocation, override);
 	}
 
 	private Dictionary loadManifestAttributes(File bundleLocation) throws BundleException {
@@ -309,7 +309,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	private BundleDescription addBundle(Dictionary enhancedManifest,
-			File bundleLocation) throws BundleException {
+			File bundleLocation, boolean override) throws BundleException {
 		// TODO Qualifier Replacement. do we do this for maven?
 		// updateVersionNumber(enhancedManifest);
 		BundleDescription descriptor;
@@ -323,6 +323,16 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		// rememberQualifierTagPresence(descriptor);
 
 		setUserProperty(descriptor, PROP_MANIFEST, enhancedManifest);
+
+		if (override) {
+			BundleDescription[] conflicts = state.getBundles(descriptor.getSymbolicName());
+			if (conflicts != null) {
+				for (BundleDescription conflict : conflicts) {
+					state.removeBundle(conflict);
+					getLogger().warn(conflict.toString() + " has been replaced by another bundle with the same symbolic name " + descriptor.toString());
+				}
+			}
+		}
 
 		state.addBundle(descriptor);
 		return descriptor;
@@ -667,7 +677,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		File basedir = project.getBasedir();
 		File mf = new File(basedir, "META-INF/MANIFEST.MF");
 		if (mf.canRead()) {
-			BundleDescription desc = addBundle(mf, basedir);
+			BundleDescription desc = addBundle(mf, basedir, true);
 			setUserProperty(desc, PROP_MAVEN_PROJECT, project);
 			return desc;
 		}

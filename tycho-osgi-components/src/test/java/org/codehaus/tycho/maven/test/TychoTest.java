@@ -13,15 +13,19 @@ import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.ReactorManager;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.profiles.DefaultProfileManager;
 import org.apache.maven.profiles.activation.DefaultProfileActivationContext;
 import org.apache.maven.profiles.activation.ProfileActivationContext;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusTestCase;
+import org.codehaus.tycho.osgitools.OsgiState;
 
 public class TychoTest extends PlexusTestCase {
 
 	protected Maven maven;
+
+	protected OsgiState state;
 
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -31,6 +35,7 @@ public class TychoTest extends PlexusTestCase {
 			// default over to the main project builder...
 			maven = (Maven) lookup(Maven.ROLE);
 		}
+		state = (OsgiState) lookup(OsgiState.ROLE);
 	}
 
 	protected ArtifactRepository getLocalRepository() throws Exception {
@@ -44,7 +49,7 @@ public class TychoTest extends PlexusTestCase {
 	}
 
 	public void testModuleOrder() throws Exception {
-		File pom = new File("src/test/resources/projects/moduleorder/pom.xml");
+		File pom = new File(getBasedir(), "src/test/resources/projects/moduleorder/pom.xml");
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
 
@@ -75,7 +80,7 @@ public class TychoTest extends PlexusTestCase {
 	}
 
 	public void testResolutionError() throws Exception {
-		File pom = new File("src/test/resources/projects/resolutionerror/p001/pom.xml");
+		File pom = new File(getBasedir(), "src/test/resources/projects/resolutionerror/p001/pom.xml");
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
 
@@ -84,5 +89,25 @@ public class TychoTest extends PlexusTestCase {
 		maven.createReactorManager(request, result);
 
 		assertEquals(1, result.getExceptions().size());
+	}
+
+	public void testProjectPriority() throws Exception {
+		File platform = new File(getBasedir(), "src/test/resources/projects/projectpriority/platform");
+		File pom = new File(getBasedir(), "src/test/resources/projects/projectpriority/pom.xml");
+
+		MavenExecutionRequest request = newMavenExecutionRequest(pom);
+		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+		ReactorManager reactorManager = maven.createReactorManager(request, result);
+
+		assertEquals(0, result.getExceptions().size());
+
+		List projects = reactorManager.getSortedProjects();
+
+		MavenProject p002 = (MavenProject) projects.get(2);
+
+		List<Dependency> dependencies = p002.getModel().getDependencies();
+		Dependency dependency = dependencies.get(0);
+		assertEquals("0.0.1", dependency.getVersion());
 	}
 }
