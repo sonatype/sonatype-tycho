@@ -54,11 +54,11 @@ public class PluginPathFinderTest extends PlexusTestCase {
 		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
 
 		assertEquals(5, sites.size());
-		assertTrue(sites.contains(targetPlatform));
-		assertTrue(sites.contains(new File(targetPlatform, "dropins/ajdt")));
-		assertTrue(sites.contains(new File(targetPlatform, "dropins/eclipse")));
-		assertTrue(sites.contains(new File(targetPlatform, "dropins/emf/eclipse")));
-		assertTrue(sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
+		assertTrue(sites.toString(), sites.contains(targetPlatform));
+		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/ajdt")));
+		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/eclipse")));
+		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/emf/eclipse")));
+		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
 	}
 
 	private List<File> getCannonicalFiles(Set<File> files) throws IOException {
