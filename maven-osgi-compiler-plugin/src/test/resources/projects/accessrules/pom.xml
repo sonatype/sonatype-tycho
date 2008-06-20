@@ -7,5 +7,7 @@
   <modules>
     <module>p001</module>
     <module>p002</module>
+    <module>p003</module>
+    <module>p004</module>
   </modules>
 </project>

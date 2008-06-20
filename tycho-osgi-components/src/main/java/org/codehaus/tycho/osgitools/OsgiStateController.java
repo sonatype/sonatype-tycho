@@ -648,6 +648,12 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		File mf = new File(basedir, "META-INF/MANIFEST.MF");
 		if (mf.canRead()) {
 			BundleDescription desc = addBundle(mf, basedir, true);
+
+			String groupId = getManifestAttribute(desc, ATTR_GROUP_ID);
+			if (groupId != null && !groupId.equals(project.getGroupId())) {
+				throw new BundleException("groupId speicified in bundle manifest does not match pom.xml");
+			}
+
 			setUserProperty(desc, PROP_MAVEN_PROJECT, project);
 			return desc;
 		}
@@ -683,6 +689,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public String getGroupId(BundleDescription desc) {
+		MavenProject mavenProject = getMavenProject(desc);
+		if (mavenProject != null) {
+			return mavenProject.getGroupId();
+		}
 		return getManifestAttribute(desc, ATTR_GROUP_ID);
 	}
 

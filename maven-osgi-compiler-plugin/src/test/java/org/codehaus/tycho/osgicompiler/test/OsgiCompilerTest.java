@@ -30,17 +30,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		FileUtils.deleteDirectory(storage);
 	}
 
-	protected void compile(String path) throws Exception {
-		File basedir = getBasedir(path);
-		List<MavenProject> projects = getSortedProjects(basedir, null);
-
-		for (MavenProject project : projects) {
-			if (!"pom".equals(project.getPackaging())) {
-				getMojo(project).execute();
-			}
-		}
-	}
-
 	private List<MavenProject> getSortedProjects(File basedir, File platform) throws Exception {
 		File pom = new File(basedir, "pom.xml");
 		MavenExecutionRequest request = newMavenExecutionRequest(pom);
@@ -63,18 +52,43 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		setVariableValueToObject(mojo, "project", project);
 		setVariableValueToObject(mojo, "storage", storage);
 		setVariableValueToObject(mojo, "projectArtifact", project.getArtifact());
+		setVariableValueToObject(mojo, "outputDirectory", new File(project.getBuild().getOutputDirectory()).getAbsoluteFile());
 		// tycho-compiler-jdt does not support forked compilation
 //		        setVariableValueToObject(mojo, "fork", fork? Boolean.TRUE: Boolean.FALSE);
 		return mojo;
 	}
 
-	public void testPrivatePackage() throws Exception {
+	public void testAccessRestrictionCompilationError() throws Exception {
+		File basedir = getBasedir("projects/accessrules");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+
 		try {
-			compile("projects/accessrules");
+			for (MavenProject project : projects) {
+				if (!"pom".equals(project.getPackaging())) {
+					getMojo(project).execute();
+				}
+			}
 			fail("Restricted package access");
 		} catch (MojoFailureException e) {
 			assertTrue(e.getLongMessage().contains("P001Impl is not accessible"));
 		}
+	}
+
+	public void testAccessRulesClasspath() throws Exception {
+		File basedir = getBasedir("projects/accessrules");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+
+		getMojo(projects.get(1)).execute();
+		getMojo(projects.get(2)).execute();
+		getMojo(projects.get(3)).execute();
+
+		MavenProject project = projects.get(4);
+		List<String> cp = getMojo(project).computeClassPath(project.getBasedir(), new ArrayList<Artifact>());
+		assertEquals(4, cp.size());
+		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*;-**/*]"), cp.get(1));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*;-**/*]"), cp.get(2));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*;-**/*]"), cp.get(3));
 	}
 
 	public void testClasspath() throws Exception {
