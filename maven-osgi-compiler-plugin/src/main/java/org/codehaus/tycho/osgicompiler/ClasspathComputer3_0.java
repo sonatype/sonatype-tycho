@@ -33,7 +33,10 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ExportPackageDescription;
 import org.eclipse.osgi.service.resolver.HostSpecification;
 import org.eclipse.osgi.service.resolver.StateHelper;
+import org.eclipse.osgi.util.ManifestElement;
 import org.eclipse.osgi.util.NLS;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 
 public class ClasspathComputer3_0 {
 	public static class ClasspathElement {
@@ -90,7 +93,7 @@ public class ClasspathComputer3_0 {
 		}
 	}
 	
-	private static final String EXCLUDE_ALL_RULE = "?**/*"; //$NON-NLS-1$
+	private static final String EXCLUDE_ALL_RULE = "-**/*"; //$NON-NLS-1$
 	private static final String error_pluginCycle = "A cycle was detected when generating the classpath {0}.";//$NON-NLS-1$ 
 	
 	private Map visiblePackages = null;
@@ -113,7 +116,7 @@ public class ClasspathComputer3_0 {
 	 * @return a list of ClasspathElement
 	 * @
 	 */
-	public List getClasspath(BundleDescription model)  {
+	public List<ClasspathElement> getClasspath(BundleDescription model)  {
 		this.theBundle = model;
 		List classpath = new ArrayList(20);
 		List pluginChain = new ArrayList(10); //The list of plugins added to detect cycle
@@ -122,14 +125,14 @@ public class ClasspathComputer3_0 {
 		pathElements = new HashMap();
 		visiblePackages = getVisiblePackages(model);
 
+		//SELF
+		addSelf(model,  classpath, pluginChain, addedPlugins);
+
 		//PREREQUISITE
 		BundleDescription[] dependencies = state.getDependencies(model);
 		for (int i = 0; i < dependencies.length; i++) {
 			addPlugin(dependencies[i], classpath);
 		}
-
-		//SELF
-		addSelf(model,  classpath, pluginChain, addedPlugins);
 
 		return classpath;
 
@@ -191,22 +194,23 @@ public class ClasspathComputer3_0 {
 	 * @
 	 */
 	private void addRuntimeLibraries(BundleDescription model, List classpath)  {
-		String[] libraries = getClasspathEntries(model);
+		String[] libraries = getBundleClasspath(model);
 		MavenProject project = state.getMavenProject(model);
 		String base = null;
+		File artifact = null;
 		if (project != null && project.getArtifact().getFile() != null) {
-			File file = project.getArtifact().getFile();
-			if (file.isFile() && file.canRead()) {
-				base = file.getAbsolutePath();
+			artifact = project.getArtifact().getFile();
+			if (artifact.isFile() && artifact.canRead()) {
+				base = artifact.getAbsolutePath();
 			}
-		} 
+		}
 		if (base == null) {
 			base = model.getLocation();
 		}
 
 		for (int i = 0; i < libraries.length; i++) {
 //			addDevEntries(model, baseLocation, classpath, Utils.getArrayFromString(modelProps.getProperty(PROPERTY_OUTPUT_PREFIX + libraries[i])));
-			addPathAndCheck(model, base, libraries[i], classpath);
+			addPathAndCheck(model, base, artifact, libraries[i], classpath);
 		}
 	}
 
@@ -264,13 +268,13 @@ public class ClasspathComputer3_0 {
 		//If we reintroduce the test below, we reintroduce the problem 35544	
 		//	if (fragment.getRuntime() != null)
 		//		return;
-		String[] libraries = getClasspathEntries(plugin);
+		String[] libraries = getBundleClasspath(plugin);
 
 		String root = fragment.getLocation();
 		//IPath base = Utils.makeRelative(new Path(root), new Path(baseLocation));
 		//Properties modelProps = getBuildPropertiesFor(fragment);
 		for (int i = 0; i < libraries.length; i++) {
-			addPathAndCheck(fragment, root, libraries[i], classpath);
+			addPathAndCheck(fragment, root, null, libraries[i], classpath);
 		}
 	}
 
@@ -278,7 +282,7 @@ public class ClasspathComputer3_0 {
 	// pluginId the plugin we are adding to the classpath
 	// basePath : the relative path between the plugin from which we are adding the classpath and the plugin that is requiring this entry 
 	// classpath : The classpath in which we want to add this path 
-	private void addPathAndCheck(BundleDescription model, String basePath, String libraryName,  List classpath) {
+	private void addPathAndCheck(BundleDescription model, String basePath, File artifact, String libraryName,  List classpath) {
 		String pluginId = model != null ? model.getSymbolicName() : null;
 		String rules = ""; //$NON-NLS-1$
 		//only add access rules to libraries that are not part of the current bundle
@@ -297,7 +301,7 @@ public class ClasspathComputer3_0 {
 
 		String path = null;
 		try {
-			File libraryFile = epm.getLibraryFile(model, basePath, libraryName);
+			File libraryFile = epm.getLibraryFile(model, basePath, artifact, libraryName);
 			if (libraryFile != null && libraryFile.exists()) {
 				path = libraryFile.getAbsolutePath();
 			}
@@ -338,12 +342,12 @@ public class ClasspathComputer3_0 {
 		}
 
 		// Add the libraries
-		String[] libraries = getClasspathEntries(model);
-		if (libraries != null) {
-			for (int i = 0; i < libraries.length; i++) {
-				String libraryName = libraries[i];
-				addPathAndCheck(model, model.getLocation(), libraryName, classpath);
-			}
+		File artifact = new File(state.getMavenProject(model).getBuild().getOutputDirectory()).getAbsoluteFile();
+		artifact.mkdirs();
+		String[] libraries = getBundleClasspath(model);
+		for (int i = 0; i < libraries.length; i++) {
+			String libraryName = libraries[i];
+			addPathAndCheck(model, model.getLocation(), artifact, libraryName, classpath);
 		}
 
 	}
@@ -398,9 +402,21 @@ public class ClasspathComputer3_0 {
 		addPrerequisites(target, classpath,  pluginChain, addedPlugins);
 	}
 
-	//Return the jar name from the classpath 
-	private String[] getClasspathEntries(BundleDescription bundle)  {
-		return (String[]) state.getExtraData().get(new Long(bundle.getBundleId()));
-		//return generator.getClasspathEntries(bundle);
+	private String[] getBundleClasspath(BundleDescription bundle)  {
+		String[] result = new String[] {"."};
+		String classpath = state.getManifestAttribute(bundle, Constants.BUNDLE_CLASSPATH);
+		if (classpath != null) {
+			ManifestElement[] classpathEntries;
+			try {
+				classpathEntries = ManifestElement.parseHeader(Constants.BUNDLE_CLASSPATH, classpath);
+				result = new String[classpathEntries.length];
+				for (int i = 0; i < classpathEntries.length; i++) {
+					result[i] = classpathEntries[i].getValue();
+				}
+			} catch (BundleException e) {
+				// ignore
+			}
+		}
+		return result;
 	}
 }

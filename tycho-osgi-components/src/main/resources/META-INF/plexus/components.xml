@@ -175,7 +175,6 @@
 						org.codehaus.tycho:maven-osgi-packaging-plugin:package-test-fragment
 					</package>
 					<integration-test>
-						org.codehaus.tycho:maven-osgi-test-plugin:test
 					</integration-test>
 					<install>
 						org.apache.maven.plugins:maven-install-plugin:install

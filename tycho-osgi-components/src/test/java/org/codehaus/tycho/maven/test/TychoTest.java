@@ -38,16 +38,6 @@ public class TychoTest extends PlexusTestCase {
 		state = (OsgiState) lookup(OsgiState.ROLE);
 	}
 
-	protected ArtifactRepository getLocalRepository() throws Exception {
-		ArtifactRepositoryLayout repoLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, "legacy");
-		
-		File path = new File("target/local-repo").getCanonicalFile();
-
-		ArtifactRepository r = new DefaultArtifactRepository("local", "file://"	+ path, repoLayout);
-
-		return r;
-	}
-
 	public void testModuleOrder() throws Exception {
 		File pom = new File(getBasedir(), "src/test/resources/projects/moduleorder/pom.xml");
 

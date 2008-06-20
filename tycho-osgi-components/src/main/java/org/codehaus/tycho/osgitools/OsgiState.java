@@ -32,8 +32,6 @@ public interface OsgiState {
 
 	Map getPatchData();
 
-	Map getExtraData();
-
 	BundleDescription getBundleDescription(MavenProject project);
 
 	ResolverError[] getResolverErrors(BundleDescription thisBundle);
@@ -49,4 +47,6 @@ public interface OsgiState {
 	String getGroupId(BundleDescription desc);
 
 	void assertResolved(BundleDescription desc) throws BundleException;
+
+	String getManifestAttribute(BundleDescription desc, String attr);
 }

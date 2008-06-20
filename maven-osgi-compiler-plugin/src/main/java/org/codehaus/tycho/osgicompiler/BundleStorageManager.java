@@ -292,11 +292,11 @@ public class BundleStorageManager {
 
 	}
 
-	public File getLibraryFile(BundleDescription desc, String basePath, String libraryName) throws IOException {
+	public File getLibraryFile(BundleDescription desc, String basePath, File artifact, String libraryName) throws IOException {
 		File base = new File(basePath);
 
 		if (".".equals(libraryName)) {
-			return base;
+			return artifact != null? artifact: base;
 		}
 
 		if (base.isDirectory()) {

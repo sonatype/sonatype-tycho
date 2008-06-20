@@ -26,6 +26,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.batch.Main;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.eclipse.jdt.internal.compiler.util.Util;
 
@@ -312,8 +313,9 @@ public class JDTCompiler extends AbstractCompiler {
 		StringWriter out = new StringWriter();
 		StringWriter err = new StringWriter();
 
-		new Main(new PrintWriter(out), new PrintWriter(err), false)
-				.compile(args);
+		Main compiler = new Main(new PrintWriter(out), new PrintWriter(err), false);
+		compiler.options.put(CompilerOptions.OPTION_ReportForbiddenReference, CompilerOptions.ERROR);
+		compiler.compile(args);
 
 		try {
 			String output = err.toString();

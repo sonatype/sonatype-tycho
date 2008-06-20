@@ -19,6 +19,7 @@
     <module>tycho-compiler-jdt</module>
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
+    <module>tycho-testing-harness</module>
   </modules>
 
   <properties>
@@ -166,7 +167,13 @@
       <dependency>
       	<groupId>org.codehaus.plexus</groupId>
       	<artifactId>plexus-container-default</artifactId>
-      	<version>1.0-alpha-47</version>
+      	<version>1.0-alpha-48</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven.shared</groupId>
+        <artifactId>maven-plugin-testing-harness</artifactId>
+        <version>1.1</version>
       </dependency>
 
     </dependencies>

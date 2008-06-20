@@ -86,8 +86,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private long id = 0;
 
-	private Map/* <Long, String[]> */bundleClasspaths;
-
 	private Map/* <Long, String> */patchBundles;
 
 	private File outputDir;
@@ -129,7 +127,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public OsgiStateController() {
-		bundleClasspaths = new HashMap();
 		patchBundles = new HashMap();
 	}
 
@@ -148,8 +145,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 		for (File bundle : bundles) {
 			try {
-				BundleDescription bd = addBundle(bundle);
-				bd.setUserObject(bundle);
+				addBundle(bundle);
 			} catch (BundleException e) {
 				getLogger().info("Could not add bundle: " + bundle);
 			}
@@ -277,26 +273,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return result;
 	}
 
-	private String[] getClasspath(Dictionary manifest) {
-		String fullClasspath = (String) manifest
-				.get(Constants.BUNDLE_CLASSPATH);
-		String[] result = new String[0];
-		try {
-			if (fullClasspath != null) {
-				ManifestElement[] classpathEntries;
-				classpathEntries = ManifestElement.parseHeader(
-						Constants.BUNDLE_CLASSPATH, fullClasspath);
-				result = new String[classpathEntries.length];
-				for (int i = 0; i < classpathEntries.length; i++) {
-					result[i] = classpathEntries[i].getValue();
-				}
-			}
-		} catch (BundleException e) {
-			// Ignore
-		}
-		return result;
-	}
-
 	private String fillPatchData(Dictionary manifest) {
 		if (manifest.get("Eclipse-ExtensibleAPI") != null) {
 			return "Eclipse-ExtensibleAPI: true";
@@ -315,8 +291,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		BundleDescription descriptor;
 		descriptor = factory.createBundleDescription(state, enhancedManifest,
 				bundleLocation.getAbsolutePath(), getNextId());
-		bundleClasspaths.put(new Long(descriptor.getBundleId()),
-				getClasspath(enhancedManifest));
 		String patchValue = fillPatchData(enhancedManifest);
 		if (patchValue != null)
 			patchBundles.put(new Long(descriptor.getBundleId()), patchValue);
@@ -340,10 +314,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public StateHelper getStateHelper() {
 		return state.getStateHelper();
-	}
-
-	public Map getExtraData() {
-		return bundleClasspaths;
 	}
 
 	public Map getPatchData() {
@@ -713,11 +683,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public String getGroupId(BundleDescription desc) {
-		Dictionary mf =  (Dictionary) getUserProperty(desc, PROP_MANIFEST);
-		if (mf != null) {
-			return (String) mf.get(ATTR_GROUP_ID);
-		}
-		return null;
+		return getManifestAttribute(desc, ATTR_GROUP_ID);
 	}
 
 	public void init(File workspace, Properties props) {
@@ -791,6 +757,14 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 			throw new BundleException(msg.toString());
 		}
+	}
+
+	public String getManifestAttribute(BundleDescription desc, String attr) {
+		Dictionary mf =  (Dictionary) getUserProperty(desc, PROP_MANIFEST);
+		if (mf != null) {
+			return (String) mf.get(attr);
+		}
+		return null;
 	}
 }
  

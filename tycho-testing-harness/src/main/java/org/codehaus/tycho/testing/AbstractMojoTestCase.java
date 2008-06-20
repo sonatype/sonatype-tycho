@@ -1,4 +1,4 @@
-package org.codehaus.tycho.test;
+package org.codehaus.tycho.testing;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

@@ -93,8 +93,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		return classPathElements;
 	}
 
-	public List/* <String> */ computeClassPath(File baseDir,
-			List/* <Artifact> */ artifacts) throws MojoExecutionException {
+	public List<String> computeClassPath(File baseDir, List<Artifact> artifacts) throws MojoExecutionException {
 
 		OSGiStateHelper helper = new OSGiStateHelper(state, project, getLog(), pluginArtifacts, storage);
 		helper.createOSGiState(artifacts, failOnError);
@@ -103,15 +102,14 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		BundleDescription thisBundle = helper.getThisBundle();
 
 //		ResolverError[] bundleErrors = state.getState().getResolverErrors(thisBundle);
-		
-		List classpath = cc.getClasspath(thisBundle);
-		List result = new ArrayList(classpath.size());
-		for (Iterator it = classpath.iterator(); it.hasNext();) {
+
+		List<ClasspathElement> classpath = cc.getClasspath(thisBundle);
+		List<String> result = new ArrayList<String>(classpath.size());
+		for (Iterator<ClasspathElement> it = classpath.iterator(); it.hasNext();) {
 			ClasspathElement cp = (ClasspathElement) it.next();
 			result.add(cp.getPath() + cp.getAccessRules());
 		}
-		result.add(getOutputDirectory() + "[+**/*]");
-		
+
 		return result;
 
 	}
