@@ -2,11 +2,9 @@ package org.codehaus.tycho.osgicompiler.test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.Maven;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
@@ -83,7 +81,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		getMojo(projects.get(3)).execute();
 
 		MavenProject project = projects.get(4);
-		List<String> cp = getMojo(project).computeClassPath(project.getBasedir(), new ArrayList<Artifact>());
+		List<String> cp = getMojo(project).getClasspathElements();
 		assertEquals(4, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*;-**/*]"), cp.get(1));
@@ -100,20 +98,20 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		// simple project
 		project = projects.get(1);
-		cp = getMojo(project).computeClassPath(project.getBasedir(), new ArrayList<Artifact>());
+		cp = getMojo(project).getClasspathElements();
 		assertEquals(1, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 
 		// project with nested lib
 		project = projects.get(2);
-		cp = getMojo(project).computeClassPath(project.getBasedir(), new ArrayList<Artifact>());
+		cp = getMojo(project).getClasspathElements();
 		assertEquals(2, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(project.getBasedir(), "lib/lib.jar", ""), cp.get(1));
 
 		// project with external dependency with nested jar
 		project = projects.get(3);
-		cp = getMojo(project).computeClassPath(project.getBasedir(), new ArrayList<Artifact>());
+		cp = getMojo(project).getClasspathElements();
 		assertEquals(3, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "src/test/resources/projects/classpath/platform/plugins/p003_0.0.1.jar", "[-**/*]"), cp.get(1));

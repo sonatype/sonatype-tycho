@@ -19,8 +19,6 @@ package org.codehaus.tycho.osgicompiler;
 import java.io.File;
 import java.util.List;
 
-import org.apache.maven.plugin.MojoExecutionException;
-
 /**
  * @goal testCompile
  * @phase test-compile
@@ -38,13 +36,6 @@ public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 	 * @readonly
 	 */
 	private List compileSourceRoots;
-
-	/**
-	 * @parameter expression="${project.testArtifacts}"
-	 * @required
-	 * @readonly
-	 */
-	private List compileArtifacts;
 
 	/**
 	 * The directory where compiled test classes go.
@@ -75,14 +66,9 @@ public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 		return testOutputDirectory;
 	}
 
-	protected List getCompileArtifacts() {
-		return compileArtifacts;
-	}
-
-	public List computeClassPath(File baseDir, List artifacts)
-			throws MojoExecutionException {
-		List result = super.computeClassPath(baseDir, artifacts);
-		result.add(outputDirectory.getAbsolutePath() + "[+**/*]");
+	public List getClasspathElements() {
+		List result = super.getClasspathElements();
+		result.add(0, outputDirectory.getAbsolutePath() + "[+**/*]");
 		return result;
 	}
 

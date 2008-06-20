@@ -39,11 +39,6 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
 	/**
-	 * @parameter expression="${failOnError}" default-value="true"
-	 */
-	private boolean failOnError;
-
-	/**
 	 * A temporary directory to extract embedded jars
 	 * 
 	 * @parameter expression="${project.build.directory}/plugins"
@@ -53,13 +48,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private File storage;
 
 	/**
-	 * @parameter expression="${plugin.artifacts}"
-	 * @required
-	 * @readonly
-	 */
-	private List pluginArtifacts;
-
-	/**
 	 * @parameter expression="${project}"
 	 */
 	private MavenProject project;
@@ -67,10 +55,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	/** @component */
 	private OsgiState state;
 
-	private List/* <String> */classPathElements = new ArrayList/* <String> */();
-
-	public void execute() throws MojoExecutionException,
-			CompilationFailureException {
+	public void execute() throws MojoExecutionException, CompilationFailureException {
 		List compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
 
 		if (compileSourceRoots.isEmpty()) {
@@ -79,31 +64,17 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			return;
 		}
 
-		classPathElements = computeClassPath(project.getBasedir(),
-				getCompileArtifacts());
-
 		super.execute();
 
 		projectArtifact.setFile(getOutputDirectory());
 	}
 
-	protected abstract List/* <Artifact> */getCompileArtifacts();
+	public List<String> getClasspathElements() {
+		BundleDescription thisBundle = state.getBundleDescription(project);
 
-	protected List/* <String> */getClasspathElements() {
-		return classPathElements;
-	}
+		ClasspathComputer3_0 cc = new ClasspathComputer3_0(thisBundle, state, storage);
 
-	public List<String> computeClassPath(File baseDir, List<Artifact> artifacts) throws MojoExecutionException {
-
-		OSGiStateHelper helper = new OSGiStateHelper(state, project, getLog(), pluginArtifacts, storage);
-		helper.createOSGiState(artifacts, failOnError);
-
-		ClasspathComputer3_0 cc = new ClasspathComputer3_0(state, helper.getEPM());
-		BundleDescription thisBundle = helper.getThisBundle();
-
-//		ResolverError[] bundleErrors = state.getState().getResolverErrors(thisBundle);
-
-		List<ClasspathElement> classpath = cc.getClasspath(thisBundle);
+		List<ClasspathElement> classpath = cc.getClasspath();
 		List<String> result = new ArrayList<String>(classpath.size());
 		for (Iterator<ClasspathElement> it = classpath.iterator(); it.hasNext();) {
 			ClasspathElement cp = (ClasspathElement) it.next();
@@ -111,7 +82,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		}
 
 		return result;
-
 	}
 
 	/**

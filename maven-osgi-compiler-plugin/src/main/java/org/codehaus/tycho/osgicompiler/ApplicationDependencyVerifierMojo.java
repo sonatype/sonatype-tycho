@@ -22,12 +22,8 @@ import java.io.FileFilter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.eclipse.osgi.service.resolver.ResolverError;
-import org.osgi.framework.BundleException;
-
 import org.codehaus.tycho.osgitools.OsgiState;
-import org.codehaus.tycho.osgitools.OsgiStateController;
+import org.osgi.framework.BundleException;
 
 /**
  * @goal verify-configuration

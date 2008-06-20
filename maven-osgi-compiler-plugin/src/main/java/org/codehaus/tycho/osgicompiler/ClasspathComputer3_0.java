@@ -16,8 +16,13 @@
 
 package org.codehaus.tycho.osgicompiler;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.osgitools.OsgiState;
@@ -92,19 +99,20 @@ public class ClasspathComputer3_0 {
 			return path.replaceAll("\\\\", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}
-	
+
 	private static final String EXCLUDE_ALL_RULE = "-**/*"; //$NON-NLS-1$
 	private static final String error_pluginCycle = "A cycle was detected when generating the classpath {0}.";//$NON-NLS-1$ 
-	
+
 	private Map visiblePackages = null;
-	private Map/*<String,ClasspathElement>*/ pathElements = null;
-	private OsgiState state;
-	private BundleDescription theBundle;
-	private BundleStorageManager epm;
-	
-	public ClasspathComputer3_0(OsgiState osgiState, BundleStorageManager epm) {
+	private Map<String, ClasspathElement> pathElements = null;
+	private final OsgiState state;
+	private final BundleDescription theBundle;
+	private final File storage;
+
+	public ClasspathComputer3_0(BundleDescription theBundle, OsgiState osgiState, File storage) {
 		this.state = osgiState;
-		this.epm = epm;
+		this.theBundle = theBundle;
+		this.storage = storage;
 	}
 
 	/**
@@ -116,20 +124,19 @@ public class ClasspathComputer3_0 {
 	 * @return a list of ClasspathElement
 	 * @
 	 */
-	public List<ClasspathElement> getClasspath(BundleDescription model)  {
-		this.theBundle = model;
+	public List<ClasspathElement> getClasspath()  {
 		List classpath = new ArrayList(20);
 		List pluginChain = new ArrayList(10); //The list of plugins added to detect cycle
 		
 		Set addedPlugins = new HashSet(10); //The set of all the plugins already added to the classpath (this allows for optimization)
 		pathElements = new HashMap();
-		visiblePackages = getVisiblePackages(model);
+		visiblePackages = getVisiblePackages(theBundle);
 
 		//SELF
-		addSelf(model,  classpath, pluginChain, addedPlugins);
+		addSelf(theBundle,  classpath, pluginChain, addedPlugins);
 
 		//PREREQUISITE
-		BundleDescription[] dependencies = state.getDependencies(model);
+		BundleDescription[] dependencies = state.getDependencies(theBundle);
 		for (int i = 0; i < dependencies.length; i++) {
 			addPlugin(dependencies[i], classpath);
 		}
@@ -301,7 +308,7 @@ public class ClasspathComputer3_0 {
 
 		String path = null;
 		try {
-			File libraryFile = epm.getLibraryFile(model, basePath, artifact, libraryName);
+			File libraryFile = getLibraryFile(model, basePath, artifact, libraryName);
 			if (libraryFile != null && libraryFile.exists()) {
 				path = libraryFile.getAbsolutePath();
 			}
@@ -311,6 +318,56 @@ public class ClasspathComputer3_0 {
 		
 		if(path != null)
 			addClasspathElementWithRule(classpath, path, rules);
+	}
+
+	private File getLibraryFile(BundleDescription model, String basePath, File artifact, String libraryName) throws IOException {
+		File base = new File(basePath);
+
+		if (".".equals(libraryName)) {
+			return artifact != null? artifact: base;
+		}
+
+		if (base.isDirectory()) {
+			File library = new File(base, libraryName);
+			return library;
+		}
+
+		JarFile jarFile = new JarFile(base);
+		try {
+			File target = new File(storage, model.getSymbolicName() + "_" + model.getVersion());
+			return extract(jarFile, libraryName, target);
+		} finally {
+			jarFile.close();
+		}
+	}
+
+	public File extract(JarFile jarFile, String element, File tempDirectory)
+			throws IOException {
+
+		ZipEntry entry = jarFile.getEntry(element);
+		if (entry == null) {
+			// log.warn("No entry found for " + element);
+			return null;
+		}
+		File efile = new File(tempDirectory, entry.getName());
+		if (!efile.getParentFile().exists()) {
+			efile.getParentFile().mkdirs();
+		}
+
+		InputStream in = new BufferedInputStream(jarFile.getInputStream(entry));
+		OutputStream out = new BufferedOutputStream(new FileOutputStream(efile));
+		byte[] buffer = new byte[2048];
+		for (;;) {
+			int nBytes = in.read(buffer);
+			if (nBytes <= 0)
+				break;
+			out.write(buffer, 0, nBytes);
+		}
+		out.flush();
+		out.close();
+		in.close();
+
+		return efile;
 	}
 
 	private void addClasspathElementWithRule(List classpath, String path, String rules) {

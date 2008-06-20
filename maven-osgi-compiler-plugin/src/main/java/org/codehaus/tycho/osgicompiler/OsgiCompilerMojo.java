@@ -38,13 +38,6 @@ public class OsgiCompilerMojo extends AbstractOsgiCompilerMojo {
 	private List compileSourceRoots;
 
 	/**
-	 * @parameter expression="${project.compileArtifacts}"
-	 * @required
-	 * @readonly
-	 */
-	private List compileArtifacts;
-
-	/**
 	 * The directory where compiled test classes go.
 	 * 
 	 * @parameter expression="${project.build.outputDirectory}"
@@ -62,9 +55,5 @@ public class OsgiCompilerMojo extends AbstractOsgiCompilerMojo {
     {
         return outputDirectory;
     }
-
-	protected List getCompileArtifacts() {
-		return compileArtifacts;
-	}
 
 }
