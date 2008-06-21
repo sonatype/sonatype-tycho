@@ -4,14 +4,18 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -35,6 +39,7 @@ import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -73,6 +78,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	/** @parameter expression="${session}" */
 	private MavenSession session;
 
+	/** @parameter */
+	private boolean inlineArchives;
+
 	private static final SAXBuilder builder = new SAXBuilder();
 	private static final Format format = Format.getPrettyFormat();
 	private static final XMLOutputter outputter = new XMLOutputter(format);
@@ -83,12 +91,26 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		try {
 			File siteFile = new File(basedir, "site.xml");
 			Document doc = builder.build(siteFile);
-			List features = doc.getRootElement().getChildren("feature");
+			Element root = doc.getRootElement();
+
+			Map<String, String> archives = new HashMap<String, String>();
+			for (Element archive : (List<Element>) root.getChildren("archive")) {
+				String path = archive.getAttributeValue("path");
+				String url = archive.getAttributeValue("url");
+				archives.put(path, url);
+			}
+
+			List features = root.getChildren("feature");
 			for (Iterator i = features.iterator(); i.hasNext(); ) {
 				Element feature = (Element) i.next();
 
-				packageFeature(feature);
+				packageFeature(feature, archives);
 			}
+
+			if (inlineArchives) {
+				root.removeChildren("archive");
+			}
+
 			OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(target, "site.xml")));
 			try {
 				outputter.output(doc, os);
@@ -100,7 +122,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		}
 	}
 
-	private void packageFeature(Element feature) throws Exception {
+	private void packageFeature(Element feature, Map<String, String> archives) throws Exception {
 		String artifactId = feature.getAttribute("id").getValue();
 		String version = expandVerstion(feature.getAttribute("version").getValue());
 
@@ -113,7 +135,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			for (Iterator i = plugins.iterator(); i.hasNext(); ) {
 				Element plugin = (Element) i.next();
 
-				packagePlugin(plugin);
+				packagePlugin(plugin, archives);
 			}
 
 			doc.getRootElement().setAttribute("version", version);
@@ -163,9 +185,28 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		return version;
 	}
 
-	private void packagePlugin(Element plugin) throws Exception {
+	private void packagePlugin(Element plugin, Map<String, String> archives) throws Exception {
 		String artifactId = plugin.getAttributeValue("id");
 		String version = plugin.getAttributeValue("version");
+
+		String path = "plugins/" + artifactId + "_" + version + ".jar";
+		if (archives.containsKey(path)) {
+			if (inlineArchives) {
+				URL url = new URL(archives.get(path));
+				InputStream is = url.openStream();
+				try {
+					OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(target, path)));
+					try {
+						IOUtil.copy(is, os);
+					} finally {
+						os.close();
+					}
+				} finally {
+					is.close();
+				}
+			}
+			return;
+		}
 
 		Artifact artifact = null;
 
@@ -213,7 +254,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			}
 		}
 
-		if (artifact == null || artifact.getFile() == null) {
+		if (artifact == null || artifact.getFile() == null || !artifact.getFile().exists()) {
 			throw new MojoExecutionException("Can't find artifact for bundle " + artifactId, exception);
 		}
 
