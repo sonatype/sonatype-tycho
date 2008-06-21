@@ -13,6 +13,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
+import org.codehaus.tycho.osgicompiler.ClasspathComputer3_0;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
@@ -120,6 +121,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 	private String getClasspathElement(File base, String path, String accessRules) throws IOException {
 		String file = new File(base, path).getCanonicalPath();
-		return file.replace('\\', '/') + accessRules;
+		return file.replace('\\', '/') + accessRules.replace(":", ClasspathComputer3_0.ACCESS_RULE_SEPARATOR);
 	}
 }

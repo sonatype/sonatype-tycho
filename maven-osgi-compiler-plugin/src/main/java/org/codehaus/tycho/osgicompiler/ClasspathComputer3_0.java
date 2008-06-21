@@ -102,6 +102,7 @@ public class ClasspathComputer3_0 {
 
 	private static final String EXCLUDE_ALL_RULE = "-**/*"; //$NON-NLS-1$
 	private static final String error_pluginCycle = "A cycle was detected when generating the classpath {0}.";//$NON-NLS-1$ 
+	public static final String ACCESS_RULE_SEPARATOR = File.pathSeparator;
 
 	private Map visiblePackages = null;
 	private Map<String, ClasspathElement> pathElements = null;
@@ -168,7 +169,7 @@ public class ClasspathComputer3_0 {
 			String rules = (String) packages.get(exporter.getSymbolicName());
 			if (rules != null) {
 				if (rules.indexOf(rule) == -1)
-					rules = (rules != null) ? rules + File.pathSeparator + rule : rule;
+					rules = (rules != null) ? rules + ACCESS_RULE_SEPARATOR + rule : rule;
 			} else {
 				rules = rule;
 			}
@@ -300,7 +301,7 @@ public class ClasspathComputer3_0 {
 				packageKey = ((BundleDescription) model.getHost().getSupplier()).getSymbolicName();
 			}
 			if (visiblePackages.containsKey(packageKey)) {
-				rules = "[" + (String) visiblePackages.get(packageKey) + File.pathSeparator + EXCLUDE_ALL_RULE + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+				rules = "[" + (String) visiblePackages.get(packageKey) + ACCESS_RULE_SEPARATOR + EXCLUDE_ALL_RULE + "]"; //$NON-NLS-1$ //$NON-NLS-2$
 			} else {
 				rules = "[" + EXCLUDE_ALL_RULE + "]"; //$NON-NLS-1$//$NON-NLS-2$
 			}
