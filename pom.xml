@@ -74,12 +74,12 @@
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
-        <version>3.4.0.v20080529-1200</version>
+        <version>3.4.0.v20080605-1900</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.jdt.core</artifactId>
-        <version>3.4.0.v_871</version>
+        <version>3.4.0.v_874</version>
       </dependency>
 
       <dependency>
