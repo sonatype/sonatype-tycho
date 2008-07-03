@@ -113,4 +113,8 @@ public class EclipseTargetPlatformWagon extends AbstractWagon implements Context
 		plexus = (PlexusContainer) context.get( PlexusConstants.PLEXUS_KEY );
 	}
 
+	@Override
+	protected void openConnectionInternal() throws ConnectionException, AuthenticationException {
+	}
+
 }
