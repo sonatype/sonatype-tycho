@@ -11,6 +11,7 @@ import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.ClasspathComputer3_0;
@@ -43,6 +44,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		}
 		@SuppressWarnings("unchecked")
 		List<MavenProject> projects = reactorManager.getSortedProjects();
+		calculateConcreteState(projects, request);
 		return projects;
 	}
 
