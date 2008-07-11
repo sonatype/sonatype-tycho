@@ -6,6 +6,138 @@
     <property name='p2.timestamp' value='1215207275703'/>
   </properties>
   <units size='5'>
+    <unit id='tooling.org.eclipse.update.feature.default' version='1.0.0' singleton='false'>
+      <hostRequirements size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' range='0.0.0' optional='true' multiple='true' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='tooling.org.eclipse.update.feature.default' version='1.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='feature' range='0.0.0' optional='true' multiple='true' greedy='false'/>
+      </requires>
+      <filter>
+        (org.eclipse.update.install.features=true)
+      </filter>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='2'>
+          <instruction key='uninstall'>
+            uninstallFeature(feature:${artifact},featureId:default,featureVersion:default)
+          </instruction>
+          <instruction key='install'>
+            installFeature(feature:${artifact},featureId:default,featureVersion:default)
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='tooling.osgi.bundle.default' version='1.0.0' singleton='false'>
+      <hostRequirements size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='0.0.0' multiple='true' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='tooling.osgi.bundle.default' version='1.0.0'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='1'>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='0.0.0' multiple='true' greedy='false'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='4'>
+          <instruction key='uninstall'>
+            uninstallBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='configure'>
+            setStartLevel(startLevel:4);
+          </instruction>
+          <instruction key='install'>
+            installBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='unconfigure'>
+
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='toolingorg.eclipse.equinox.launcher' version='1.0.100.v20080509-1800' singleton='false'>
+      <hostRequirements size='2'>
+        <required namespace='osgi.bundle' name='org.eclipse.equinox.launcher' range='1.0.100.v20080509-1800'/>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='[1.0.0,2.0.0)' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='toolingorg.eclipse.equinox.launcher' version='1.0.100.v20080509-1800'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='2'>
+        <required namespace='osgi.bundle' name='org.eclipse.equinox.launcher' range='1.0.100.v20080509-1800'/>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='[1.0.0,2.0.0)' greedy='false'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='4'>
+          <instruction key='uninstall'>
+            uninstallBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='configure'>
+            addProgramArg(programArg:-startup);addProgramArg(programArg:@artifact);
+          </instruction>
+          <instruction key='install'>
+            installBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='unconfigure'>
+            removeProgramArg(programArg:-startup);removeProgramArg(programArg:@artifact);
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+    <unit id='toolingorg.eclipse.equinox.simpleconfigurator' version='1.0.0.v20080604' singleton='false'>
+      <hostRequirements size='2'>
+        <required namespace='osgi.bundle' name='org.eclipse.equinox.simpleconfigurator' range='1.0.0.v20080604'/>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='[1.0.0,2.0.0)' greedy='false'/>
+      </hostRequirements>
+      <properties size='1'>
+        <property name='org.eclipse.equinox.p2.type.fragment' value='true'/>
+      </properties>
+      <provides size='2'>
+        <provided namespace='org.eclipse.equinox.p2.iu' name='toolingorg.eclipse.equinox.simpleconfigurator' version='1.0.0.v20080604'/>
+        <provided namespace='org.eclipse.equinox.p2.flavor' name='tooling' version='1.0.0'/>
+      </provides>
+      <requires size='2'>
+        <required namespace='osgi.bundle' name='org.eclipse.equinox.simpleconfigurator' range='1.0.0.v20080604'/>
+        <required namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' range='[1.0.0,2.0.0)' greedy='false'/>
+      </requires>
+      <touchpoint id='null' version='0.0.0'/>
+      <touchpointData size='1'>
+        <instructions size='4'>
+          <instruction key='uninstall'>
+            uninstallBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='configure'>
+            setStartLevel(startLevel:1);markStarted(started: true);
+          </instruction>
+          <instruction key='install'>
+            installBundle(bundle:${artifact})
+          </instruction>
+          <instruction key='unconfigure'>
+            setStartLevel(startLevel:-1);markStarted(started: false);
+          </instruction>
+        </instructions>
+      </touchpointData>
+    </unit>
+
+
+
     <unit id='org.eclipse.osgi.feature.feature.jar' version='3.4.0'>
       <update id='org.eclipse.osgi.feature.feature.jar' range='[0.0.0,3.4.0)' severity='0'/>
       <provides size='3'>
