@@ -14,11 +14,6 @@
       <layout>p2</layout>
       <url>file:src/test/resources/p2repo</url>
     </repository>
-    <repository>
-      <id>update34</id>
-      <layout>p2</layout>
-      <url>file:/t:/mirrors/updates34</url>
-    </repository>
   </repositories>
 
   <dependencyManagement>
@@ -29,22 +24,6 @@
         <version>3.4.0</version>
         <type>osgi-bundle</type>
       </dependency>
- <!-- 
- -->
-<!-- 
-      <dependency>
-        <groupId>org.eclipse</groupId>
-        <artifactId>org.eclipse.cvs.feature.group</artifactId>
-        <version>1.1.0.v20080603-7C79E8M9EI99m9c9S</version>
-        <type>osgi-bundle</type>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse</groupId>
-        <artifactId>org.eclipse.platform.ide</artifactId>
-        <version>3.4.0</version>
-        <type>osgi-bundle</type>
-      </dependency>
--->
     </dependencies>
   </dependencyManagement>
 </project>
