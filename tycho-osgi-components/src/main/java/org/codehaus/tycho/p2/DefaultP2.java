@@ -64,7 +64,7 @@ public class DefaultP2 extends AbstractLogEnabled implements P2 {
 
 	private String getPPBase() throws MavenExecutionException {
 		File bundleLocation;
-		String property = System.getProperty("tycho.p2.location");
+		String property = System.getProperty("tycho.p2.data");
 		if (property != null) {
 			bundleLocation = new File(property);
 		} else {
