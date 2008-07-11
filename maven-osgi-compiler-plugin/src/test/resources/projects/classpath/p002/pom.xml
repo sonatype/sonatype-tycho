@@ -17,7 +17,7 @@
       <plugin>
         <groupId>org.codehaus.tycho</groupId>
         <artifactId>maven-osgi-compiler-plugin</artifactId>
-        <version>0.2.0-SNAPSHOT</version>
+        <version>${tycho.version}</version>
         <configuration>
           <compileSourceRoots>
             <compileSourceRoot>target/projects/classpath/p001/src</compileSourceRoot>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>remoterepo</groupId>
+  <artifactId>remoterepo.p001</artifactId>
+  <version>1.0.0</version>
+  <packaging>eclipse-plugin</packaging>
+
+  <repositories>
+    <repository>
+      <id>p2repo</id>
+      <layout>p2</layout>
+      <url>file:src/test/resources/p2repo</url>
+    </repository>
+    <repository>
+      <id>update34</id>
+      <layout>p2</layout>
+      <url>file:/t:/mirrors/updates34</url>
+    </repository>
+  </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.eclipse</groupId>
+        <artifactId>org.eclipse.osgi.feature.feature.group</artifactId>
+        <version>3.4.0</version>
+        <type>osgi-bundle</type>
+      </dependency>
+ <!-- 
+ -->
+<!-- 
+      <dependency>
+        <groupId>org.eclipse</groupId>
+        <artifactId>org.eclipse.cvs.feature.group</artifactId>
+        <version>1.1.0.v20080603-7C79E8M9EI99m9c9S</version>
+        <type>osgi-bundle</type>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse</groupId>
+        <artifactId>org.eclipse.platform.ide</artifactId>
+        <version>3.4.0</version>
+        <type>osgi-bundle</type>
+      </dependency>
+-->
+    </dependencies>
+  </dependencyManagement>
+</project>

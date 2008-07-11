@@ -12,14 +12,11 @@ package org.codehaus.tycho.osgitools;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -36,6 +33,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.tycho.osgitools.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -48,7 +46,6 @@ import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.service.resolver.StateHelper;
 import org.eclipse.osgi.service.resolver.StateObjectFactory;
 import org.eclipse.osgi.service.resolver.VersionConstraint;
-import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
@@ -58,23 +55,9 @@ import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 /**
  * @plexus.component role="org.codehaus.tycho.osgitools.OsgiState"
  */
+@SuppressWarnings("unchecked")
 public class OsgiStateController extends AbstractLogEnabled implements OsgiState {
 	
-	// Filter properties
-	public final static String OSGI_WS = "osgi.ws"; //$NON-NLS-1$
-
-	public final static String OSGI_OS = "osgi.os"; //$NON-NLS-1$
-
-	public final static String OSGI_ARCH = "osgi.arch"; //$NON-NLS-1$
-
-	public final static String OSGI_NL = "osgi.nl"; //$NON-NLS-1$
-
-	public final static String ANY = "*"; //$NON-NLS-1$
-
-	private static final String PROFILE_EXTENSION = ".profile"; //$NON-NLS-1$
-
-	public final static String SYSTEM_PACKAGES = "org.osgi.framework.system.packages"; //$NON-NLS-1$
-
 	/** maven project bundle user property */
 	private static final String PROP_MAVEN_PROJECT = "MavenProject";
 
@@ -130,10 +113,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		patchBundles = new HashMap();
 	}
 
-	private void loadTargetPlatform(File platform) {
+	private void loadTargetPlatform(File platform, boolean forceP2) {
 		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
 
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(forceP2);
 
 		Set<File> bundles = finder.getPlugins(platform);
 
@@ -336,157 +319,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			state.setPlatformProperties(platformProperties);
 		}
 		state.resolve(false);
-	}
-
-	private File getOSGiLocation() {
-		BundleDescription osgiBundle = state
-				.getBundle("org.eclipse.osgi", null); //$NON-NLS-1$
-		if (osgiBundle == null)
-			return null;
-		return new File(osgiBundle.getLocation());
-	}
-
-	private String[] getJavaProfiles() {
-		String[] javaProfiles;
-		File osgiLocation = getOSGiLocation();
-		if (osgiLocation == null)
-			return null;
-		if (osgiLocation.isDirectory())
-			javaProfiles = getDirJavaProfiles(osgiLocation);
-		else
-			javaProfiles = getJarJavaProfiles(osgiLocation);
-		return javaProfiles;
-	}
-
-	private Properties getJavaProfileProperties() {
-		String[] javaProfiles = getJavaProfiles();
-		String profile;
-		if (javaProfiles != null && javaProfiles.length > 0)
-			profile = javaProfiles[0];
-		else
-			return null;
-
-		File location = getOSGiLocation();
-		if (location == null)
-			return null;
-		InputStream is = null;
-		ZipFile zipFile = null;
-		try {
-			if (location.isDirectory()) {
-				is = new FileInputStream(new File(location, profile));
-			} else {
-				zipFile = null;
-				try {
-					zipFile = new ZipFile(location, ZipFile.OPEN_READ);
-					ZipEntry entry = zipFile.getEntry(profile);
-					if (entry != null)
-						is = zipFile.getInputStream(entry);
-				} catch (IOException e) {
-					// nothing to do
-				}
-			}
-			Properties props = new Properties();
-			props.load(is);
-			return props;
-		} catch (IOException e) {
-			// nothing to do
-		} finally {
-			if (is != null)
-				try {
-					is.close();
-				} catch (IOException e) {
-					// nothing to do
-				}
-			if (zipFile != null)
-				try {
-					zipFile.close();
-				} catch (IOException e) {
-					// nothing to do
-				}
-		}
-		return null;
-	}
-
-	private String[] getDirJavaProfiles(File bundleLocation) {
-		// try the profile list first
-		File profileList = new File(bundleLocation, "profile.list");
-		if (profileList.exists())
-			try {
-				return getJavaProfiles(new FileInputStream(profileList));
-			} catch (IOException e) {
-				// this should not happen because we just checked if the file
-				// exists
-			}
-		String[] profiles = bundleLocation.list(new FilenameFilter() {
-			public boolean accept(File dir, String name) {
-				return name.endsWith(PROFILE_EXTENSION);
-			}
-		});
-		return sortProfiles(profiles);
-	}
-
-	private String[] sortProfiles(String[] profiles) {
-		Arrays.sort(profiles, new Comparator() {
-			public int compare(Object o1, Object o2) {
-					String p1 = (String) o1;
-					String p2 = (String) o2;
-
-					// need to make sure J2SE profiles are sorted ahead of all
-					// other
-					// profiles
-					if (p1.startsWith("J2SE") && !p2.startsWith("J2SE"))
-						return -1;
-					if (!p1.startsWith("J2SE") && p2.startsWith("J2SE"))
-						return 1;
-					return -p1.compareTo(p2);
-			}
-		});
-		return profiles;
-	}
-
-	private String[] getJarJavaProfiles(File bundleLocation) {
-        ZipFile zipFile = null;
-        ArrayList results = new ArrayList(6);
-        try {
-            zipFile = new ZipFile(bundleLocation, ZipFile.OPEN_READ);
-            ZipEntry profileList = zipFile.getEntry("profile.list");
-            if (profileList != null)
-                try {
-                    return getJavaProfiles(zipFile.getInputStream(profileList));
-                }
-                catch (IOException e) {
-                    // this should not happen, just incase do the default
-                }
-
-            Enumeration entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                String entryName = ((ZipEntry) entries.nextElement()).getName();
-                if (entryName.indexOf('/') < 0
-                        && entryName.endsWith(PROFILE_EXTENSION))
-                    results.add(entryName);
-            }
-        }
-        catch (IOException e) {
-            // nothing to do
-        }
-        finally {
-            if (zipFile != null)
-                try {
-                    zipFile.close();
-                }
-                catch (IOException e) {
-                    // nothing to do
-                }
-        }
-        return sortProfiles((String[]) results.toArray(new String[results
-                .size()]));
-    }
-
-	private String[] getJavaProfiles(InputStream is) throws IOException {
-		Properties props = new Properties();
-		props.load(is);
-		return ManifestElement.getArrayFromList(props
-				.getProperty("java.profiles"), ","); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public State getState() {
@@ -696,50 +528,48 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return getManifestAttribute(desc, ATTR_GROUP_ID);
 	}
 
-	public void init(File workspace, Properties props) {
+	public void init(File targetPlatform, File workspace, Properties props) {
+		boolean forceP2 = targetPlatform != null;
+
 		state = factory.createState(true);
-		platformProperties = new Properties();
+
+		platformProperties = new Properties(props);
+		platformProperties.put(PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS(platformProperties));
+		platformProperties.put(PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS(platformProperties));
+		platformProperties.put(PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch(platformProperties));
+//			platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
+
+		// Set the JRE profile
+		ExecutionEnvironmentUtils.loadVMProfile(platformProperties);
 
 		String property = props.getProperty("tycho.targetPlatform");
 		if (property != null) {
-			if (workspace != null) {
-				try {
-					this.outputDir = new File(workspace, "TYCHO").getCanonicalFile();
-				} catch (IOException e) {
-					// hmmm
-				}
-			}
-			if (this.outputDir == null) {
-				try {
-					this.outputDir = File.createTempFile("TYCHO", null);
-				} catch (IOException e) {
-					// double hmmm
-					throw new RuntimeException(e);
-				}
-			}
-			this.outputDir.mkdirs();
+			targetPlatform = new File(property);
+		}
 
-			File location = new File(property);
-			loadTargetPlatform(location);
+		if (targetPlatform == null) {
+			getLogger().warn("Eclipse target platform is empty");
+			return;
+		}
 
-			platformProperties.put(OSGI_OS, PlatformPropertiesUtils.getOS(props));
-			platformProperties.put(OSGI_WS, PlatformPropertiesUtils.getWS(props));
-			platformProperties.put(OSGI_ARCH, PlatformPropertiesUtils.getArch(props));
-//			platformProperties.put(OSGI_NL, props.getProperty("tycho." + OSGI_NL, "en_US"));
-
-			// Set the JRE profile
-			Properties profileProps = getJavaProfileProperties();
-			if (profileProps != null) {
-				String systemPackages = profileProps.getProperty(SYSTEM_PACKAGES);
-				if (systemPackages != null) {
-					platformProperties.put(SYSTEM_PACKAGES, systemPackages);
-				}
-				String ee = profileProps.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-				if (ee != null) {
-					platformProperties.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee);
-				}
+		if (workspace != null) {
+			try {
+				this.outputDir = new File(workspace, "TYCHO").getCanonicalFile();
+			} catch (IOException e) {
+				// hmmm
 			}
 		}
+		if (this.outputDir == null) {
+			try {
+				this.outputDir = File.createTempFile("TYCHO", null);
+			} catch (IOException e) {
+				// double hmmm
+				throw new RuntimeException(e);
+			}
+		}
+		this.outputDir.mkdirs();
+
+		loadTargetPlatform(targetPlatform, forceP2);
 	}
 
 	public BundleDescription getBundleDescription(String symbolicName, String version) {

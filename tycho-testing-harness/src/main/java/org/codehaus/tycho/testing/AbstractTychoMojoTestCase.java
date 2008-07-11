@@ -23,6 +23,7 @@ import org.codehaus.plexus.util.FileUtils;
 
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 
+	public static final String TYCHO_VERSION = "0.3.0-SNAPSHOT";
 	protected MavenProjectBuilder projectBuilder;
 
 	@Override
@@ -65,7 +66,8 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 	}
 
 	protected MavenExecutionRequest newMavenExecutionRequest(File pom) {
-		Properties props = System.getProperties();
+		Properties props = new Properties(System.getProperties());
+		props.put("tycho.version", TYCHO_VERSION);
         ProfileActivationContext ctx = new DefaultProfileActivationContext( props, false );
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();

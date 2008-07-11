@@ -98,6 +98,9 @@
         <requirement>
           <role>org.codehaus.tycho.osgitools.OsgiState</role>
         </requirement>
+        <requirement>
+          <role>org.codehaus.tycho.p2.P2</role>
+        </requirement>
       </requirements>
     </component>
 
@@ -107,6 +110,9 @@
       <requirements>
         <requirement>
           <role>org.apache.maven.plugin.PluginManagerSupport</role>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.project.interpolation.ModelInterpolator</role>
         </requirement>
         <requirement>
           <role>org.apache.maven.ArtifactFilterManager</role>

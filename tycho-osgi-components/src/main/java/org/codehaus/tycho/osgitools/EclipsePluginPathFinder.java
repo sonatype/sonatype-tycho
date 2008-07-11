@@ -3,6 +3,7 @@ package org.codehaus.tycho.osgitools;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,6 +29,12 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
  *
  */
 public class EclipsePluginPathFinder {
+	
+	private boolean forceP2;
+	
+	public EclipsePluginPathFinder(boolean forceP2) {
+		this.forceP2 = forceP2;
+	}
 
 	public List<File> getFeatures(File targetPlatform) {
 		List<File> result = new ArrayList<File>();
@@ -43,25 +50,22 @@ public class EclipsePluginPathFinder {
 	}
 
 	public Set<File> getPlugins(File targetPlatform) {
-
 		Set<File> result = null;
-
-//		try {
-//			result = new LinkedHashSet<File>(readBundlesTxt(targetPlatform));
-//		} catch (IOException e) {
-//			// oops
-//		}
-//
-//		if (result != null) {
-//			return result;
-//		}
-
-		result = new LinkedHashSet<File>();
-
-		for (File site : getSites(targetPlatform)) {
-			addPlugins(result, new File(site, "plugins").listFiles());
+		
+		if (forceP2) {
+			try {
+				result = new LinkedHashSet<File>(readBundlesTxt(targetPlatform));
+			} catch (IOException e) {
+				// oops
+			}
+		} else {
+			result = new LinkedHashSet<File>();
+	
+			for (File site : getSites(targetPlatform)) {
+				addPlugins(result, new File(site, "plugins").listFiles());
+			}
+			addPlugins(result, new File(targetPlatform, "dropins").listFiles());
 		}
-		addPlugins(result, new File(targetPlatform, "dropins").listFiles());
 
 		return result;
 	}
@@ -189,11 +193,41 @@ public class EclipsePluginPathFinder {
 		if (relPath == null) {
 			return null;
 		}
-		
+
+		if (relPath.length() > 0 && relPath.charAt(0) == '/') {
+			return new File(relPath);
+		}
+
 		return new File(platformBase, relPath);
 	}
 
 	private List<File> readBundlesTxt(File platformBase) throws IOException {
+		// there is no way to find location of bundle pool without access to P2 profile
+		// so lets assume equinox.launcher comes from the pool
+		File eclipseIni = new File(platformBase, "eclipse.ini");
+		File pool = platformBase;
+		if (eclipseIni.isFile() && eclipseIni.canRead()) {
+			BufferedReader in = new BufferedReader(new FileReader(eclipseIni));
+			try {
+				String str = null;
+				while ((str = in.readLine()) != null) {
+					if ("-startup".equals(str.trim())) {
+						str = in.readLine();
+						if (str != null) {
+							File file = new File(str);
+							if (!file.isAbsolute()) {
+								file = new File(platformBase, str).getCanonicalFile();
+							}
+							pool = file.getParentFile().getParentFile().getCanonicalFile();
+						}
+						break;
+					}
+				}
+			} finally {
+				in.close();
+			}
+		}
+
 		File bundlesInfo = new File(platformBase, "configuration/org.eclipse.equinox.simpleconfigurator/bundles.info");
 		if (!bundlesInfo.isFile() || !bundlesInfo.canRead()) {
 			return null;
@@ -217,11 +251,11 @@ public class EclipsePluginPathFinder {
 				}
 
 				StringTokenizer tok = new StringTokenizer(line, ",");
-				String symbolicName = tok.nextToken();
-				String version = tok.nextToken();
+				/*String symbolicName =*/ tok.nextToken();
+				/*String version =*/ tok.nextToken();
 				String location = tok.nextToken();
 				
-				plugins.add(parsePlatformURL(platformBase, location));
+				plugins.add(parsePlatformURL(pool, location));
 			}
 		} finally {
 			r.close();

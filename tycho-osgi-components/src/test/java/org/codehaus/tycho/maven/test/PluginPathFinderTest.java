@@ -12,7 +12,7 @@ import org.codehaus.tycho.osgitools.EclipsePluginPathFinder;
 public class PluginPathFinderTest extends PlexusTestCase {
 
 	public void testTargetPlatform() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
 		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
@@ -24,7 +24,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testPlugins33() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
 		List<File> plugins = getCannonicalFiles(finder.getPlugins(targetPlatform));
@@ -35,7 +35,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testPlugins34() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
 		List<File> plugins = getCannonicalFiles(finder.getPlugins(targetPlatform));
@@ -48,7 +48,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSites34() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
 		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
@@ -70,7 +70,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSitesSimple() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder();
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/simple").getCanonicalFile();
 		List<File> sites = new ArrayList<File>(finder.getSites(targetPlatform));

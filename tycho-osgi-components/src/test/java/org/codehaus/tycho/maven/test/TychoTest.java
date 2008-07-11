@@ -2,26 +2,18 @@ package org.codehaus.tycho.maven.test;
 
 import java.io.File;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.maven.Maven;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.DefaultArtifactRepository;
-import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
-import org.apache.maven.execution.DefaultMavenExecutionRequest;
 import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.profiles.DefaultProfileManager;
-import org.apache.maven.profiles.activation.DefaultProfileActivationContext;
-import org.apache.maven.profiles.activation.ProfileActivationContext;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
-public class TychoTest extends PlexusTestCase {
+public class TychoTest extends AbstractTychoMojoTestCase {
 
 	protected Maven maven;
 
@@ -39,7 +31,7 @@ public class TychoTest extends PlexusTestCase {
 	}
 
 	public void testModuleOrder() throws Exception {
-		File pom = new File(getBasedir(), "src/test/resources/projects/moduleorder/pom.xml");
+		File pom = new File(getBasedir("projects/moduleorder"), "pom.xml");
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
 
@@ -56,21 +48,8 @@ public class TychoTest extends PlexusTestCase {
 		assertEquals("moduleorder.p002", p002.getArtifactId());
 	}
 
-	private MavenExecutionRequest newMavenExecutionRequest(File pom) {
-		Properties props = System.getProperties();
-        ProfileActivationContext ctx = new DefaultProfileActivationContext( props, false );
-
-        MavenExecutionRequest request = new DefaultMavenExecutionRequest();
-		request.setBaseDirectory(pom.getParentFile());
-		request.setPom(pom);
-		request.setProfileManager(new DefaultProfileManager( getContainer(), ctx ));
-		request.setProperties(props);
-		request.setUserProperties(props);
-		return request;
-	}
-
 	public void testResolutionError() throws Exception {
-		File pom = new File(getBasedir(), "src/test/resources/projects/resolutionerror/p001/pom.xml");
+		File pom = new File(getBasedir("projects/resolutionerror/p001"), "pom.xml");
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
 
@@ -83,7 +62,7 @@ public class TychoTest extends PlexusTestCase {
 
 	public void testProjectPriority() throws Exception {
 		File platform = new File(getBasedir(), "src/test/resources/projects/projectpriority/platform");
-		File pom = new File(getBasedir(), "src/test/resources/projects/projectpriority/pom.xml");
+		File pom = new File(getBasedir("projects/projectpriority"), "pom.xml");
 
 		MavenExecutionRequest request = newMavenExecutionRequest(pom);
 		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
@@ -100,4 +79,24 @@ public class TychoTest extends PlexusTestCase {
 		Dependency dependency = dependencies.get(0);
 		assertEquals("0.0.1", dependency.getVersion());
 	}
+
+	public void testRemoteTargetPlatform() throws Exception {
+		File pom = new File(getBasedir("projects/remoterepo/p001"), "pom.xml");
+
+		MavenExecutionRequest request = newMavenExecutionRequest(pom);
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+		ReactorManager reactorManager = maven.createReactorManager(request, result);
+
+		assertEquals(0, result.getExceptions().size());
+
+		List projects = reactorManager.getSortedProjects();
+
+		MavenProject p001 = (MavenProject) projects.get(0);
+
+		assertEquals("remoterepo", p001.getGroupId());
+		assertEquals("remoterepo.p001", p001.getArtifactId());
+		assertEquals("1.0.0", p001.getVersion());
+		
+	}
+
 }

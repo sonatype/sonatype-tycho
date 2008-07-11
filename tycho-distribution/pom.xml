@@ -7,7 +7,7 @@
   <parent>
     <artifactId>tycho</artifactId>
     <groupId>org.codehaus.tycho</groupId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>tycho-distribution</artifactId>
@@ -39,6 +39,19 @@
       <artifactId>maven-osgi-packaging-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-temp-p2-runtime</artifactId>
+      <version>${project.version}</version>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-temp-p2-app</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -48,6 +61,7 @@
         <executions>
           <execution>
             <configuration>
+              <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
               <artifactItems>
                 <artifactItem>
                   <groupId>org.apache.maven</groupId>
@@ -55,6 +69,12 @@
                   <version>${maven-version}</version>
                   <classifier>bin</classifier>
                   <type>tar.gz</type>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.codehaus.tycho</groupId>
+                  <artifactId>tycho-temp-p2-runtime</artifactId>
+                  <version>${project.version}</version>
+                  <type>zip</type>
                 </artifactItem>
               </artifactItems>
             </configuration>

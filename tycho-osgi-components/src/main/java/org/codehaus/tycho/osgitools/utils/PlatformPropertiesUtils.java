@@ -17,11 +17,10 @@ import java.util.Properties;
  * org.eclipse.equinox.launcher.Main.
  * 
  * @author aniefer
+ * @author igor
  *
  */
 public class PlatformPropertiesUtils {
-	public static final String INTERNAL_TYCHO_PREFIX = "tycho";
-
 	public static final String INTERNAL_ARCH_I386 = "i386"; //$NON-NLS-1$
 	public static final String INTERNAL_AMD64 = "amd64"; //$NON-NLS-1$
 	public static final String INTERNAL_OS_SUNOS = "SunOS"; //$NON-NLS-1$
@@ -33,6 +32,11 @@ public class PlatformPropertiesUtils {
 
 	public static final String ARCH_X86 = "x86";//$NON-NLS-1$
 	public static final String ARCH_X86_64 = "x86_64";//$NON-NLS-1$
+
+	public final static String OSGI_WS = "osgi.ws"; //$NON-NLS-1$
+	public final static String OSGI_OS = "osgi.os"; //$NON-NLS-1$
+	public final static String OSGI_ARCH = "osgi.arch"; //$NON-NLS-1$
+	public final static String OSGI_NL = "osgi.nl"; //$NON-NLS-1$
 
 	private static final class Constants extends PlatformPropertiesUtils {}
 
@@ -127,7 +131,7 @@ public class PlatformPropertiesUtils {
 	public static final String WS_UNKNOWN = "unknown";//$NON-NLS-1$
 
 	public static String getWS(Properties properties) {
-		String ws = properties.getProperty(INTERNAL_TYCHO_PREFIX + ".osgi.ws");
+		String ws = properties.getProperty(OSGI_WS);
 		if (ws != null)
 			return ws;
 		String osName = getOS(properties);
@@ -149,7 +153,7 @@ public class PlatformPropertiesUtils {
 	}
 
 	public static String getOS(Properties properties) {
-		String os = properties.getProperty(INTERNAL_TYCHO_PREFIX + ".osgi.os");
+		String os = properties.getProperty(OSGI_OS);
 		if (os != null)
 			return os;
 
@@ -174,7 +178,7 @@ public class PlatformPropertiesUtils {
 	}
 
 	public static String getArch(Properties properties) {
-		String arch = properties.getProperty(INTERNAL_TYCHO_PREFIX + ".osgi.arch");
+		String arch = properties.getProperty(OSGI_ARCH);
 		if (arch != null)
 			return arch;
 		String name = System.getProperties().getProperty("os.arch");//$NON-NLS-1$

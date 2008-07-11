@@ -58,8 +58,10 @@ public class EclipseTargetPlatformWagon extends AbstractWagon implements Context
 				} catch (Exception e) {
 					throw new TransferFailedException(e.getMessage(), e);
 				}
+				return;
 			}
 		}
+		throw new ResourceDoesNotExistException(resourceName);
 	}
 
 	private void archive(File dir, File destination) throws Exception {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         id="materializeTargetPlatform"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            cardinality="singleton-global"
+            thread="main"
+            visible="true">
+         <run
+               class="org.codehaus.tycho.p2.app.Application">
+         </run>
+      </application>
+   </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="org.codehaus.tycho.p2.materializeTargetPlatform"
+            name="org.codehaus.tycho.p2">
+         <property
+               name="appName"
+               value="org.codehaus.tycho.p2">
+         </property>
+      </product>
+   </extension>
+
+</plugin>

@@ -10,6 +10,14 @@
       <outputDirectory>/</outputDirectory>
     </fileSet>
     <fileSet>
+      <directory>target/dependency/tycho-temp-p2-runtime-${project.version}</directory>
+      <outputDirectory>/p2/eclipse/plugins</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>src/p2</directory>
+      <outputDirectory>/p2/eclipse</outputDirectory>
+    </fileSet>
+    <fileSet>
       <directory>src/bin</directory>
       <outputDirectory>/bin</outputDirectory>
     </fileSet>
@@ -25,6 +33,13 @@
       <includes>
         <include>org.codehaus.tycho:tycho-osgi-components</include>
         <include>org.eclipse:org.eclipse.osgi</include>
+      </includes>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>p2/eclipse/plugins</outputDirectory>
+      <outputFileNameMapping>org.codehaus.tycho.p2_1.0.0.jar</outputFileNameMapping>
+      <includes>
+        <include>org.codehaus.tycho:tycho-temp-p2-app</include>
       </includes>
     </dependencySet>
   </dependencySets>

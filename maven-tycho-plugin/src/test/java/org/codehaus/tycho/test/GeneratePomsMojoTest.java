@@ -23,11 +23,12 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		OsgiState state = (OsgiState) lookup(OsgiState.class);
-		state.init(new File(getBasedir(), "target/targetPlatform"), new Properties());
+		File baseDir = new File(getBasedir(), "target");
+		state.init(null, new File(baseDir, "workspace"), new Properties());
 	}
 
 	private void generate(File baseDir, Map<String, Object> params) throws Exception {
-		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", "0.2.0-SNAPSHOT", "generate-poms", null);
+		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", TYCHO_VERSION, "generate-poms", null);
 		setVariableValueToObject(generateMojo, "baseDir", baseDir);
 		if (params != null) {
 			for (Map.Entry<String, Object> param : params.entrySet()) {

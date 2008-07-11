@@ -40,7 +40,7 @@ public interface OsgiState {
 
 	MavenProject getMavenProject(BundleDescription model);
 
-	void init(File workspace, Properties props);
+	void init(File targetPlatform, File workspace, Properties props);
 
 	BundleDescription getBundleDescription(String symbolicName, String version);
 

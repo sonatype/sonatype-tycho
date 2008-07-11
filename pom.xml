@@ -4,7 +4,7 @@
 
   <groupId>org.codehaus.tycho</groupId>
   <artifactId>tycho</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Tycho</name>
@@ -27,10 +27,6 @@
     <maven-artifact-version>3.0-SNAPSHOT</maven-artifact-version>
   </properties>
 
-  <prerequisites>
-    <maven>${maven-version}</maven>
-  </prerequisites>
-  
   <dependencyManagement>
     <dependencies>
       <dependency>
