@@ -1,0 +1,35 @@
+<assembly>
+  <id>bin</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+
+  <fileSets>
+    <fileSet>
+      <directory>target/dependency/tycho-temp-p2-runtime-${project.version}</directory>
+      <outputDirectory>/p2/eclipse/plugins</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>target/dependency</directory>
+      <includes>
+        <include>tycho-temp-p2-app-${project.version}.jar</include>
+      </includes>
+      <outputDirectory>/p2/eclipse/plugins</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/../tycho-distribution/src/p2</directory>
+      <outputDirectory>/p2/eclipse</outputDirectory>
+    </fileSet>
+  </fileSets>
+
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>p2/eclipse/plugins</outputDirectory>
+      <outputFileNameMapping>org.codehaus.tycho.p2_1.0.0.jar</outputFileNameMapping>
+      <includes>
+        <include>org.codehaus.tycho:tycho-temp-p2-app</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+
+</assembly>

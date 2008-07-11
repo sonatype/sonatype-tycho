@@ -9,13 +9,14 @@ import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.core.runtime.adaptor.EclipseStarter;
 
 /**
  * @plexus.component role="org.codehaus.tycho.p2.P2"
  */
-public class DefaultP2 implements P2 {
+public class DefaultP2 extends AbstractLogEnabled implements P2 {
 
 	public String materializeTargetPlatform(String key, List<String> repositories, List<Artifact> rootIUs, Properties props) throws MavenExecutionException {
 		System.setProperty("osgi.framework.useSystemProperties", "false"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -62,10 +63,18 @@ public class DefaultP2 implements P2 {
 	}
 
 	private String getPPBase() throws MavenExecutionException {
-		File bundleLocation = new File(System.getProperty("user.home"), ".m2/p2");
+		File bundleLocation;
+		String property = System.getProperty("tycho.p2.location");
+		if (property != null) {
+			bundleLocation = new File(property);
+		} else {
+			bundleLocation = new File(System.getProperty("user.home"), ".m2/p2");			
+		}
 		try {
 			bundleLocation.mkdirs();
-			return bundleLocation.getCanonicalPath().replace('\\', '/');
+			String location = bundleLocation.getCanonicalPath().replace('\\', '/');
+			getLogger().info("Using p2 data area " + location);
+			return location;
 		} catch (IOException e) {
 			throw new MavenExecutionException("Can't determine p2 bundle pool location", e);
 		}
@@ -86,7 +95,9 @@ public class DefaultP2 implements P2 {
 		}
 
 		try {
-			return new File(ppLocation, "eclipse").getCanonicalPath().replace('\\', '/');
+			String location = new File(ppLocation, "eclipse").getCanonicalPath().replace('\\', '/');
+			getLogger().info("Using tycho p2 runtime " + location);
+			return location;
 		} catch (IOException e) {
 			throw new MavenExecutionException("Can't locate p2 installation location", e);
 		}
