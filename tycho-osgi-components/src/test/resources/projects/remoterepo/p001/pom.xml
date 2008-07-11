@@ -14,6 +14,11 @@
       <layout>p2</layout>
       <url>file:src/test/resources/p2repo</url>
     </repository>
+    <repository>
+      <id>updates34</id>
+      <layout>p2</layout>
+      <url>http://download.eclipse.org/eclipse/updates/3.4/</url>
+    </repository>
   </repositories>
 
   <dependencyManagement>
