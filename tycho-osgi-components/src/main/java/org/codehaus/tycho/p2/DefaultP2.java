@@ -48,6 +48,7 @@ public class DefaultP2 extends AbstractLogEnabled implements P2 {
 				rootIUVersionMap.put(rootIU.getArtifactId(), rootIU.getVersion());
 			}
 			appArgs.put("-rootIUs", rootIUVersionMap);
+			appArgs.put("-logger", getLogger());
 
 			EclipseStarter.setInitialProperties(properties);
 			EclipseStarter.startup(args, null);

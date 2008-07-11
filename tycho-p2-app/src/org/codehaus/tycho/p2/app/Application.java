@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.app.IApplication;
@@ -37,7 +38,7 @@ public class Application implements IApplication {
 	private IArtifactRepositoryManager artifactRepoMan;
 	private IProfileRegistry profileRegistry;
 	private BundleContext bundleContext;
-	private NullProgressMonitor monitor = new NullProgressMonitor();
+	private IProgressMonitor monitor;
 
 	public Object start(IApplicationContext context) throws Exception {
 		Map<String, Object> args = (Map<String, Object>) context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
@@ -83,6 +84,9 @@ public class Application implements IApplication {
 			//	validateProfile();
 			
 		}
+
+		Object logger = args.get("-logger");
+		monitor = (logger != null)? new PlexusProgressMonitor(logger): new NullProgressMonitor();
 
 		String profileDir = (String) profile.getProperties().get(IProfile.PROP_INSTALL_FOLDER);
 
