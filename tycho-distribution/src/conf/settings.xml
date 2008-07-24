@@ -6,7 +6,7 @@
         <repository>
           <id>forge</id>
           <url>
-            http://repository.sonatype.org:8081/nexus/content/groups/public
+            http://repository.sonatype.org/content/groups/public
           </url>
           <snapshots>
             <enabled>true</enabled>
@@ -30,7 +30,7 @@
         <pluginRepository>
           <id>forge</id>
           <url>
-            http://repository.sonatype.org:8081/nexus/content/groups/public
+            http://repository.sonatype.org/content/groups/public
           </url>
           <snapshots>
             <enabled>true</enabled>
