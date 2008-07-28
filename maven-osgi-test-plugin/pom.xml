@@ -15,6 +15,7 @@
   <name>Tycho OSGi Test Plugin</name>
   <description>The maven-tycho-plugin provides tools for integrating Maven, Eclipse and OSGi.</description>
 
+
   <dependencies>
     <dependency>
       <groupId>commons-lang</groupId>
@@ -42,9 +43,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>org.codehaus.tycho.junit4.runner</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.apache.maven.surefire</groupId>
+      <artifactId>surefire</artifactId>
+      <version>1.5.3</version>
     </dependency>
   </dependencies>
 

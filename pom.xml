@@ -22,6 +22,7 @@
     <module>tycho-distribution</module>
     <module>tycho-testing-harness</module>
     <module>tycho-p2-app</module>
+    <module>maven-osgi-test-plugin</module>
   </modules>
 
   <properties>
@@ -207,7 +208,7 @@
     <snapshotRepository>
       <id>forge-snapshots</id>
       <name>forge-snapshots</name>
-      <url>http://repository.sonatype.org:8081/nexus/content/repositories/eclipse-snapshots/</url>
+      <url>http://repository.sonatype.org/content/repositories/eclipse-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
 

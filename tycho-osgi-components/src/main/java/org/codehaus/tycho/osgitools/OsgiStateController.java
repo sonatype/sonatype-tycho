@@ -75,6 +75,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private Properties platformProperties;
 
+	private File targetPlatform;
+
 	public static BundleDescription[] getDependentBundles(BundleDescription root) {
 		if (root == null)
 			return new BundleDescription[0];
@@ -551,6 +553,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			getLogger().warn("Eclipse target platform is empty");
 			return;
 		}
+		
+		this.targetPlatform = targetPlatform;
 
 		if (workspace != null) {
 			try {
@@ -574,12 +578,28 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public BundleDescription getBundleDescription(String symbolicName, String version) {
 		try {
+			if (HIGHEST_VERSION == version) {
+				return getBundleDescription(symbolicName);
+			}
 			return state.getBundle(symbolicName, new Version(version));
 		} catch (NumberFormatException e) {
 			return null;
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
+	}
+
+	private BundleDescription getBundleDescription(String symbolicName) {
+		BundleDescription[] bundles = state.getBundles(symbolicName);
+		BundleDescription highest = null;
+		if (bundles != null) {
+			for (BundleDescription desc : bundles) {
+				if (highest == null || highest.getVersion().compareTo(desc.getVersion()) < 0) {
+					highest = desc;
+				}
+			}
+		}
+		return highest;
 	}
 
 	public void assertResolved(BundleDescription desc) throws BundleException {
@@ -605,6 +625,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			return (String) mf.get(attr);
 		}
 		return null;
+	}
+
+	public File getTargetPlaform() {
+		return targetPlatform;
 	}
 }
  

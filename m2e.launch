@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
+<booleanAttribute key="M2_DEBUG_OUTPUT" value="false"/>
+<listAttribute key="M2_FORCED_COMPONENTS_LIST">
+<listEntry value="org.codehaus.tycho:tycho-osgi-components:0.3.0-SNAPSHOT"/>
+<listEntry value="org.eclipse:org.eclipse.osgi:3.4.0.v20080605-1900"/>
+</listAttribute>
+<stringAttribute key="M2_GOALS" value="-e clean integration-test"/>
+<booleanAttribute key="M2_OFFLINE" value="false"/>
+<stringAttribute key="M2_PROFILES" value=""/>
+<listAttribute key="M2_PROPERTIES">
+<listEntry value="tycho.targetPlatform=t:/xxx-3.0/eclipse"/>
+</listAttribute>
+<stringAttribute key="M2_RUNTIME" value="WORKSPACE"/>
+<booleanAttribute key="M2_SKIP_TESTS" value="false"/>
+<booleanAttribute key="M2_UPDATE_SNAPSHOTS" value="false"/>
+<booleanAttribute key="M2_WORKSPACE_RESOLUTION" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.6.0_07"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dtycho.p2.location=c:/tycho/p2"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="S:\tmp\m2eclipse\org.maven.ide.eclipse.parent"/>
+</launchConfiguration>

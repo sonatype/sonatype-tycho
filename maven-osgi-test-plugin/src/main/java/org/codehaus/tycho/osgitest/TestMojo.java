@@ -1,29 +1,36 @@
 package org.codehaus.tycho.osgitest;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.JarFile;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.surefire.battery.DirectoryBattery;
-import org.codehaus.plexus.util.cli.CommandLineException;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.osgitools.BundleFile;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.Version;
 
 /**
  * @phase integration-test
@@ -42,11 +49,6 @@ public class TestMojo extends AbstractMojo {
 	 * @parameter default-value="${project.build.directory}/work"
 	 */
 	private File work;
-
-	/**
-	 * @parameter default-value="${project.basedir}/src/test/configuration/config.ini"
-	 */
-	private File configIni;
 
 	/**
 	 * @parameter expression="${project.artifact}"
@@ -110,7 +112,7 @@ public class TestMojo extends AbstractMojo {
 	 * The directory containing generated test classes of the project being
 	 * tested.
 	 * 
-	 * @parameter expression="${project.build.testOutputDirectory}"
+	 * @parameter expression="${project.build.outputDirectory}"
 	 * @required
 	 */
 	private File testClassesDirectory;
@@ -129,23 +131,31 @@ public class TestMojo extends AbstractMojo {
 
 	/** @parameter expression="${project.build.directory}" */
 	private File outputDir;
+	
+
+	/** @parameter expression="${project.build.directory}/dev.properties" */
+	private File devProperties;
+	
 
 	/** @component */
 	private OsgiState state;
 
-	public void execute() throws MojoExecutionException {
+	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			return;
 		}
-		
-		if (!configIni.exists()) {
-			getLog().info("config.ini does not exists - not executing tests");
+
+		File targetPlatform = state.getTargetPlaform();
+
+		if (targetPlatform == null) {
+			getLog().info("Cannot determinate build target platform location -- not executing tests");
 			return;
 		}
 
 		work.mkdirs();
 
-		copyConfigIni();
+		createConfiguration(targetPlatform);
+		createDevProperties();
 
 		reportsDirectory.mkdirs();
 
@@ -154,56 +164,72 @@ public class TestMojo extends AbstractMojo {
 		String testBundle = bundle.getSymbolicName();
 
 		List tests = getTests();
+		if (tests.size() == 0) {
+			new MojoFailureException( "No tests were executed!  (Set -DfailIfNoTests=false to ignore this error.)" );
+		}
+
+		boolean succeeded = true;
 		for (Iterator iter = tests.iterator(); iter.hasNext();) {
 			String test = (String) iter.next();
-			runTest(testBundle, test);
+			succeeded &= runTest(targetPlatform, testBundle, test);
+		}
+		
+		if (succeeded) {
+			getLog().info("All tests passed!");
+		} else {
+            throw new MojoFailureException("There are test failures.\n\nPlease refer to " + reportsDirectory + " for the individual test results.");
 		}
 	}
 
-	private void runTest(String testBundle, String className)
-			throws MojoExecutionException {
+	private boolean runTest(File targetPlatform, String testBundle, String className) throws MojoExecutionException {
+		int result;
+
 		try {
-			File output = new File(reportsDirectory, className + ".xml");
+			File output = new File(reportsDirectory, className + ".txt");
+			String workspace = new File(work, "data").getAbsolutePath();
+			
+			FileUtils.deleteDirectory(workspace);
 
 			Commandline cli = new Commandline();
 
-			cli.setWorkingDirectory(work.getAbsolutePath());
+			cli.setWorkingDirectory(project.getBasedir());
 
-			String executable = System.getProperty("java.home") + File.separator
-					+ "bin" + File.separator + "java";
+			String executable = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
 			if (File.separatorChar == '\\') {
 				executable = executable + ".exe";
 			}
 			cli.setExecutable(executable);
 
-			Artifact launcher = getPluginArtifact("org.eclipse", "org.eclipse.osgi");
 
-			// cli.addArguments(args);
 			if (debugPort > 0) {
 				cli.addArguments(new String[] {
-						"-Xdebug",
-						"-Xrunjdwp:transport=dt_socket,address=" + debugPort
-								+ ",server=y,suspend=y" });
+					"-Xdebug",
+					"-Xrunjdwp:transport=dt_socket,address=" + debugPort + ",server=y,suspend=y" });
 			}
 			cli.addArguments(new String[] {
-					"-Dosgi.install.area=" + new File(project.getBuild().getDirectory()).getAbsolutePath(),
 					"-Dosgi.noShutdown=false",
 			});
-			cli.addArguments(new String[] { "-jar", 
-					launcher.getFile().getAbsolutePath() });
-			cli
-					.addArguments(new String[] {
-							"-application",
-							"org.codehaus.tycho.junit4.runner.coretestapplication",
-							"formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,"
-									+ output.getAbsolutePath(), "-data",
-							new File(work, "data").getAbsolutePath(),
-							"-configuration",
-							new File(work, "configuration").getAbsolutePath(),
-							"-testPluginName", testBundle, "-className",
-							className });
 
-			CommandLineUtils.executeCommandLine(cli, new StreamConsumer() {
+			cli.addArguments(new String[] {
+					"-Xmx512m",
+					"-jar", getEclipseLauncher().getAbsolutePath(),
+			});
+
+			cli.addArguments(new String[] {
+					"-os", "win32",	"-ws", "win32",	"-arch", "x86",
+					"-noSplash", "-debug", "-consolelog",
+					"-product", "org.eclipse.sdk.ide",
+					"-data", workspace,
+					"-dev", devProperties.toURI().toURL().toExternalForm(),
+					"-install", targetPlatform.getAbsolutePath(),
+					"-configuration", new File(work, "configuration").getAbsolutePath(),
+					"-application",	"org.eclipse.test.uitestapplication",
+					"-testpluginname", testBundle, 
+					"-classname", className, 
+					"formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter," + output.getAbsolutePath(), 
+			});
+
+			result = CommandLineUtils.executeCommandLine(cli, new StreamConsumer() {
 				public void consumeLine(String line) {
 					System.out.println("Test.Out>" + line);
 				}
@@ -212,126 +238,98 @@ public class TestMojo extends AbstractMojo {
 					System.err.println("Test.Err>" + line);
 				}
 			});
-		} catch (CommandLineException e) {
-			throw new MojoExecutionException("Error while executing platform",
-					e);
+		} catch (Exception e) {
+			throw new MojoExecutionException("Error while executing platform", e);
+		}
+
+		return result == 0;
+	}
+
+	private File getEclipseLauncher() throws IOException {
+		BundleDescription osgi = state.getBundleDescription("org.eclipse.osgi", OsgiState.HIGHEST_VERSION);
+		Version osgiVersion = osgi.getVersion();
+		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+			return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
+		} else {
+			// assume eclipse 3.3 or 3.4
+			BundleDescription launcher = state.getBundleDescription("org.eclipse.equinox.launcher", OsgiState.HIGHEST_VERSION);
+			return new File(launcher.getLocation()).getCanonicalFile();
 		}
 	}
 
-	private Artifact getPluginArtifact(String groupId, String artifactId)
-			throws MojoExecutionException {
-		for (Iterator iter = pluginArtifacts.iterator(); iter.hasNext();) {
-			Artifact artifact = (Artifact) iter.next();
-			if (artifact.getGroupId().equals(groupId)
-					&& (artifact.getArtifactId().equals(artifactId))) {
-				return artifact;
-			}
-		}
-		throw new MojoExecutionException("Could not find artifact " + groupId
-				+ ":" + artifactId);
-	}
-
-	private void copyConfigIni() throws MojoExecutionException {
-		FileInputStream fis = null;
-		FileOutputStream fos = null;
+	private void createConfiguration(File targetPlatform) throws MojoExecutionException {
 		try {
-			fis = new FileInputStream(configIni);
 			Properties p = new Properties();
-			p.load(fis);
-			fis.close();
+
+			FileInputStream fis = new FileInputStream(new File(targetPlatform, "configuration/config.ini"));;
+			try {
+				p.load(fis);
+			} finally {
+				fis.close();
+			}
 
 			String osgiBundles = p.getProperty("osgi.bundles");
 			String newOsgiBundles = createOsgiBundlesProperty(osgiBundles);
 			p.setProperty("osgi.bundles", newOsgiBundles);
 
-			Artifact systemArtifact = (Artifact) project.getArtifactMap().get(
-					"org.eclipse:org.eclipse.osgi");
-
-			if (systemArtifact == null) {
-				systemArtifact = getPluginArtifact("org.eclipse",
-						"org.eclipse.osgi");
-			}
-			p.setProperty("osgi.framework", systemArtifact.getFile().toURI()
-					.toURL().toString());
-
 			new File(work, "configuration").mkdir();
-			fos = new FileOutputStream(new File(work,
-					"configuration/config.ini"));
-			p.store(fos, null);
-		} catch (FileNotFoundException e) {
-			throw new MojoExecutionException("", e);
+			FileOutputStream fos = new FileOutputStream(new File(work, "configuration/config.ini"));
+			try {
+				p.store(fos, null);
+			} finally {
+				fos.close();
+			}
 		} catch (IOException e) {
 			throw new MojoExecutionException("", e);
-		} finally {
-			if (fis != null) {
-				try {
-					fis.close();
-				} catch (IOException e) {
-				}
-			}
-			if (fos != null) {
-				try {
-					fos.close();
-				} catch (IOException e) {
-				}
-			}
 		}
-
 	}
 
-	private Artifact getTestArtifact() {
-		List attachedArtifacts = project.getAttachedArtifacts();
-		for (Iterator iter = attachedArtifacts.iterator(); iter.hasNext();) {
-			Artifact artifact = (Artifact) iter.next();
-			if ("tests".equals(artifact.getClassifier())) {
-				return artifact;
-			}
-		}
-		return null;
-	}
-
-	private String createOsgiBundlesProperty(String osgiBundles)
-			throws MojoExecutionException {
-		String[] s = osgiBundles.split(",");
-		for (int i = 0; i < s.length; i++) {
-			s[i] = s[i].trim();
-		}
-		StringBuffer result = new StringBuffer();
-		appendAbsolutePath(result, projectArtifact.getFile());
-		result.append(",");
-		Artifact testArtifact = getTestArtifact();
-		if (testArtifact != null) {
-			appendAbsolutePath(result, testArtifact.getFile());
+	private String createOsgiBundlesProperty(String osgiBundles) throws MojoExecutionException {
+		StringBuffer result = new StringBuffer(osgiBundles);
+		for (BundleDescription bundle : getReactorBundles()) {
 			result.append(",");
-		}
-		appendAbsolutePath(result, getPluginArtifact("org.codehaus.tycho", "org.codehaus.tycho.junit4.runner").getFile());
-		result.append(",");
-		result.append(getPluginArtifact("org.apache.ant", "org.apache.ant")
-				.getFile().getAbsolutePath());
-		for (Iterator iter = runtimeArtifacts.iterator(); iter.hasNext();) {
-			Artifact bundle = (Artifact) iter.next();
-			File file = bundle.getFile();
-			if (!file.exists()) {
-				throw new MojoExecutionException("File " + file.getAbsolutePath() + "  does not exist");
-			}
-			BundleFile bundleFile = new BundleFile(state.loadManifest(file), file);
-			String symbolicName = bundleFile.getSymbolicName();
-			if (symbolicName == null || symbolicName.equals("org.eclipse.osgi")) {
-				continue;
-			}
-			if (result.length() > 0) {
-				result.append(",");
-			}
-			appendAbsolutePath(result, file);
-			for (int i = 0; i < s.length; i++) {
-				if (s[i].startsWith(symbolicName + "@")) {
-					String startLevel = s[i].substring(symbolicName.length());
-					result.append(startLevel);
-					break;
-				}
+			MavenProject project = state.getMavenProject(bundle);
+			if ("eclipse-test-plugin".equals(project.getPackaging())) {
+				appendAbsolutePath(result, project.getBasedir());
+			} else {
+				appendAbsolutePath(result, project.getArtifact().getFile());
 			}
 		}
 		return result.toString();
+	}
+	
+	private void createDevProperties() throws MojoExecutionException {
+		Properties dev = new Properties();
+		for (BundleDescription bundle : getReactorBundles()) {
+			MavenProject project = state.getMavenProject(bundle);
+			if ("eclipse-test-plugin".equals(project.getPackaging())) {
+				Build build = project.getBuild();
+				dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
+			}
+		}
+
+		try {
+			OutputStream os = new BufferedOutputStream(new FileOutputStream(devProperties));
+			try {
+				dev.store(os, null);
+			} finally {
+				os.close();
+			}
+		} catch (IOException e) {
+			throw new MojoExecutionException("Can't create osgi dev properties file", e);
+		}
+	}
+
+	private Set<BundleDescription> getReactorBundles() throws MojoExecutionException {
+		Set<BundleDescription> reactorBundles = new LinkedHashSet<BundleDescription>();
+		reactorBundles.add(state.getBundleDescription(project));
+		for (BundleDescription desc : state.getBundles()) {
+			MavenProject project = state.getMavenProject(desc);
+			if (project != null) {
+				reactorBundles.add(desc);
+			}
+		}
+		return reactorBundles;
 	}
 
 	private void appendAbsolutePath(StringBuffer result, File file) {

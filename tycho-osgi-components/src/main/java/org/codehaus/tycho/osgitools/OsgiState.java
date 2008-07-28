@@ -18,6 +18,8 @@ public interface OsgiState {
 	static final String ATTR_ARTIFACT_ID = "MavenArtifact-ArtifactId";
 	static final String ATTR_BASE_VERSION = "MavenArtifact-BaseVersion";
 
+	static final String HIGHEST_VERSION = "highest version";
+
 	BundleDescription addBundle(File manifest) throws BundleException;
 
 	BundleDescription[] getDependencies(BundleDescription desc);
@@ -49,4 +51,6 @@ public interface OsgiState {
 	void assertResolved(BundleDescription desc) throws BundleException;
 
 	String getManifestAttribute(BundleDescription desc, String attr);
+
+	File getTargetPlaform();
 }
