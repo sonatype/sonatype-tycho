@@ -18,6 +18,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.cli.Arg;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
@@ -124,6 +125,13 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private List<Artifact> pluginArtifacts;
 
+	/**
+     * Arbitrary JVM options to set on the command line.
+     * 
+     * @parameter
+     */
+    private String argLine;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			return;
@@ -215,13 +223,18 @@ public class TestMojo extends AbstractMojo {
 				"-Dosgi.noShutdown=false",
 			});
 
+			if (argLine != null) {
+				Arg arg = cli.createArg();
+				arg.setLine(argLine);
+				cli.addArg(arg);
+			}
+
 			cli.addArguments(new String[] {
-				"-Xmx512m",
 				"-jar", getEclipseLauncher().getAbsolutePath(),
 			});
 
 			cli.addArguments(new String[] {
-				"-debug", "-consolelog",
+//				"-debug", "-consolelog",
 				"-data", workspace,
 				"-dev", devProperties.toURI().toURL().toExternalForm(),
 				"-install", targetPlatform.getAbsolutePath(),
@@ -321,7 +334,6 @@ public class TestMojo extends AbstractMojo {
 	private File getOsgiSurefireBooterPlugin() throws MojoExecutionException {
 		for (Artifact artifact : pluginArtifacts) {
 			if ("org.codehaus.tycho".equals(artifact.getGroupId()) && "tycho-surefire-osgi-booter".equals(artifact.getArtifactId())) {
-				// eclipse enforces bundle file naming convention (see EclipseStarter #getInitialBundles and #searchForBundle
 				return artifact.getFile();
 			}
 		}
