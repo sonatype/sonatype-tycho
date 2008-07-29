@@ -12,6 +12,8 @@
   <version>0.3.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 
+  <description>Tycho Surefire OSGi Booter Eclipse application</description>
+
   <profiles>
     <profile>
       <id>update-dependencies</id>
