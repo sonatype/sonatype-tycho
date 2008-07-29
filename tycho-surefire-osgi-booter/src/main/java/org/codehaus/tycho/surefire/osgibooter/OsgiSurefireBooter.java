@@ -12,13 +12,16 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.surefire.Surefire;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.osgi.framework.Bundle;
 
 public class OsgiSurefireBooter {
 
 	public static int run(String[] args) throws Exception {
 		
-		Properties p = loadProperties(args[0]);
+		Properties p = loadProperties(getTestProperties(args));
 		
 		String plugin = p.getProperty("testpluginname");
 		File testDir = new File(p.getProperty("testclassesdirectory"));
@@ -60,13 +63,30 @@ public class OsgiSurefireBooter {
 		return surefire.run(reports, tests, surefireClassLoader, testClassLoader, true /*failIfNoTests*/);
 	}
 
+	private static File getTestProperties(String[] args) throws CoreException {
+		String arg = null; 
+		for (int i = 0; i < args.length; i++) {
+			if ("-testproperties".equals(args[i].toLowerCase())) {
+				arg = args[i+1];
+				break;
+			}
+		}
+		if (arg != null) {
+			File file = new File(arg);
+			if (file.canRead()) {
+				return file;
+			}
+		}
+		throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0, "-testproperties command line parameter is not specified or does not point to an accessible file", null));
+	}
+
 	private static ArrayList<String> getIncludesExcludes(String string) {
 		ArrayList<String> list = new ArrayList<String>();
 		list.addAll(Arrays.asList(string.split(",")));
 		return list;
 	}
 
-	private static Properties loadProperties(String file) throws IOException {
+	private static Properties loadProperties(File file) throws IOException {
 		Properties p = new Properties();
 		BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
 		try {

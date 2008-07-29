@@ -9,7 +9,7 @@
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">
-<listEntry value="tycho.targetPlatform=t:/eclipse-3.4/eclipse"/>
+<listEntry value="tycho.targetPlatform=t:/eclipse-3.2/eclipse"/>
 </listAttribute>
 <stringAttribute key="M2_RUNTIME" value="WORKSPACE"/>
 <booleanAttribute key="M2_SKIP_TESTS" value="false"/>

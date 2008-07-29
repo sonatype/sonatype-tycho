@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -115,6 +116,14 @@ public class TestMojo extends AbstractMojo {
 	/** @component */
 	private OsgiState state;
 
+	/** @parameter default-value="false" */
+	private boolean useUIHarness;
+
+	/**
+	 * @parameter expression="${plugin.artifacts}"
+	 */
+	private List<Artifact> pluginArtifacts;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			return;
@@ -183,7 +192,6 @@ public class TestMojo extends AbstractMojo {
 		int result;
 
 		try {
-			File output = new File(reportsDirectory, className + ".txt");
 			String workspace = new File(work, "data").getAbsolutePath();
 			
 			FileUtils.deleteDirectory(workspace);
@@ -213,12 +221,13 @@ public class TestMojo extends AbstractMojo {
 			});
 
 			cli.addArguments(new String[] {
+				"-debug", "-consolelog",
 				"-data", workspace,
 				"-dev", devProperties.toURI().toURL().toExternalForm(),
 				"-install", targetPlatform.getAbsolutePath(),
 				"-configuration", new File(work, "configuration").getAbsolutePath(),
-				"-application",	"org.codehaus.tycho.surefire.osgibooter.uitest",
-				surefireProperties.getAbsolutePath(), 
+				"-application",	getTestApplication(),
+				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
 
 			result = CommandLineUtils.executeCommandLine(cli, new StreamConsumer() {
@@ -237,9 +246,21 @@ public class TestMojo extends AbstractMojo {
 		return result == 0;
 	}
 
+	private String getTestApplication() {
+		if (useUIHarness) {
+			Version osgiVersion = getPlatformVersion();
+			if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+				return "org.codehaus.tycho.surefire.osgibooter.uitest32";
+			} else {
+				return "org.codehaus.tycho.surefire.osgibooter.uitest";
+			}
+		} else {
+			return "org.codehaus.tycho.surefire.osgibooter.headlesstest";
+		}
+	}
+
 	private File getEclipseLauncher() throws IOException {
-		BundleDescription osgi = state.getBundleDescription("org.eclipse.osgi", OsgiState.HIGHEST_VERSION);
-		Version osgiVersion = osgi.getVersion();
+		Version osgiVersion = getPlatformVersion();
 		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
 			return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
@@ -247,6 +268,11 @@ public class TestMojo extends AbstractMojo {
 			BundleDescription launcher = state.getBundleDescription("org.eclipse.equinox.launcher", OsgiState.HIGHEST_VERSION);
 			return new File(launcher.getLocation()).getCanonicalFile();
 		}
+	}
+
+	private Version getPlatformVersion() {
+		BundleDescription osgi = state.getBundleDescription("org.eclipse.osgi", OsgiState.HIGHEST_VERSION);
+		return osgi.getVersion();
 	}
 
 	private void createConfiguration(File targetPlatform) throws MojoExecutionException {
@@ -276,7 +302,7 @@ public class TestMojo extends AbstractMojo {
 		}
 	}
 
-	private String createOsgiBundlesProperty(String osgiBundles) throws MojoExecutionException {
+	private String createOsgiBundlesProperty(String osgiBundles) throws IOException, MojoExecutionException {
 		StringBuilder result = new StringBuilder(osgiBundles);
 		for (BundleDescription bundle : getReactorBundles()) {
 			result.append(",");
@@ -287,10 +313,19 @@ public class TestMojo extends AbstractMojo {
 				appendAbsolutePath(result, project.getArtifact().getFile());
 			}
 		}
-		// XXX
 		result.append(",");
-		appendAbsolutePath(result, new File("S:/projects/tycho/tycho-surefire-osgi-booter"));
+		appendAbsolutePath(result, getOsgiSurefireBooterPlugin());
 		return result.toString();
+	}
+
+	private File getOsgiSurefireBooterPlugin() throws MojoExecutionException {
+		for (Artifact artifact : pluginArtifacts) {
+			if ("org.codehaus.tycho".equals(artifact.getGroupId()) && "tycho-surefire-osgi-booter".equals(artifact.getArtifactId())) {
+				// eclipse enforces bundle file naming convention (see EclipseStarter #getInitialBundles and #searchForBundle
+				return artifact.getFile();
+			}
+		}
+		throw new MojoExecutionException("Unable to locate org.codehaus.tycho:tycho-surefire-osgi-booter");
 	}
 
 	private void createDevProperties() throws MojoExecutionException {
@@ -302,8 +337,6 @@ public class TestMojo extends AbstractMojo {
 				dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
 			}
 		}
-		// XXX
-		dev.put("org.codehaus.tycho.surefire.osgibooter", new File("S:/projects/tycho/tycho-surefire-osgi-booter/target/classes").getAbsolutePath());
 
 		try {
 			OutputStream os = new BufferedOutputStream(new FileOutputStream(devProperties));
@@ -317,7 +350,7 @@ public class TestMojo extends AbstractMojo {
 		}
 	}
 
-	private Set<BundleDescription> getReactorBundles() throws MojoExecutionException {
+	private Set<BundleDescription> getReactorBundles() {
 		Set<BundleDescription> reactorBundles = new LinkedHashSet<BundleDescription>();
 		reactorBundles.add(state.getBundleDescription(project));
 		for (BundleDescription desc : state.getBundles()) {
@@ -329,7 +362,7 @@ public class TestMojo extends AbstractMojo {
 		return reactorBundles;
 	}
 
-	private void appendAbsolutePath(StringBuilder result, File file) {
+	private void appendAbsolutePath(StringBuilder result, File file) throws IOException {
 		String url = file.getAbsolutePath().replace('\\', '/');
 		result.append("reference:file:" + url);
 	}

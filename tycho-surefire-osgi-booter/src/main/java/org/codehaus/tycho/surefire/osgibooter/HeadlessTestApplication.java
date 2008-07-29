@@ -1,18 +1,14 @@
 package org.codehaus.tycho.surefire.osgibooter;
 
-import org.eclipse.equinox.app.IApplication;
-import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.core.runtime.IPlatformRunnable;
+import org.eclipse.core.runtime.Platform;
 
-public class HeadlessTestApplication implements IApplication {
+@SuppressWarnings("deprecation")
+public class HeadlessTestApplication implements IPlatformRunnable {
 
-	public Object start(IApplicationContext context) throws Exception {
-		String[] args = (String[]) context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
+	public Object run(Object object) throws Exception {
+		String[] args = Platform.getCommandLineArgs();
         return new Integer(OsgiSurefireBooter.run(args));
-	}
-
-	public void stop() {
-		// TODO Auto-generated method stub
-
 	}
 	
 }

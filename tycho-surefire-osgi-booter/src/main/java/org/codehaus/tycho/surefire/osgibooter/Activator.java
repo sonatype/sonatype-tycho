@@ -6,20 +6,17 @@ import org.osgi.framework.BundleContext;
 
 public class Activator implements BundleActivator {
 
+	public static final String PLUGIN_ID = "org.codehaus.tycho.surefire.osgibooter";
 	private static BundleContext context;
 
 	public Activator() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public void start(BundleContext context) throws Exception {
 		Activator.context = context;
-		
 	}
 
 	public void stop(BundleContext context) throws Exception {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public static Bundle getBundle(String symbolicName) {

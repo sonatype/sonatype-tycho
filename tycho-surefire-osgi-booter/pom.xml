@@ -10,69 +10,78 @@
   <groupId>org.codehaus.tycho</groupId>
   <artifactId>tycho-surefire-osgi-booter</artifactId>
   <version>0.3.0-SNAPSHOT</version>
+  <packaging>eclipse-plugin</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.maven.surefire</groupId>
-      <artifactId>surefire-booter</artifactId>
-      <version>2.4.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.surefire</groupId>
-      <artifactId>surefire-junit</artifactId>
-      <version>2.4.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+  <profiles>
+    <profile>
+      <id>update-dependencies</id>
 
-<!--
- really need to move junit/junit4 support into separate bundles
- 
-    <dependency>
-      <groupId>org.apache.maven.surefire</groupId>
-      <artifactId>surefire-junit4</artifactId>
-      <version>2.4.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
- -->
-  </dependencies>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.maven.surefire</groupId>
+          <artifactId>surefire-booter</artifactId>
+          <version>2.4.3</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.maven.surefire</groupId>
+          <artifactId>surefire-junit</artifactId>
+          <version>2.4.3</version>
+          <exclusions>
+            <exclusion>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+
+    <!--
+     really need to move junit/junit4 support into separate bundles
+     
+        <dependency>
+          <groupId>org.apache.maven.surefire</groupId>
+          <artifactId>surefire-junit4</artifactId>
+          <version>2.4.3</version>
+          <exclusions>
+            <exclusion>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+     -->
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.tycho</groupId>
+            <artifactId>maven-osgi-packaging-plugin</artifactId>
+            <version>${project.version}</version>
+            <executions>
+              <execution>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>generate-bundle</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <packageSources>false</packageSources>
+              <exportPackages>
+              </exportPackages>
+              <manifestAttributes>
+                <Bundle-SymbolicName>org.codehaus.tycho.surefire.osgibooter;singleton:=true</Bundle-SymbolicName>
+                <Bundle-RequiredExecutionEnvironment>J2SE-1.5, JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+                <Require-Bundle>org.eclipse.equinox.app,org.eclipse.osgi,org.junit,org.eclipse.ui.workbench;resolution:=optional,org.eclipse.core.runtime;resolution:=optional</Require-Bundle>
+                <Eclipse-AutoStart>true</Eclipse-AutoStart>
+                <Bundle-Activator>org.codehaus.tycho.surefire.osgibooter.Activator</Bundle-Activator>
+              </manifestAttributes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+
+    </profile>
+  </profiles>
   
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.tycho</groupId>
-        <artifactId>maven-osgi-packaging-plugin</artifactId>
-        <version>${project.version}</version>
-        <executions>
-          <execution>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>generate-bundle</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <packageSources>false</packageSources>
-          <exportPackages>
-          </exportPackages>
-          <manifestAttributes>
-            <Bundle-SymbolicName>org.codehaus.tycho.surefire.osgibooter;singleton:=true</Bundle-SymbolicName>
-            <Bundle-RequiredExecutionEnvironment>J2SE-1.5, JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
-            <Require-Bundle>org.eclipse.equinox.app,org.eclipse.osgi,org.junit,org.eclipse.ui.workbench;resolution:=optional,org.eclipse.core.runtime;resolution:=optional</Require-Bundle>
-            <Eclipse-AutoStart>true</Eclipse-AutoStart>
-            <Bundle-Activator>org.codehaus.tycho.surefire.osgibooter.Activator</Bundle-Activator>
-          </manifestAttributes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>
