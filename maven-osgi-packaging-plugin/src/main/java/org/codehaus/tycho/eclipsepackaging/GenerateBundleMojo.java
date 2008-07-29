@@ -262,7 +262,12 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 		Artifact artifact = project.getArtifact();
 		attributes.putValue("Bundle-Version", getBundleVersion(artifact, true));
 		attributes.putValue("Bundle-Name", project.getName());
-		attributes.putValue("Bundle-SymbolicName", getBundleSymbolicName(artifact.getGroupId(), artifact.getArtifactId()) + ";singleton:=true");
+		
+		String symbolicName = (String) manifestAttributes.get("Bundle-SymbolicName");
+		if (symbolicName == null) {
+			symbolicName = getBundleSymbolicName(artifact.getGroupId(), artifact.getArtifactId()) + ";singleton:=true";
+		}
+		attributes.putValue("Bundle-SymbolicName", symbolicName);
 
 		if (organization != null) {
 			attributes.putValue("Bundle-Vendor", organization);
@@ -298,16 +303,19 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	}
 
 	private String getRequiredBundles() {
+		StringBuffer sb = new StringBuffer();
+		String requireBundle = (String) manifestAttributes.get("Require-Bundle");
+		if (requireBundle != null) {
+			sb.append(requireBundle);
+		}
 		if (requireBundles != null) {
-			StringBuffer sb = new StringBuffer();
 			for (int i = 0; i < requireBundles.length; i++) {
 				ArtifactRef a = requireBundles[i];
 				if (sb.length() > 0) sb.append(",");
 				sb.append(getBundleSymbolicName(a.getGroupId(), a.getArtifactId()));
 			}
-			return sb.toString();
 		}
-		return null;
+		return sb.length() > 0? sb.toString(): null;
 	}
 
 	private String getExportedPackages() throws MojoExecutionException {

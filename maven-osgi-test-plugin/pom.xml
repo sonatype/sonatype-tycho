@@ -47,6 +47,13 @@
       <artifactId>surefire</artifactId>
       <version>1.5.3</version>
     </dependency>
+    
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-surefire-osgi-booter</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 
   <reporting>

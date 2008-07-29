@@ -6,28 +6,20 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.jar.JarFile;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.surefire.battery.DirectoryBattery;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
-import org.codehaus.tycho.osgitools.BundleFile;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
@@ -41,19 +33,9 @@ import org.osgi.framework.Version;
 public class TestMojo extends AbstractMojo {
 
 	/**
-	 * @parameter expression="${project.runtimeArtifacts}"
-	 */
-	private List runtimeArtifacts;
-
-	/**
 	 * @parameter default-value="${project.build.directory}/work"
 	 */
 	private File work;
-
-	/**
-	 * @parameter expression="${project.artifact}"
-	 */
-	private Artifact projectArtifact;
 
 	/**
 	 * @parameter expression="${project}"
@@ -124,18 +106,11 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private File reportsDirectory;
 
-	/**
-	 * @parameter expression="${plugin.artifacts}"
-	 */
-	private List pluginArtifacts;
-
-	/** @parameter expression="${project.build.directory}" */
-	private File outputDir;
-	
+	/** @parameter expression="${project.build.directory}/surefire.properties" */
+	private File surefireProperties;
 
 	/** @parameter expression="${project.build.directory}/dev.properties" */
 	private File devProperties;
-	
 
 	/** @component */
 	private OsgiState state;
@@ -156,29 +131,52 @@ public class TestMojo extends AbstractMojo {
 
 		createConfiguration(targetPlatform);
 		createDevProperties();
+		createSurefireProperties();
 
 		reportsDirectory.mkdirs();
 
-		File file = new File(project.getBasedir(), JarFile.MANIFEST_NAME);
-		BundleFile bundle = new BundleFile(state.loadManifest(file), file);
-		String testBundle = bundle.getSymbolicName();
-
-		List tests = getTests();
-		if (tests.size() == 0) {
-			new MojoFailureException( "No tests were executed!  (Set -DfailIfNoTests=false to ignore this error.)" );
-		}
-
-		boolean succeeded = true;
-		for (Iterator iter = tests.iterator(); iter.hasNext();) {
-			String test = (String) iter.next();
-			succeeded &= runTest(targetPlatform, testBundle, test);
-		}
+		String testBundle = null;
+		boolean succeeded = runTest(targetPlatform, testBundle , test);
 		
 		if (succeeded) {
 			getLog().info("All tests passed!");
 		} else {
             throw new MojoFailureException("There are test failures.\n\nPlease refer to " + reportsDirectory + " for the individual test results.");
 		}
+	}
+
+	private void createSurefireProperties() throws MojoExecutionException {
+		Properties p = new Properties();
+
+		BundleDescription bundle = state.getBundleDescription(project);
+		p.put("testpluginname", bundle.getSymbolicName());
+		p.put("testclassesdirectory", testClassesDirectory.getAbsolutePath());
+		p.put("reportsdirectory", reportsDirectory.getAbsolutePath());
+
+		p.put("includes", includes != null? getIncludesExcludes(includes): "**/Test*.class,**/*Test.class,**/*TestCase.class");
+		p.put("excludes", excludes != null? getIncludesExcludes(excludes): "**/Abstract*Test.class,**/Abstract*TestCase.class,**/*$*");
+
+		try {
+			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(surefireProperties));
+			try {
+				p.store(out, null);
+			} finally {
+				out.close();
+			}
+		} catch (IOException e) {
+			throw new MojoExecutionException("Can't write test launcher properties file", e);
+		}
+	}
+
+	private String getIncludesExcludes(List<String> patterns) {
+		StringBuilder sb = new StringBuilder();
+		for (String pattern : patterns) {
+			if (sb.length() > 0) {
+				sb.append(',');
+			}
+			sb.append(pattern);
+		}
+		return sb.toString();
 	}
 
 	private boolean runTest(File targetPlatform, String testBundle, String className) throws MojoExecutionException {
@@ -200,33 +198,27 @@ public class TestMojo extends AbstractMojo {
 			}
 			cli.setExecutable(executable);
 
-
 			if (debugPort > 0) {
 				cli.addArguments(new String[] {
 					"-Xdebug",
 					"-Xrunjdwp:transport=dt_socket,address=" + debugPort + ",server=y,suspend=y" });
 			}
 			cli.addArguments(new String[] {
-					"-Dosgi.noShutdown=false",
+				"-Dosgi.noShutdown=false",
 			});
 
 			cli.addArguments(new String[] {
-					"-Xmx512m",
-					"-jar", getEclipseLauncher().getAbsolutePath(),
+				"-Xmx512m",
+				"-jar", getEclipseLauncher().getAbsolutePath(),
 			});
 
 			cli.addArguments(new String[] {
-					"-os", "win32",	"-ws", "win32",	"-arch", "x86",
-					"-noSplash", "-debug", "-consolelog",
-					"-product", "org.eclipse.sdk.ide",
-					"-data", workspace,
-					"-dev", devProperties.toURI().toURL().toExternalForm(),
-					"-install", targetPlatform.getAbsolutePath(),
-					"-configuration", new File(work, "configuration").getAbsolutePath(),
-					"-application",	"org.eclipse.test.uitestapplication",
-					"-testpluginname", testBundle, 
-					"-classname", className, 
-					"formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter," + output.getAbsolutePath(), 
+				"-data", workspace,
+				"-dev", devProperties.toURI().toURL().toExternalForm(),
+				"-install", targetPlatform.getAbsolutePath(),
+				"-configuration", new File(work, "configuration").getAbsolutePath(),
+				"-application",	"org.codehaus.tycho.surefire.osgibooter.uitest",
+				surefireProperties.getAbsolutePath(), 
 			});
 
 			result = CommandLineUtils.executeCommandLine(cli, new StreamConsumer() {
@@ -285,7 +277,7 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private String createOsgiBundlesProperty(String osgiBundles) throws MojoExecutionException {
-		StringBuffer result = new StringBuffer(osgiBundles);
+		StringBuilder result = new StringBuilder(osgiBundles);
 		for (BundleDescription bundle : getReactorBundles()) {
 			result.append(",");
 			MavenProject project = state.getMavenProject(bundle);
@@ -295,9 +287,12 @@ public class TestMojo extends AbstractMojo {
 				appendAbsolutePath(result, project.getArtifact().getFile());
 			}
 		}
+		// XXX
+		result.append(",");
+		appendAbsolutePath(result, new File("S:/projects/tycho/tycho-surefire-osgi-booter"));
 		return result.toString();
 	}
-	
+
 	private void createDevProperties() throws MojoExecutionException {
 		Properties dev = new Properties();
 		for (BundleDescription bundle : getReactorBundles()) {
@@ -307,6 +302,8 @@ public class TestMojo extends AbstractMojo {
 				dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
 			}
 		}
+		// XXX
+		dev.put("org.codehaus.tycho.surefire.osgibooter", new File("S:/projects/tycho/tycho-surefire-osgi-booter/target/classes").getAbsolutePath());
 
 		try {
 			OutputStream os = new BufferedOutputStream(new FileOutputStream(devProperties));
@@ -332,63 +329,8 @@ public class TestMojo extends AbstractMojo {
 		return reactorBundles;
 	}
 
-	private void appendAbsolutePath(StringBuffer result, File file) {
+	private void appendAbsolutePath(StringBuilder result, File file) {
 		String url = file.getAbsolutePath().replace('\\', '/');
 		result.append("reference:file:" + url);
 	}
-
-	private List getTests() throws MojoExecutionException {
-		if (!testClassesDirectory.exists()) {
-			return Collections.EMPTY_LIST;
-		}
-
-		// ----------------------------------------------------------------------
-		// Check to see if we are running a single test. The raw parameter will
-		// come through if it has not been set.
-		// ----------------------------------------------------------------------
-		try {
-			DirectoryBattery battery;
-
-			if (test != null) {
-				// FooTest -> **/FooTest.java
-
-				List includes = new ArrayList();
-
-				List excludes = new ArrayList();
-
-				String[] testRegexes = test.split(",");
-
-				for (int i = 0; i < testRegexes.length; i++) {
-					includes.add("**/" + testRegexes[i] + ".java");
-				}
-
-				battery = new DirectoryBattery(testClassesDirectory,
-						new ArrayList(includes), new ArrayList(excludes));
-
-			} else {
-				// defaults here, qdox doesn't like the end javadoc value
-				// Have to wrap in an ArrayList as surefire expects an ArrayList
-				// instead of a List for some reason
-				if (includes == null || includes.size() == 0) {
-					includes = Arrays.asList(new String[] { "**/Test*.java",
-							"**/*Test.java", "**/*TestCase.java" });
-				}
-				if (excludes == null || excludes.size() == 0) {
-					excludes = Arrays.asList(new String[] {
-							"**/Abstract*Test.java",
-							"**/Abstract*TestCase.java", "**/*$*" });
-				}
-
-				battery = new DirectoryBattery(testClassesDirectory,
-						new ArrayList(includes), new ArrayList(excludes));
-			}
-
-			return battery.getSubBatteryClassNames();
-		} catch (Exception e) {
-			throw new MojoExecutionException(
-					"Error while discovering tests to run", e);
-		}
-
-	}
-
 }
