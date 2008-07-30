@@ -4,7 +4,11 @@ To build tycho source tree
   http://repository.sonatype.org/service/local/repositories/eclipse-snapshots/content/org/codehaus/tycho/tycho-distribution
   
 * unzip tycho-distribution-${version}.jar into an empty folder (TYCHO_HOME from here on)
+  
+* Download Eclipse 3.4 "classic" package for your platform from http://www.eclipse.org/downloads/
+
+* unzip  Eclipse 3.4 "classic" package into empty folder (ECLIPSE_HOME from here on)
 
 * export M2_HOME=$TYCHO_HOME
 
-* $M2_HOME/bin/mvn clean install
+* $M2_HOME/bin/mvn clean install -Dtycho.targetPlatform=$ECLIPSE_HOME/eclipse
