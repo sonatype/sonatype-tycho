@@ -34,10 +34,6 @@
       <artifactId>plexus-utils</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven.surefire</groupId>
-      <artifactId>surefire</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
       <version>${project.version}</version>
