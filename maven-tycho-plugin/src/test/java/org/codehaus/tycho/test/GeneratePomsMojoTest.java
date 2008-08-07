@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.model.Model;
+import org.apache.maven.model.Profile;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.Mojo;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -66,13 +67,22 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 
 	public void testUpdateSite() throws Exception {
 		File baseDir = getBasedir("projects/p003");
-		generate(baseDir);
+		Map<String, Object> params  = new HashMap<String, Object>();
+		params.put("groupId", "group-p003");
+		params.put("version", "1.0.0");
+		params.put("aggregator", Boolean.TRUE);
+		generate(baseDir, params);
 		Model model = readModel(baseDir, "pom.xml");
 
-//		assertEquals("p003", model.getGroupId());
+		assertEquals("group-p003", model.getGroupId());
 		assertEquals("p003", model.getArtifactId());
-//		assertEquals("1.0.0", model.getVersion());
+		assertEquals("1.0.0", model.getVersion());
 		assertEquals("eclipse-update-site", model.getPackaging());
+		
+		List<Profile> profiles = model.getProfiles();
+		assertEquals(1, profiles.size());
+		List<String> modules = profiles.get(0).getModules();
+		assertEquals(2, modules.size());
 	}
 
 	public void testParent() throws Exception {

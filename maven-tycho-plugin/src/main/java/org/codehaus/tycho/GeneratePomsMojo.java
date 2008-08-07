@@ -7,9 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
+import org.apache.maven.model.Profile;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
@@ -21,6 +25,10 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
 import org.osgi.framework.BundleException;
 
 /**
@@ -48,6 +56,13 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 */
 	private String version;
 
+	/**
+	 * @parameter expression="${aggregator}" default-value="true"
+	 */
+	private boolean aggregator;
+
+	private static final SAXBuilder builder = new SAXBuilder();
+
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
 
@@ -72,13 +87,13 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private boolean generatePom(Model parent, File baseDir) throws MojoExecutionException {
-		if (isPluginProject(baseDir)) {
-			generatePluginPom(parent, baseDir);
-		} else if (isFeatureProject(baseDir)) {
-			generateFeaturePom(parent, baseDir);
-		} else if (isUpdateSiteProject(baseDir)) {
-			generateUpdateSitePom(parent, baseDir);
+	private boolean generatePom(Model parent, File basedir) throws MojoExecutionException {
+		if (isPluginProject(basedir)) {
+			generatePluginPom(parent, basedir);
+		} else if (isFeatureProject(basedir)) {
+			generateFeaturePom(parent, basedir);
+		} else if (isUpdateSiteProject(basedir)) {
+			generateUpdateSitePom(parent, basedir);
 		} else {
 			return false;
 		}
@@ -97,15 +112,73 @@ public class GeneratePomsMojo extends AbstractMojo {
 		return new File(dir, "META-INF/MANIFEST.MF").canRead() /*|| new File(dir, "plugin.xml").canRead()*/;
 	}
 
-	private void generateUpdateSitePom(Model parent, File baseDir) throws MojoExecutionException {
+	private void generateUpdateSitePom(Model parent, File basedir) throws MojoExecutionException {
+		if (groupId == null) {
+			throw new MojoExecutionException("goupId parameter is required to generate pom.xml for Update Site project " + basedir.getName());
+		}
+		if (version == null) {
+			throw new MojoExecutionException("version parameter is required to generate pom.xml for Update Site project " + basedir.getName());
+		}
+		
 		Model model = readPom("templates/update-site-pom.xml");
 		setParent(model, parent);
 		model.setGroupId(groupId);
-		model.setArtifactId(baseDir.getName());
+		model.setArtifactId(basedir.getName());
 		model.setVersion(version);
-		writePom(baseDir, model);
+		Set<String> modules = getSiteFeaturesAndPlugins(basedir);
+		if (aggregator && modules.size() > 0) {
+			Profile aggregator = new Profile();
+			aggregator.setId("aggregator");
+			for (String module : modules) {
+				aggregator.addModule(module);
+			}
+			model.addProfile(aggregator);
+		}
+		writePom(basedir, model);
 	}
 
+	private Set<String> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
+		try {
+			Set<String> result = new LinkedHashSet<String>();
+	
+			File siteFile = new File(basedir, "site.xml");
+			Document doc = builder.build(siteFile);
+			Element root = doc.getRootElement();
+	
+			@SuppressWarnings("unchecked")
+			List<Element> features = root.getChildren("feature");
+			for (Element feature : features) {
+				String id = feature.getAttributeValue("id");
+				File dir = new File(basedir.getParent(), id);
+				if (dir.exists() && dir.isDirectory()) {
+					result.add(id);
+					result.addAll(getFeaturePlugins(dir));
+				}
+			}
+
+			return result;
+		} catch (Exception e) {
+			throw new MojoExecutionException("Could not collect update site features and plugins", e);
+		}
+	}
+
+	private Set<String> getFeaturePlugins(File basedir) throws JDOMException, IOException {
+		Set<String> result = new LinkedHashSet<String>(); 
+		
+		Document doc = builder.build(new File(basedir, "feature.xml"));
+		List<Element> plugins = doc.getRootElement().getChildren("plugin");
+
+		for (Element plugin : plugins) {
+			String id = plugin.getAttributeValue("id");
+			File dir = new File(basedir.getParent(), id);
+			if (dir.exists() && dir.isDirectory()) {
+				result.add(id);
+			}
+		}
+		
+		return result;
+	}
+	
 	private void setParent(Model model, Model parentModel) {
 		if (parentModel != null) {
 			Parent parent = new Parent();
@@ -117,12 +190,12 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private void generateFeaturePom(Model parent, File baseDir) throws MojoExecutionException {
+	private void generateFeaturePom(Model parent, File basedir) throws MojoExecutionException {
 		Model model = readPom("templates/feature-pom.xml");
 		setParent(model, parent);
 
 		try {
-			FileInputStream is = new FileInputStream(new File(baseDir, "feature.xml"));
+			FileInputStream is = new FileInputStream(new File(basedir, "feature.xml"));
 			try {
 				XmlStreamReader reader = new XmlStreamReader(is);
 				Xpp3Dom dom = Xpp3DomBuilder.build(reader);
@@ -144,7 +217,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			throw new MojoExecutionException("Can't create pom.xml file", e);
 		}
 		
-		writePom(baseDir, model);
+		writePom(basedir, model);
 	}
 
 	private void generatePluginPom(Model parent, File dir) throws MojoExecutionException {

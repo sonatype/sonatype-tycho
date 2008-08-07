@@ -6,4 +6,11 @@
       provider-name="Sonatype, Inc."
       plugin="org.maven.ide.eclipse">
 
+   <plugin
+         id="p001"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
