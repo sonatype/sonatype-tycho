@@ -21,4 +21,11 @@
          id="com.company.tools.core.feature"
          version="0.0.0"/>
 
+   <plugin
+         id="com.company.tools.widget4"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
 </feature>
