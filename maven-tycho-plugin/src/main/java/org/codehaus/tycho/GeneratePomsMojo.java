@@ -130,7 +130,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			Profile aggregator = new Profile();
 			aggregator.setId("aggregator");
 			for (String module : modules) {
-				aggregator.addModule(module);
+				aggregator.addModule("../" + module);
 			}
 			model.addProfile(aggregator);
 		}
