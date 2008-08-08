@@ -13,7 +13,6 @@ import java.util.Set;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
-import org.apache.maven.model.Profile;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
@@ -125,16 +124,19 @@ public class GeneratePomsMojo extends AbstractMojo {
 		model.setGroupId(groupId);
 		model.setArtifactId(basedir.getName());
 		model.setVersion(version);
+		writePom(basedir, model);
 		Set<String> modules = getSiteFeaturesAndPlugins(basedir);
 		if (aggregator && modules.size() > 0) {
-			Profile aggregator = new Profile();
-			aggregator.setId("aggregator");
+			Model modela = readPom("templates/update-site-poma.xml");
+			setParent(modela, parent);
+			modela.setGroupId(groupId);
+			modela.setArtifactId(basedir.getName());
+			modela.setVersion(version);
 			for (String module : modules) {
-				aggregator.addModule("../" + module);
+				modela.addModule("../" + module);
 			}
-			model.addProfile(aggregator);
+			writePom(basedir, "poma.xml", modela);
 		}
-		writePom(basedir, model);
 	}
 
 	private Set<String> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
@@ -148,12 +150,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			@SuppressWarnings("unchecked")
 			List<Element> features = root.getChildren("feature");
 			for (Element feature : features) {
-				String id = feature.getAttributeValue("id");
-				File dir = new File(basedir.getParent(), id);
-				if (dir.exists() && dir.isDirectory()) {
-					result.add(id);
-					result.addAll(getFeaturePlugins(dir));
-				}
+				addFeature(result, basedir, feature.getAttributeValue("id"));
 			}
 
 			return result;
@@ -162,21 +159,55 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private Set<String> getFeaturePlugins(File basedir) throws JDOMException, IOException {
-		Set<String> result = new LinkedHashSet<String>(); 
-		
-		Document doc = builder.build(new File(basedir, "feature.xml"));
-		List<Element> plugins = doc.getRootElement().getChildren("plugin");
+	private void addFeature(Set<String> result, File basedir, String name) throws JDOMException, IOException {
+		if (name != null) {
+			File dir = new File(basedir.getParent(), name);
+			if (dir.exists() && dir.isDirectory()) {
+				result.add(name);
+				result.addAll(getFeatureFeaturesAndPlugins(dir));
+			}
+		}
+	}
 
+	private Set<String> getFeatureFeaturesAndPlugins(File basedir) throws JDOMException, IOException {
+		Set<String> result = new LinkedHashSet<String>(); 
+
+		Document doc = builder.build(new File(basedir, "feature.xml"));
+
+		@SuppressWarnings("unchecked")
+		List<Element> plugins = doc.getRootElement().getChildren("plugin");
 		for (Element plugin : plugins) {
 			String id = plugin.getAttributeValue("id");
-			File dir = new File(basedir.getParent(), id);
-			if (dir.exists() && dir.isDirectory()) {
-				result.add(id);
+			addPlugin(result, basedir, id);
+		}
+
+		@SuppressWarnings("unchecked")
+		List<Element> features = doc.getRootElement().getChildren("includes");
+		for (Element feature : features) {
+			addFeature(result, basedir, feature.getAttributeValue("id"));
+		}
+
+		@SuppressWarnings("unchecked")
+		List<Element> requires = doc.getRootElement().getChildren("requires");
+		for (Element require : requires) {
+			@SuppressWarnings("unchecked")
+			List<Element> imps = require.getChildren("import");
+			for (Element imp : imps) {
+				addPlugin(result, basedir, imp.getAttributeValue("plugin"));
+				addFeature(result, basedir, imp.getAttributeValue("feature"));
 			}
 		}
 		
 		return result;
+	}
+
+	private void addPlugin(Set<String> result, File basedir, String name) {
+		if (name != null) {
+			File dir = new File(basedir.getParent(), name);
+			if (dir.exists() && dir.isDirectory()) {
+				result.add(name);
+			}
+		}
 	}
 	
 	private void setParent(Model model, Model parentModel) {
@@ -242,8 +273,12 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private void writePom(File dir, Model model) throws MojoExecutionException {
+		writePom(dir, "pom.xml", model);
+	}
+
+	private void writePom(File dir, String filename, Model model) throws MojoExecutionException {
 		try {
-			Writer writer = new OutputStreamWriter(new FileOutputStream(new File(dir, "pom.xml")), "UTF-8");
+			Writer writer = new OutputStreamWriter(new FileOutputStream(new File(dir, filename)), "UTF-8");
 			try {
 				modelWriter.write(writer, model);
 			} finally {
