@@ -22,7 +22,7 @@
          version="0.0.0"/>
 
    <plugin
-         id="com.company.tools.common"
+         id="com.company.tools.config"
          download-size="0"
          install-size="0"
          version="0.0.0"
