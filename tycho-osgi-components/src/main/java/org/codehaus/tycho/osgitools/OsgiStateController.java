@@ -477,6 +477,11 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return state.getBundleByLocation(location);
 	}
 
+	public BundleDescription getBundleDescription(File location) {
+		String absolutePath = location.getAbsolutePath();
+		return state.getBundleByLocation(absolutePath);
+	}
+
 	public BundleDescription addBundle(MavenProject project) throws BundleException {
 		File basedir = project.getBasedir();
 		File mf = new File(basedir, "META-INF/MANIFEST.MF");

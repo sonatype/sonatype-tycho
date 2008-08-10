@@ -99,4 +99,25 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		
 	}
 
+	public void _testPomless() throws Exception {
+		File pom = new File(getBasedir("projects/pomless/p001"), "pom.xml");
+
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+
+		ReactorManager reactorManager = maven.createReactorManager(request, result);
+		
+		if (result.getExceptions().size() > 0) {
+			for (Exception e : (List<Exception>) result.getExceptions()) {
+				e.printStackTrace();
+			}
+		}
+
+		List projects = reactorManager.getSortedProjects();
+
+		MavenProject p001 = (MavenProject) projects.get(0);
+		
+		assertEquals("pomless.p001", p001.getArtifactId());
+	}
 }

@@ -232,7 +232,6 @@
 					</test-compile>
 					<test></test>
 					<package>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin
 					</package>
 					<integration-test>
 						org.codehaus.tycho:maven-osgi-test-plugin:test

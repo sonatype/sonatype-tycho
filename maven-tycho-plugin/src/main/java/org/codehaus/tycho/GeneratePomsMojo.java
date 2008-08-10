@@ -64,10 +64,13 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
+	
+	private Set<File> updateSites = new LinkedHashSet<File>();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		Model parent = null;
 		if (!generatePom(null, baseDir)) {
-			Model parent = readPom("templates/parent-pom.xml");
+			parent = readPom("templates/parent-pom.xml");
 			if (groupId == null) {
 				throw new MojoExecutionException("groupId is required");
 			}
@@ -83,6 +86,26 @@ public class GeneratePomsMojo extends AbstractMojo {
 				}
 			}
 			writePom(baseDir, parent);
+		}
+
+		generateAggregatorPoms(parent);
+	}
+
+	private void generateAggregatorPoms(Model parent) throws MojoExecutionException {
+		state.resolveState();
+		for (File basedir : updateSites) {
+			Set<String> modules = getSiteFeaturesAndPlugins(basedir);
+			if (aggregator && modules.size() > 0) {
+				Model modela = readPom("templates/update-site-poma.xml");
+				setParent(modela, parent);
+				modela.setGroupId(groupId);
+				modela.setArtifactId(basedir.getName());
+				modela.setVersion(version);
+				for (String module : modules) {
+					modela.addModule("../" + module);
+				}
+				writePom(basedir, "poma.xml", modela);
+			}
 		}
 	}
 
@@ -125,18 +148,8 @@ public class GeneratePomsMojo extends AbstractMojo {
 		model.setArtifactId(basedir.getName());
 		model.setVersion(version);
 		writePom(basedir, model);
-		Set<String> modules = getSiteFeaturesAndPlugins(basedir);
-		if (aggregator && modules.size() > 0) {
-			Model modela = readPom("templates/update-site-poma.xml");
-			setParent(modela, parent);
-			modela.setGroupId(groupId);
-			modela.setArtifactId(basedir.getName());
-			modela.setVersion(version);
-			for (String module : modules) {
-				modela.addModule("../" + module);
-			}
-			writePom(basedir, "poma.xml", modela);
-		}
+		
+		updateSites.add(basedir);
 	}
 
 	private Set<String> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
@@ -205,11 +218,39 @@ public class GeneratePomsMojo extends AbstractMojo {
 		if (name != null) {
 			File dir = new File(basedir.getParent(), name);
 			if (dir.exists() && dir.isDirectory()) {
-				result.add(name);
+				if (result.add(name)) {
+					BundleDescription bundle = state.getBundleDescription(dir);
+					if (bundle != null) { 
+						try {
+							state.assertResolved(bundle);
+							BundleDescription[] requiredBundles = state.getDependencies(bundle);
+							for (int i = 0; i < requiredBundles.length; i++) {
+								BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
+								File suppliedDir = new File(supplier.getLocation());
+								if (suppliedDir.isDirectory() && isParent(basedir.getParentFile(), suppliedDir)) {
+									addPlugin(result, suppliedDir, suppliedDir.getName());
+								}
+							}
+						} catch (BundleException e) {
+							getLog().warn("Could not determine bundle dependencies", e);
+						}
+					} else {
+						getLog().warn("Not an OSGi bundle " + dir.toString());
+					}
+				}
 			}
 		}
 	}
-	
+
+	private boolean isParent(File parent, File file) {
+		try {
+			return file.getCanonicalFile().equals(new File(parent, file.getName()).getCanonicalFile());
+		} catch (IOException e) {
+			getLog().warn("Totally unexpected IOException", e);
+		}
+		return false;
+	}
+
 	private void setParent(Model model, Model parentModel) {
 		if (parentModel != null) {
 			Parent parent = new Parent();
@@ -255,7 +296,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		Model model = readPom("templates/plugin-pom.xml");
 		setParent(model, parent);
 		try {
-			BundleDescription bundleDescription = state.addBundle(new File(dir, "META-INF/MANIFEST.MF"));
+			BundleDescription bundleDescription = state.addBundle(dir);
 			String groupId = state.getGroupId(bundleDescription);
 			if (groupId == null) {
 				groupId = this.groupId;

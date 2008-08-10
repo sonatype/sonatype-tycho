@@ -10,6 +10,7 @@
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">
 <listEntry value="groupId=com.company.tools"/>
+<listEntry value="tycho.targetPlatform=t:/eclipse-3.2/eclipse"/>
 </listAttribute>
 <stringAttribute key="M2_RUNTIME" value="WORKSPACE"/>
 <booleanAttribute key="M2_SKIP_TESTS" value="false"/>

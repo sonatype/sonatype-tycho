@@ -53,4 +53,6 @@ public interface OsgiState {
 	String getManifestAttribute(BundleDescription desc, String attr);
 
 	File getTargetPlaform();
+
+	BundleDescription getBundleDescription(File location);
 }
