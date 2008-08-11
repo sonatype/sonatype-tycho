@@ -87,8 +87,8 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertEquals(4, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*:-**/*]"), cp.get(1));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*:-**/*]"), cp.get(2));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*:-**/*]"), cp.get(3));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*:-**/*]"), cp.get(2));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*:-**/*]"), cp.get(3));
 	}
 
 	public void testClasspath() throws Exception {
