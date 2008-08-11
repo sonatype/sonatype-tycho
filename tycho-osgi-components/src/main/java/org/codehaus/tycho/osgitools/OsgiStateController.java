@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -428,27 +427,29 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public BundleDescription[] getDependencies(BundleDescription desc) {
-		Set set = new TreeSet();
-		addBundleAndDependencies(desc, set, true);
-		BundleDescription[] dependencies = new BundleDescription[set.size() - 1];
-		int i = 0;
-		for (Iterator it = set.iterator(); it.hasNext(); ) {
-			long bundleId = ((Long)it.next()).longValue();
+		Set<Long> bundleIds = new LinkedHashSet<Long>();
+		addBundleAndDependencies(desc, bundleIds, true);
+		ArrayList<BundleDescription> dependencies = new ArrayList<BundleDescription>();
+		for (long bundleId : bundleIds) {
 			if (desc.getBundleId() != bundleId) {
-				dependencies[i] = state.getBundle(bundleId);
-				i++;
+				BundleDescription dependency = state.getBundle(bundleId);
+				BundleDescription supplier = dependency.getSupplier().getSupplier();
+				HostSpecification host = supplier.getHost();
+				if (host == null || !desc.equals(host.getSupplier())) {
+					dependencies.add(dependency);
+				}
 			}
 		}
-		return dependencies;
+		return dependencies.toArray(new BundleDescription[dependencies.size()]);
 	}
-	
+
 	// copy&paste from org.eclipse.pde.internal.core.DependencyManager
-	private static void addBundleAndDependencies(BundleDescription desc, Set set, boolean includeOptional) {
-		if (desc != null && set.add(new Long(desc.getBundleId()))) {
+	private static void addBundleAndDependencies(BundleDescription desc, Set<Long> bundleIds, boolean includeOptional) {
+		if (desc != null && bundleIds.add(new Long(desc.getBundleId()))) {
 			BundleSpecification[] required = desc.getRequiredBundles();
 			for (int i = 0; i < required.length; i++) {
 				if (includeOptional || !required[i].isOptional())
-					addBundleAndDependencies((BundleDescription) required[i].getSupplier(), set, includeOptional);
+					addBundleAndDependencies((BundleDescription) required[i].getSupplier(), bundleIds, includeOptional);
 			}
 			ImportPackageSpecification[] importedPkgs = desc.getImportPackages();
 			for (int i = 0; i < importedPkgs.length; i++) {
@@ -456,7 +457,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 				// Continue if the Imported Package is unresolved of the package is optional and don't want optional packages
 				if (exporter == null || (!includeOptional && Constants.RESOLUTION_OPTIONAL.equals(importedPkgs[i].getDirective(Constants.RESOLUTION_DIRECTIVE))))
 					continue;
-				addBundleAndDependencies(exporter.getExporter(), set, includeOptional);
+				addBundleAndDependencies(exporter.getExporter(), bundleIds, includeOptional);
 			}
 			BundleDescription[] fragments = desc.getFragments();
 			for (int i = 0; i < fragments.length; i++) {
@@ -464,11 +465,11 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 					continue;
 				String id = fragments[i].getSymbolicName();
 				if (!"org.eclipse.ui.workbench.compatibility".equals(id)) //$NON-NLS-1$
-					addBundleAndDependencies(fragments[i], set, includeOptional);
+					addBundleAndDependencies(fragments[i], bundleIds, includeOptional);
 			}
 			HostSpecification host = desc.getHost();
 			if (host != null)
-				addBundleAndDependencies((BundleDescription) host.getSupplier(), set, includeOptional);
+				addBundleAndDependencies((BundleDescription) host.getSupplier(), bundleIds, includeOptional);
 		}
 	}
 

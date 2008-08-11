@@ -113,8 +113,9 @@ public class EclipseMaven extends DefaultMaven {
 
 			BundleDescription[] requiredBundles = state.getDependencies(bundleDescription);
 			for (int i = 0; i < requiredBundles.length; i++) {
-				Dependency dependency = new Dependency();
 				BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
+
+				Dependency dependency = new Dependency();
 				dependency.setGroupId(EclipseMavenProjetBuilder.getGroupId(state, supplier));
 				dependency.setArtifactId(supplier.getSymbolicName());
 				dependency.setVersion(supplier.getVersion().toString());

@@ -120,4 +120,34 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		
 		assertEquals("pomless.p001", p001.getArtifactId());
 	}
+
+	public void testFragment() throws Exception {
+		File pom = new File(getBasedir("projects/fragment"), "pom.xml");
+
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+
+		ReactorManager reactorManager = maven.createReactorManager(request, result);
+
+		List<MavenProject> projects = reactorManager.getSortedProjects();
+
+		MavenProject host = projects.get(1);
+		MavenProject fragment = projects.get(2);
+		MavenProject client = projects.get(3);
+
+		assertEquals("host", host.getArtifactId());
+		assertEquals(0, host.getModel().getDependencies().size());
+
+		assertEquals("fragment", fragment.getArtifactId());
+		List<Dependency> fragmentDependencies = fragment.getModel().getDependencies();
+		assertEquals(1, fragmentDependencies.size());
+		assertEquals("host", fragmentDependencies.get(0).getArtifactId());
+
+		assertEquals("client", client.getArtifactId());
+		List<Dependency> clientDependencies = client.getModel().getDependencies();
+		assertEquals(2, clientDependencies.size());
+		assertEquals("host", clientDependencies.get(0).getArtifactId());
+		assertEquals("fragment", clientDependencies.get(1).getArtifactId());
+	}
 }

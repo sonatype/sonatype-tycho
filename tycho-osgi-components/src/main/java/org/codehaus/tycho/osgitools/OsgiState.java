@@ -22,7 +22,13 @@ public interface OsgiState {
 
 	BundleDescription addBundle(File manifest) throws BundleException;
 
-	BundleDescription[] getDependencies(BundleDescription desc);
+	/**
+	 * Returns all direct and indirect dependencies of the bundle.
+	 * 
+	 * Fragments attached to the bundle are NOT included, however,
+	 * fragments attached to bundles referenced by the bundle are.
+	 */
+	BundleDescription[] getDependencies(BundleDescription bundle);
 
 	void resolveState();
 
