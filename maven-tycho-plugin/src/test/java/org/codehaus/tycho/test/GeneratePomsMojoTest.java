@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.model.Model;
-import org.apache.maven.model.Profile;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.Mojo;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -70,7 +69,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		Map<String, Object> params  = new HashMap<String, Object>();
 		params.put("groupId", "group-p003");
 		params.put("version", "1.0.0");
-		params.put("aggregator", Boolean.TRUE);
+		params.put("aggregator", Boolean.FALSE);
 		generate(baseDir, params);
 		Model model = readModel(baseDir, "pom.xml");
 
@@ -78,11 +77,6 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		assertEquals("p003", model.getArtifactId());
 		assertEquals("1.0.0", model.getVersion());
 		assertEquals("eclipse-update-site", model.getPackaging());
-		
-		List<Profile> profiles = model.getProfiles();
-		assertEquals(1, profiles.size());
-		List<String> modules = profiles.get(0).getModules();
-		assertEquals(2, modules.size());
 	}
 
 	public void testParent() throws Exception {
@@ -90,6 +84,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		Map<String, Object> params  = new HashMap<String, Object>();
 		params.put("groupId", "group");
 		params.put("version", "1.0.0");
+		params.put("aggregator", Boolean.TRUE);
 		generate(baseDir, params);
 		Model model = readModel(baseDir, "pom.xml");
 
@@ -99,12 +94,15 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		assertEquals("pom", model.getPackaging());
 
 		List modules = model.getModules();
-		assertEquals(3, modules.size());
+		assertEquals(5, modules.size());
 
 		Model p002 = readModel(baseDir, "p002/pom.xml");
-		
+
 		assertEquals("group", p002.getParent().getGroupId());
-		
+
+		Model aggmodel = readModel(baseDir, "p003/poma.xml");
+		List<String> aggrmodules = aggmodel.getModules();
+		assertEquals(5, aggrmodules.size());
 	}
 
 	private Model readModel(File baseDir, String name) throws IOException, XmlPullParserException {
