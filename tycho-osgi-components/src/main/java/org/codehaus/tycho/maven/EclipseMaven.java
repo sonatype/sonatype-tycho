@@ -20,10 +20,10 @@ import org.apache.maven.model.Profile;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.interpolation.ModelInterpolationException;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.p2.P2;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
-import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 
 public class EclipseMaven extends DefaultMaven {
@@ -98,30 +98,17 @@ public class EclipseMaven extends DefaultMaven {
 
 		state.resolveState();
 
-		for (Iterator it = projects.iterator(); it.hasNext(); ) {
-			MavenProject project = (MavenProject) it.next();
-			BundleDescription bundleDescription = state.getBundleDescription(project);
-			if (bundleDescription == null) {
-				continue;
+		try {
+			for (MavenProject project : projects) {
+				DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
+					if (dr != null) {
+					for (Dependency dependency : dr.getDependencies(project)) {
+						project.getModel().addDependency(dependency);
+					}
+				}
 			}
-
-			try {
-				state.assertResolved(bundleDescription);
-			} catch (BundleException e) {
-				throw new MavenExecutionException(e.getMessage(), project.getFile());
-			}
-
-			BundleDescription[] requiredBundles = state.getDependencies(bundleDescription);
-			for (int i = 0; i < requiredBundles.length; i++) {
-				BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
-
-				Dependency dependency = new Dependency();
-				dependency.setGroupId(EclipseMavenProjetBuilder.getGroupId(state, supplier));
-				dependency.setArtifactId(supplier.getSymbolicName());
-				dependency.setVersion(supplier.getVersion().toString());
-
-				project.getModel().addDependency(dependency);
-			}
+		} catch (ComponentLookupException e) {
+			// no biggie 
 		}
 	}
 
@@ -133,7 +120,7 @@ public class EclipseMaven extends DefaultMaven {
 		}
 	}
 
-	// XXX must be an easier way
+	// XXX there must be an easier way
 	private Properties getGlobalProperties(MavenExecutionRequest request) {
 		List<String> activeProfiles = request.getActiveProfiles();
 		Map<String, Profile> profiles = request.getProfileManager().getProfilesById();

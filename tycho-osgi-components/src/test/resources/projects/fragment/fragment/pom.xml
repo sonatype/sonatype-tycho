@@ -10,5 +10,6 @@
   </parent>
   
   <artifactId>fragment</artifactId>
+  <packaging>eclipse-plugin</packaging>
   
 </project>

@@ -10,5 +10,6 @@
   </parent>
   
   <artifactId>host</artifactId>
+  <packaging>eclipse-plugin</packaging>
   
 </project>

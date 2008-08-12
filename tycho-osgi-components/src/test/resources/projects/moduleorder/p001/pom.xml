@@ -10,5 +10,6 @@
   </parent>
   
   <artifactId>moduleorder.p001</artifactId>
+  <packaging>eclipse-plugin</packaging>
   
 </project>

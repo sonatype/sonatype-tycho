@@ -31,7 +31,7 @@ public class EclipseMavenProjetBuilder extends DefaultMavenProjectBuilder {
 //		return model;
 //	}
 
-	static String getGroupId(OsgiState osgiState, BundleDescription desc) {
+	public static String getGroupId(OsgiState osgiState, BundleDescription desc) {
 
 		String groupId = osgiState.getGroupId(desc);
 		

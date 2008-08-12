@@ -10,5 +10,6 @@
   </parent>
   
   <artifactId>client</artifactId>
+  <packaging>eclipse-plugin</packaging>
   
 </project>
