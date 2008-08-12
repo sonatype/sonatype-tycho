@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.model.Model;
@@ -22,12 +21,10 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
 import org.osgi.framework.BundleException;
 
 /**
@@ -59,8 +56,6 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 * @parameter expression="${aggregator}" default-value="true"
 	 */
 	private boolean aggregator;
-
-	private static final SAXBuilder builder = new SAXBuilder();
 
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
@@ -155,15 +150,11 @@ public class GeneratePomsMojo extends AbstractMojo {
 	private Set<String> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
 		try {
 			Set<String> result = new LinkedHashSet<String>();
-	
-			File siteFile = new File(basedir, "site.xml");
-			Document doc = builder.build(siteFile);
-			Element root = doc.getRootElement();
-	
-			@SuppressWarnings("unchecked")
-			List<Element> features = root.getChildren("feature");
-			for (Element feature : features) {
-				addFeature(result, basedir, feature.getAttributeValue("id"));
+
+			UpdateSite site = UpdateSite.read(new File(basedir, "site.xml"));
+
+			for (UpdateSite.FeatureRef feature : site.getFeatures()) {
+				addFeature(result, basedir, feature.getId());
 			}
 
 			return result;
@@ -172,7 +163,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private void addFeature(Set<String> result, File basedir, String name) throws JDOMException, IOException {
+	private void addFeature(Set<String> result, File basedir, String name) throws IOException, XmlPullParserException {
 		if (name != null) {
 			File dir = new File(basedir.getParent(), name);
 			if (dir.exists() && dir.isDirectory()) {
@@ -182,32 +173,23 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private Set<String> getFeatureFeaturesAndPlugins(File basedir) throws JDOMException, IOException {
+	private Set<String> getFeatureFeaturesAndPlugins(File basedir) throws IOException, XmlPullParserException {
 		Set<String> result = new LinkedHashSet<String>(); 
 
-		Document doc = builder.build(new File(basedir, "feature.xml"));
+		Feature feature = Feature.read(new File(basedir, "feature.xml"));
 
-		@SuppressWarnings("unchecked")
-		List<Element> plugins = doc.getRootElement().getChildren("plugin");
-		for (Element plugin : plugins) {
-			String id = plugin.getAttributeValue("id");
-			addPlugin(result, basedir, id);
+		for (Feature.PluginRef plugin : feature.getPlugins()) {
+			addPlugin(result, basedir, plugin.getId());
 		}
 
-		@SuppressWarnings("unchecked")
-		List<Element> features = doc.getRootElement().getChildren("includes");
-		for (Element feature : features) {
-			addFeature(result, basedir, feature.getAttributeValue("id"));
+		for (Feature.FeatureRef includedFeature : feature.getIncludedFeatures()) {
+			addFeature(result, basedir, includedFeature.getId());
 		}
 
-		@SuppressWarnings("unchecked")
-		List<Element> requires = doc.getRootElement().getChildren("requires");
-		for (Element require : requires) {
-			@SuppressWarnings("unchecked")
-			List<Element> imps = require.getChildren("import");
-			for (Element imp : imps) {
-				addPlugin(result, basedir, imp.getAttributeValue("plugin"));
-				addFeature(result, basedir, imp.getAttributeValue("feature"));
+		for (Feature.RequiresRef require : feature.getRequires()) {
+			for (Feature.ImportRef imp : require.getImports()) {
+				addPlugin(result, basedir, imp.getPlugin());
+				addFeature(result, basedir, imp.getFeature());
 			}
 		}
 		

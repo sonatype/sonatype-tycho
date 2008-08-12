@@ -11,7 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -40,11 +39,8 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
+import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.UpdateSite;
 
 /**
  * XXX dirty hack
@@ -81,76 +77,50 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	/** @parameter */
 	private boolean inlineArchives;
 
-	private static final SAXBuilder builder = new SAXBuilder();
-	private static final Format format = Format.getPrettyFormat();
-	private static final XMLOutputter outputter = new XMLOutputter(format);
-
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		target.mkdirs();
 
 		try {
-			File siteFile = new File(basedir, "site.xml");
-			Document doc = builder.build(siteFile);
-			Element root = doc.getRootElement();
 
-			Map<String, String> archives = new HashMap<String, String>();
-			for (Element archive : (List<Element>) root.getChildren("archive")) {
-				String path = archive.getAttributeValue("path");
-				String url = archive.getAttributeValue("url");
-				archives.put(path, url);
-			}
+			UpdateSite site = UpdateSite.read(new File(basedir, "site.xml"));
 
-			List features = root.getChildren("feature");
-			for (Iterator i = features.iterator(); i.hasNext(); ) {
-				Element feature = (Element) i.next();
+			Map<String, String> archives = site.getArchives();
 
+			for (UpdateSite.FeatureRef feature : site.getFeatures()) {
 				packageFeature(feature, archives);
 			}
 
 			if (inlineArchives) {
-				root.removeChildren("archive");
+				site.removeArchives();
 			}
 
-			OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(target, "site.xml")));
-			try {
-				outputter.output(doc, os);
-			} finally {
-				os.close();
-			}
+			UpdateSite.write(site, new File(target, "site.xml"));
 		} catch (Exception e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
 	}
 
-	private void packageFeature(Element feature, Map<String, String> archives) throws Exception {
-		String artifactId = feature.getAttribute("id").getValue();
-		String version = expandVerstion(feature.getAttribute("version").getValue());
+	private void packageFeature(UpdateSite.FeatureRef featureRef, Map<String, String> archives) throws Exception {
+		String artifactId = featureRef.getId();
+		String version = expandVerstion(featureRef.getVersion());
 
 		File basedir = new File(this.basedir, "../" + artifactId).getAbsoluteFile();
 
-		if (basedir.exists() && new File(basedir, "build.properties").exists()) {
-			Document doc = builder.build(new File(basedir, "feature.xml"));
-			List plugins = doc.getRootElement().getChildren("plugin");
+		if (basedir.exists() && new File(basedir, "feature.xml").exists()) {
+			Feature feature = Feature.read(new File(basedir, "feature.xml"));
 
-			for (Iterator i = plugins.iterator(); i.hasNext(); ) {
-				Element plugin = (Element) i.next();
-
+			for (Feature.PluginRef plugin : feature.getPlugins()) {
 				packagePlugin(plugin, archives);
 			}
 
-			doc.getRootElement().setAttribute("version", version);
+			feature.setVersion(version);
 			features.mkdirs();
 			File featureFile = new File(features, artifactId + "-feature.xml");
-			OutputStream os = new BufferedOutputStream(new FileOutputStream(featureFile));
-			try {
-				outputter.output(doc, os);
-			} finally {
-				os.close();
-			}
+			Feature.write(feature, featureFile);
 
 			String url = "features/" + artifactId + "_" + version + ".jar";
-			feature.setAttribute("url", url);
-			feature.setAttribute("version", version);
+			featureRef.setUrl(url);
+			featureRef.setVersion(version);
 			File outputJar = new File(target, url);
 			outputJar.getParentFile().mkdirs();
 			Properties props = new Properties();
@@ -185,9 +155,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		return version;
 	}
 
-	private void packagePlugin(Element plugin, Map<String, String> archives) throws Exception {
-		String artifactId = plugin.getAttributeValue("id");
-		String version = plugin.getAttributeValue("version");
+	private void packagePlugin(Feature.PluginRef plugin, Map<String, String> archives) throws Exception {
+		String artifactId = plugin.getId();
+		String version = plugin.getVersion();
 
 		String path = "plugins/" + artifactId + "_" + version + ".jar";
 		if (archives.containsKey(path)) {
@@ -277,14 +247,14 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		}
 
 		String bundleVersion = mf.getMainAttributes().getValue("Bundle-Version");
-		plugin.setAttribute("version", bundleVersion);
+		plugin.setVersion(bundleVersion);
 
 		File outputJar = new File(target, "plugins/" + artifactId + "_" + bundleVersion + ".jar");
 		outputJar.getParentFile().mkdirs();
 		FileUtils.copyFile(artifact.getFile(), outputJar);
 
-		plugin.setAttribute("download-size", Long.toString(outputJar.length() / KBYTE));
-		plugin.setAttribute("install-size", Long.toString(installSize / KBYTE) );
+		plugin.setDownloadSide(outputJar.length() / KBYTE);
+		plugin.setInstallSize(installSize / KBYTE);
 	}
 
 	public void contextualize(Context ctx) throws ContextException {
