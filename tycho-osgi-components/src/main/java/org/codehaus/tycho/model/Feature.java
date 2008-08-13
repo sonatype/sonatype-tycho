@@ -7,7 +7,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
@@ -18,7 +20,11 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 public class Feature {
 	
+	public static final String FEATURE_XML = "feature.xml";
+
 	private final Xpp3Dom dom;
+	
+	private final Map<String, Object> userProperties = new HashMap<String, Object>();
 
 	public Feature(Xpp3Dom dom) {
 		this.dom = dom;
@@ -92,6 +98,10 @@ public class Feature {
 		public String getId() {
 			return dom.getAttribute("id");
 		}
+
+		public String getVersion() {
+			return dom.getAttribute("version");
+		}
 	}
 
 	public static class RequiresRef {
@@ -151,6 +161,18 @@ public class Feature {
 
 	public String getVersion() {
 		return dom.getAttribute("version");
+	}
+
+	public String getId() {
+		return dom.getAttribute("id");
+	}
+
+	public void setUserProperty(String key, Object value) {
+		userProperties.put(key, value);
+	}
+
+	public Object getUserProperty(String key) {
+		return userProperties.get(key);
 	}
 
 }

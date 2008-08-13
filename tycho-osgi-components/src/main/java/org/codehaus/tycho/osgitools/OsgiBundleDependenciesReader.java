@@ -59,30 +59,4 @@ public class OsgiBundleDependenciesReader extends AbstractDependenciesReader {
 		
 		return result;
 	}
-
-	private Dependency newExternalDependency(String location, String groupId, String artifactId, String version) {
-		File file = new File(location);
-		if (!file.exists() || !file.isFile() || !file.canRead()) {
-			getLogger().warn("Dependency at location " + location + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins");
-			return null;
-		}
-
-		Dependency dependency = new Dependency();
-		dependency.setArtifactId(artifactId);
-		dependency.setGroupId(groupId);
-		dependency.setVersion(version);
-		dependency.setScope(Artifact.SCOPE_SYSTEM);
-		dependency.setSystemPath(location);
-		return dependency;
-	}
-
-	private Dependency newProjectDependency(MavenProject otherProject) {
-		Dependency dependency = new Dependency();
-		dependency.setArtifactId(otherProject.getArtifactId());
-		dependency.setGroupId(otherProject.getGroupId());
-		dependency.setVersion(otherProject.getVersion());
-		dependency.setScope(Artifact.SCOPE_PROVIDED);
-		return dependency;
-	}
-
 }

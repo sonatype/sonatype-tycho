@@ -36,6 +36,7 @@ public class EclipseTargetPlatformWagon extends AbstractWagon implements Context
 	@Override
 	protected void closeConnection() throws ConnectionException {
 	}
+
 	public void openConnection() throws ConnectionException, AuthenticationException {
 	}
 

@@ -99,5 +99,4 @@ public class UpdateSite {
 			writer.close();
 		}
 	}
-	
 }

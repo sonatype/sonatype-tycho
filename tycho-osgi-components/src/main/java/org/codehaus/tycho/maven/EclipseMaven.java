@@ -90,7 +90,7 @@ public class EclipseMaven extends DefaultMaven {
 		for (Iterator it = projects.iterator(); it.hasNext(); ) {
 			MavenProject project = (MavenProject) it.next();
 			try {
-				state.addBundle(project);
+				state.addProject(project);
 			} catch (BundleException e) {
 				throw new MavenExecutionException(e.getMessage(), project.getFile());
 			}

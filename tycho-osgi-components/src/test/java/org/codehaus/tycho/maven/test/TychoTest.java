@@ -40,12 +40,17 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		ReactorManager reactorManager = maven.createReactorManager(request, result);
 
 		List projects = reactorManager.getSortedProjects();
+		assertEquals(5, projects.size());
 
 		MavenProject p002 = (MavenProject) projects.get(1);
 		MavenProject p001 = (MavenProject) projects.get(2);
+		MavenProject p004 = (MavenProject) projects.get(3); // feature
+		MavenProject p003 = (MavenProject) projects.get(4); // site
 
 		assertEquals("moduleorder.p001", p001.getArtifactId());
 		assertEquals("moduleorder.p002", p002.getArtifactId());
+		assertEquals("moduleorder.p003", p003.getArtifactId());
+		assertEquals("moduleorder.p004", p004.getArtifactId());
 	}
 
 	public void testResolutionError() throws Exception {

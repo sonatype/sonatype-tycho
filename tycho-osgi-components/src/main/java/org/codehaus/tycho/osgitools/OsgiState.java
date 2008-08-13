@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.jar.Manifest;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.model.Feature;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ResolverError;
 import org.eclipse.osgi.service.resolver.StateHelper;
@@ -19,6 +20,9 @@ public interface OsgiState {
 	static final String ATTR_BASE_VERSION = "MavenArtifact-BaseVersion";
 
 	static final String HIGHEST_VERSION = "highest version";
+
+	static final String PACKAGING_ECLIPSE_PLUGIN = "eclipse-plugin";
+	static final String PACKAGING_ECLIPSE_FEATURE = "eclipse-feature";
 
 	BundleDescription addBundle(File manifest) throws BundleException;
 
@@ -44,7 +48,7 @@ public interface OsgiState {
 
 	ResolverError[] getResolverErrors(BundleDescription thisBundle);
 
-	BundleDescription addBundle(MavenProject project) throws BundleException;
+	void addProject(MavenProject project) throws BundleException;
 
 	MavenProject getMavenProject(BundleDescription model);
 
@@ -61,4 +65,10 @@ public interface OsgiState {
 	File getTargetPlaform();
 
 	BundleDescription getBundleDescription(File location);
+
+	Feature getFeature(String id, String version);
+
+	MavenProject getMavenProject(Feature feature);
+
+	Feature getFeature(MavenProject project);
 }

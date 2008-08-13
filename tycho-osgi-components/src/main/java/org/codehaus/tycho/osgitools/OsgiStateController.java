@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.osgitools.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
@@ -75,6 +77,9 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private Properties platformProperties;
 
 	private File targetPlatform;
+
+	/** location to feature map */
+	private Map<String, Feature> features = new LinkedHashMap<String, Feature>();
 
 	public static BundleDescription[] getDependentBundles(BundleDescription root) {
 		if (root == null)
@@ -483,21 +488,30 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return state.getBundleByLocation(absolutePath);
 	}
 
-	public BundleDescription addBundle(MavenProject project) throws BundleException {
+	public void addProject(MavenProject project) throws BundleException {
 		File basedir = project.getBasedir();
-		File mf = new File(basedir, "META-INF/MANIFEST.MF");
-		if (mf.canRead()) {
-			BundleDescription desc = addBundle(mf, basedir, true);
+		if (PACKAGING_ECLIPSE_PLUGIN.equals(project.getPackaging())) {
+			File mf = new File(basedir, "META-INF/MANIFEST.MF");
+			if (mf.canRead()) {
+				BundleDescription desc = addBundle(mf, basedir, true);
 
-			String groupId = getManifestAttribute(desc, ATTR_GROUP_ID);
-			if (groupId != null && !groupId.equals(project.getGroupId())) {
-				throw new BundleException("groupId speicified in bundle manifest does not match pom.xml");
+				String groupId = getManifestAttribute(desc, ATTR_GROUP_ID);
+				if (groupId != null && !groupId.equals(project.getGroupId())) {
+					throw new BundleException("groupId speicified in bundle manifest does not match pom.xml");
+				}
+
+				setUserProperty(desc, PROP_MAVEN_PROJECT, project);
 			}
-
-			setUserProperty(desc, PROP_MAVEN_PROJECT, project);
-			return desc;
+		} else if (PACKAGING_ECLIPSE_FEATURE.equals(project.getPackaging())) {
+			try {
+				Feature feature = Feature.read(new File(basedir, Feature.FEATURE_XML));
+				feature.setUserProperty(PROP_MAVEN_PROJECT, project);
+				String location = project.getFile().getParentFile().getAbsolutePath();
+				features.put(location, feature);
+			} catch (Exception e) {
+				throw new BundleException("Exception reading eclipse feature", e);
+			}
 		}
-		return null;
 	}
 
 	private static void setUserProperty(BundleDescription desc, String name, Object value) throws BundleException {
@@ -540,6 +554,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		boolean forceP2 = targetPlatform != null;
 
 		state = factory.createState(true);
+		features = new LinkedHashMap<String, Feature>();
 
 		platformProperties = new Properties(props);
 		platformProperties.put(PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS(platformProperties));
@@ -636,5 +651,24 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	public File getTargetPlaform() {
 		return targetPlatform;
 	}
+
+	public Feature getFeature(String id, String version) {
+		for (Feature feature : features.values()) {
+			if (id.equals(feature.getId())) {
+				return feature;
+			}
+		}
+		return null;
+	}
+
+	public MavenProject getMavenProject(Feature feature) {
+		return (MavenProject) feature.getUserProperty(PROP_MAVEN_PROJECT);
+	}
+
+	public Feature getFeature(MavenProject project) {
+		String location = project.getFile().getParentFile().getAbsolutePath();
+		return features.get(location);
+	}
+	
 }
  
