@@ -8,25 +8,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -41,6 +30,8 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.osgitools.OsgiState;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 
 /**
  * XXX dirty hack
@@ -50,6 +41,9 @@ import org.codehaus.tycho.model.UpdateSite;
 public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	private static final int KBYTE = 1024;
+
+	/** @component */
+	private OsgiState state;
 
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
@@ -61,18 +55,6 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	private File basedir;
 
 	private PlexusContainer plexus;
-
-	/** @component */
-	private ArtifactFactory artifactFactory;
-
-	/** @component */
-	private ArtifactResolver resolver;
-
-	/** @parameter expression="${localRepository}" */
-	private ArtifactRepository localRepository;
-
-	/** @parameter expression="${session}" */
-	private MavenSession session;
 
 	/** @parameter */
 	private boolean inlineArchives;
@@ -156,10 +138,10 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	}
 
 	private void packagePlugin(Feature.PluginRef plugin, Map<String, String> archives) throws Exception {
-		String artifactId = plugin.getId();
+		String bundleId = plugin.getId();
 		String version = plugin.getVersion();
 
-		String path = "plugins/" + artifactId + "_" + version + ".jar";
+		String path = "plugins/" + bundleId + "_" + version + ".jar";
 		if (archives.containsKey(path)) {
 			if (inlineArchives) {
 				URL url = new URL(archives.get(path));
@@ -178,58 +160,28 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			return;
 		}
 
-		Artifact artifact = null;
-
-		// we don't have good way to map Bundle-SymbolicName into groupId/artifactId
-		// so lets try to guess
-		Set groupIds = new LinkedHashSet();
-		String groupId = artifactId;
-		do {
-			groupIds.add(groupId);
-			int idx = groupId.lastIndexOf('.');
-			groupId = idx > 0 ? groupId.substring(0, idx): null;
-		} while (groupId != null);
-
 		if ("0.0.0".equals(version)) {
-			// look in the reactor first (is there a better way?)
-			List projects = session.getSortedProjects();
-			for (Iterator i = projects.iterator(); i.hasNext(); ) {
-				MavenProject other = (MavenProject) i.next();
-				if (artifactId.equals(other.getArtifactId()) && groupIds.contains(other.getGroupId())) {
-					artifact = other.getArtifact();
-					break;
-				}
-			}
-
-			// find latest available
-			if (artifact == null) {
-				// XXX how do I find latest version?
-			}
+			version = OsgiState.HIGHEST_VERSION;
 		}
 
-		Exception exception = null;
-		if (artifact == null) {
-			if (version.endsWith(".qualifier")) {
-				version = version.substring(0, version.lastIndexOf('.')) + "-SNAPSHOT";
-			}
-			for (Iterator i = groupIds.iterator(); i.hasNext(); ) {
-				groupId = (String) i.next();
-				artifact = artifactFactory.createBuildArtifact(groupId, artifactId, version, "jar");
-				try {
-					resolver.resolve(artifact, new ArrayList(), localRepository);
-					break;
-				} catch (ArtifactNotFoundException e) {
-					exception = e;
-				}
-			}
+		BundleDescription bundle = state.getBundleDescription(bundleId, version);
+		if (bundle == null) {
+			throw new MojoExecutionException("Can't find bundle " + bundleId);
 		}
 
-		if (artifact == null || artifact.getFile() == null || !artifact.getFile().exists()) {
-			throw new MojoExecutionException("Can't find artifact for bundle " + artifactId, exception);
+		File file;
+		MavenProject bundleProject = state.getMavenProject(bundle);
+		if (bundleProject != null) {
+			file = bundleProject.getArtifact().getFile();
+		} else {
+			file = new File(bundle.getLocation());
+			if (file.isDirectory()) {
+				throw new MojoExecutionException("Directory based bundle " + bundleId);
+			}
 		}
 
 		Manifest mf;
-		JarFile jar = new JarFile(artifact.getFile());
+		JarFile jar = new JarFile(file);
 		long installSize = 0;
 		try {
 			mf = jar.getManifest();
@@ -249,9 +201,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		String bundleVersion = mf.getMainAttributes().getValue("Bundle-Version");
 		plugin.setVersion(bundleVersion);
 
-		File outputJar = new File(target, "plugins/" + artifactId + "_" + bundleVersion + ".jar");
+		File outputJar = new File(target, "plugins/" + bundleId + "_" + bundleVersion + ".jar");
 		outputJar.getParentFile().mkdirs();
-		FileUtils.copyFile(artifact.getFile(), outputJar);
+		FileUtils.copyFile(file, outputJar);
 
 		plugin.setDownloadSide(outputJar.length() / KBYTE);
 		plugin.setInstallSize(installSize / KBYTE);

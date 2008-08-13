@@ -39,6 +39,7 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 		dependency.setArtifactId(otherProject.getArtifactId());
 		dependency.setGroupId(otherProject.getGroupId());
 		dependency.setVersion(otherProject.getVersion());
+		dependency.setType(otherProject.getPackaging());
 		dependency.setScope(Artifact.SCOPE_PROVIDED);
 		return dependency;
 	}
