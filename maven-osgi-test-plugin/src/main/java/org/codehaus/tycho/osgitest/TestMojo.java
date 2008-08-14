@@ -234,7 +234,7 @@ public class TestMojo extends AbstractMojo {
 			});
 
 			cli.addArguments(new String[] {
-//				"-debug", "-consolelog",
+				// "-debug", "-consolelog", "-console",
 				"-data", workspace,
 				"-dev", devProperties.toURI().toURL().toExternalForm(),
 				"-install", targetPlatform.getAbsolutePath(),
@@ -302,6 +302,9 @@ public class TestMojo extends AbstractMojo {
 			String osgiBundles = p.getProperty("osgi.bundles");
 			String newOsgiBundles = createOsgiBundlesProperty(osgiBundles);
 			p.setProperty("osgi.bundles", newOsgiBundles);
+
+			// @see SimpleConfiguratorConstants#PROP_KEY_EXCLUSIVE_INSTALLATION
+			p.setProperty("org.eclipse.equinox.simpleconfigurator.exclusiveInstallation", "false");
 
 			new File(work, "configuration").mkdir();
 			FileOutputStream fos = new FileOutputStream(new File(work, "configuration/config.ini"));

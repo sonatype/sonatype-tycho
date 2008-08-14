@@ -490,7 +490,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public void addProject(MavenProject project) throws BundleException {
 		File basedir = project.getBasedir();
-		if (PACKAGING_ECLIPSE_PLUGIN.equals(project.getPackaging())) {
+		if (PACKAGING_ECLIPSE_PLUGIN.equals(project.getPackaging()) 
+				|| PACKAGING_ECLIPSE_TEST_PLUGIN.equals(project.getPackaging())) {
 			File mf = new File(basedir, "META-INF/MANIFEST.MF");
 			if (mf.canRead()) {
 				BundleDescription desc = addBundle(mf, basedir, true);

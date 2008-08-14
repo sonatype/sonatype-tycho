@@ -22,6 +22,7 @@ public interface OsgiState {
 	static final String HIGHEST_VERSION = "highest version";
 
 	static final String PACKAGING_ECLIPSE_PLUGIN = "eclipse-plugin";
+	static final String PACKAGING_ECLIPSE_TEST_PLUGIN = "eclipse-test-plugin";
 	static final String PACKAGING_ECLIPSE_FEATURE = "eclipse-feature";
 
 	BundleDescription addBundle(File manifest) throws BundleException;
