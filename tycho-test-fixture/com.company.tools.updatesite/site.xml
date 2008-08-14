@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.company.tools.widget4.feature_1.0.0.jar" id="com.company.tools.widget4.feature" version="1.0.0"/>
-   <feature url="features/com.company.tools.config.feature_1.0.0.jar" id="com.company.tools.config.feature" version="1.0.0"/>
+   <feature url="features/com.company.tools.widget4.feature_1.0.0.jar" id="com.company.tools.widget4.feature" version="1.0.0">
+      <category name="required"/>
+   </feature>
+   <feature url="features/com.company.tools.config.feature_1.0.0.jar" id="com.company.tools.config.feature" version="1.0.0">
+      <category name="essential"/>
+   </feature>
+   <category-def name="essential" label="Essential"/>
+   <category-def name="required" label="Required"/>
 </site>
