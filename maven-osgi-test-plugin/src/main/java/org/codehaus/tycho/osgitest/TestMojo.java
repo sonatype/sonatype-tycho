@@ -226,7 +226,6 @@ public class TestMojo extends AbstractMojo {
 			if (argLine != null) {
 				Arg arg = cli.createArg();
 				arg.setLine(argLine);
-				cli.addArg(arg);
 			}
 
 			cli.addArguments(new String[] {
