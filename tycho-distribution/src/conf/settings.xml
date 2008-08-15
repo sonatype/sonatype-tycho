@@ -15,16 +15,6 @@
             <enabled>true</enabled>
           </releases>
         </repository>
-        <repository>
-          <id>eclipse-target-platform</id>
-          <url>eclipse:</url>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-        </repository>
       </repositories>
       <pluginRepositories>
         <pluginRepository>
