@@ -243,13 +243,15 @@ public class TestMojo extends AbstractMojo {
 				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
 
+			getLog().info(cli.toString());
+
 			result = CommandLineUtils.executeCommandLine(cli, new StreamConsumer() {
 				public void consumeLine(String line) {
-					System.out.println("Test.Out>" + line);
+					System.out.println(line);
 				}
 			}, new StreamConsumer() {
 				public void consumeLine(String line) {
-					System.err.println("Test.Err>" + line);
+					System.err.println(line);
 				}
 			});
 		} catch (Exception e) {
