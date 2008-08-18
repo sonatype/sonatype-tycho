@@ -27,8 +27,8 @@
   </modules>
 
   <properties>
-    <maven-version>2.1-SNAPSHOT</maven-version>
-    <maven-artifact-version>3.0-SNAPSHOT</maven-artifact-version>
+    <maven-version>3.0-SNAPSHOT</maven-version>
+    <maven-artifact-version>3.0-alpha-1</maven-artifact-version>
   </properties>
 
   <dependencyManagement>
@@ -51,13 +51,13 @@
       <dependency>
         <groupId>org.apache.maven.artifact</groupId>
         <artifactId>maven-artifact</artifactId>
-        <version>3.0-SNAPSHOT</version>
+        <version>${maven-artifact-version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>1.5.4</version>
+        <version>1.5.5</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
@@ -101,12 +101,6 @@
         <groupId>velocity</groupId>
         <artifactId>velocity</artifactId>
         <version>1.4</version>
-      </dependency>
-
-      <dependency>
-        <groupId>jdom</groupId>
-        <artifactId>jdom</artifactId>
-        <version>1.0</version>
       </dependency>
 
       <dependency>
@@ -207,19 +201,5 @@
       <url>http://repository.sonatype.org/content/repositories/eclipse-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>apache.snapshots</id>
-      <name>Maven Snapshots</name>
-      <url>http://people.apache.org/maven-snapshot-repository</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
 
 </project>
