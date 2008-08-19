@@ -4,17 +4,16 @@
 export JAVA_HOME=f:/home/apps/jdk16
 export tychoTargetPlatformDir=f:/home/eclipse/eclipse-34-classic
 
+#### one of these is required
+export builderMavenDir=f:/home/mavens/tycho-distribution-0.3.0-SNAPSHOT
+#export builtMavenDir=f:/home/mavens/target-tycho
+
 #### optional
 export testTargetPlatformDir=f:/home/eclipse/eclipse-34-jee-all
-export builderMavenDir=f:/home/mavens/tycho-distribution-0.3.0-SNAPSHOT
-
 #set -vx # debug script - can also export DEBUG=anything
-
 # sometimes paths too long to delete on windows unless near root
 sandboxDir=f:/temp/sandbox
-
 #outFile=
-
 #skipTychoTests="-Dmaven.test.skip=true"
 
 ## initial build
