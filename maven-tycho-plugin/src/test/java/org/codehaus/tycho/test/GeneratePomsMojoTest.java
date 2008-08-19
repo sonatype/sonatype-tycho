@@ -43,7 +43,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testPluginPom() throws Exception {
-		File baseDir = getBasedir("projects/p001");
+		File baseDir = getBasedir("projects/simple/p001");
 		generate(baseDir);
 		Model model = readModel(baseDir, "pom.xml");
 		
@@ -54,7 +54,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testFeaturePom() throws Exception {
-		File baseDir = getBasedir("projects/p002");
+		File baseDir = getBasedir("projects/simple/p002");
 		generate(baseDir);
 		Model model = readModel(baseDir, "pom.xml");
 		
@@ -65,7 +65,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testUpdateSite() throws Exception {
-		File baseDir = getBasedir("projects/p003");
+		File baseDir = getBasedir("projects/simple/p003");
 		Map<String, Object> params  = new HashMap<String, Object>();
 		params.put("groupId", "group-p003");
 		params.put("version", "1.0.0");
@@ -80,7 +80,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testParent() throws Exception {
-		File baseDir = getBasedir("projects");
+		File baseDir = getBasedir("projects/simple");
 		Map<String, Object> params  = new HashMap<String, Object>();
 		params.put("groupId", "group");
 		params.put("version", "1.0.0");
@@ -89,7 +89,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		Model model = readModel(baseDir, "pom.xml");
 
 		assertEquals("group", model.getGroupId());
-		assertEquals("projects", model.getArtifactId());
+		assertEquals("simple", model.getArtifactId());
 		assertEquals("1.0.0", model.getVersion());
 		assertEquals("pom", model.getPackaging());
 
