@@ -28,6 +28,10 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	private void generate(File baseDir, Map<String, Object> params) throws Exception {
+		generate(new File[] {baseDir}, params);
+	}
+
+	private void generate(File[] baseDir, Map<String, Object> params) throws Exception {
 		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", TYCHO_VERSION, "generate-poms", null);
 		setVariableValueToObject(generateMojo, "baseDir", baseDir);
 		if (params != null) {
@@ -77,6 +81,27 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		assertEquals("p003", model.getArtifactId());
 		assertEquals("1.0.0", model.getVersion());
 		assertEquals("eclipse-update-site", model.getPackaging());
+	}
+	
+	public void testMultibase_1_2() throws Exception {
+		File baseDir = getBasedir("projects/multibase");
+		Map<String, Object> params  = new HashMap<String, Object>();
+		params.put("groupId", "group");
+		params.put("version", "1.0.0");
+		params.put("aggregator", Boolean.TRUE);
+		generate(new File[] {new File(baseDir, "base1"), new File(baseDir, "base2")}, params);
+
+		Model parent = readModel(baseDir, "base1/pom.xml");
+		List<String> modules = parent.getModules();
+		assertEquals(6, modules.size());
+		assertEquals("p001", modules.get(0));
+		assertEquals(new File(baseDir, "base2/p004").getCanonicalPath(), modules.get(3));
+
+		Model aggmodel = readModel(baseDir, "base2/p006/poma.xml");
+		List<String> aggrmodules = aggmodel.getModules();
+		assertEquals(5, aggrmodules.size());
+		assertEquals(new File(baseDir, "base1/p002").getCanonicalPath(), aggrmodules.get(1));
+		assertEquals("../p005", aggrmodules.get(3));
 	}
 
 	public void testParent() throws Exception {

@@ -40,7 +40,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 * @parameter expression="${baseDir}" default-value="."
 	 * @required
 	 */
-	private File baseDir;
+	private File[] baseDir;
 
 	/**
 	 * @parameter expression="${groupId}"
@@ -63,41 +63,62 @@ public class GeneratePomsMojo extends AbstractMojo {
 	private Set<File> updateSites = new LinkedHashSet<File>();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		File parentBasedir = null;
 		Model parent = null;
-		if (!generatePom(null, baseDir)) {
-			parent = readPom("templates/parent-pom.xml");
-			if (groupId == null) {
-				throw new MojoExecutionException("groupId is required");
-			}
-			parent.setGroupId(groupId);
-			parent.setArtifactId(baseDir.getName());
-			parent.setVersion(version);
-			File[] dirs = baseDir.listFiles();
-			if (dirs != null) {
-				for (File dir : dirs) {
-					if (generatePom(parent, dir)) {
-						parent.addModule(dir.getName());
+		for (File basedir : baseDir) {
+			if (!generatePom(null, basedir)) {
+				if (groupId == null) {
+					throw new MojoExecutionException("groupId is required");
+				}
+				if (parent == null) {
+					parent = readPom("templates/parent-pom.xml");
+					parentBasedir = basedir;
+				}
+				parent.setGroupId(groupId);
+				parent.setArtifactId(basedir.getName());
+				parent.setVersion(version);
+				File[] dirs = basedir.listFiles();
+				if (parent != null && parentBasedir != null && dirs != null) {
+					for (File dir : dirs) {
+						if (generatePom(parent, dir)) {
+							parent.addModule(getModuleName(parentBasedir, dir, null));
+						}
 					}
 				}
 			}
-			writePom(baseDir, parent);
+		}
+
+		if (parentBasedir != null && parent != null) {
+			writePom(parentBasedir, parent);
 		}
 
 		generateAggregatorPoms(parent);
 	}
 
+	private String getModuleName(File basedir, File dir, String relative) throws MojoExecutionException {
+		try {
+			if (isModule(basedir, dir)) {
+				return relative != null? relative + dir.getName(): dir.getName(); 
+			} else {
+				return dir.getCanonicalPath();
+			}
+		} catch (IOException e) {
+			throw new MojoExecutionException("Can't determine module directory name", e);
+		}
+	}
+
 	private void generateAggregatorPoms(Model parent) throws MojoExecutionException {
 		state.resolveState();
 		for (File basedir : updateSites) {
-			Set<String> modules = getSiteFeaturesAndPlugins(basedir);
+			Set<File> modules = getSiteFeaturesAndPlugins(basedir);
 			if (aggregator && modules.size() > 0) {
 				Model modela = readPom("templates/update-site-poma.xml");
 				setParent(modela, parent);
 				modela.setGroupId(groupId);
 				modela.setArtifactId(basedir.getName() + ".aggregator");
 				modela.setVersion(version);
-				for (String module : modules) {
-					modela.addModule("../" + module);
+				for (File module : modules) {
+					modela.addModule(getModuleName(basedir.getParentFile(), module, "../"));
 				}
 				writePom(basedir, "poma.xml", modela);
 			}
@@ -147,14 +168,14 @@ public class GeneratePomsMojo extends AbstractMojo {
 		updateSites.add(basedir);
 	}
 
-	private Set<String> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
+	private Set<File> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
 		try {
-			Set<String> result = new LinkedHashSet<String>();
+			Set<File> result = new LinkedHashSet<File>();
 
 			UpdateSite site = UpdateSite.read(new File(basedir, "site.xml"));
 
 			for (UpdateSite.FeatureRef feature : site.getFeatures()) {
-				addFeature(result, basedir, feature.getId());
+				addFeature(result, feature.getId());
 			}
 
 			return result;
@@ -163,44 +184,58 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private void addFeature(Set<String> result, File basedir, String name) throws IOException, XmlPullParserException {
+	private void addFeature(Set<File> result, String name) throws IOException, XmlPullParserException, MojoExecutionException {
 		if (name != null) {
-			File dir = new File(basedir.getParent(), name);
-			if (dir.exists() && dir.isDirectory()) {
-				result.add(name);
+			File dir = getModuleDir(name);
+			if (dir != null) {
+				result.add(dir);
 				result.addAll(getFeatureFeaturesAndPlugins(dir));
 			}
 		}
 	}
 
-	private Set<String> getFeatureFeaturesAndPlugins(File basedir) throws IOException, XmlPullParserException {
-		Set<String> result = new LinkedHashSet<String>(); 
+	private File getModuleDir(String name) throws MojoExecutionException {
+		File moduleDir = null;
+		for (File basedir : baseDir) {
+			File dir = new File(basedir, name);
+			if (dir.exists() && dir.isDirectory()) {
+				if (moduleDir != null) {
+					throw new MojoExecutionException("Duplicate module directory name " + name);
+				}
+				moduleDir = dir;
+			}
+		}
+		return moduleDir;
+	}
+
+	private Set<File> getFeatureFeaturesAndPlugins(File basedir) throws IOException, XmlPullParserException, MojoExecutionException {
+		Set<File> result = new LinkedHashSet<File>(); 
 
 		Feature feature = Feature.read(new File(basedir, "feature.xml"));
 
 		for (Feature.PluginRef plugin : feature.getPlugins()) {
-			addPlugin(result, basedir, plugin.getId());
+			addPlugin(result, plugin.getId());
 		}
 
 		for (Feature.FeatureRef includedFeature : feature.getIncludedFeatures()) {
-			addFeature(result, basedir, includedFeature.getId());
+			addFeature(result, includedFeature.getId());
 		}
 
 		for (Feature.RequiresRef require : feature.getRequires()) {
 			for (Feature.ImportRef imp : require.getImports()) {
-				addPlugin(result, basedir, imp.getPlugin());
-				addFeature(result, basedir, imp.getFeature());
+				addPlugin(result, imp.getPlugin());
+				addFeature(result, imp.getFeature());
 			}
 		}
 		
 		return result;
 	}
 
-	private void addPlugin(Set<String> result, File basedir, String name) {
+	private void addPlugin(Set<File> result, String name) throws MojoExecutionException {
 		if (name != null) {
-			File dir = new File(basedir.getParent(), name);
-			if (dir.exists() && dir.isDirectory()) {
-				if (result.add(name)) {
+			File dir = getModuleDir(name);
+			if (dir != null) {
+				if (result.add(dir)) {
 					BundleDescription bundle = state.getBundleDescription(dir);
 					if (bundle != null) { 
 						try {
@@ -209,8 +244,8 @@ public class GeneratePomsMojo extends AbstractMojo {
 							for (int i = 0; i < requiredBundles.length; i++) {
 								BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
 								File suppliedDir = new File(supplier.getLocation());
-								if (suppliedDir.isDirectory() && isParent(basedir.getParentFile(), suppliedDir)) {
-									addPlugin(result, suppliedDir, suppliedDir.getName());
+								if (isModuleDir(suppliedDir)) {
+									addPlugin(result, suppliedDir.getName());
 								}
 							}
 						} catch (BundleException e) {
@@ -224,9 +259,23 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private boolean isParent(File parent, File file) {
+	private boolean isModuleDir(File dir) {
+		if (!dir.exists() || !dir.isDirectory()) {
+			return false;
+		}
+		for (File basedir : baseDir) {
+			if (isModule(basedir, dir)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isModule(File basedir, File dir) {
 		try {
-			return file.getCanonicalFile().equals(new File(parent, file.getName()).getCanonicalFile());
+			if (basedir.getCanonicalFile().equals(dir.getParentFile().getCanonicalFile())) {
+				return true;
+			}
 		} catch (IOException e) {
 			getLog().warn("Totally unexpected IOException", e);
 		}
