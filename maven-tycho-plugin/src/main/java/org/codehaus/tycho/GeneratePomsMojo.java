@@ -94,7 +94,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 				Model modela = readPom("templates/update-site-poma.xml");
 				setParent(modela, parent);
 				modela.setGroupId(groupId);
-				modela.setArtifactId(basedir.getName());
+				modela.setArtifactId(basedir.getName() + ".aggregator");
 				modela.setVersion(version);
 				for (String module : modules) {
 					modela.addModule("../" + module);

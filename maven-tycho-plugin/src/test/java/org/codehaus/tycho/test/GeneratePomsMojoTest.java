@@ -101,6 +101,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		assertEquals("group", p002.getParent().getGroupId());
 
 		Model aggmodel = readModel(baseDir, "p003/poma.xml");
+		assertEquals("p003.aggregator", aggmodel.getArtifactId());
 		List<String> aggrmodules = aggmodel.getModules();
 		assertEquals(5, aggrmodules.size());
 	}
