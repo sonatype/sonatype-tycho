@@ -7,8 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
@@ -77,7 +80,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 				parent.setGroupId(groupId);
 				parent.setArtifactId(basedir.getName());
 				parent.setVersion(version);
-				File[] dirs = basedir.listFiles();
+				Set<File> dirs = new TreeSet<File>(Arrays.asList(basedir.listFiles()));
 				if (parent != null && parentBasedir != null && dirs != null) {
 					for (File dir : dirs) {
 						if (generatePom(parent, dir)) {
