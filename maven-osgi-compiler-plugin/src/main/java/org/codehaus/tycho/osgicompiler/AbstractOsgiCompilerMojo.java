@@ -72,6 +72,10 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private OsgiState state;
 
 	public void execute() throws MojoExecutionException, CompilationFailureException {
+		if (usePdeSourceRoots) {
+			getLog().info("Using compile source roots from build.properties");
+		}
+
 		List<String> compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
 
 		if (compileSourceRoots.isEmpty()) {
@@ -166,8 +170,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	}
 
 	protected List<String> getPdeCompileSourceRoots() throws MojoExecutionException {
-		getLog().info("Using compile source roots from build.properties");
-
 		File file = new File(project.getBasedir(), "build.properties");
 		if (!file.canRead()) {
 			throw new MojoExecutionException("Unable to read build.properties file");
