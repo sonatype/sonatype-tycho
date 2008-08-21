@@ -53,6 +53,7 @@ errExit() {
 	[ -n "$exitCode" ] && shift
 	[ -n "$1" ] && echo "## $scriptName: $1"
 	[ -z "$exitCode" ] && exitCode=2
+	[ -f "$outFile" ] && echo "## $scriptName output file: $outFile"
 	exit "$exitCode"
 }
 
