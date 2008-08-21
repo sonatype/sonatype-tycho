@@ -124,4 +124,16 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		String file = new File(base, path).getCanonicalPath();
 		return file.replace('\\', '/') + accessRules.replace(":", ClasspathComputer3_0.ACCESS_RULE_SEPARATOR);
 	}
+
+	public void test_multisourceP001_viaMojoConfiguration() throws Exception {
+		File basedir = getBasedir("projects/multisource/p001");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+
+		MavenProject project = projects.get(0);
+		getMojo(project).execute();
+		
+		assertTrue(new File(project.getBasedir(), "target/classes/p001/p1/P1.class").canRead());
+		assertTrue(new File(project.getBasedir(), "target/classes/p001/p2/P2.class").canRead());
+	}
+
 }
