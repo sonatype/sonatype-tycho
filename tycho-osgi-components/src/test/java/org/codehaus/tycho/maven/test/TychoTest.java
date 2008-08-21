@@ -2,6 +2,7 @@ package org.codehaus.tycho.maven.test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.maven.Maven;
 import org.apache.maven.execution.DefaultMavenExecutionResult;
@@ -155,4 +156,16 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertEquals("host", clientDependencies.get(0).getArtifactId());
 		assertEquals("fragment", clientDependencies.get(1).getArtifactId());
 	}
+
+	public void testPre30() throws Exception {
+		File targetPlatform = new File("src/test/resources/targetplatforms/pre-3.0");
+		File workspace = new File("target/workspace");
+		Properties props = new Properties(System.getProperties());
+		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
+		state.init(null, workspace, props);
+
+		assertNotNull(state.getBundleDescription("testjar", "1.0.0"));
+		assertNotNull(state.getBundleDescription("testdir", "1.0.0"));
+	}
+
 }

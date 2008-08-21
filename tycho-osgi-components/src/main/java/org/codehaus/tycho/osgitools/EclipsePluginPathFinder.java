@@ -19,6 +19,8 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 
+import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
+
 /**
  * Finds bundles in Eclipse installation. 
  * 
@@ -73,13 +75,19 @@ public class EclipsePluginPathFinder {
 	private void addPlugins(Set<File> result, File[] plugins) {
 		if (plugins != null) {
 			for (File plugin : plugins) {
-				if (plugin.isDirectory() && new File(plugin, "META-INF/MANIFEST.MF").canRead()) {
+				if (plugin.isDirectory() && isDIrectoryPlugin(plugin)) {
 					result.add(plugin);
 				} else if (plugin.isFile() && plugin.getName().endsWith(".jar")) {
 					result.add(plugin);
 				}
 			}
 		}
+	}
+
+	private boolean isDIrectoryPlugin(File plugin) {
+		return new File(plugin, "META-INF/MANIFEST.MF").canRead()
+			|| new File(plugin, PluginConverterImpl.PLUGIN_MANIFEST).canRead()
+			|| new File(plugin, PluginConverterImpl.FRAGMENT_MANIFEST).canRead();
 	}
 
 	public Set<File> getSites(File targetPlatform) {

@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -168,7 +167,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return addBundle(manifest, bundleLocation, override);
 	}
 
-	private Dictionary loadManifestAttributes(File bundleLocation) throws BundleException {
+	private Dictionary loadManifestAttributes(File bundleLocation) {
 		Manifest m = loadManifest(bundleLocation);
 		if (m == null) {
 			return null;
@@ -191,44 +190,74 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return manifest;
 	}
 
-	// Return a dictionary representing a manifest. The data may result from
-	// plugin.xml conversion
 	public Manifest loadManifest(File bundleLocation) {
-		InputStream manifestStream = null;
-		ZipFile jarFile = null;
 		try {
-			if (bundleLocation.isFile()) {
-				String name = bundleLocation.getName();
-				if (name.toLowerCase().endsWith(".jar")) {
-					jarFile = new ZipFile(bundleLocation, ZipFile.OPEN_READ);
-					ZipEntry manifestEntry = jarFile
-							.getEntry(JarFile.MANIFEST_NAME);
-					if (manifestEntry != null) {
-						manifestStream = jarFile.getInputStream(manifestEntry);
-					} else {
-						File converted = convertPluginManifest(bundleLocation);
-						manifestStream = new FileInputStream(new File(converted,
-								JarFile.MANIFEST_NAME));
-					}
-				} else {
-					manifestStream = new FileInputStream(bundleLocation);
+			if (bundleLocation.isDirectory()) {
+				File m = new File(bundleLocation, JarFile.MANIFEST_NAME);
+				if (m.canRead()) {
+					return loadManifestFile(m);
 				}
-			} else {
-				manifestStream = new FileInputStream(new File(bundleLocation,
-						JarFile.MANIFEST_NAME));
+				m = convertPluginManifest(bundleLocation); 
+				if (m != null && m.canRead()) {
+					return loadManifestFile(m);
+				}
+				return null;
 			}
-			
-			if (manifestStream != null) {
-				return new Manifest(manifestStream);
+	
+			// it's a file, make sure we can read it
+			if (!bundleLocation.canRead()) {
+				return null;
 			}
-		} catch (IOException ex) {
-			throw new RuntimeException(ex.getMessage(), ex);
-		} catch (PluginConversionException ex) {
-			throw new RuntimeException(ex.getMessage(), ex);
-		} finally {
-			
+	
+			// file but not a jar, assume it is MANIFEST.MF
+			if (!bundleLocation.getName().toLowerCase().endsWith(".jar")) {
+				return loadManifestFile(bundleLocation);
+			} 
+	
+			// it is a jar, lets see if it has OSGi bundle manifest
+			ZipFile jar = new ZipFile(bundleLocation, ZipFile.OPEN_READ);
+			try {
+				ZipEntry me = jar.getEntry(JarFile.MANIFEST_NAME);
+				if (me != null) {
+					InputStream is = jar.getInputStream(me);
+					try {
+						Manifest mf = new Manifest(is);
+						if (mf.getMainAttributes().getValue("Bundle-ManifestVersion") != null) {
+							return mf;
+						}
+					} finally {
+						is.close();
+					}
+				}
+			} finally {
+				jar.close();
+			}
+	
+			// it is a jar, does not have OSGi bundle manifest, lets try plugin.xml/fragment.xml
+			File m = convertPluginManifest(bundleLocation); 
+			if (m != null && m.canRead()) {
+				return loadManifestFile(m);
+			}
+		} catch (IOException e) {
+			getLogger().warn("Exception reading bundle manifest", e);
+		} catch (PluginConversionException e) {
+			getLogger().warn("Exception reading bundle manifest", e);
 		}
+		
+		// not a bundle
 		return null;
+	}
+
+	private Manifest loadManifestFile(File m) throws IOException {
+		if (!m.canRead()) {
+			return null;
+		}
+		InputStream is = new FileInputStream(m);
+		try {
+			return new Manifest(is);
+		} finally {
+			is.close();
+		}
 	}
 
 	private File convertPluginManifest(File bundleLocation) throws PluginConversionException {
@@ -244,10 +273,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 				manifestFile,
 				false /*compatibility*/, 
 				"3.2" /*target version*/, 
-				false /*don't analyse jars to set export-package*/,
+				true /*analyse jars to set export-package*/,
 				null /*devProperties*/);
 		if (manifestFile.exists()) {
-			return manifestFile.getParentFile().getParentFile();
+			return manifestFile;
 		}
 		return null;
 	}
@@ -338,45 +367,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	public ResolverError[] getResolverErrors(BundleDescription bundle) {
 		return state.getResolverErrors(bundle);
 	}
-
-	public ResolverError[] getRelevantErrors() {
-        BundleDescription[] bundles = state.getBundles();
-        List errors = new ArrayList();
-        for (int i = 0; i < bundles.length; i++) {
-            BundleDescription bundle = bundles[i];
-            ResolverError[] bundleErrors = state.getResolverErrors(bundle);
-            for (int j = 0; j < bundleErrors.length; j++) {
-                ResolverError error = bundleErrors[j];
-                VersionConstraint constraint = error.getUnsatisfiedConstraint();
-                String required = constraint.getName();
-                if (constraint instanceof BundleSpecification || constraint instanceof HostSpecification) {
-                    if (state.getBundles(required).length == 0) {
-                        errors.add(error);
-                    }
-                } else if (constraint instanceof ImportPackageSpecification) {
-                    boolean found = false;
-                    BundleDescription[] bds = state.getBundles();
-                    for (int k = 0; k < bds.length; k++) {
-                        BundleDescription bd = bds[k];
-                        for (int l = 0; l < bd.getExportPackages().length; l++) {
-							ExportPackageDescription d = bd.getExportPackages()[l];
-                            if (d.getName().equals(required)) {
-                                found = true;
-                            }
-                        }
-                    }
-                    if (!found) {
-                        errors.add(error);
-                    }
-                } else {
-                    errors.add(error);
-                }
-            }
-        }
-
-        return (ResolverError[]) errors
-                .toArray(new ResolverError[errors.size()]);
-    }
 
 	public ResolverError[] getRelevantErrors(BundleDescription bundle) {
 		Set errors = new LinkedHashSet();
