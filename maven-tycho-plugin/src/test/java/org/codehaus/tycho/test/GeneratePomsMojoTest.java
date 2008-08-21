@@ -28,12 +28,20 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	private void generate(File baseDir, Map<String, Object> params) throws Exception {
-		generate(new File[] {baseDir}, params);
+		generate(baseDir, null, params);
 	}
 
-	private void generate(File[] baseDir, Map<String, Object> params) throws Exception {
+	private void generate(File baseDir, File[] extraDirs, Map<String, Object> params) throws Exception {
 		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", TYCHO_VERSION, "generate-poms", null);
 		setVariableValueToObject(generateMojo, "baseDir", baseDir);
+		if (extraDirs != null) {
+			StringBuilder sb = new StringBuilder();
+			for (File dir : extraDirs) {
+				if (sb.length() > 0) sb.append(',');
+				sb.append(dir.getCanonicalPath());
+			}
+			setVariableValueToObject(generateMojo, "extraDirs", sb.toString());
+		}
 		if (params != null) {
 			for (Map.Entry<String, Object> param : params.entrySet()) {
 				setVariableValueToObject(generateMojo, param.getKey(), param.getValue());
@@ -89,7 +97,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		params.put("groupId", "group");
 		params.put("version", "1.0.0");
 		params.put("aggregator", Boolean.TRUE);
-		generate(new File[] {new File(baseDir, "base1"), new File(baseDir, "base2")}, params);
+		generate(new File(baseDir, "base1"), new File[] {new File(baseDir, "base2")}, params);
 
 		Model parent = readModel(baseDir, "base1/pom.xml");
 		List<String> modules = parent.getModules();

@@ -7,10 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.apache.maven.model.Model;
@@ -43,7 +44,10 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 * @parameter expression="${baseDir}" default-value="."
 	 * @required
 	 */
-	private File[] baseDir;
+	private File baseDir;
+
+	/** @parameter */
+	private String extraDirs;
 
 	/**
 	 * @parameter expression="${groupId}"
@@ -68,7 +72,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		File parentBasedir = null;
 		Model parent = null;
-		for (File basedir : baseDir) {
+		for (File basedir : getBaseDirs()) {
 			if (!generatePom(null, basedir)) {
 				if (groupId == null) {
 					throw new MojoExecutionException("groupId is required");
@@ -96,6 +100,22 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 
 		generateAggregatorPoms(parent);
+	}
+
+	private File[] getBaseDirs() {
+		ArrayList<File> dirs = new ArrayList<File>();
+		dirs.add(baseDir);
+		if (extraDirs != null) {
+			StringTokenizer st = new StringTokenizer(extraDirs, ",");
+			while (st.hasMoreTokens()) {
+				try {
+					dirs.add(new File(st.nextToken()).getCanonicalFile());
+				} catch (IOException e) {
+					getLog().warn("Can't parse extraDirs", e);
+				}
+			}
+		}
+		return dirs.toArray(new File[dirs.size()]);
 	}
 
 	private String getModuleName(File basedir, File dir, String relative) throws MojoExecutionException {
@@ -199,7 +219,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private File getModuleDir(String name) throws MojoExecutionException {
 		File moduleDir = null;
-		for (File basedir : baseDir) {
+		for (File basedir : getBaseDirs()) {
 			File dir = new File(basedir, name);
 			if (dir.exists() && dir.isDirectory()) {
 				if (moduleDir != null) {
@@ -266,7 +286,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		if (!dir.exists() || !dir.isDirectory()) {
 			return false;
 		}
-		for (File basedir : baseDir) {
+		for (File basedir : getBaseDirs()) {
 			if (isModule(basedir, dir)) {
 				return true;
 			}
