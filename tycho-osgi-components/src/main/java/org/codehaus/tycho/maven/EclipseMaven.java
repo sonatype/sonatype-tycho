@@ -3,7 +3,6 @@ package org.codehaus.tycho.maven;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -87,8 +86,7 @@ public class EclipseMaven extends DefaultMaven {
 
 		state.init(targetPlatform, workspace, props);
 
-		for (Iterator it = projects.iterator(); it.hasNext(); ) {
-			MavenProject project = (MavenProject) it.next();
+		for (MavenProject project : projects) {
 			try {
 				state.addProject(project);
 			} catch (BundleException e) {

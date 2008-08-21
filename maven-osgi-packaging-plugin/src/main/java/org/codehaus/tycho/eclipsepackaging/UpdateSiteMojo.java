@@ -7,8 +7,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -35,8 +33,6 @@ import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 /**
- * XXX dirty hack
- * 
  * @goal update-site
  */
 public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
@@ -59,6 +55,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	/** @parameter */
 	private boolean inlineArchives;
+
+	/**
+	 * @parameter expression="${buildNumber}"
+	 */
+	protected String qualifier;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		target.mkdirs();
@@ -146,12 +147,10 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		featureRef.setVersion(version);
 	}
 
-	private static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmm");
-
 	private String expandVerstion(String version) {
-		if (version.endsWith(".qualifier")) {
+		if (qualifier != null && version.endsWith(".qualifier")) {
 			version = version.substring(0, version.lastIndexOf('.') + 1);
-			version = version + df.format(new Date());
+			version = version + qualifier;
 		}
 		return version;
 	}

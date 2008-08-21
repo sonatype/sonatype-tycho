@@ -7,8 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.jar.Attributes;
@@ -76,6 +74,11 @@ public class PackagePluginMojo extends AbstractMojo {
 	 * @parameter expression="${component.org.apache.maven.project.MavenProjectHelper}
 	 */
 	protected MavenProjectHelper projectHelper;
+
+	/**
+	 * @parameter expression="${buildNumber}"
+	 */
+	protected String qualifier;
 
 	private Properties buildProperties;
 
@@ -164,8 +167,6 @@ public class PackagePluginMojo extends AbstractMojo {
 		}
 	}
 
-	private static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmm");
-
 	private File expandVersion(File mfile) throws FileNotFoundException, IOException 
 	{
 		FileInputStream is = new FileInputStream(mfile);
@@ -193,9 +194,9 @@ public class PackagePluginMojo extends AbstractMojo {
 		Attributes attributes = mf.getMainAttributes();
 
 		String version = attributes.getValue("Bundle-Version");
-		if (version.endsWith(".qualifier")) {
+		if (qualifier != null && version.endsWith(".qualifier")) {
 			version = version.substring(0, version.lastIndexOf('.') + 1);
-			version = version + df.format(new Date());
+			version = version + qualifier;
 			attributes.putValue("Bundle-Version", version);
 			
 			return true;
