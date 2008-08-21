@@ -29,6 +29,7 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.IFeatureRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -82,49 +83,67 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		}
 	}
 
-	private void packageFeature(UpdateSite.FeatureRef featureRef, Map<String, String> archives) throws Exception {
-		String artifactId = featureRef.getId();
-		String version = expandVerstion(featureRef.getVersion());
+	private void packageFeature(IFeatureRef featureRef, Map<String, String> archives) throws Exception {
+		Feature feature = state.getFeature(featureRef.getId(), featureRef.getVersion());
 
-		File basedir = new File(this.basedir, "../" + artifactId).getAbsoluteFile();
-
-		if (basedir.exists() && new File(basedir, "feature.xml").exists()) {
-			Feature feature = Feature.read(new File(basedir, "feature.xml"));
-
-			for (Feature.PluginRef plugin : feature.getPlugins()) {
-				packagePlugin(plugin, archives);
-			}
-
-			feature.setVersion(version);
-			features.mkdirs();
-			File featureFile = new File(features, artifactId + "-feature.xml");
-			Feature.write(feature, featureFile);
-
-			String url = "features/" + artifactId + "_" + version + ".jar";
-			featureRef.setUrl(url);
-			featureRef.setVersion(version);
-			File outputJar = new File(target, url);
-			outputJar.getParentFile().mkdirs();
-			Properties props = new Properties();
-			props.load(new FileInputStream(new File(basedir, "build.properties")));
-			String[] binIncludes = props.getProperty("bin.includes").split(",");
-			String files[] = Util.getIncludedFiles(basedir,	binIncludes);
-
-			JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
-			jarArchiver.setDestFile(outputJar);
-
-			for (int i = 0; i < files.length; i++) {
-				String fileName = files[i];
-				File f = "feature.xml".equals(fileName) ? featureFile: new File(basedir, fileName);
-				if (!f.isDirectory())
-				{
-					jarArchiver.addFile(f, fileName);
-				}
-			}
-
-			jarArchiver.createArchive();
-
+		if (feature == null) {
+			return;
 		}
+
+		String artifactId = feature.getId();
+		String version = expandVerstion(feature.getVersion());
+
+		String url = "features/" + artifactId + "_" + version + ".jar";
+		File outputJar = new File(target, url);
+
+
+		if (!outputJar.canRead()) {
+
+			MavenProject featureProject = state.getMavenProject(feature);
+			if (featureProject != null) {
+				feature = new Feature(feature);
+
+				for (Feature.PluginRef plugin : feature.getPlugins()) {
+					packagePlugin(plugin, archives);
+				}
+	
+				for (IFeatureRef includedRef : feature.getIncludedFeatures()) {
+					packageFeature(includedRef, archives);
+				}
+	
+				feature.setVersion(version);
+				features.mkdirs();
+				File featureFile = new File(features, artifactId + "-feature.xml");
+				Feature.write(feature, featureFile);
+	
+				outputJar.getParentFile().mkdirs();
+				Properties props = new Properties();
+				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
+				String[] binIncludes = props.getProperty("bin.includes").split(",");
+				String files[] = Util.getIncludedFiles(featureProject.getBasedir(),	binIncludes);
+	
+				JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
+				jarArchiver.setDestFile(outputJar);
+	
+				for (int i = 0; i < files.length; i++) {
+					String fileName = files[i];
+					File f = "feature.xml".equals(fileName) ? featureFile: new File(featureProject.getBasedir(), fileName);
+					if (!f.isDirectory())
+					{
+						jarArchiver.addFile(f, fileName);
+					}
+				}
+	
+				jarArchiver.createArchive();
+			} else {
+				// TODO include external features
+			}
+		}
+
+		if (featureRef instanceof UpdateSite.FeatureRef) {
+			((UpdateSite.FeatureRef) featureRef).setUrl(url);
+		}
+		featureRef.setVersion(version);
 	}
 
 	private static final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd-HHmm");

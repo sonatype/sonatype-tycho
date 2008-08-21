@@ -30,6 +30,11 @@ public class Feature {
 		this.dom = dom;
 	}
 
+	/** copy constructor */
+	public Feature(Feature other) {
+		this.dom = new Xpp3Dom(other.dom);
+	}
+
 	public List<PluginRef> getPlugins() {
 		ArrayList<PluginRef> plugins = new ArrayList<PluginRef>();
 		for (Xpp3Dom pluginDom : dom.getChildren("plugin")) {
@@ -88,7 +93,7 @@ public class Feature {
 
 	}
 
-	public static class FeatureRef {
+	public static class FeatureRef implements IFeatureRef {
 		private final Xpp3Dom dom;
 
 		public FeatureRef(Xpp3Dom dom) {
@@ -101,6 +106,10 @@ public class Feature {
 
 		public String getVersion() {
 			return dom.getAttribute("version");
+		}
+
+		public void setVersion(String version) {
+			dom.setAttribute("version", version);
 		}
 	}
 

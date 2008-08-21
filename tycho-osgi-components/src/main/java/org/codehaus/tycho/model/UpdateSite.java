@@ -56,7 +56,7 @@ public class UpdateSite {
 		}
 	}
 
-	public static class FeatureRef {
+	public static class FeatureRef implements IFeatureRef {
 
 		private final Xpp3Dom dom;
 
