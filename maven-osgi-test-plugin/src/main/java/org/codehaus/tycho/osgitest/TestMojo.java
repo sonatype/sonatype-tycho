@@ -326,7 +326,7 @@ public class TestMojo extends AbstractMojo {
 			MavenProject project = state.getMavenProject(bundle);
 			if ("eclipse-test-plugin".equals(project.getPackaging())) {
 				appendAbsolutePath(result, project.getBasedir());
-			} else {
+			} else if (project.getArtifact().getFile() != null) {
 				appendAbsolutePath(result, project.getArtifact().getFile());
 			}
 		}
