@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Package Provider Fragment
+Bundle-SymbolicName: com.company.packageService.provider.fragment
+Bundle-Version: 1.0.0
+Bundle-Vendor: Company
+Fragment-Host: com.company.packageService.provider;bundle-version="0.0.1"
+Bundle-RequiredExecutionEnvironment: J2SE-1.3

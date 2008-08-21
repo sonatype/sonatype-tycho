@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Package service Provider
+Bundle-SymbolicName: com.company.packageService.provider
+Bundle-Version: 1.0.0
+Bundle-Vendor: Company
+Bundle-RequiredExecutionEnvironment: J2SE-1.4
+Export-Package: com.company.packageService
