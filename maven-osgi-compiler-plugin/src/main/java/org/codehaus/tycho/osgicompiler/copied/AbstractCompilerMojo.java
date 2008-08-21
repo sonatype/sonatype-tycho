@@ -241,7 +241,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
 	protected abstract List getClasspathElements();
 
-	protected abstract List getCompileSourceRoots();
+	protected abstract List getCompileSourceRoots() throws MojoExecutionException;
 
 	protected abstract File getOutputDirectory();
 

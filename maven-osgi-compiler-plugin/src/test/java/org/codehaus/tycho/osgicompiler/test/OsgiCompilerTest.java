@@ -136,4 +136,15 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertTrue(new File(project.getBasedir(), "target/classes/p001/p2/P2.class").canRead());
 	}
 
+	public void test_multisourceP002_viaBuildProperties() throws Exception {
+		File basedir = getBasedir("projects/multisource/p002");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+
+		MavenProject project = projects.get(0);
+		getMojo(project).execute();
+		
+		assertTrue(new File(project.getBasedir(), "target/classes/p002/p1/P1.class").canRead());
+		assertTrue(new File(project.getBasedir(), "target/classes/p002/p2/P2.class").canRead());
+	}
+
 }

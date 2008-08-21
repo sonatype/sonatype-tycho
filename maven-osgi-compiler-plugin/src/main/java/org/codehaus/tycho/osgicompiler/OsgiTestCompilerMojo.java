@@ -35,7 +35,7 @@ public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 	 * @required
 	 * @readonly
 	 */
-	private List compileSourceRoots;
+	private List<String> compileSourceRoots;
 
 	/**
 	 * The directory where compiled test classes go.
@@ -55,7 +55,8 @@ public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 	 */
 	private File outputDirectory;
 
-	protected List getCompileSourceRoots() {
+	@Override
+	protected List<String> getConfiguredCompileSourceRoots() {
 		return compileSourceRoots;
 	}
 

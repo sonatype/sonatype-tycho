@@ -17,12 +17,17 @@
 package org.codehaus.tycho.osgicompiler;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -51,6 +56,17 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * @parameter expression="${project}"
 	 */
 	private MavenProject project;
+
+	/**
+	 * If set to true, compiler will use source folders defined in build.properties 
+	 * file and will ignore ${project.compileSourceRoots}/${project.testCompileSourceRoots}.
+	 * 
+	 * Compilation will fail with an error, with this parameter is set to true
+	 * but the project does not have valid build.properties file.
+	 *  
+	 * @parameter default-value="false" 
+	 */
+	private boolean usePdeSourceRoots;
 
 	/** @component */
 	private OsgiState state;
@@ -99,16 +115,20 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * 
 	 * @parameter
 	 */
-	private Set includes = new HashSet();
+	private Set<String> includes = new HashSet<String>();
 
 	/**
 	 * A list of exclusion filters for the compiler.
 	 * 
 	 * @parameter
 	 */
-	private Set excludes = new HashSet();
+	private Set<String> excludes = new HashSet<String>();
 
-	protected abstract List getCompileSourceRoots();
+	protected final List<String> getCompileSourceRoots() throws MojoExecutionException {
+		return usePdeSourceRoots? getPdeCompileSourceRoots(): getConfiguredCompileSourceRoots();
+	}
+
+	protected abstract List<String> getConfiguredCompileSourceRoots();
 
 	protected abstract File getOutputDirectory();
 
@@ -145,4 +165,32 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		return scanner;
 	}
 
+	protected List<String> getPdeCompileSourceRoots() throws MojoExecutionException {
+		File file = new File(project.getBasedir(), "build.properties");
+		if (!file.canRead()) {
+			throw new MojoExecutionException("Unable to read build.properties file");
+		}
+		try {
+			Properties bp = new Properties();
+			InputStream is = new FileInputStream(file);
+			try {
+				bp.load(is);
+				// only consider primary jar for now
+				String sourcesRaw = bp.getProperty("source..");
+				if (sourcesRaw == null || sourcesRaw.length() <= 0) {
+					throw new MojoExecutionException("build.properties does not contain valid ``source..'' property");
+				}
+				StringTokenizer st = new StringTokenizer(sourcesRaw, ",");
+				ArrayList<String> sources = new ArrayList<String>();
+				while (st.hasMoreTokens()) {
+					sources.add(new File(project.getBasedir(), st.nextToken()).getCanonicalPath());
+				}
+				return sources;
+			} finally {
+				is.close();
+			}
+		} catch (IOException e) {
+			throw new MojoExecutionException("Exception reading build.properties file", e);
+		}
+	}
 }
