@@ -6,8 +6,4 @@
 
   <packaging>eclipse-plugin</packaging>
 
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-  </build>
-
 </project>

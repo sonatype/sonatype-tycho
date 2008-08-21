@@ -61,10 +61,10 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * If set to true, compiler will use source folders defined in build.properties 
 	 * file and will ignore ${project.compileSourceRoots}/${project.testCompileSourceRoots}.
 	 * 
-	 * Compilation will fail with an error, with this parameter is set to true
+	 * Compilation will fail with an error, if this parameter is set to true
 	 * but the project does not have valid build.properties file.
 	 *  
-	 * @parameter default-value="false" 
+	 * @parameter default-value="true" 
 	 */
 	private boolean usePdeSourceRoots;
 
@@ -72,7 +72,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private OsgiState state;
 
 	public void execute() throws MojoExecutionException, CompilationFailureException {
-		List compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
+		List<String> compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
 
 		if (compileSourceRoots.isEmpty()) {
 			getLog().info("No sources to compile");
@@ -166,6 +166,8 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	}
 
 	protected List<String> getPdeCompileSourceRoots() throws MojoExecutionException {
+		getLog().info("Using compile source roots from build.properties");
+
 		File file = new File(project.getBasedir(), "build.properties");
 		if (!file.canRead()) {
 			throw new MojoExecutionException("Unable to read build.properties file");
@@ -176,14 +178,13 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			try {
 				bp.load(is);
 				// only consider primary jar for now
-				String sourcesRaw = bp.getProperty("source..");
-				if (sourcesRaw == null || sourcesRaw.length() <= 0) {
-					throw new MojoExecutionException("build.properties does not contain valid ``source..'' property");
-				}
-				StringTokenizer st = new StringTokenizer(sourcesRaw, ",");
 				ArrayList<String> sources = new ArrayList<String>();
-				while (st.hasMoreTokens()) {
-					sources.add(new File(project.getBasedir(), st.nextToken()).getCanonicalPath());
+				String sourcesRaw = bp.getProperty("source..");
+				if (sourcesRaw != null && sourcesRaw.length() > 0) {
+					StringTokenizer st = new StringTokenizer(sourcesRaw, ",");
+					while (st.hasMoreTokens()) {
+						sources.add(new File(project.getBasedir(), st.nextToken()).getCanonicalPath());
+					}
 				}
 				return sources;
 			} finally {
