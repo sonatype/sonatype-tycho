@@ -61,6 +61,12 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	 */
 	protected String qualifier;
 
+	/**
+	 * @parameter expression="${project}"
+	 * @required
+	 */
+	protected MavenProject project;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		target.mkdirs();
 
@@ -78,7 +84,10 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				site.removeArchives();
 			}
 
-			UpdateSite.write(site, new File(target, "site.xml"));
+			File file = new File(target, "site.xml");
+			UpdateSite.write(site, file);
+
+			project.getArtifact().setFile(file);
 		} catch (Exception e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
