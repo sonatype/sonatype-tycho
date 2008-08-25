@@ -10,7 +10,7 @@ scriptDir=`dirname "$0"`
 #   if compiles ok, host fragment is properly visible to client of host
 
 #files="site.xml features/com.company.tools.core.feature_1.0.0.jar"
-files="site.xml features/com.company.tools.core.feature_1.0.0.jar plugins/com.company.packageService.provider.fragment"
+files="site.xml features/com.company.tools.core.feature_1.0.0.jar plugins/com.company.packageService.provider_1.0.0.jar"
 for e in $files; do
 	expectedFile="$scriptDir/target/site/$e"
 	[ -f  "$expectedFile" ] || echo "## $0 FAIL: expected \"$expectedFile\" "
