@@ -194,6 +194,10 @@
     </pluginManagement>
   </build>
 
+  <scm>
+    <connection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</connection>
+  </scm>
+
   <distributionManagement>
     <snapshotRepository>
       <id>forge-snapshots</id>
