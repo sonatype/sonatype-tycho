@@ -1,18 +1,21 @@
 # copy to build-test.sh.local and set up your own variables
 
+homeDir=d:/home
+
 #### required
-export JAVA_HOME=f:/home/apps/jdk16
-export tychoTargetPlatformDir=f:/home/eclipse/eclipse-34-classic
+export JAVA_HOME="$homeDir/apps/jdk16"
+export tychoTargetPlatformDir="$homeDir/eclipse/eclipse-34-classic/eclipse"
 
 #### one of these is required
-export builderMavenDir=f:/home/mavens/tycho-distribution-0.3.0-SNAPSHOT
-#export builtMavenDir=f:/home/mavens/target-tycho
+export builderMavenDir="$homeDir/mavens/tycho-distribution-0.3.0-SNAPSHOT"
+#export builtMavenDir="$homeDir/mavens/target-tycho"
 
 #### optional
-export testTargetPlatformDir=f:/home/eclipse/eclipse-34-jee-all
-#set -vx # debug script - can also export DEBUG=anything
+export testTargetPlatformDir="$homeDir/eclipse/eclipse-34-jee-all"
+debugMvn=-X
+set -vx # debug script - can also export DEBUG=anything
 # sometimes paths too long to delete on windows unless near root
-sandboxDir=f:/temp/sandbox
+sandboxDir="$homeDir/temp/sandbox"
 #outFile=
 #skipTychoTests="-Dmaven.test.skip=true"
 
@@ -20,7 +23,4 @@ sandboxDir=f:/temp/sandbox
 export skipPoms=
 cleanSandbox=cleanOutSandbox
 
-## correct pom id's, then re-run
-#export skipPoms=skippingPoms
-#cleanSandbox=
 
