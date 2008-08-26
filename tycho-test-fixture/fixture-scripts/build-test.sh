@@ -78,12 +78,14 @@ tychoTargetPlatformDir="${tychoTargetPlatformDir:-$sandboxDir/target-platform/ec
 testTargetPlatformDir="${testTargetPlatformDir:-$tychoTargetPlatformDir}"
 testDir="${testDir:-$scriptDir/../../tycho-test-fixture}"
 outFile="${outFile:-${sandboxDir}/${scriptName}.out.txt}"
+settingsFile="${settingsFile:-${scriptDir}/settings.xml}"
 skipTychoTests="${skipTychoTests:--Dmaven.test.skip=true}"
 
 ## check input values
 [ -d "$testDir" ] || errExit 23 "no testDir: $testDir" 
 [ -f "$JAVA_HOME"/lib/tools.jar ] || errExit 22 "Setup JAVA_HOME with tools.jar: $JAVA_HOME/lib/tools.jar "
 [ -d "$testTargetPlatformDir" ] || errExit 23 "no testTargetPlatformDir: $testTargetPlatformDir" 
+[ -f "$settingsFile" ] || errExit 22 "Need maven settings \${settingsFile}: $settingsFile"
 
 ## setup sandbox, output sink
 [ -n "$cleanSandbox" ] && rm -rf "$sandboxDir" && mkdir -p "$sandboxDir"
@@ -118,10 +120,10 @@ EOF
 	cd "$trunkDir"
 	## build tycho and unzip
 	outFileMessage "Building tycho"
-	"$builderMavenDir"/bin/mvn clean -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
+	"$builderMavenDir"/bin/mvn $debugMvn -s "$settingsFile"  clean -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
 		>> "$outFile" 2>&1 || errExit 87 "tycho clean failed"
 	[ -d "$trunkDir/tycho-distribution/target" ] && errExit 89 "tycho clean failed - have target"
-	"$builderMavenDir"/bin/mvn install $skipTychoTests -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
+	"$builderMavenDir"/bin/mvn $debugMvn -s "$settingsFile"  install $skipTychoTests -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
 		>> "$outFile" 2>&1 || errExit 88 "tycho build failed"
 	zipFile=`ls "$trunkDir"/tycho-distribution/target/tycho-distribution*-bin.zip 2>/dev/null` # note: location
 	[ -f "$zipFile" ] || errExit 4 "## $0 FAILED to create zip in tycho-distribution"
@@ -148,7 +150,7 @@ if [ -z "$skipPoms" ] ; then
 	#parameters="-DbaseDir=\"$testDir\" -DgroupId=tycho.testArtifacts.group -Daggregator=true -Dtycho.targetPlatform=$testTargetPlatformDir"
 	parameters="-DbaseDir=$testDir -DgroupId=tycho.testArtifacts.group -Daggregator=true -Dtycho.targetPlatform=$testTargetPlatformDir"
 	outFileMessage "Building poms"
-	"$builtTychoDir"/bin/mvn $command $parameters >> "$outFile" 2>&1
+	"$builtTychoDir"/bin/mvn $debugMvn -s "$settingsFile"  $command $parameters >> "$outFile" 2>&1
 fi
 
 ## build targets (identified by "checkResult.sh" file)
@@ -167,7 +169,7 @@ for i in `ls */checkResult.sh 2>/dev/null`; do
 		pomArg="" 
 	fi
 	outFileMessage "Building $buildDir (pomArg=${pomArg})"
-	"$builtTychoDir"/bin/mvn package $pomArg -Dtycho.targetPlatform=$testTargetPlatformDir >> "$outFile" 2>&1
+	"$builtTychoDir"/bin/mvn $debugMvn -s "$settingsFile"  package $pomArg -Dtycho.targetPlatform=$testTargetPlatformDir >> "$outFile" 2>&1
 	"$i"
 done
 
