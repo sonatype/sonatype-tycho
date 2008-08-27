@@ -32,6 +32,7 @@ public class EclipseMaven extends DefaultMaven {
 
 	@Override
 	protected List getProjects(MavenExecutionRequest request) throws MavenExecutionException {
+		request.getProperties().put("tycho-version", state.getTychoVersion());
 		List<MavenProject> projects = super.getProjects(request);
 
 		calculateConcreteState(projects, request);

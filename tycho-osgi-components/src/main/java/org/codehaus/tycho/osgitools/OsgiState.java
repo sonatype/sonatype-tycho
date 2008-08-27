@@ -27,6 +27,8 @@ public interface OsgiState {
 
 	BundleDescription addBundle(File manifest) throws BundleException;
 
+	static final String DEFAULT_TYCHO_VERSION = "0.3.0-SNAPSHOT";
+
 	/**
 	 * Returns all direct and indirect dependencies of the bundle.
 	 * 
@@ -72,4 +74,6 @@ public interface OsgiState {
 	MavenProject getMavenProject(Feature feature);
 
 	Feature getFeature(MavenProject project);
+
+	String getTychoVersion();
 }

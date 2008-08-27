@@ -660,6 +660,26 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		String location = project.getFile().getParentFile().getAbsolutePath();
 		return features.get(location);
 	}
+
+	public String getTychoVersion() {
+		ClassLoader cl = OsgiStateController.class.getClassLoader();
+		InputStream is = cl.getResourceAsStream("META-INF/maven/org.codehaus.tycho/tycho-osgi-components/pom.properties");
+		String version = DEFAULT_TYCHO_VERSION;
+		if (is != null) {
+			try {
+				try {
+					Properties p = new Properties();
+					p.load(is);
+					version = p.getProperty("version", DEFAULT_TYCHO_VERSION);
+				} finally {
+					is.close();
+				}
+			} catch (IOException e) {
+				getLogger().debug("Could not read pom.properties", e);
+			}
+		}
+		return version;
+	}
 	
 }
  

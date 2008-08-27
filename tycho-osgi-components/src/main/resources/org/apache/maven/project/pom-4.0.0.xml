@@ -150,37 +150,37 @@ under the License.
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-osgi-compiler-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-osgi-lifecycle-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-osgi-packaging-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-osgi-test-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-targetplatform-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-tycho-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-tycho-plugin</artifactId>
-          <version>0.3.0-SNAPSHOT</version>
+          <version>${tycho-version}</version>
         </plugin>
 
 
