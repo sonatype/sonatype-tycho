@@ -27,7 +27,16 @@
   </modules>
 
   <properties>
-    <maven-version>3.0-SNAPSHOT</maven-version>
+    <!-- 
+      Check out maven 3.0 source and make note of the svn rev. 
+      Rename the 3.0-SNAPSHOT to something like 3.0-SONATYPE-[svnrev] in all the poms, 
+      including cross dependencies.
+      Override deplotment repository with -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/content/repositories/releases/
+      
+      By versioning it from the svn rev, we can always reproduce without having 
+      to actually commit the source to our svn.  
+    -->
+    <maven-version>3.0-SONATYPE-688946</maven-version>
     <maven-artifact-version>3.0-alpha-1</maven-artifact-version>
     <tycho-p2-runtime-version>0.3.0-SNAPSHOT-TEMP</tycho-p2-runtime-version>
   </properties>
