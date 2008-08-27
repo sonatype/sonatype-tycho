@@ -10,7 +10,9 @@
   </parent>
 
   <artifactId>tycho-p2-app</artifactId>
+  <packaging>eclipse-plugin</packaging>
 
+<!-- 
   <dependencies>
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
@@ -73,4 +75,5 @@
       </plugin>
     </plugins>
   </build>
+   -->
 </project>
