@@ -12,7 +12,7 @@
     <fileSet>
       <directory>target/dependency</directory>
       <includes>
-        <include>tycho-temp-p2-app-${project.version}.jar</include>
+        <include>tycho-p2-app-${project.version}.jar</include>
       </includes>
       <outputDirectory>/p2/eclipse/plugins</outputDirectory>
     </fileSet>
