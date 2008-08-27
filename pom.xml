@@ -219,8 +219,8 @@
 
   <distributionManagement>
     <repository>
-      <id>forge</id>
-      <name>forge</name>
+      <id>forge-releases</id>
+      <name>forge-releases</name>
       <url>http://repository.sonatype.org/content/repositories/eclipse/</url>
     </repository>
     <snapshotRepository>
