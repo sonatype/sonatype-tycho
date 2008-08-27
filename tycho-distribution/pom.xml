@@ -41,14 +41,15 @@
     </dependency>
 
     <dependency>
+      <!-- this dependency is built/deployed manually atm -->
       <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-temp-p2-runtime</artifactId>
-      <version>${project.version}</version>
+      <artifactId>tycho-p2-runtime</artifactId>
+      <version>0.3.0-SNAPSHOT-TEMP</version>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-temp-p2-app</artifactId>
+      <artifactId>tycho-p2-app</artifactId>
       <version>${project.version}</version>
     </dependency>
 

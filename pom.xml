@@ -204,6 +204,7 @@
 
   <scm>
     <connection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</connection>
+    <developerConnection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</developerConnection>
   </scm>
 
   <distributionManagement>
@@ -213,5 +214,34 @@
       <url>http://repository.sonatype.org/content/repositories/eclipse-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
+
+  <profiles>
+    <profile>
+      <id>pseudo-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>buildnumber-maven-plugin</artifactId>
+            <version>1.0-beta-1</version>
+            <configuration>
+              <doCheck>false</doCheck>
+              <doUpdate>false</doUpdate>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-multimanager-plugin</artifactId>
+            <version>1.0-alpha-1</version>
+            <configuration>
+              <newVersion>${project.version}-${buildNumber}</newVersion>
+              <artifactId>${project.artifactId}</artifactId>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
