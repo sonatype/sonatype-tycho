@@ -86,8 +86,6 @@
               <descriptor>src/test/assembly/test-assembly.xml</descriptor>
               <outputDirectory>target</outputDirectory>
               <finalName>p2</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-              <archiveBaseDirectory>/</archiveBaseDirectory>
             </configuration>
           </execution>
         </executions>
@@ -100,7 +98,7 @@
           <systemProperties>
             <property>
               <name>tycho.p2.location</name>
-              <value>${project.basedir}/target/p2.dir/p2/p2</value>
+              <value>${project.basedir}/target/p2-bin.dir/p2/p2</value>
             </property>
           </systemProperties>
         </configuration>
