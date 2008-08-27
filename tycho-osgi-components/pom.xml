@@ -47,13 +47,13 @@
         </executions>
       </plugin>
 
+      <!-- assemble p2 client to test with -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.0</version>
         <executions>
           <execution>
-            <id>p2-client</id>
             <phase>generate-test-resources</phase>
             <goals>
               <goal>unpack</goal>
@@ -78,7 +78,6 @@
         <version>2.2-beta-1</version>
         <executions>
           <execution>
-            <id>p2-client</id>
             <phase>generate-test-resources</phase>
             <goals>
               <goal>directory-single</goal>
