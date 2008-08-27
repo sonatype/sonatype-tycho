@@ -46,6 +46,54 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.0</version>
+        <executions>
+          <execution>
+            <id>p2-client</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.codehaus.tycho</groupId>
+                  <artifactId>tycho-p2-runtime</artifactId>
+                  <version>${tycho-p2-runtime-version}</version>
+                  <type>zip</type>
+                  <outputDirectory>target/dependency</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-1</version>
+        <executions>
+          <execution>
+            <id>p2-client</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>directory-single</goal>
+            </goals>
+            <configuration>
+              <descriptor>src/test/assembly/test-assembly.xml</descriptor>
+              <outputDirectory>target</outputDirectory>
+              <finalName>p2</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <archiveBaseDirectory>/</archiveBaseDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.4.3</version>
@@ -53,11 +101,12 @@
           <systemProperties>
             <property>
               <name>tycho.p2.location</name>
-              <value>${project.basedir}/../tycho-p2-app/target/tycho-p2-app-${project.version}-bin.dir/tycho-p2-app-${project.version}/p2</value>
+              <value>${project.basedir}/target/p2.dir/p2/p2</value>
             </property>
           </systemProperties>
         </configuration>
       </plugin>
+      
     </plugins>
   </build>
 
@@ -85,6 +134,12 @@
     <dependency>
       <groupId>org.eclipse</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-p2-app</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
