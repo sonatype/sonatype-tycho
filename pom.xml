@@ -218,6 +218,11 @@
   </scm>
 
   <distributionManagement>
+    <repository>
+      <id>forge</id>
+      <name>forge</name>
+      <url>http://repository.sonatype.org/content/repositories/eclipse/</url>
+    </repository>
     <snapshotRepository>
       <id>forge-snapshots</id>
       <name>forge-snapshots</name>
@@ -237,16 +242,6 @@
             <configuration>
               <doCheck>false</doCheck>
               <doUpdate>false</doUpdate>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-multimanager-plugin</artifactId>
-            <version>1.0-alpha-1</version>
-            <configuration>
-              <newVersion>${project.version}-${buildNumber}</newVersion>
-              <artifactId>${project.artifactId}</artifactId>
             </configuration>
           </plugin>
         </plugins>
