@@ -11,7 +11,6 @@
   </parent>
 
   <artifactId>tycho-distribution</artifactId>
-  <packaging>pom</packaging>
 
   <dependencies>
     <dependency>
