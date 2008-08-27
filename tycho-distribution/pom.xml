@@ -44,7 +44,7 @@
       <!-- this dependency is built/deployed manually atm -->
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho-p2-runtime</artifactId>
-      <version>0.3.0-SNAPSHOT-TEMP</version>
+      <version>${tycho-p2-runtime-version}</version>
       <type>zip</type>
     </dependency>
     <dependency>
@@ -73,8 +73,8 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.codehaus.tycho</groupId>
-                  <artifactId>tycho-temp-p2-runtime</artifactId>
-                  <version>${project.version}</version>
+                  <artifactId>tycho-p2-runtime</artifactId>
+                  <version>${tycho-p2-runtime-version}</version>
                   <type>zip</type>
                 </artifactItem>
               </artifactItems>
