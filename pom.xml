@@ -244,6 +244,16 @@
               <doUpdate>false</doUpdate>
             </configuration>
           </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>maven-version-plugin</artifactId>
+            <version>1.0</version>
+            <configuration>
+              <newVersion>${project.version}-${buildNumber}</newVersion>
+              <artifactId>${project.artifactId}</artifactId>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
