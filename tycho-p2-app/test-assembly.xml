@@ -6,7 +6,7 @@
 
   <fileSets>
     <fileSet>
-      <directory>target/dependency/tycho-temp-p2-runtime-${project.version}</directory>
+      <directory>target/dependency/tycho-p2-runtime-${tycho-p2-runtime-version}</directory>
       <outputDirectory>/p2/eclipse/plugins</outputDirectory>
     </fileSet>
     <fileSet>
@@ -27,7 +27,7 @@
       <outputDirectory>p2/eclipse/plugins</outputDirectory>
       <outputFileNameMapping>org.codehaus.tycho.p2_1.0.0.jar</outputFileNameMapping>
       <includes>
-        <include>org.codehaus.tycho:tycho-temp-p2-app</include>
+        <include>org.codehaus.tycho:tycho-p2-app</include>
       </includes>
     </dependencySet>
   </dependencySets>
