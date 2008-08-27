@@ -21,6 +21,7 @@ import org.apache.maven.project.interpolation.ModelInterpolationException;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.codehaus.tycho.p2.P2;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.osgi.framework.BundleException;
@@ -32,7 +33,7 @@ public class EclipseMaven extends DefaultMaven {
 
 	@Override
 	protected List getProjects(MavenExecutionRequest request) throws MavenExecutionException {
-		request.getProperties().put("tycho-version", state.getTychoVersion());
+		request.getProperties().put("tycho-version", TychoVersion.getTychoVersion());
 		List<MavenProject> projects = super.getProjects(request);
 
 		calculateConcreteState(projects, request);

@@ -13,6 +13,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.Mojo;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
@@ -32,7 +33,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	private void generate(File baseDir, File[] extraDirs, Map<String, Object> params) throws Exception {
-		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", TYCHO_VERSION, "generate-poms", null);
+		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", TychoVersion.getTychoVersion(), "generate-poms", null);
 		setVariableValueToObject(generateMojo, "baseDir", baseDir);
 		if (extraDirs != null) {
 			StringBuilder sb = new StringBuilder();
