@@ -1,4 +1,6 @@
-<assembly>
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/Assembly/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/Assembly/1.0.0 http://maven.apache.org/xsd/assembly-1.0.0.xsd">
   <id>bin</id>
   <formats>
     <format>zip</format>
@@ -8,6 +10,16 @@
     <fileSet>
       <directory>target/dependency/apache-maven-${maven-version}</directory>
       <outputDirectory>/</outputDirectory>
+      <excludes>
+        <exclude>**/wagon*</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <directory>target/dependency</directory>
+      <includes>
+        <include>wagon*.jar</include>
+      </includes>
+      <outputDirectory>/lib</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>target/dependency/tycho-p2-runtime-${tycho-p2-runtime-version}</directory>

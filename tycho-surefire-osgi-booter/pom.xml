@@ -13,7 +13,7 @@
   <artifactId>tycho-surefire-osgi-booter</artifactId>
   <packaging>eclipse-plugin</packaging>
 
-  <description>Tycho Surefire OSGi Booter Eclipse application</description>
+  <name>Tycho Surefire OSGi Booter Eclipse application</name>
 
   <profiles>
     <profile>

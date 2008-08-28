@@ -57,9 +57,11 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
+            <id>copy</id>
             <configuration>
               <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
               <artifactItems>
@@ -83,10 +85,58 @@
               <goal>unpack</goal>
             </goals>
           </execution>
+          <execution>
+            <id>copy-wagon</id>
+            <configuration>
+              <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-provider-api</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-file</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-http-shared</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-http-lightweight</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-ssh</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-ssh-common</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.maven.wagon</groupId>
+                  <artifactId>wagon-ssh-external</artifactId>
+                  <version>1.0-beta-3-sonatype</version>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
 
       <plugin>
+      	<groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.2-beta-1</version>
         <executions>

@@ -10,6 +10,8 @@
   </parent>
   <artifactId>tycho-testing-harness</artifactId>
 
+  <name>Tycho Testing Harness</name>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
