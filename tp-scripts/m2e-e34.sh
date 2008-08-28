@@ -41,7 +41,8 @@ FILES=`pwd`
 DROPINS=`pwd`/eclipse/dropins
 
 # install
-tar xfz $FILES/*.tar.gz
+tar xfz $FILES/eclipse-SDK-3.4-linux-gtk.tar.gz
+tar xfz $FILES/eclipse-SDK-3.4-linux-gtk-x86_64.tar.gz
 
 # install everything under dropts 
 # eclipse does not immediately scan plugins folder for new bundles
