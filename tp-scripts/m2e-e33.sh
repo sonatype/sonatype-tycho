@@ -22,8 +22,8 @@ wget -P $TPDIR/sites -N http://download.eclipse.org/tools/ajdt/33/update/ajdt_1.
 wget -P $TPDIR/sites  -N http://subclipse.tigris.org/files/documents/906/43326/site-1.4.3.zip
 
 # mylyn 3.0.1
-wget -P $TPDIR/sites -N http://download.eclipse.org/tools/mylyn/update-archive/2.3.2/v20080402-2100/e3.3/mylyn-2.3.2.v20080402-2100-e3.3.zip
-#wget -P $TPDIR  -N -P sites http://download.eclipse.org/tools/mylyn/update/mylyn-3.0.1-e3.3.zip
+#wget -P $TPDIR/sites -N http://download.eclipse.org/tools/mylyn/update-archive/2.3.2/v20080402-2100/e3.3/mylyn-2.3.2.v20080402-2100-e3.3.zip
+wget -P $TPDIR/sites -N http://download.eclipse.org/tools/mylyn/update-archive/3.0.1/v20080721-2100/mylyn-3.0.1.v20080721-2100-e3.3.zip
 
 # windows tester 3.5.0
 wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.5.0_200806270350/WindowTesterPro_v3.5.0_for_Eclipse3.3.zip
