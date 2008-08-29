@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.maven.plugin.testing.SilentLog;
 import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.tycho.osgitools.EclipsePluginPathFinder;
 
 public class PluginPathFinderTest extends PlexusTestCase {
 
 	public void testTargetPlatform() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
+		EclipsePluginPathFinder finder = getPluginFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
 		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
@@ -23,8 +24,12 @@ public class PluginPathFinderTest extends PlexusTestCase {
 		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
 	}
 
+	private EclipsePluginPathFinder getPluginFinder() {
+		return new EclipsePluginPathFinder(false, new SilentLog());
+	}
+
 	public void testPlugins33() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
+		EclipsePluginPathFinder finder = getPluginFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
 		List<File> plugins = getCannonicalFiles(finder.getPlugins(targetPlatform));
@@ -35,7 +40,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testPlugins34() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
+		EclipsePluginPathFinder finder = getPluginFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
 		List<File> plugins = getCannonicalFiles(finder.getPlugins(targetPlatform));
@@ -48,7 +53,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSites34() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
+		EclipsePluginPathFinder finder = getPluginFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
 		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
@@ -70,7 +75,7 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSitesSimple() throws Exception {
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(false);
+		EclipsePluginPathFinder finder = getPluginFinder();
 
 		File targetPlatform = new File("src/test/resources/targetplatforms/simple").getCanonicalFile();
 		List<File> sites = new ArrayList<File>(finder.getSites(targetPlatform));

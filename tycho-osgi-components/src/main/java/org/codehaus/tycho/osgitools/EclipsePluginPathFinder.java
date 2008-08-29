@@ -15,6 +15,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
@@ -30,12 +32,13 @@ import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
  * @author igor
  *
  */
-public class EclipsePluginPathFinder {
+public class EclipsePluginPathFinder extends AbstractLogEnabled {
 	
 	private boolean forceP2;
 	
-	public EclipsePluginPathFinder(boolean forceP2) {
+	public EclipsePluginPathFinder(boolean forceP2, Logger logger) {
 		this.forceP2 = forceP2;
+		enableLogging(logger);
 	}
 
 	public List<File> getFeatures(File targetPlatform) {
@@ -58,7 +61,7 @@ public class EclipsePluginPathFinder {
 			try {
 				result = new LinkedHashSet<File>(readBundlesTxt(targetPlatform));
 			} catch (IOException e) {
-				// oops
+				getLogger().warn("Exception reading P2 bundles list", e);
 			}
 		} else {
 			result = new LinkedHashSet<File>();
@@ -118,7 +121,7 @@ public class EclipsePluginPathFinder {
 					is.close();
 				}
 			} catch (Exception e) {
-				// too bad
+				getLogger().warn("Exception parsing " + toString(platform), e);
 			}
 		}
 
@@ -145,6 +148,14 @@ public class EclipsePluginPathFinder {
 		addLinks(result, targetPlatform, dropins);
 
 		return result;
+	}
+
+	private String toString(File file) {
+		try {
+			return file.getCanonicalPath();
+		} catch (IOException e) {
+			return file.getAbsolutePath();
+		}
 	}
 
 	private void addLinks(Set<File> result, File targetPlatform, File linksFolder) {
@@ -174,6 +185,7 @@ public class EclipsePluginPathFinder {
 							}
 						}
 					} catch (Exception e) {
+						getLogger().warn("Exception parsing " + toString(link), e);
 						continue;
 					}
 				}
@@ -210,6 +222,8 @@ public class EclipsePluginPathFinder {
 	}
 
 	private List<File> readBundlesTxt(File platformBase) throws IOException {
+		getLogger().debug("Reading P2 bundles list");
+		
 		// there is no way to find location of bundle pool without access to P2 profile
 		// so lets assume equinox.launcher comes from the pool
 		File eclipseIni = new File(platformBase, "eclipse.ini");
@@ -236,8 +250,11 @@ public class EclipsePluginPathFinder {
 			}
 		}
 
+		getLogger().debug("Bundle pool location " + toString(pool));
+
 		File bundlesInfo = new File(platformBase, "configuration/org.eclipse.equinox.simpleconfigurator/bundles.info");
 		if (!bundlesInfo.isFile() || !bundlesInfo.canRead()) {
+			getLogger().info("Could not read P2 bundles list " + toString(bundlesInfo));
 			return null;
 		}
 

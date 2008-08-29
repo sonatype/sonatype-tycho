@@ -121,7 +121,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private void loadTargetPlatform(File platform, boolean forceP2) {
 		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
 
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(forceP2);
+		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(forceP2, getLogger());
 
 		Set<File> bundles = finder.getPlugins(platform);
 
@@ -130,6 +130,11 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		}
 
 		getLogger().info("Found " + bundles.size() + " bundles");
+		if (getLogger().isDebugEnabled()) {
+			for (File bundle : bundles) {
+				getLogger().debug("\t" + bundle.getAbsolutePath());
+			}
+		}
 
 		for (File bundle : bundles) {
 			try {
