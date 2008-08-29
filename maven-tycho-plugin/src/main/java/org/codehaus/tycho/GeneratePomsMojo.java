@@ -72,7 +72,18 @@ public class GeneratePomsMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		File parentBasedir = null;
 		Model parent = null;
-		for (File basedir : getBaseDirs()) {
+		File[] baseDirs = getBaseDirs();
+		if (getLog().isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("baseDir=").append(toString(baseDir)).append('\n');
+			sb.append("extraDirs=").append(extraDirs).append('\n');
+			for (int i = 0; i < baseDirs.length; i++) {
+				sb.append("dir[").append(i).append("]=").append(toString(baseDirs[i])).append('\n');
+			}
+			getLog().debug(sb.toString());
+		}
+		for (File basedir : baseDirs) {
+			getLog().info("Scanning " + toString(baseDir) + " baseDir");
 			if (!generatePom(null, basedir)) {
 				if (groupId == null) {
 					throw new MojoExecutionException("groupId is required");
@@ -100,6 +111,14 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 
 		generateAggregatorPoms(parent);
+	}
+
+	private String toString(File file) {
+		try {
+			return file.getCanonicalPath();
+		} catch (IOException e) {
+			return file.getAbsolutePath();
+		}
 	}
 
 	private File[] getBaseDirs() {
@@ -150,12 +169,16 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private boolean generatePom(Model parent, File basedir) throws MojoExecutionException {
 		if (isPluginProject(basedir)) {
+			getLog().debug("Found plugin PDE project " + toString(basedir));
 			generatePluginPom(parent, basedir);
 		} else if (isFeatureProject(basedir)) {
+			getLog().debug("Found feature PDE project " + toString(basedir));
 			generateFeaturePom(parent, basedir);
 		} else if (isUpdateSiteProject(basedir)) {
+			getLog().debug("Found update site PDE project " + toString(basedir));
 			generateUpdateSitePom(parent, basedir);
 		} else {
+			getLog().debug("Not a PDE project " + toString(basedir));
 			return false;
 		}
 		return true;
