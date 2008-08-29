@@ -10,11 +10,13 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.maven.surefire.Surefire;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.osgi.service.resolver.ResolverError;
 import org.osgi.framework.Bundle;
 
 public class OsgiSurefireBooter {
@@ -99,6 +101,18 @@ public class OsgiSurefireBooter {
 
 	private static ClassLoader getBundleClassLoader(String symbolicName) {
 		Bundle bundle = Activator.getBundle(symbolicName);
+		if (bundle == null) {
+			throw new RuntimeException("Bundle " + symbolicName + " is not found");
+		}
+
+		Set<ResolverError> errors = Activator.getResolutionErrors(bundle);
+		if (errors.size() > 0) {
+			System.err.println("Resolution errors for " + bundle.toString());
+			for (ResolverError error : errors) {
+				System.err.println("\t" + error.toString());
+			}
+		}
+
 		return new BundleClassLoader(bundle);
 	}
 

@@ -232,6 +232,11 @@ public class TestMojo extends AbstractMojo {
 				"-jar", getEclipseLauncher().getAbsolutePath(),
 			});
 
+			if (getLog().isDebugEnabled()) {
+				cli.addArguments(new String[] {
+					"-debug", "-consolelog",
+				});
+			}
 			cli.addArguments(new String[] {
 				// "-debug", "-consolelog", "-console",
 				"-data", workspace,
