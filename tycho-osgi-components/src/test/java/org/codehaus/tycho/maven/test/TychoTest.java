@@ -63,7 +63,26 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 		maven.createReactorManager(request, result);
 
-		assertEquals(1, result.getExceptions().size());
+		List<Exception> exceptions = result.getExceptions();
+		assertEquals(1, exceptions.size());
+		assertTrue(exceptions.get(0).getMessage().contains("Missing Constraint: Import-Package: moduleorder.p002"));
+	}
+
+	public void testResolutionError_t001_errorInTargetPlatform() throws Exception {
+		File platform = new File(getBasedir(), "src/test/resources/projects/resolutionerror/t001/platform");
+		File pom = new File(getBasedir("projects/resolutionerror/t001/p003"), "pom.xml");
+
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
+
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+
+		maven.createReactorManager(request, result);
+
+		List<Exception> exceptions = result.getExceptions();
+		assertEquals(1, exceptions.size());
+		assertTrue(exceptions.get(0).getMessage().contains("Missing Constraint: Require-Bundle: moduleorder.p004"));
+		assertTrue(exceptions.get(0).getMessage().contains("Platform filter did not match"));
 	}
 
 	public void testProjectPriority() throws Exception {

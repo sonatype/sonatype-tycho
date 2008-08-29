@@ -131,9 +131,11 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 		getLogger().info("Found " + bundles.size() + " bundles");
 		if (getLogger().isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder();
 			for (File bundle : bundles) {
-				getLogger().debug("\t" + bundle.getAbsolutePath());
+				sb.append('\t').append(bundle.getAbsolutePath()).append('\n');
 			}
+			getLogger().debug(sb.toString());
 		}
 
 		for (File bundle : bundles) {
@@ -359,6 +361,22 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			state.setPlatformProperties(platformProperties);
 		}
 		state.resolve(false);
+
+		if (getLogger().isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder("Resolved OSGi state\n");
+			for (BundleDescription bundle : state.getBundles()) {
+				if (!bundle.isResolved()) {
+					sb.append("NOT ");
+				}
+				sb.append("RESOLVED ");
+				sb.append(bundle.toString()).append(" : ").append(bundle.getLocation());
+				sb.append('\n');
+				for (ResolverError error : state.getResolverErrors(bundle)) {
+					sb.append('\t').append(error.toString()).append('\n');
+				}
+			}
+			getLogger().debug(sb.toString());
+		}
 	}
 
 	public State getState() {
@@ -370,45 +388,23 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public ResolverError[] getResolverErrors(BundleDescription bundle) {
-		return state.getResolverErrors(bundle);
-	}
-
-	public ResolverError[] getRelevantErrors(BundleDescription bundle) {
-		Set errors = new LinkedHashSet();
+		Set<ResolverError> errors = new LinkedHashSet<ResolverError>();
 		getRelevantErrors(errors, bundle);
         return (ResolverError[]) errors.toArray(new ResolverError[errors.size()]);
 	}
 
-	private void getRelevantErrors(Set errors, BundleDescription bundle) {
+	private void getRelevantErrors(Set<ResolverError> errors, BundleDescription bundle) {
 		ResolverError[] bundleErrors = state.getResolverErrors(bundle);
         for (int j = 0; j < bundleErrors.length; j++) {
             ResolverError error = bundleErrors[j];
+            errors.add(error);
 
             VersionConstraint constraint = error.getUnsatisfiedConstraint();
-            String required = constraint.getName();
-            
             if (constraint instanceof BundleSpecification || constraint instanceof HostSpecification) {
-                BundleDescription[] requiredBundles = state.getBundles(required);
+                BundleDescription[] requiredBundles = state.getBundles(constraint.getName());
                 for (int i = 0; i < requiredBundles.length; i++) {
                 	getRelevantErrors(errors, requiredBundles[i]);
                 }
-            } else if (constraint instanceof ImportPackageSpecification) {
-                boolean found = false;
-                BundleDescription[] bds = state.getBundles();
-                for (int k = 0; k < bds.length; k++) {
-                    BundleDescription bd = bds[k];
-                    for (int l = 0; l < bd.getExportPackages().length; l++) {
-						ExportPackageDescription d = bd.getExportPackages()[l];
-                        if (d.getName().equals(required)) {
-                            found = true;
-                        }
-                    }
-                }
-                if (!found) {
-                    errors.add(error);
-                }
-            } else {
-                errors.add(error);
             }
         }
 	}
