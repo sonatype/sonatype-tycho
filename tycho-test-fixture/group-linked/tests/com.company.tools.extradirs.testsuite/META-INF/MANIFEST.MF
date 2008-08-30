@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Testsuite Plug-in
+Bundle-SymbolicName: com.company.tools.extadirs.testsuite
+Bundle-Version: 1.0.0
+Bundle-Activator: com.company.tools.testsuite.Activator
+Bundle-Vendor: COMPANY
+Require-Bundle: org.eclipse.core.runtime,
+ org.junit;bundle-version="3.8.0",
+ com.company.tools.extadirs.testutil
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Eclipse-LazyStart: true

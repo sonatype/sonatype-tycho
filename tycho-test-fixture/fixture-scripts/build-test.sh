@@ -1,4 +1,5 @@
 #!/bin/bash
+set -vx
 info() {
 cat <<EOF
 # $0
@@ -24,10 +25,7 @@ cat <<EOF
 #   (mvn gacks when reading quoted parameter values?)
 EOF
 }
-if [ "$1" == "-info" ] ; then
-	info
-	exit 0
-fi
+
 
 javaPath() {
     local sedJavaPath='s|/cygdrive/\([a-zA-Z]\)/|\1:/|'
@@ -61,8 +59,34 @@ outFileMessage() {
 	[ -n "$1" ] && echo "############# $1" >> "$outFile"
 }
 
+getExtraDirsArg() {
+	## extradirs: is this single-level or magic grandparent directory?
+	# was just for targets, but need to build poms
+	# TODO: assumes we are grandparent and all are roots
+	# find -maxdepth 1 -mindepth 1 -type d
+	# find -iname manifest.mf | sed 's|/meta-inf.*||;s|/META-INF.*||;s|^./||'
+	local extraDirsArgTemp=""
+	local extraDirsSep=""
+	local prefixDir=`javaPath .`
+	for magicDirName in plugins features updatesites tests; do # TODO magic dirs for now
+		if [ -d "${magicDirName}" ] ; then
+			extraDirsArgTemp="${extraDirsArgTemp}${extraDirsSep}${prefixDir}/${magicDirName}"
+			extraDirsSep=","		
+		fi 
+	done
+	[ -n "$extraDirsArgTemp" ] && extraDirsArgTemp="-DextraDirs=${extraDirsArgTemp}"
+	echo "$extraDirsArgTemp"
+}
+
 ###########################################################
 [ -n "$DEBUG" ] && set -vx
+
+if [ "$1" == "-info" ] ; then
+	info
+	exit 0
+elif [ -d "$1" ] ; then
+	testDir=`javaPath "$1"`
+fi
 
 ## read local variable definitions, if any
 [ -f "${0}.local" ] && . "${0}.local" 
@@ -72,7 +96,7 @@ scriptName=`basename "$0"`
 scriptDir=`dirname "$0"`
 scriptDir=`javaPath "$scriptDir"`
 trunkDir=`javaPath "$scriptDir/../.."` # note: location
-sandboxDir="${sandboxDir:-scriptDir/temp-workspace}"
+sandboxDir="${sandboxDir:-${scriptDir}/temp-workspace}"
 builtTychoDir="${builtTychoDir:-$sandboxDir/builtTychoDir}"
 tychoTargetPlatformDir="${tychoTargetPlatformDir:-$sandboxDir/target-platform/eclipse}"
 testTargetPlatformDir="${testTargetPlatformDir:-$tychoTargetPlatformDir}"
@@ -80,6 +104,7 @@ testDir="${testDir:-$scriptDir/../../tycho-test-fixture}"
 outFile="${outFile:-${sandboxDir}/${scriptName}.out.txt}"
 settingsFile="${settingsFile:-${scriptDir}/settings.xml}"
 skipTychoTests="${skipTychoTests:--Dmaven.test.skip=true}"
+checkScriptName="${checkScriptName:-checkResult.sh}"
 
 ## check input values
 [ -d "$testDir" ] || errExit 23 "no testDir: $testDir" 
@@ -140,6 +165,8 @@ fi ## builtTychoDir
 ## run tests
 cd "$testDir"  || errExit 41 "unable to cd $testDir"
 
+extraDirsArg=`getExtraDirsArg`
+
 ## build the poms
 if [ -z "$skipPoms" ] ; then
 	[ -d "$testTargetPlatformDir/plugins" ] || errExit 5 "invalid target platform: $testTargetPlatformDir"
@@ -149,18 +176,19 @@ if [ -z "$skipPoms" ] ; then
 	# todo bug: parameters can't handle quotes?
 	#parameters="-DbaseDir=\"$testDir\" -DgroupId=tycho.testArtifacts.group -Daggregator=true -Dtycho.targetPlatform=$testTargetPlatformDir"
 	parameters="-DbaseDir=$testDir -DgroupId=tycho.testArtifacts.group -Daggregator=true -Dtycho.targetPlatform=$testTargetPlatformDir"
-	outFileMessage "Building poms"
-	"$builtTychoDir"/bin/mvn $debugMvn -s "$settingsFile"  $command $parameters >> "$outFile" 2>&1
+	outFileMessage "Building poms using flags: $mvnFlags -s \"$settingsFile\" ${extraDirsArg} $parameters "
+	"$builtTychoDir"/bin/mvn $mvnFlags -s "$settingsFile"  $command ${extraDirsArg} $parameters >> "$outFile" 2>&1
 fi
 
-## build targets (identified by "checkResult.sh" file)
+## build targets (identified by "${checkScriptName}" file)
 rm -rf */target
-for i in `ls */checkResult.sh 2>/dev/null`; do
+for i in `ls */${checkScriptName} */*/${checkScriptName} 2>/dev/null`; do
 	if [ -n "${checkedTTP}" ] ; then
 		[ -d "$testTargetPlatformDir/plugins" ] || errExit 5 "invalid target platform: $testTargetPlatformDir"
 		checkedTTP="testTargetPlatformDir"
 	fi
 	buildDir=`dirname "$i"`
+	# which pom to build
 	if [ -f "$buildDir/poma.xml" ] ; then
 		pomArg="-f $buildDir/poma.xml" 
 	elif [ -f "$buildDir/pom.xml" ] ; then
@@ -168,8 +196,8 @@ for i in `ls */checkResult.sh 2>/dev/null`; do
 	else
 		pomArg="" 
 	fi
-	outFileMessage "Building $buildDir (pomArg=${pomArg})"
-	"$builtTychoDir"/bin/mvn $debugMvn -s "$settingsFile"  package $pomArg -Dtycho.targetPlatform=$testTargetPlatformDir >> "$outFile" 2>&1
+	# build
+	"$builtTychoDir"/bin/mvn $mvnFlags -s "$settingsFile"  package $pomArg ${extraDirsArg} -Dtycho.targetPlatform=$testTargetPlatformDir >> "$outFile" 2>&1
 	"$i"
 done
 

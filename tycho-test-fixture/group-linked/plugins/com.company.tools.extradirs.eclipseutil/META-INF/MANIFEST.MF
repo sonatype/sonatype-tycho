@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Eclipseutil Plug-in
+Bundle-SymbolicName: com.company.tools.extadirs.eclipseutil
+Bundle-Version: 1.0.0
+Bundle-Activator: com.company.tools.eclipseutil.Activator
+Bundle-Vendor: COMPANY
+Require-Bundle: org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Eclipse-LazyStart: true

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.company.tools.extradirs.tests.feature_1.0.0.jar" id="com.company.tools.extradirs.tests.feature" version="1.0.0">
+      <category name="tests"/>
+   </feature>
+   <feature url="features/com.company.tools.extradirs.config.feature_1.0.0.jar" id="com.company.tools.extradirs.config.feature" version="1.0.0">
+      <category name="cut"/>
+   </feature>
+   <feature url="features/com.company.tools.extradirs.core.feature_1.0.0.jar" id="com.company.tools.extradirs.core.feature" version="1.0.0">
+      <category name="cut"/>
+   </feature>
+   <category-def name="tests" label="Tests"/>
+   <category-def name="cut" label="Components under test"/>
+</site>
