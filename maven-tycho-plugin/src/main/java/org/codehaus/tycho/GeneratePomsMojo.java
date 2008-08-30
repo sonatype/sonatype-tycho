@@ -28,6 +28,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 
@@ -46,7 +47,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 */
 	private File baseDir;
 
-	/** @parameter */
+	/** @parameter expression="${extraDirs}*/
 	private String extraDirs;
 
 	/**
@@ -83,7 +84,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			getLog().debug(sb.toString());
 		}
 		for (File basedir : baseDirs) {
-			getLog().info("Scanning " + toString(baseDir) + " baseDir");
+			getLog().info("Scanning " + toString(basedir) + " basedir");
 			if (!generatePom(null, basedir)) {
 				if (groupId == null) {
 					throw new MojoExecutionException("groupId is required");
@@ -99,7 +100,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 				if (parent != null && parentBasedir != null && dirs != null) {
 					for (File dir : dirs) {
 						if (generatePom(parent, dir)) {
-							parent.addModule(getModuleName(parentBasedir, dir, null));
+							parent.addModule(getModuleName(parentBasedir, dir));
 						}
 					}
 				}
@@ -137,16 +138,11 @@ public class GeneratePomsMojo extends AbstractMojo {
 		return dirs.toArray(new File[dirs.size()]);
 	}
 
-	private String getModuleName(File basedir, File dir, String relative) throws MojoExecutionException {
-		try {
-			if (isModule(basedir, dir)) {
-				return relative != null? relative + dir.getName(): dir.getName(); 
-			} else {
-				return dir.getCanonicalPath();
-			}
-		} catch (IOException e) {
-			throw new MojoExecutionException("Can't determine module directory name", e);
-		}
+	private String getModuleName(File basedir, File dir) throws MojoExecutionException {
+		// adding extra dependency for a single method is not nice
+		// but I don't want to reimplement this tedious logic
+		File relative = new File(new FilePath(basedir).makeRelative(new FilePath(dir)));
+		return relative.getPath().replace('\\', '/');
 	}
 
 	private void generateAggregatorPoms(Model parent) throws MojoExecutionException {
@@ -160,7 +156,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 				modela.setArtifactId(basedir.getName() + ".aggregator");
 				modela.setVersion(version);
 				for (File module : modules) {
-					modela.addModule(getModuleName(basedir.getParentFile(), module, "../"));
+					modela.addModule(getModuleName(basedir, module));
 				}
 				writePom(basedir, "poma.xml", modela);
 			}
