@@ -104,12 +104,12 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		List<String> modules = parent.getModules();
 		assertEquals(6, modules.size());
 		assertEquals("p001", modules.get(0));
-		assertEquals(new File(baseDir, "base2/p004").getCanonicalPath(), modules.get(3));
+		assertEquals("../base2/p004", modules.get(3));
 
 		Model aggmodel = readModel(baseDir, "base2/p006/poma.xml");
 		List<String> aggrmodules = aggmodel.getModules();
 		assertEquals(5, aggrmodules.size());
-		assertEquals(new File(baseDir, "base1/p002").getCanonicalPath(), aggrmodules.get(1));
+		assertEquals("../../base1/p002", aggrmodules.get(1));
 		assertEquals("../p005", aggrmodules.get(3));
 	}
 
