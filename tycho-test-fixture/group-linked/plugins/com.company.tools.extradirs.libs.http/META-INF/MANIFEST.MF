@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Http Plug-in
-Bundle-SymbolicName: com.company.tools.extadirs.libs.http
+Bundle-SymbolicName: com.company.tools.extradirs.libs.http
 Bundle-Version: 1.0.0
 Bundle-Activator: com.company.tools.libs.http.Activator
 Bundle-Vendor: COMPANY

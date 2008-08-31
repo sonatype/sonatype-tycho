@@ -9,10 +9,13 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
@@ -68,11 +71,9 @@ public class GeneratePomsMojo extends AbstractMojo {
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
 	
-	private Set<File> updateSites = new LinkedHashSet<File>();
+	private Map<File, Model> updateSites = new LinkedHashMap<File, Model>();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		File parentBasedir = null;
-		Model parent = null;
 		File[] baseDirs = getBaseDirs();
 		if (getLog().isDebugEnabled()) {
 			StringBuilder sb = new StringBuilder();
@@ -89,29 +90,23 @@ public class GeneratePomsMojo extends AbstractMojo {
 				if (groupId == null) {
 					throw new MojoExecutionException("groupId is required");
 				}
-				if (parent == null) {
-					parent = readPom("templates/parent-pom.xml");
-					parentBasedir = basedir;
-				}
+				Model parent = readPom("templates/parent-pom.xml");
 				parent.setGroupId(groupId);
 				parent.setArtifactId(basedir.getName());
 				parent.setVersion(version);
 				Set<File> dirs = new TreeSet<File>(Arrays.asList(basedir.listFiles()));
-				if (parent != null && parentBasedir != null && dirs != null) {
+				if (dirs != null) {
 					for (File dir : dirs) {
 						if (generatePom(parent, dir)) {
-							parent.addModule(getModuleName(parentBasedir, dir));
+							parent.addModule(getModuleName(basedir, dir));
 						}
 					}
 				}
+				writePom(basedir, parent);
 			}
 		}
 
-		if (parentBasedir != null && parent != null) {
-			writePom(parentBasedir, parent);
-		}
-
-		generateAggregatorPoms(parent);
+		generateAggregatorPoms();
 	}
 
 	private String toString(File file) {
@@ -145,9 +140,11 @@ public class GeneratePomsMojo extends AbstractMojo {
 		return relative.getPath().replace('\\', '/');
 	}
 
-	private void generateAggregatorPoms(Model parent) throws MojoExecutionException {
+	private void generateAggregatorPoms() throws MojoExecutionException {
 		state.resolveState();
-		for (File basedir : updateSites) {
+		for (Entry<File, Model> updateSite : updateSites.entrySet()) {
+			File basedir = updateSite.getKey();
+			Model parent = updateSite.getValue();
 			Set<File> modules = getSiteFeaturesAndPlugins(basedir);
 			if (aggregator && modules.size() > 0) {
 				Model modela = readPom("templates/update-site-poma.xml");
@@ -207,7 +204,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		model.setVersion(version);
 		writePom(basedir, model);
 		
-		updateSites.add(basedir);
+		updateSites.put(basedir, parent);
 	}
 
 	private Set<File> getSiteFeaturesAndPlugins(File basedir) throws MojoExecutionException {
@@ -297,6 +294,8 @@ public class GeneratePomsMojo extends AbstractMojo {
 						getLog().warn("Not an OSGi bundle " + dir.toString());
 					}
 				}
+			} else {
+				getLog().warn("Unknown bundle reference " + name);
 			}
 		}
 	}

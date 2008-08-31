@@ -1,11 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Util Plug-in
-Bundle-SymbolicName: com.company.tools.extadirs.util
+Bundle-SymbolicName: com.company.tools.extradirs.util
 Bundle-Version: 1.0.0
 Bundle-Activator: com.company.tools.util.Activator
 Bundle-Vendor: COMPANY
 Require-Bundle: org.eclipse.core.runtime,
- com.company.tools.extadirs.eclipseutil
+ com.company.tools.extradirs.eclipseutil
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-LazyStart: true

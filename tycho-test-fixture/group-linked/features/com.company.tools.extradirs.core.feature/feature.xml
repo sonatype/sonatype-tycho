@@ -22,21 +22,21 @@
    </requires>
 
    <plugin
-         id="com.company.tools.extadirs.eclipseutil"
+         id="com.company.tools.extradirs.eclipseutil"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="com.company.tools.extadirs.libs.http"
+         id="com.company.tools.extradirs.libs.http"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="com.company.tools.extadirs.util"
+         id="com.company.tools.extradirs.util"
          download-size="0"
          install-size="0"
          version="0.0.0"

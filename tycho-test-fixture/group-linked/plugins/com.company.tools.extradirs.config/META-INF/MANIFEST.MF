@@ -6,8 +6,8 @@ Bundle-Version: 1.0.0
 Bundle-Activator: com.company.tools.config.Activator
 Bundle-Vendor: COMPANY
 Require-Bundle: org.eclipse.core.runtime,
- com.company.tools.extadirs.util,
- com.company.tools.extadirs.eclipseutil,
+ com.company.tools.extradirs.util,
+ com.company.tools.extradirs.eclipseutil,
  com.company.tools.extradirs.common
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-LazyStart: true

@@ -100,11 +100,13 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		params.put("aggregator", Boolean.TRUE);
 		generate(new File(baseDir, "base1"), new File[] {new File(baseDir, "base2")}, params);
 
-		Model parent = readModel(baseDir, "base1/pom.xml");
-		List<String> modules = parent.getModules();
-		assertEquals(6, modules.size());
-		assertEquals("p001", modules.get(0));
-		assertEquals("../base2/p004", modules.get(3));
+		Model parent1 = readModel(baseDir, "base1/pom.xml");
+		List<String> modules1 = parent1.getModules();
+		assertEquals(3, modules1.size());
+
+		Model parent2 = readModel(baseDir, "base2/pom.xml");
+		List<String> modules2 = parent2.getModules();
+		assertEquals(3, modules2.size());
 
 		Model aggmodel = readModel(baseDir, "base2/p006/poma.xml");
 		List<String> aggrmodules = aggmodel.getModules();
