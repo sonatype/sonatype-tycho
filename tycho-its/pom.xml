@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>tycho</artifactId>
+    <groupId>org.codehaus.tycho</groupId>
+    <version>0.3.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>tycho-its</artifactId>
+
+  <name>Tycho Integration Tests</name>
+
+  <properties>
+    <tycho-dir>${build.directory}/tycho-distribution-${pom.version}</tycho-dir>
+    <eclipse-dir>${build.directory}/eclipse-SDK-3.3.2-win32</eclipse-dir>
+    <source-dir>${build.directory}/test</source-dir>
+  </properties>
+
+  <build>
+
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>**/*.jar</exclude>
+        </excludes>
+      </testResource>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.jar</include>
+        </includes>
+      </testResource>
+    </testResources>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.0</version>
+        <executions>
+          <execution>
+            <id>unpack-tycho</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>tycho-distribution</includeArtifactIds>
+              <outputDirectory>${build.directory}</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>unpack-eclipse</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeArtifactIds>eclipse-SDK</includeArtifactIds>
+              <outputDirectory>${eclipse-dir}</outputDirectory>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>get-emma</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>emma</groupId>
+                  <artifactId>emma</artifactId>
+                  <version>2.0.5312</version>
+                  <outputDirectory>${tycho-dir}/lib/</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>get-sources-for-emma</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.codehaus.tycho</groupId>
+                  <artifactId>tycho-osgi-components</artifactId>
+                  <version>${pom.version}</version>
+                  <classifier>sources</classifier>
+                  <outputDirectory>${source-dir}/tycho-osgi-components</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.codehaus.tycho</groupId>
+                  <artifactId>maven-tycho-plugin</artifactId>
+                  <version>${pom.version}</version>
+                  <classifier>sources</classifier>
+                  <outputDirectory>${source-dir}/maven-tycho-plugin</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.maven.plugin</groupId>
+        <artifactId>emma4it-maven-plugin</artifactId>
+        <version>1.1-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <id>copy-plugins</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.codehaus.tycho</groupId>
+                  <artifactId>maven-tycho-plugin</artifactId>
+                  <version>${pom.version}</version>
+                  <type>maven-plugin</type>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <skip>false</skip>
+          <includes>
+            <include>**/Tycho*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}</directory>
+              <includes>
+                <include>coverage.ec</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.sonatype.maven.plugin</groupId>
+        <artifactId>emma4it-maven-plugin</artifactId>
+        <version>1.1-SNAPSHOT</version>
+        <configuration>
+
+          <searchPath>${basedir}</searchPath>
+
+          <sourceFolders>
+            <sourceFolder>${source-dir}/tycho-osgi-components</sourceFolder>
+            <sourceFolder>${source-dir}/maven-tycho-plugin</sourceFolder>
+          </sourceFolders>
+
+          <jarFiles>
+            <jarFile>${tycho-dir}/tycho/tycho-osgi-components-${pom.version}.jar</jarFile>
+          </jarFiles>
+
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-distribution</artifactId>
+      <version>${project.version}</version>
+      <classifier>bin</classifier>
+      <type>zip</type>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse</groupId>
+      <artifactId>eclipse-SDK</artifactId>
+      <version>3.3.2</version>
+      <classifier>win32</classifier>
+      <type>zip</type>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.its</groupId>
+      <artifactId>maven-integration-test-helper</artifactId>
+      <version>2.1-SNAPSHOT</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-verifier</artifactId>
+      <version>1.1-SNAPSHOT</version>
+    </dependency>
+    
+  </dependencies>
+
+</project>
