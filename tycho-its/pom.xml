@@ -14,7 +14,6 @@
 
   <properties>
     <tycho-dir>${build.directory}/tycho-distribution-${pom.version}</tycho-dir>
-    <eclipse-dir>${build.directory}/eclipse-SDK-3.3.2-win32</eclipse-dir>
     <source-dir>${build.directory}/test</source-dir>
   </properties>
 
@@ -51,17 +50,6 @@
             <configuration>
               <includeArtifactIds>tycho-distribution</includeArtifactIds>
               <outputDirectory>${build.directory}</outputDirectory>
-            </configuration>
-          </execution>
-          <execution>
-            <id>unpack-eclipse</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>eclipse-SDK</includeArtifactIds>
-              <outputDirectory>${eclipse-dir}</outputDirectory>
             </configuration>
           </execution>
 
@@ -197,15 +185,6 @@
       <artifactId>tycho-distribution</artifactId>
       <version>${project.version}</version>
       <classifier>bin</classifier>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.eclipse</groupId>
-      <artifactId>eclipse-SDK</artifactId>
-      <version>3.3.2</version>
-      <classifier>win32</classifier>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
