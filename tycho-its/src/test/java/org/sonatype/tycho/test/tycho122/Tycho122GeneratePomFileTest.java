@@ -43,6 +43,7 @@ public class Tycho122GeneratePomFileTest
 
         verifier.setAutoclean( false );
         verifier.executeGoal( "org.codehaus.tycho:maven-tycho-plugin:generate-poms" );
+        verifier.verifyErrorFreeLog();
 
         File pom = new File( testDir, "pom.xml" );
         Assert.assertTrue( "Must generate the pom.xml", pom.exists() );
