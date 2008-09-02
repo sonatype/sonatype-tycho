@@ -33,17 +33,12 @@ public class Tycho122GeneratePomFileTest
     public void generatePom()
         throws IOException, VerificationException
     {
-        if ( true )
-        {
-            // skipping tests, need to define variables
-            return;
-        }
-
         System.setProperty( "maven.home", tychoDir );
 
         File testDir = ResourceExtractor.simpleExtractResources( getClass(), "/tycho122/tycho.demo" );
         Verifier verifier = new Verifier( testDir.getAbsolutePath() );
         verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + eclipseDir );
+//        verifier.getCliOptions().add( "-o" );
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( localRepo );
 
