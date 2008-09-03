@@ -6,6 +6,7 @@
       <excludes>
         <exclude>**/wagon*</exclude>
         <exclude>bin/m2.conf</exclude>
+        <exclude>conf/settings.xml</exclude>
       </excludes>
     </fileSet>
     <fileSet>
