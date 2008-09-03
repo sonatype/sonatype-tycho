@@ -5,6 +5,7 @@
       <outputDirectory>/</outputDirectory>
       <excludes>
         <exclude>**/wagon*</exclude>
+        <exclude>bin/m2.conf</exclude>
       </excludes>
     </fileSet>
     <fileSet>
