@@ -46,63 +46,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!-- assemble p2 client to test with -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.0</version>
-        <executions>
-          <execution>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.codehaus.tycho</groupId>
-                  <artifactId>tycho-p2-runtime</artifactId>
-                  <version>${tycho-p2-runtime-version}</version>
-                  <type>zip</type>
-                  <outputDirectory>target/dependency</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-1</version>
-        <executions>
-          <execution>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>directory-single</goal>
-            </goals>
-            <configuration>
-              <descriptor>src/test/assembly/test-assembly.xml</descriptor>
-              <outputDirectory>target</outputDirectory>
-              <finalName>p2</finalName>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.4.3</version>
-        <configuration>
-          <systemProperties>
-            <property>
-              <name>tycho.p2.location</name>
-              <value>${project.basedir}/target/p2-bin.dir/p2/p2</value>
-            </property>
-          </systemProperties>
-        </configuration>
-      </plugin>
       
     </plugins>
   </build>
@@ -135,27 +78,87 @@
 
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-p2-app</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho-testing-harness</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jxr-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </reporting>
+  <profiles>
+    <profile>
+      <id>osgi</id>
+      <activation>
+        <property>
+          <name>tycho-version</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.codehaus.tycho</groupId>
+          <artifactId>tycho-p2-app</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <!-- assemble p2 client to test with -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.0</version>
+            <executions>
+              <execution>
+                <phase>generate-test-resources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.codehaus.tycho</groupId>
+                      <artifactId>tycho-p2-runtime</artifactId>
+                      <version>${tycho-p2-runtime-version}</version>
+                      <type>zip</type>
+                      <outputDirectory>target/dependency</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2-beta-1</version>
+            <executions>
+              <execution>
+                <phase>generate-test-resources</phase>
+                <goals>
+                  <goal>directory-single</goal>
+                </goals>
+                <configuration>
+                  <descriptor>src/test/assembly/test-assembly.xml</descriptor>
+                  <outputDirectory>target</outputDirectory>
+                  <finalName>p2</finalName>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+    
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.4.3</version>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>tycho.p2.location</name>
+                  <value>${project.basedir}/target/p2-bin.dir/p2/p2</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
