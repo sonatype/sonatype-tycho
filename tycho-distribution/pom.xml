@@ -130,14 +130,15 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
-                <id>create-distro</id>
+                <id>create-bootstrap-distro</id>
                 <phase>package</phase>
                 <goals>
-                  <goal>single</goal>
+                  <goal>directory-single</goal>
                 </goals>
                 <configuration>
+                  <attach>false</attach>
                   <descriptor>src/main/assembly/bin.xml</descriptor>
-                  <outputDirectory>target</outputDirectory>
+                  <outputDirectory>directory-single</outputDirectory>
                 </configuration>
               </execution>
             </executions>
