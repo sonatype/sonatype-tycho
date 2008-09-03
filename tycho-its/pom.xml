@@ -180,8 +180,6 @@
         <version>2.4</version>
         <configuration>
           <skip>false</skip>
-          <!-- Tests will fail at CI right now, need to change CI launcher -->
-          <testFailureIgnore>true</testFailureIgnore>
           <includes>
             <include>**/Tycho*Test.java</include>
           </includes>
