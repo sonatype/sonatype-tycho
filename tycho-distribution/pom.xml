@@ -131,12 +131,11 @@
             <executions>
               <execution>
                 <id>create-distro</id>
-                <phase>process-sources</phase>
+                <phase>package</phase>
                 <goals>
-                  <goal>directory-single</goal>
+                  <goal>single</goal>
                 </goals>
                 <configuration>
-                  <attach>false</attach>
                   <descriptor>src/main/assembly/bin.xml</descriptor>
                   <outputDirectory>target</outputDirectory>
                 </configuration>
