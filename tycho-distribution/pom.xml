@@ -137,6 +137,7 @@
                   <goal>directory-single</goal>
                 </goals>
                 <configuration>
+                  <attach>false</attach>
                   <descriptor>src/main/assembly/bin.xml</descriptor>
                   <outputDirectory>target</outputDirectory>
                 </configuration>
@@ -147,6 +148,12 @@
       </build>
     </profile>
   
+    <!-- 
+      It is not possible to deploy attached artifacts using maven 3.0 due to 
+      MARTIFACT-6. As a workaround, do not assemble anything when running
+      under tycho. Instead, run this module alone using maven 2.0.9
+      with -Pdeploy profile.
+     -->
     <profile>
       <id>osgi</id>
       <activation>
@@ -154,9 +161,10 @@
           <name>tycho-version</name>
         </property>
       </activation>
-      <properties>
-        <assembly-goal>single</assembly-goal>
-      </properties>
+    </profile>
+
+    <profile>
+      <id>deploy</id>
       <dependencies>
         <dependency>
           <!-- this dependency is built/deployed manually atm -->
