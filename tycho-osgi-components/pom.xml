@@ -86,7 +86,7 @@
 
   <profiles>
     <profile>
-      <id>osgi</id>
+      <id>full</id>
       <activation>
         <property>
           <name>tycho-version</name>

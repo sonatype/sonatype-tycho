@@ -119,7 +119,7 @@
 
   <profiles>
     <profile>
-      <id>default</id>
+      <id>bootstrap</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -131,7 +131,7 @@
             <executions>
               <execution>
                 <id>create-bootstrap-distro</id>
-                <phase>package</phase>
+                <phase>process-sources</phase>
                 <goals>
                   <goal>directory-single</goal>
                 </goals>
@@ -154,7 +154,7 @@
       with -Pdeploy profile.
      -->
     <profile>
-      <id>osgi</id>
+      <id>martifact-6</id>
       <activation>
         <property>
           <name>tycho-version</name>

@@ -251,7 +251,7 @@
   <profiles>
     <!-- Do NOT run unit/integration tests during bootstrap build -->
     <profile>
-      <id>default</id>
+      <id>bootstrap</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -269,7 +269,7 @@
     </profile>
 
     <profile>
-      <id>osgi</id>
+      <id>full</id>
       <activation>
         <property>
           <name>tycho-version</name>

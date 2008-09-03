@@ -263,7 +263,7 @@
   <profiles>
     <!-- Enable tests -->
     <profile>
-      <id>default</id>
+      <id>bootstrap</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
