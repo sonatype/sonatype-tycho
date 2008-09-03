@@ -179,7 +179,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.4</version>
         <configuration>
-          <skip>false</skip>
+          <failIfNoTests>true</failIfNoTests>
           <includes>
             <include>**/Tycho*Test.java</include>
           </includes>
