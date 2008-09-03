@@ -4,8 +4,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>tycho</artifactId>
     <groupId>org.codehaus.tycho</groupId>
+    <artifactId>tycho</artifactId>
     <version>0.3.0-SNAPSHOT</version>
   </parent>
   <artifactId>tycho-its</artifactId>
@@ -84,6 +84,9 @@
             </configuration>
           </execution>
 
+    <!--
+    Maven 3.0 can't deploy attached artifacts due to MARTIFACT-6 
+    TODO need to fix this on parent pom
           <execution>
             <id>get-sources-for-emma</id>
             <phase>pre-site</phase>
@@ -109,70 +112,9 @@
               </artifactItems>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
-
-<!-- 
-      <plugin>
-        <groupId>org.sonatype.maven.plugin</groupId>
-        <artifactId>emma4it-maven-plugin</artifactId>
-        <version>1.1-SNAPSHOT</version>
-        <executions>
-          <execution>
-            <id>copy-plugins</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.codehaus.tycho</groupId>
-                  <artifactId>maven-tycho-plugin</artifactId>
-                  <version>${pom.version}</version>
-                  <type>maven-plugin</type>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven</groupId>
-                  <artifactId>maven</artifactId>
-                  <version>3.0-SONATYPE-688946</version>
-                  <type>pom</type>
-                  <instrument>false</instrument>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.codehaus.tycho</groupId>
-                  <artifactId>tycho</artifactId>
-                  <version>${pom.version}</version>
-                  <type>pom</type>
-                  <instrument>false</instrument>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven</groupId>
-                  <artifactId>maven</artifactId>
-                  <version>3.0-SONATYPE-688946</version>
-                  <type>pom</type>
-                  <instrument>false</instrument>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven</groupId>
-                  <artifactId>maven-parent</artifactId>
-                  <version>9-SNAPSHOT</version>
-                  <type>pom</type>
-                  <instrument>false</instrument>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache</groupId>
-                  <artifactId>apache</artifactId>
-                  <version>4</version>
-                  <type>pom</type>
-                  <instrument>false</instrument>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
 -->
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -214,12 +156,12 @@
         <configuration>
 
           <searchPath>${basedir}</searchPath>
-
+<!--
           <sourceFolders>
             <sourceFolder>${source-dir}/tycho-osgi-components</sourceFolder>
             <sourceFolder>${source-dir}/maven-tycho-plugin</sourceFolder>
           </sourceFolders>
-
+-->
           <jarFiles>
             <jarFile>${tycho-dir}/tycho/tycho-osgi-components-${pom.version}.jar</jarFile>
           </jarFiles>
