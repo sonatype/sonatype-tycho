@@ -21,7 +21,6 @@
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
     <module>tycho-testing-harness</module>
-    <module>maven-osgi-test-plugin</module>
   </modules>
 
   <properties>
@@ -270,6 +269,7 @@
       </activation>
       <modules>
         <module>tycho-p2-app</module>
+        <module>maven-osgi-test-plugin</module>
         <module>tycho-surefire-osgi-booter</module>
       </modules>
     </profile>
