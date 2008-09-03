@@ -132,6 +132,14 @@ public class TestMojo extends AbstractMojo {
      */
     private String argLine;
 
+    /**
+     * Kill the forked test process after a certain number of seconds.  If set to 0,
+     * wait forever for the process, never timing out.
+     * 
+     * @parameter expression="${surefire.timeout}"
+     */
+    private int forkedProcessTimeoutInSeconds;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			return;
@@ -249,15 +257,17 @@ public class TestMojo extends AbstractMojo {
 
 			getLog().info(cli.toString());
 
-			result = CommandLineUtils.executeCommandLine(cli, new StreamConsumer() {
+			StreamConsumer out = new StreamConsumer() {
 				public void consumeLine(String line) {
 					System.out.println(line);
 				}
-			}, new StreamConsumer() {
+			};
+			StreamConsumer err = new StreamConsumer() {
 				public void consumeLine(String line) {
 					System.err.println(line);
 				}
-			});
+			};
+			result = CommandLineUtils.executeCommandLine(cli, out, err,	forkedProcessTimeoutInSeconds);
 		} catch (Exception e) {
 			throw new MojoExecutionException("Error while executing platform", e);
 		}
