@@ -218,6 +218,11 @@
             <tagBase>https://svn.sonatype.org/m2eclipse/tycho/tags</tagBase>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-2</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
