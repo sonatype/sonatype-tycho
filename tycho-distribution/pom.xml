@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <name>Tyhco Distribution</name>
+  <name>Tycho Distribution</name>
 
   <parent>
     <artifactId>tycho</artifactId>
@@ -38,20 +38,6 @@
       <artifactId>maven-osgi-packaging-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <dependency>
-      <!-- this dependency is built/deployed manually atm -->
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-p2-runtime</artifactId>
-      <version>${tycho-p2-runtime-version}</version>
-      <type>zip</type>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-p2-app</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
   </dependencies>
 
   <build>
@@ -71,12 +57,6 @@
                   <version>${maven-version}</version>
                   <classifier>bin</classifier>
                   <type>tar.gz</type>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.codehaus.tycho</groupId>
-                  <artifactId>tycho-p2-runtime</artifactId>
-                  <version>${tycho-p2-runtime-version}</version>
-                  <type>zip</type>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -134,27 +114,109 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-      	<groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-1</version>
-        <executions>
-          <execution>
-            <id>create-distro</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptor>src/main/assembly/bin.xml</descriptor>
-              <outputDirectory>target</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2-beta-1</version>
+            <executions>
+              <execution>
+                <id>create-distro</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>directory-single</goal>
+                </goals>
+                <configuration>
+                  <descriptor>src/main/assembly/bin.xml</descriptor>
+                  <outputDirectory>target</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>       
+      </build>
+    </profile>
+  
+    <profile>
+      <id>osgi</id>
+      <activation>
+        <property>
+          <name>tycho-version</name>
+        </property>
+      </activation>
+      <properties>
+        <assembly-goal>single</assembly-goal>
+      </properties>
+      <dependencies>
+        <dependency>
+          <!-- this dependency is built/deployed manually atm -->
+          <groupId>org.codehaus.tycho</groupId>
+          <artifactId>tycho-p2-runtime</artifactId>
+          <version>${tycho-p2-runtime-version}</version>
+          <type>zip</type>
+        </dependency>
+        <dependency>
+          <groupId>org.codehaus.tycho</groupId>
+          <artifactId>tycho-p2-app</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-osgi</id>
+                <configuration>
+                  <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.codehaus.tycho</groupId>
+                      <artifactId>tycho-p2-runtime</artifactId>
+                      <version>${tycho-p2-runtime-version}</version>
+                      <type>zip</type>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2-beta-1</version>
+            <executions>
+              <execution>
+                <id>create-distro</id>
+                <phase>process-sources</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptor>src/main/assembly/osgi-bin.xml</descriptor>
+                  <outputDirectory>target</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

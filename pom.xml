@@ -21,10 +21,7 @@
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
     <module>tycho-testing-harness</module>
-    <module>tycho-p2-app</module>
     <module>maven-osgi-test-plugin</module>
-    <module>tycho-surefire-osgi-booter</module>
-    <module>tycho-its</module>
   </modules>
 
   <properties>
@@ -245,6 +242,26 @@
   </distributionManagement>
 
   <profiles>
+    <profile>
+      <id>osgi</id>
+      <activation>
+        <property>
+          <name>tycho-version</name>
+        </property>
+      </activation>
+      <modules>
+        <module>tycho-p2-app</module>
+        <module>tycho-surefire-osgi-booter</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>its</id>
+      <modules>
+        <module>tycho-its</module>
+      </modules>
+    </profile>
+
     <profile>
       <id>pseudo-release</id>
       <build>

@@ -6,54 +6,8 @@
     <format>zip</format>
   </formats>
 
-  <fileSets>
-    <fileSet>
-      <directory>target/dependency/apache-maven-${maven-version}</directory>
-      <outputDirectory>/</outputDirectory>
-      <excludes>
-        <exclude>**/wagon*</exclude>
-      </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>target/dependency</directory>
-      <includes>
-        <include>wagon*.jar</include>
-      </includes>
-      <outputDirectory>/lib</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>target/dependency/tycho-p2-runtime-${tycho-p2-runtime-version}</directory>
-      <outputDirectory>/p2/eclipse/plugins</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>src/p2</directory>
-      <outputDirectory>/p2/eclipse</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>src/bin</directory>
-      <outputDirectory>/bin</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>src/conf</directory>
-      <outputDirectory>/conf</outputDirectory>
-    </fileSet>
-  </fileSets>
-
-  <dependencySets>
-    <dependencySet>
-      <outputDirectory>tycho</outputDirectory>
-      <includes>
-        <include>org.codehaus.tycho:tycho-osgi-components</include>
-        <include>org.eclipse:org.eclipse.osgi</include>
-      </includes>
-    </dependencySet>
-    <dependencySet>
-      <outputDirectory>p2/eclipse/plugins</outputDirectory>
-      <outputFileNameMapping>org.codehaus.tycho.p2_1.0.0.jar</outputFileNameMapping>
-      <includes>
-        <include>org.codehaus.tycho:tycho-p2-app</include>
-      </includes>
-    </dependencySet>
-  </dependencySets>
+  <componentDescriptors>
+    <componentDescriptor>src/main/assembly/common.xml</componentDescriptor>
+  </componentDescriptors>
 
 </assembly>
