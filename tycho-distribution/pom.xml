@@ -138,7 +138,7 @@
                 <configuration>
                   <attach>false</attach>
                   <descriptor>src/main/assembly/bin.xml</descriptor>
-                  <outputDirectory>directory-single</outputDirectory>
+                  <outputDirectory>target</outputDirectory>
                 </configuration>
               </execution>
             </executions>
