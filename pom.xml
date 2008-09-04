@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.codehaus.tycho</groupId>
@@ -25,14 +24,14 @@
   </modules>
 
   <properties>
-    <!-- 
-      Check out maven 3.0 source and make note of the svn rev. 
-      Rename the 3.0-SNAPSHOT to something like 3.0-SONATYPE-[svnrev] in all the poms, 
+    <!--
+      Check out maven 3.0 source and make note of the svn rev.
+      Rename the 3.0-SNAPSHOT to something like 3.0-SONATYPE-[svnrev] in all the poms,
       including cross dependencies.
       Override deplotment repository with -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/content/repositories/releases/
-      
-      By versioning it from the svn rev, we can always reproduce without having 
-      to actually commit the source to our svn.  
+
+      By versioning it from the svn rev, we can always reproduce without having
+      to actually commit the source to our svn.
     -->
     <maven-version>3.0-SONATYPE-688946</maven-version>
     <maven-artifact-version>3.0-alpha-1</maven-artifact-version>
@@ -166,9 +165,9 @@
         <version>5.1</version>
       </dependency>
       <dependency>
-      	<groupId>org.codehaus.plexus</groupId>
-      	<artifactId>plexus-container-default</artifactId>
-      	<version>1.0-alpha-48</version>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-container-default</artifactId>
+        <version>1.0-alpha-48</version>
       </dependency>
 
       <dependency>
@@ -182,7 +181,7 @@
 
   <build>
     <!--
-    Maven 3.0 can't deploy attached artifacts due to MARTIFACT-6 
+    Maven 3.0 can't deploy attached artifacts due to MARTIFACT-6
     <plugins>
       <plugin>
         <artifactId>maven-source-plugin</artifactId>
