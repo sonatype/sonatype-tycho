@@ -5,6 +5,7 @@
 
   <groupId>org.codehaus.tycho</groupId>
   <artifactId>tycho</artifactId>
+  <!-- Do not forget to update newVersion property of maven-version-plugin -->
   <version>0.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -308,7 +309,7 @@
             <artifactId>maven-version-plugin</artifactId>
             <version>1.0</version>
             <configuration>
-              <newVersion>${project.version}-${buildNumber}</newVersion>
+              <newVersion>0.3.0-DEV-${buildNumber}</newVersion>
               <artifactId>${project.artifactId}</artifactId>
             </configuration>
           </plugin>
