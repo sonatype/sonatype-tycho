@@ -231,6 +231,15 @@
     </pluginManagement>
   </build>
 
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </reporting>
+
   <scm>
     <connection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</connection>
     <developerConnection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</developerConnection>
