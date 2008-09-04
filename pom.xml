@@ -239,7 +239,7 @@
     <repository>
       <id>forge-releases</id>
       <name>forge-releases</name>
-      <url>http://repository.sonatype.org/content/repositories/eclipse/</url>
+      <url>http://repository.sonatype.org/content/repositories/tycho-pseudo-releases/</url>
     </repository>
     <snapshotRepository>
       <id>forge-snapshots</id>
