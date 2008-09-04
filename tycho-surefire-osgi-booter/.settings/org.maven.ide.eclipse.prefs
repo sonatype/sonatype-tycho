@@ -1,5 +1,5 @@
-#Mon Jul 28 13:23:37 EDT 2008
-activeProfiles=
+#Thu Aug 28 01:10:53 EDT 2008
+activeProfiles=sonatype
 eclipse.preferences.version=1
 fullBuildGoals=process-test-resources
 includeModules=false
