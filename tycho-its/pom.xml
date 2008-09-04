@@ -142,7 +142,11 @@
           </filesets>
         </configuration>
       </plugin>
-
+      <plugin>
+        <groupId>org.sonatype.maven.plugin</groupId>
+        <artifactId>emma4it-maven-plugin</artifactId>
+        <version>1.1-SNAPSHOT</version>
+      </plugin>
     </plugins>
   </build>
 
