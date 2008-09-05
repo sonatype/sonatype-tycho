@@ -439,7 +439,17 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return dependencies.toArray(new BundleDescription[dependencies.size()]);
 	}
 
-	// copy&paste from org.eclipse.pde.internal.core.DependencyManager
+	/**
+	 * Code below is copy&paste from org.eclipse.pde.internal.core.DependencyManager
+	 * which seems to calculate runtime dependencies. In particular, it adds
+	 * fragments' dependencies to the host bundle (see TychoTest#testFragment unit test).
+	 * This may or may not cause problems...
+	 * 
+	 * RequiredPluginsClasspathContainer#computePluginEntries has the logic to
+	 * calculate compile-time dependencies in IDE.
+	 * 
+	 * TODO find the code used by PDE/Build  
+	 */
 	private static void addBundleAndDependencies(BundleDescription desc, Set<Long> bundleIds, boolean includeOptional) {
 		if (desc != null && bundleIds.add(new Long(desc.getBundleId()))) {
 			BundleSpecification[] required = desc.getRequiredBundles();

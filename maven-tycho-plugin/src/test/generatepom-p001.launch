@@ -6,6 +6,7 @@
 <listEntry value="org.eclipse:org.eclipse.osgi:3.4.0.v20080529-1200"/>
 </listAttribute>
 <stringAttribute key="M2_GOALS" value="org.codehaus.tycho:maven-tycho-plugin:0.2.0-SNAPSHOT:generate-poms"/>
+<booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">

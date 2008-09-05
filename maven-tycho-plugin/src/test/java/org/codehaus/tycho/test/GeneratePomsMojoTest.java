@@ -3,6 +3,7 @@ package org.codehaus.tycho.test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,4 +153,20 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
     	}
 	}
 
+	public void testTests() throws Exception {
+		File baseDir = getBasedir("projects/tests");
+
+		Map<String, Object> params  = new HashMap<String, Object>();
+		params.put("groupId", "group");
+		params.put("version", "1.0.0");
+		params.put("aggregator", Boolean.TRUE);
+		params.put("testSuffix", ".tests");
+		params.put("testSuite", "p004");
+		generate(baseDir, params);
+
+		Model aggmodel = readModel(baseDir, "p003/poma.xml");
+		List<String> aggrmodules = aggmodel.getModules();
+		assertEquals(5, aggrmodules.size());
+		assertEquals(Arrays.asList(new String[] {"../p001", "../p001.tests", "../p002", "../p004", "."}), aggrmodules);
+	}
 }

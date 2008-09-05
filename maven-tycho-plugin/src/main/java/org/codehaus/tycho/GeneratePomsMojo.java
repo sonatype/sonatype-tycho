@@ -9,8 +9,10 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -41,6 +43,9 @@ import org.osgi.framework.BundleException;
  */
 public class GeneratePomsMojo extends AbstractMojo {
 
+	/** reference to real pom.xml in aggregator poma.xml */
+	private static final String THIS_MODULE = ".";
+
 	/** @component */
 	private OsgiState state;
 	
@@ -64,9 +69,29 @@ public class GeneratePomsMojo extends AbstractMojo {
 	private String version;
 
 	/**
+	 * If true (the default), additional aggregator poma.xml pom file will 
+	 * be generated for update site projects. This poma.xml file can be used
+	 * to build update site and all its dependencies.
+	 * 
 	 * @parameter expression="${aggregator}" default-value="true"
 	 */
 	private boolean aggregator;
+
+	/**
+	 * Suffix used to determine test bundles to add to update site 
+	 * aggregator pom.
+	 * 
+	 * @parameter expression="${testSuffix}" default-value=".tests"
+	 */
+	private String testSuffix;
+
+	/**
+	 * Bundle-SymbolicName of the test suite, a special bundle that knows
+	 * how to locate and execute all relevant tests.
+	 * 
+	 * @parameter expression="${testSuite}"
+	 */
+	private String testSuite;
 
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
@@ -102,11 +127,42 @@ public class GeneratePomsMojo extends AbstractMojo {
 						}
 					}
 				}
+				File testSuiteLocation = null;
+				if (testSuite != null) {
+					BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
+					if (bundle != null) {
+						testSuiteLocation = new File(bundle.getLocation());
+					}
+				}
+				reorderModules(parent, basedir, testSuiteLocation);
 				writePom(basedir, parent);
 			}
 		}
 
-		generateAggregatorPoms();
+		File testSuiteLocation = null;
+		if (testSuite != null) {
+			BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
+			if (bundle == null) {
+				throw new MojoExecutionException("Cannot find project defining testSuite " + testSuite);
+			}
+			testSuiteLocation = new File(bundle.getLocation());
+		}
+
+		generateAggregatorPoms(testSuiteLocation);
+	}
+
+	private void reorderModules(Model parent, File basedir, File testSuiteLocation) throws MojoExecutionException {
+		List<String> modules = parent.getModules();
+		Collections.sort(modules);
+		if (testSuiteLocation != null) {
+			String moduleName = getModuleName(basedir, testSuiteLocation);
+			modules.remove(moduleName);
+			modules.add(moduleName);
+		}
+		if (modules.contains(THIS_MODULE)) {
+			modules.remove(THIS_MODULE);
+			modules.add(THIS_MODULE);
+		}
 	}
 
 	private String toString(File file) {
@@ -140,7 +196,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		return relative.getPath().replace('\\', '/');
 	}
 
-	private void generateAggregatorPoms() throws MojoExecutionException {
+	private void generateAggregatorPoms(File testSuiteLocation) throws MojoExecutionException {
 		state.resolveState();
 		for (Entry<File, Model> updateSite : updateSites.entrySet()) {
 			File basedir = updateSite.getKey();
@@ -155,6 +211,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 				for (File module : modules) {
 					modela.addModule(getModuleName(basedir, module));
 				}
+				reorderModules(modela, basedir, testSuiteLocation);
 				writePom(basedir, "poma.xml", modela);
 			}
 		}
@@ -271,6 +328,13 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private void addPlugin(Set<File> result, String name) throws MojoExecutionException {
+		if (name != null) {
+			addPluginImpl(result, name);
+			addPluginImpl(result, name + testSuffix);
+		}
+	}
+
+	private void addPluginImpl(Set<File> result, String name) throws MojoExecutionException {
 		if (name != null) {
 			File dir = getModuleDir(name);
 			if (dir != null) {

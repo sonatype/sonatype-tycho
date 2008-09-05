@@ -265,6 +265,7 @@
     </repository>
     <snapshotRepository>
       <id>forge-snapshots</id>
+      <uniqueVersion>true</uniqueVersion>
       <name>forge-snapshots</name>
       <url>http://repository.sonatype.org/content/repositories/eclipse-snapshots/</url>
     </snapshotRepository>

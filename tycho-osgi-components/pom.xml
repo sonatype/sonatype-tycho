@@ -96,6 +96,7 @@
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>tycho-p2-app</artifactId>
           <version>${project.version}</version>
+          <type>eclipse-plugin</type>
           <optional>true</optional>
         </dependency>
       </dependencies>

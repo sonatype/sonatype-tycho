@@ -3,15 +3,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   
-  <groupId>fragement</groupId>
-  <artifactId>parent</artifactId>
-  <version>0.0.1</version>
-  <packaging>pom</packaging>
+  <parent>
+    <groupId>fragement</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.0.1</version>
+  </parent>
   
-  <modules>
-    <module>client</module>
-    <module>fragment</module>
-    <module>host</module>
-    <module>dep</module>
-  </modules>
+  <artifactId>dep</artifactId>
+  <packaging>eclipse-plugin</packaging>
+  
 </project>

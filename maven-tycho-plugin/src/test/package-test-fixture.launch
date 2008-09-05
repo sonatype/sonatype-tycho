@@ -6,6 +6,7 @@
 <listEntry value="org.eclipse:org.eclipse.osgi:3.4.0.v20080605-1900"/>
 </listAttribute>
 <stringAttribute key="M2_GOALS" value="-e package"/>
+<booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
 <booleanAttribute key="M2_OFFLINE" value="false"/>
 <stringAttribute key="M2_PROFILES" value=""/>
 <listAttribute key="M2_PROPERTIES">
