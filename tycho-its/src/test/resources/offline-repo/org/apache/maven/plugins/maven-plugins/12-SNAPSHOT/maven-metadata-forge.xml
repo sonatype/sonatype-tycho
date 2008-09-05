@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-plugins</artifactId>
+  <version>12-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20080904.170342</timestamp>
+      <buildNumber>407</buildNumber>
+    </snapshot>
+    <lastUpdated>20080904170342</lastUpdated>
+  </versioning>
+</metadata>
