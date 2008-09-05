@@ -2,25 +2,38 @@
 
 homeDir=d:/home
 
-#### required
+###################################### required
 export JAVA_HOME="$homeDir/apps/jdk16"
 export tychoTargetPlatformDir="$homeDir/eclipse/eclipse-34-classic/eclipse"
 
-#### one of these is required
+#### only one of these is required, but both can be set
+## bootstrap to build tycho, if needed - ignored if builtMavenDir is available
 export builderMavenDir="$homeDir/mavens/tycho-distribution-0.3.0-SNAPSHOT"
-#export builtMavenDir="$homeDir/mavens/target-tycho"
+## built tycho, if available (also sink if not available and built)
+export builtMavenDir="$homeDir/mavens/target-tycho"
 
-#### optional
-export testTargetPlatformDir="$homeDir/eclipse/eclipse-34-jee-all"
-debugMvn=-X
-set -vx # debug script - can also export DEBUG=anything
-# sometimes paths too long to delete on windows unless near root
-sandboxDir="$homeDir/temp/sandbox"
-#outFile=
+###################################### optional
+## set testDir when not running tycho-test-fixture tests
+#export testDir=todo
+## if building tycho , go without running tycho tests
 #skipTychoTests="-Dmaven.test.skip=true"
 
-## initial build
-export skipPoms=
-cleanSandbox=cleanOutSandbox
+## set this when plugins to build use a different target platform
+export testTargetPlatformDir="$homeDir/eclipse/eclipse-34-jee-all"
+
+## debugging options
+debugMvn=-X
+set -vx # debug script - can also export DEBUG=anything
+#outFile=
+
+## sometimes paths too long to delete on windows unless near root
+sandboxDir="$homeDir/temp/sandbox"
+
+#### build options
+## if non-empty, then clean out sandbox (default location of built tycho)
+#cleanSandbox=cleanOutSandbox
+## if non-empty, then do not create pom files
+#export skipPoms=
+
 
 
