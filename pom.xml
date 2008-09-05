@@ -244,6 +244,19 @@
     <developerConnection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</developerConnection>
   </scm>
 
+  <repositories>
+    <repository>
+      <id>sonatype-release</id>
+      <url>http://repository.sonatype.org/content/repositories/releases</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
   <distributionManagement>
     <repository>
       <id>forge-releases</id>
