@@ -148,7 +148,7 @@ EOF
 	"$builderMavenDir"/bin/mvn $debugMvn -s "$settingsFile"  clean -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
 		>> "$outFile" 2>&1 || errExit 87 "tycho clean failed"
 	[ -d "$trunkDir/tycho-distribution/target" ] && errExit 89 "tycho clean failed - have target"
-	"$builderMavenDir"/bin/mvn $debugMvn -s "$settingsFile"  install $skipTychoTests -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
+	"$builderMavenDir"/bin/mvn $debugMvn -s "$settingsFile" -Pdeploy install $skipTychoTests -Dtycho.targetPlatform="$tychoTargetPlatformDir" \
 		>> "$outFile" 2>&1 || errExit 88 "tycho build failed"
 	zipFile=`ls "$trunkDir"/tycho-distribution/target/tycho-distribution*-bin.zip 2>/dev/null` # note: location
 	[ -f "$zipFile" ] || errExit 4 "## $0 FAILED to create zip in tycho-distribution"
