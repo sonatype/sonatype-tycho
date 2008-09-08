@@ -17,7 +17,8 @@ public class TYCHO45Test extends AbstractTychoIntegrationTest {
         verifier.verifyErrorFreeLog();
 
         // run the build
-        verifier.executeGoal("install");
+        verifier.getCliOptions().add("-DtestClass=tests.suite.AllTests");
+        verifier.executeGoal("integration-test");
         verifier.verifyErrorFreeLog();
 	}
 }

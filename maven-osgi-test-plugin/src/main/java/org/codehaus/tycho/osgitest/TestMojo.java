@@ -2,7 +2,6 @@ package org.codehaus.tycho.osgitest;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,11 +11,14 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.interpolation.ModelInterpolationException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.Arg;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
@@ -117,6 +119,16 @@ public class TestMojo extends AbstractMojo {
 	/** @component */
 	private OsgiState state;
 
+	/** @component */
+	protected MavenProjectBuilder projectBuilder;
+
+	/**
+	* @parameter expression="${session}"
+	* @readonly
+	* @required
+	*/
+	MavenSession session;
+
 	/** @parameter default-value="false" */
 	private boolean useUIHarness;
 
@@ -140,9 +152,46 @@ public class TestMojo extends AbstractMojo {
      */
     private int forkedProcessTimeoutInSeconds;
 
+    /**
+	 * Bundle-SymbolicName of the test suite, a special bundle that knows
+	 * how to locate and execute all relevant tests. 
+	 * 
+	 * testSuite and testClass identify single test class to run. All other
+	 * tests will be ignored if both testSuite and testClass are provided.
+	 * It is an error if provide one of the two parameters but not the other.
+	 * 
+	 * @parameter expression="${testSuite}"
+	 */
+	private String testSuite;
+
+    /**
+	 * See testSuite
+	 * 
+	 * @parameter expression="${testClass}"
+	 */
+	private String testClass;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			return;
+		}
+
+		if (testSuite != null || testClass != null) {
+			if (testSuite == null || testClass == null) {
+				throw new MojoExecutionException("Both testSuite and testClass must be provided or both should be null");
+			}
+
+			BundleDescription desc = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
+			MavenProject suite = state.getMavenProject(desc);
+
+			if (suite == null) {
+				throw new MojoExecutionException("Cannot find test suite project with Bundle-SymbolicName " + testSuite);
+			}
+
+			if (!suite.equals(project)) {
+				getLog().info("Not executing tests, testSuite=" + testSuite + " and project is not the testSuite");
+				return;
+			}
 		}
 
 		File targetPlatform = state.getTargetPlaform();
@@ -154,7 +203,7 @@ public class TestMojo extends AbstractMojo {
 
 		work.mkdirs();
 
-		createConfiguration(targetPlatform);
+		new ConfigurationHelper(state).createConfiguration(work, targetPlatform, getTestBundles());
 		createDevProperties();
 		createSurefireProperties();
 
@@ -170,6 +219,27 @@ public class TestMojo extends AbstractMojo {
 		}
 	}
 
+	private Set<File> getTestBundles() throws MojoExecutionException {
+		Set<File> testBundles = new LinkedHashSet<File>(); 
+		for (BundleDescription bundle : getReactorBundles()) {
+			addBundle(testBundles, bundle);
+			for (BundleDescription fragment: bundle.getFragments()) {
+				addBundle(testBundles, fragment);
+			}
+		}
+		testBundles.add(getOsgiSurefireBooterPlugin());
+		return testBundles;
+	}
+
+	private void addBundle(Set<File> testBundles, BundleDescription bundle) {
+		MavenProject project = state.getMavenProject(bundle);
+		if ("eclipse-test-plugin".equals(project.getPackaging())) {
+			testBundles.add(project.getBasedir());
+		} else if (project.getArtifact().getFile() != null) {
+			testBundles.add(project.getArtifact().getFile());
+		}
+	}
+
 	private void createSurefireProperties() throws MojoExecutionException {
 		Properties p = new Properties();
 
@@ -178,8 +248,12 @@ public class TestMojo extends AbstractMojo {
 		p.put("testclassesdirectory", testClassesDirectory.getAbsolutePath());
 		p.put("reportsdirectory", reportsDirectory.getAbsolutePath());
 
-		p.put("includes", includes != null? getIncludesExcludes(includes): "**/Test*.class,**/*Test.class,**/*TestCase.class");
-		p.put("excludes", excludes != null? getIncludesExcludes(excludes): "**/Abstract*Test.class,**/Abstract*TestCase.class,**/*$*");
+		if (testClass != null) {
+			p.put("includes", testClass.replace('.', '/')+".class");
+		} else {
+			p.put("includes", includes != null? getIncludesExcludes(includes): "**/Test*.class,**/*Test.class,**/*TestCase.class");
+			p.put("excludes", excludes != null? getIncludesExcludes(excludes): "**/Abstract*Test.class,**/Abstract*TestCase.class,**/*$*");
+		}
 
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(surefireProperties));
@@ -246,7 +320,6 @@ public class TestMojo extends AbstractMojo {
 				});
 			}
 			cli.addArguments(new String[] {
-				// "-debug", "-consolelog", "-console",
 				"-data", workspace,
 				"-dev", devProperties.toURI().toURL().toExternalForm(),
 				"-install", targetPlatform.getAbsolutePath(),
@@ -304,52 +377,6 @@ public class TestMojo extends AbstractMojo {
 		return osgi.getVersion();
 	}
 
-	private void createConfiguration(File targetPlatform) throws MojoExecutionException {
-		try {
-			Properties p = new Properties();
-
-			FileInputStream fis = new FileInputStream(new File(targetPlatform, "configuration/config.ini"));;
-			try {
-				p.load(fis);
-			} finally {
-				fis.close();
-			}
-
-			String osgiBundles = p.getProperty("osgi.bundles");
-			String newOsgiBundles = createOsgiBundlesProperty(osgiBundles);
-			p.setProperty("osgi.bundles", newOsgiBundles);
-
-			// @see SimpleConfiguratorConstants#PROP_KEY_EXCLUSIVE_INSTALLATION
-			p.setProperty("org.eclipse.equinox.simpleconfigurator.exclusiveInstallation", "false");
-
-			new File(work, "configuration").mkdir();
-			FileOutputStream fos = new FileOutputStream(new File(work, "configuration/config.ini"));
-			try {
-				p.store(fos, null);
-			} finally {
-				fos.close();
-			}
-		} catch (IOException e) {
-			throw new MojoExecutionException("", e);
-		}
-	}
-
-	private String createOsgiBundlesProperty(String osgiBundles) throws IOException, MojoExecutionException {
-		StringBuilder result = new StringBuilder(osgiBundles);
-		for (BundleDescription bundle : getReactorBundles()) {
-			result.append(",");
-			MavenProject project = state.getMavenProject(bundle);
-			if ("eclipse-test-plugin".equals(project.getPackaging())) {
-				appendAbsolutePath(result, project.getBasedir());
-			} else if (project.getArtifact().getFile() != null) {
-				appendAbsolutePath(result, project.getArtifact().getFile());
-			}
-		}
-		result.append(",");
-		appendAbsolutePath(result, getOsgiSurefireBooterPlugin());
-		return result.toString();
-	}
-
 	private File getOsgiSurefireBooterPlugin() throws MojoExecutionException {
 		for (Artifact artifact : pluginArtifacts) {
 			if ("org.codehaus.tycho".equals(artifact.getGroupId()) && "tycho-surefire-osgi-booter".equals(artifact.getArtifactId())) {
@@ -361,11 +388,21 @@ public class TestMojo extends AbstractMojo {
 
 	private void createDevProperties() throws MojoExecutionException {
 		Properties dev = new Properties();
+//		dev.put("@ignoredot@", "true");
 		for (BundleDescription bundle : getReactorBundles()) {
 			MavenProject project = state.getMavenProject(bundle);
 			if ("eclipse-test-plugin".equals(project.getPackaging())) {
-				Build build = project.getBuild();
-				dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
+				try {
+					projectBuilder.calculateConcreteState(project, session.getProjectBuilderConfiguration());
+					try {
+						Build build = project.getBuild();
+						dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
+					} finally {
+						projectBuilder.restoreDynamicState(project, session.getProjectBuilderConfiguration());
+					}
+				} catch (ModelInterpolationException e) {
+					throw new MojoExecutionException("Could not create dev.properties file", e);
+				}
 			}
 		}
 
@@ -393,8 +430,4 @@ public class TestMojo extends AbstractMojo {
 		return reactorBundles;
 	}
 
-	private void appendAbsolutePath(StringBuilder result, File file) throws IOException {
-		String url = file.getAbsolutePath().replace('\\', '/');
-		result.append("reference:file:" + url);
-	}
 }

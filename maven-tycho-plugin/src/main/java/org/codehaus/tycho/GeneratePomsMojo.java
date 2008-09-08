@@ -429,11 +429,18 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private void generatePluginPom(Model parent, File dir) throws MojoExecutionException {
-		Model model = readPom("templates/plugin-pom.xml");
-		setParent(model, parent);
 		try {
 			BundleDescription bundleDescription = state.addBundle(dir);
 			String groupId = state.getGroupId(bundleDescription);
+
+			Model model;
+			if ( (testSuffix != null && dir.getName().endsWith(testSuffix)) 
+					|| (testSuite != null && bundleDescription.getSymbolicName().equals(testSuite))) {
+				model = readPom("templates/test-plugin-pom.xml");
+			} else {
+				model = readPom("templates/plugin-pom.xml");
+			}
+			setParent(model, parent);
 			if (groupId == null) {
 				groupId = this.groupId;
 			}
@@ -443,10 +450,11 @@ public class GeneratePomsMojo extends AbstractMojo {
 			model.setGroupId(groupId);
 			model.setArtifactId(bundleDescription.getSymbolicName());
 			model.setVersion(bundleDescription.getVersion().toString());
+
+			writePom(dir, model);
 		} catch (BundleException e) {
 			throw new MojoExecutionException("Can't generate pom.xml", e);
 		}
-		writePom(dir, model);
 	}
 
 	private void writePom(File dir, Model model) throws MojoExecutionException {

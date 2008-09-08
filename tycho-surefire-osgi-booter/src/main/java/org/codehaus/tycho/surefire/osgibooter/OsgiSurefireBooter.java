@@ -84,7 +84,9 @@ public class OsgiSurefireBooter {
 
 	private static ArrayList<String> getIncludesExcludes(String string) {
 		ArrayList<String> list = new ArrayList<String>();
-		list.addAll(Arrays.asList(string.split(",")));
+		if (string != null) {
+			list.addAll(Arrays.asList(string.split(",")));
+		}
 		return list;
 	}
 
