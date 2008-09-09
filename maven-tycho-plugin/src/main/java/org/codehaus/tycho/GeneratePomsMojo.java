@@ -48,9 +48,9 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	/** @component */
 	private OsgiState state;
-	
+
 	/**
-	 * @parameter expression="${baseDir}" default-value="."
+	 * @parameter expression="${baseDir}" default-value="${basedir}"
 	 * @required
 	 */
 	private File baseDir;
@@ -93,6 +93,17 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 */
 	private String testSuite;
 
+	/**
+	 * Location of directory with template pom.xml file. pom.xml templates will
+	 * be looked at this directory first, default templates will be used if 
+	 * template directory and the template itself does not exist.
+	 * 
+	 * See src/main/resources/templates for the list of supported template files.
+	 * 
+	 * @parameter expression="${templateDir}" default-value="${basedir}/pom-templates"
+	 */
+	private File templateDir;
+
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
 	
@@ -115,7 +126,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 				if (groupId == null) {
 					throw new MojoExecutionException("groupId is required");
 				}
-				Model parent = readPom("templates/parent-pom.xml");
+				Model parent = readPomTemplate("parent-pom.xml");
 				parent.setGroupId(groupId);
 				parent.setArtifactId(basedir.getName());
 				parent.setVersion(version);
@@ -203,7 +214,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			Model parent = updateSite.getValue();
 			Set<File> modules = getSiteFeaturesAndPlugins(basedir);
 			if (aggregator && modules.size() > 0) {
-				Model modela = readPom("templates/update-site-poma.xml");
+				Model modela = readPomTemplate("update-site-poma.xml");
 				setParent(modela, parent);
 				modela.setGroupId(groupId);
 				modela.setArtifactId(basedir.getName() + ".aggregator");
@@ -254,7 +265,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			throw new MojoExecutionException("version parameter is required to generate pom.xml for Update Site project " + basedir.getName());
 		}
 		
-		Model model = readPom("templates/update-site-pom.xml");
+		Model model = readPomTemplate("update-site-pom.xml");
 		setParent(model, parent);
 		model.setGroupId(groupId);
 		model.setArtifactId(basedir.getName());
@@ -399,7 +410,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private void generateFeaturePom(Model parent, File basedir) throws MojoExecutionException {
-		Model model = readPom("templates/feature-pom.xml");
+		Model model = readPomTemplate("feature-pom.xml");
 		setParent(model, parent);
 
 		try {
@@ -436,9 +447,9 @@ public class GeneratePomsMojo extends AbstractMojo {
 			Model model;
 			if ( (testSuffix != null && dir.getName().endsWith(testSuffix)) 
 					|| (testSuite != null && bundleDescription.getSymbolicName().equals(testSuite))) {
-				model = readPom("templates/test-plugin-pom.xml");
+				model = readPomTemplate("test-plugin-pom.xml");
 			} else {
-				model = readPom("templates/plugin-pom.xml");
+				model = readPomTemplate("plugin-pom.xml");
 			}
 			setParent(model, parent);
 			if (groupId == null) {
@@ -474,10 +485,19 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private Model readPom(String name) throws MojoExecutionException {
-		ClassLoader cl = GeneratePomsMojo.class.getClassLoader();
+	private Model readPomTemplate(String name) throws MojoExecutionException {
 		try {
-			InputStream is = cl.getResourceAsStream(name);
+			InputStream is;
+
+			File file = new File(templateDir, name);
+			if (file.canRead()) {
+				// check custom templates dir first
+				is = new FileInputStream(file);
+			} else {
+				// fall back to internal templates 
+				ClassLoader cl = GeneratePomsMojo.class.getClassLoader();
+				is = cl.getResourceAsStream("templates/" + name);
+			}
 			if (is != null) {
 				try {
 					return modelReader.read(is);
