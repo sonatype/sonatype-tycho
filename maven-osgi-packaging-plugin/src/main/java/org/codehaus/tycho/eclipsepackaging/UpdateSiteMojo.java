@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -20,7 +21,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.pack200.Pack200Archiver;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
@@ -44,6 +49,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
+
+	/** @parameter expression="${project.build.directory}/temp" */
+	private File temp;
 
 	/** @parameter expression="${project.build.directory}/features" */
 	private File features;
@@ -77,7 +85,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			Map<String, String> archives = site.getArchives();
 
 			for (UpdateSite.FeatureRef feature : site.getFeatures()) {
-				packageFeature(feature, archives);
+				packageFeature(feature, archives, site.isPack200());
 			}
 
 			if (inlineArchives) {
@@ -93,7 +101,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		}
 	}
 
-	private void packageFeature(IFeatureRef featureRef, Map<String, String> archives) throws Exception {
+	private void packageFeature(IFeatureRef featureRef, Map<String, String> archives, boolean isPack200) throws Exception {
 		Feature feature = state.getFeature(featureRef.getId(), featureRef.getVersion());
 
 		if (feature == null) {
@@ -114,11 +122,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				feature = new Feature(feature);
 
 				for (Feature.PluginRef plugin : feature.getPlugins()) {
-					packagePlugin(plugin, archives);
+					packagePlugin(plugin, archives, isPack200);
 				}
 	
 				for (IFeatureRef includedRef : feature.getIncludedFeatures()) {
-					packageFeature(includedRef, archives);
+					packageFeature(includedRef, archives, isPack200);
 				}
 	
 				feature.setVersion(version);
@@ -143,8 +151,12 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 						jarArchiver.addFile(f, fileName);
 					}
 				}
-	
 				jarArchiver.createArchive();
+				
+				if(isPack200) {
+			        shipPack200(outputJar, url);
+				}
+				
 			} else {
 				// TODO include external features
 			}
@@ -164,7 +176,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		return version;
 	}
 
-	private void packagePlugin(Feature.PluginRef plugin, Map<String, String> archives) throws Exception {
+	private void packagePlugin(Feature.PluginRef plugin, Map<String, String> archives, boolean isPack200) throws Exception {
 		String bundleId = plugin.getId();
 		String version = plugin.getVersion();
 
@@ -213,7 +225,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		try {
 			mf = jar.getManifest();
 			
-			Enumeration entries = jar.entries();
+			Enumeration<JarEntry> entries = jar.entries();
 			while (entries.hasMoreElements()) {
 				JarEntry entry = (JarEntry) entries.nextElement();
 				long entrySize = entry.getSize();
@@ -228,12 +240,33 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		String bundleVersion = mf.getMainAttributes().getValue("Bundle-Version");
 		plugin.setVersion(bundleVersion);
 
-		File outputJar = new File(target, "plugins/" + bundleId + "_" + bundleVersion + ".jar");
+		String url = "plugins/" + bundleId + "_" + bundleVersion + ".jar";
+		File outputJar = new File(target, url);
 		outputJar.getParentFile().mkdirs();
 		FileUtils.copyFile(file, outputJar);
+		
+		if(isPack200) {
+	        shipPack200(outputJar, url);
+		}
+		
 
 		plugin.setDownloadSide(outputJar.length() / KBYTE);
 		plugin.setInstallSize(installSize / KBYTE);
+	}
+
+	private void shipPack200(File jar, String url)
+			throws ArchiverException, IOException, ComponentLookupException {
+		File outputPack = new File(temp, url + ".pack");
+		
+		Pack200Archiver packArchiver = new Pack200Archiver();
+		packArchiver.setSourceJar( jar );
+		packArchiver.setDestFile( outputPack );
+		packArchiver.createArchive();
+		
+		GZipCompressor gzCompressor = new GZipCompressor();
+		gzCompressor.setDestFile(new File(target, url + ".pack.gz"));
+		gzCompressor.setSourceFile(outputPack);
+		gzCompressor.execute();
 	}
 
 	public void contextualize(Context ctx) throws ContextException {
