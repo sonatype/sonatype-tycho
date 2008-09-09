@@ -55,7 +55,7 @@ public class OsgiSurefireBooter {
 
 		List tests = new ArrayList();
 		tests.add(new Object[] {
-			"org.apache.maven.surefire.junit.JUnitDirectoryTestSuite",
+			"org.codehaus.tycho.surefire.junit.JUnitDirectoryTestSuite",
 			new Object[] {
 				testDir,
 				includes,

@@ -11,7 +11,7 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 
-public class AllTests extends TestCase {
+public class AllTests {
 
 	public static Test suite() throws CoreException {
 	    TestSuite suite = new TestSuite();
