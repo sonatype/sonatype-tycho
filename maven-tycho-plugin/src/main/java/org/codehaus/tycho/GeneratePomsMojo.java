@@ -130,7 +130,11 @@ public class GeneratePomsMojo extends AbstractMojo {
 				parent.setGroupId(groupId);
 				parent.setArtifactId(basedir.getName());
 				parent.setVersion(version);
-				Set<File> dirs = new TreeSet<File>(Arrays.asList(basedir.listFiles()));
+				File[] listFiles = basedir.listFiles();
+				if (null == listFiles) {
+					listFiles = new File[0];
+				}
+				Set<File> dirs = new TreeSet<File>(Arrays.asList(listFiles));
 				if (dirs != null) {
 					for (File dir : dirs) {
 						if (generatePom(parent, dir)) {
