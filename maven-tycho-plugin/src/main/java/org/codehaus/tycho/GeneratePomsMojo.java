@@ -100,9 +100,9 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 * 
 	 * See src/main/resources/templates for the list of supported template files.
 	 * 
-	 * @parameter expression="${templateDir}" default-value="${basedir}/pom-templates"
+	 * @parameter expression="${templatesDir}" default-value="${basedir}/pom-templates"
 	 */
-	private File templateDir;
+	private File templatesDir;
 
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
@@ -489,7 +489,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		try {
 			InputStream is;
 
-			File file = new File(templateDir, name);
+			File file = new File(templatesDir, name);
 			if (file.canRead()) {
 				// check custom templates dir first
 				is = new FileInputStream(file);
