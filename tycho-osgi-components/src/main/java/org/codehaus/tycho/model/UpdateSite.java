@@ -102,6 +102,6 @@ public class UpdateSite {
 	
 	public boolean isPack200() {
 	    String pack200 = dom.getAttribute( "pack200" );
-	    return pack200 != null ? Boolean.getBoolean( pack200 ):false;
+	    return "true".equals(pack200);
 	}
 }
