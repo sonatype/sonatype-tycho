@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.service.resolver.ResolverError;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 
 public class OsgiSurefireBooter {
 
@@ -101,7 +102,7 @@ public class OsgiSurefireBooter {
 		return p;
 	}
 
-	private static ClassLoader getBundleClassLoader(String symbolicName) {
+	private static ClassLoader getBundleClassLoader(String symbolicName) throws BundleException {
 		Bundle bundle = Activator.getBundle(symbolicName);
 		if (bundle == null) {
 			throw new RuntimeException("Bundle " + symbolicName + " is not found");
@@ -114,6 +115,8 @@ public class OsgiSurefireBooter {
 				System.err.println("\t" + error.toString());
 			}
 		}
+
+		bundle.start();
 
 		return new BundleClassLoader(bundle);
 	}

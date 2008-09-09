@@ -125,9 +125,9 @@ public class ConfigurationHelper {
 		} else if (id.startsWith("reference:file:")) {
 			String path = id.substring("reference:file:".length());
 			if (!new File(path).isAbsolute()) {
-				return appendAbsolutePath(new File(targetPlatform, path));
+				return appendAbsolutePath(new File(targetPlatform, "plugins/" + path));
 			}
-		} 
+		}
 
 		return null;
 	}

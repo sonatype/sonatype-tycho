@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launchConfiguration type="org.maven.ide.eclipse.Maven2LaunchConfigurationType">
+<booleanAttribute key="M2_DEBUG_OUTPUT" value="false"/>
+<listAttribute key="M2_FORCED_COMPONENTS_LIST">
+<listEntry value="org.codehaus.tycho:tycho-osgi-components:0.3.0-SNAPSHOT"/>
+<listEntry value="org.eclipse:org.eclipse.osgi:3.4.0.v20080605-1900"/>
+</listAttribute>
+<stringAttribute key="M2_GOALS" value="-f xxx -e org.codehaus.tycho:maven-tycho-plugin:0.3.0-SNAPSHOT:generate-poms"/>
+<booleanAttribute key="M2_NON_RECURSIVE" value="false"/>
+<booleanAttribute key="M2_OFFLINE" value="false"/>
+<stringAttribute key="M2_PROFILES" value=""/>
+<listAttribute key="M2_PROPERTIES">
+<listEntry value="tycho.targetPlatform=/var/tmp/e34/eclipse"/>
+<listEntry value="groupId=tycho45"/>
+<listEntry value="testSuite=tests.suite"/>
+<listEntry value="testClass=tests.suite.AllTests"/>
+</listAttribute>
+<stringAttribute key="M2_RUNTIME" value="WORKSPACE"/>
+<booleanAttribute key="M2_SKIP_TESTS" value="false"/>
+<booleanAttribute key="M2_UPDATE_SNAPSHOTS" value="false"/>
+<booleanAttribute key="M2_WORKSPACE_RESOLUTION" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.6.0_07"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:/tycho-its/target/projects/TYCHO45}"/>
+</launchConfiguration>
