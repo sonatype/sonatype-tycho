@@ -9,8 +9,10 @@ import java.util.Set;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.model.Feature.FeatureRef;
 
 /**
   * @plexus.component role="org.codehaus.tycho.maven.DependenciesReader"
@@ -23,12 +25,32 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 
 	public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
 		try {
-			UpdateSite site = UpdateSite.read(new File(project.getBasedir(), "site.xml"));
+			File siteXml = new File(project.getBasedir(), "site.xml");
+			UpdateSite site = UpdateSite.read(siteXml);
 
 			Set<Dependency> result = new LinkedHashSet<Dependency>();
 			for (UpdateSite.FeatureRef featureRef : site.getFeatures()) {
-				Feature feature = state.getFeature(featureRef.getId(), featureRef.getVersion());
-				Dependency dependency = newProjectDependency(state.getMavenProject(feature));
+				if (null == featureRef) {
+					getLogger().warn("unexpected null featureRef in project at " + siteXml.getPath());
+					continue;
+				}
+				String id = featureRef.getId();
+				String version = featureRef.getVersion();
+				if (null == id || null == version) {
+					getLogger().warn("Bad site feature id=" + id + " version=" + version + " for " + siteXml.getPath());
+					continue;
+				}
+				Feature feature = state.getFeature(id, version);
+				if (null == feature) {
+					getLogger().warn("No OSGI feature for id=" + id + " version=" + version + " for " + siteXml.getPath());
+					continue;
+				}
+				MavenProject mavenProject = state.getMavenProject(feature);
+				if (null == mavenProject) {
+					getLogger().warn("No maven feature project for id=" + id + " version=" + version + " for " + siteXml.getPath());
+					continue;
+				}
+				Dependency dependency = newProjectDependency(mavenProject);
 				if (dependency != null) {
 					result.add(dependency);
 				}
@@ -36,7 +58,13 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 
 			return new ArrayList<Dependency>(result);
 		} catch (Exception e) {
-			throw new MavenExecutionException(e.getMessage(), project.getFile());
+			String m = e.getMessage();
+			if (null == m) {
+				m = e.getClass().getName();
+			}
+			MavenExecutionException me = new MavenExecutionException(m, project.getFile());
+			me.initCause(e);
+			throw me;
 		}
 	}
 
