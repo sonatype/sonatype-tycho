@@ -1,5 +1,7 @@
 #!/bin/bash
-set -vx
+common=`dirname "$0"`/script-common.sh
+[ -f "$common" ] && source "$common"
+
 info() {
 cat <<EOF
 # $0
@@ -26,39 +28,6 @@ cat <<EOF
 EOF
 }
 
-
-javaPath() {
-    local sedJavaPath='s|/cygdrive/\([a-zA-Z]\)/|\1:/|'
-    if [ -d "$1" ] ; then
-	    local jpResult=`cd "$1"; pwd | sed "$sedJavaPath"`
-	    echo "$jpResult"
-    elif [ -f "$1" ] ; then
-    	local jpDir=`dirname "$1"`
-    	local jpName=`basename "$1"`
-    	[ -z "$jpDir" ] && jpDir=.
-    	echo `javaPath "$jpDir"`"/$jpName"
-    else
-		echo "$1" | sed "$sedJavaPath"
-    fi 
-}
-
-asNumber() {
-	[ -n "$1" ] && echo "$1" | grep '[^-0-9]' >/dev/null 2>&1 || echo "$1"
-}
-errExit() {
-	# errExit {n} <message>
-	local exitCode=`asNumber "$1"`
-	[ -n "$exitCode" ] && shift
-	[ -n "$1" ] && echo "## $scriptName: $1"
-	[ -z "$exitCode" ] && exitCode=2
-	[ -f "$outFile" ] && echo "## $scriptName output file: $outFile"
-	exit "$exitCode"
-}
-
-outFileMessage() {
-	[ -n "$1" ] && echo "############# $1" >> "$outFile"
-}
-
 getExtraDirsArg() {
 	## extradirs: is this single-level or magic grandparent directory?
 	# was just for targets, but need to build poms
@@ -79,8 +48,6 @@ getExtraDirsArg() {
 }
 
 ###########################################################
-[ -n "$DEBUG" ] && set -vx
-
 if [ "$1" == "-info" ] ; then
 	info
 	exit 0
@@ -92,9 +59,6 @@ fi
 [ -f "${0}.local" ] && . "${0}.local" 
 
 ## set default values 
-scriptName=`basename "$0"`
-scriptDir=`dirname "$0"`
-scriptDir=`javaPath "$scriptDir"`
 trunkDir=`javaPath "$scriptDir/../.."` # note: location
 sandboxDir="${sandboxDir:-${scriptDir}/temp-workspace}"
 builtTychoDir="${builtTychoDir:-$sandboxDir/builtTychoDir}"
@@ -196,7 +160,7 @@ for i in `ls */${checkScriptName} */*/${checkScriptName} 2>/dev/null`; do
 	else
 		pomArg="" 
 	fi
-	# build
+	# build only, no integration-test 
 	"$builtTychoDir"/bin/mvn $mvnFlags -s "$settingsFile"  package $pomArg ${extraDirsArg} -Dtycho.targetPlatform=$testTargetPlatformDir >> "$outFile" 2>&1
 	"$i"
 done
