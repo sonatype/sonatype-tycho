@@ -15,6 +15,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -104,8 +106,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	private void packageFeature(IFeatureRef featureRef, Map<String, String> archives, boolean isPack200) throws Exception {
 		Feature feature = state.getFeature(featureRef.getId(), featureRef.getVersion());
 
-		if (feature == null) {
-			return;
+		if (feature == null) { 
+			String groupId = featureRef.getId().substring(0, featureRef.getId().lastIndexOf('.'));
+			throw new ArtifactResolutionException("Feature " + featureRef.getId() + " not found", groupId, featureRef.getId(), featureRef.getVersion(), "eclipse-feature", null, null)  ;
 		}
 
 		String artifactId = feature.getId();
