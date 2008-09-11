@@ -19,6 +19,7 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.jar.JarSignMojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
@@ -51,7 +52,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
 
-	/** @parameter expression="${project.build.directory}/temp" */
+	/** @parameter expression="${project.build.outputDirectory}" */
 	private File temp;
 
 	/** @parameter expression="${project.build.directory}/features" */
@@ -75,7 +76,42 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	 * @required
 	 */
 	protected MavenProject project;
+	
+	/**
+	 * @parameter expression="${sign}" default-value="false"
+	 */
+	private boolean sign;
 
+    /**
+     * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
+     *
+     * @parameter expression="${keystore}"
+     */
+    private File keystore;
+
+    /**
+     * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
+     *
+     * @parameter expression="${storepass}"
+     */
+    private String storepass;
+
+    /**
+     * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
+     *
+     * @parameter expression="${alias}"
+     * @required
+     */
+    private String alias;
+
+    /**
+     * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
+     *
+     * @parameter expression="${keypass}"
+     */
+    private String keypass;
+	
+	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		target.mkdirs();
 
@@ -155,6 +191,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				}
 				jarArchiver.createArchive();
 				
+				if(sign) {
+					signJar(outputJar);
+				}
 				if(isPack200) {
 			        shipPack200(outputJar, url);
 				}
@@ -246,7 +285,10 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		File outputJar = new File(target, url);
 		outputJar.getParentFile().mkdirs();
 		FileUtils.copyFile(file, outputJar);
-		
+
+		if(sign) {
+			signJar(outputJar);
+		}
 		if(isPack200) {
 	        shipPack200(outputJar, url);
 		}
@@ -269,6 +311,43 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		gzCompressor.setDestFile(new File(target, url + ".pack.gz"));
 		gzCompressor.setSourceFile(outputPack);
 		gzCompressor.execute();
+	}
+
+	private void signJar(File outputJar) throws MojoExecutionException {
+		if(keystore == null) {
+			keystore = new File(System.getProperty("user.home"), ".keystore");
+		}
+		
+		if(!keystore.exists()) {
+			getLog().warn("Unable to sign, keystore file not found: "+keystore.getAbsolutePath());
+			return;
+		}
+		if(storepass == null) {
+			getLog().warn("Unable to sign, keystore password must be specifyed.");
+			return;
+		}
+		
+		if(alias == null) {
+			getLog().warn("Unable to sign, alias must be specifyed.");
+			return;
+		}
+		if(keypass == null) {
+			getLog().warn("Unable to sign, keypass must be specifyed.");
+			return;
+		}
+		
+		JarSignMojo sign = new JarSignMojo();
+		sign.setKeystore(keystore.getAbsolutePath());
+		sign.setStorepass(storepass);
+		sign.setAlias(alias);
+		sign.setKeypass(keypass);
+		sign.setJarPath(outputJar);
+		sign.setBasedir(basedir);
+		sign.setWorkingDir(basedir);
+		sign.setLog(getLog());
+		sign.setVerbose(false);
+		sign.setVerify(false);
+		sign.execute();
 	}
 
 	public void contextualize(Context ctx) throws ContextException {

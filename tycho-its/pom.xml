@@ -33,6 +33,7 @@
         <excludes>
           <exclude>**/*.jar</exclude>
           <exclude>**/offline-repo/**</exclude>
+          <exclude>**/.keystore</exclude>
         </excludes>
       </testResource>
       <testResource>
@@ -41,6 +42,7 @@
         <includes>
           <include>**/*.jar</include>
           <include>**/offline-repo/**</include>
+          <include>**/.keystore</include>
         </includes>
       </testResource>
     </testResources>
