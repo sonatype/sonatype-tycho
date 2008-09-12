@@ -1,7 +1,0 @@
-<project>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>javax.xml.stream</groupId>
-  <artifactId>stax-api</artifactId>
-  <version>1.0-2</version>
-</project>
-

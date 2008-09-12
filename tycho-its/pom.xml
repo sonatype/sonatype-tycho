@@ -14,7 +14,7 @@
   <properties>
     <tycho-dir>${build.directory}/tycho-distribution-${pom.version}</tycho-dir>
     <source-dir>${build.directory}/test</source-dir>
-    <offline-repo>${build.testOutputDirectory}/offline-repo</offline-repo>
+    <offline-repo>${build.directory}/offline-repo</offline-repo>
     
     <!-- tested artifacts -->
     <maven-osgi-compiler-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-compiler-plugin/${pom.version}/maven-osgi-compiler-plugin-${pom.version}.jar</maven-osgi-compiler-plugin>
@@ -29,25 +29,32 @@
     <testResources>
       <testResource>
         <directory>src/test/resources</directory>
-        <filtering>true</filtering>
-        <excludes>
-          <exclude>**/*.jar</exclude>
-          <exclude>**/offline-repo/**</exclude>
-          <exclude>**/.keystore</exclude>
-        </excludes>
-      </testResource>
-      <testResource>
-        <directory>src/test/resources</directory>
         <filtering>false</filtering>
-        <includes>
-          <include>**/*.jar</include>
-          <include>**/offline-repo/**</include>
-          <include>**/.keystore</include>
-        </includes>
+        <excludes>
+          <exclude>**/*.properties</exclude>
+        </excludes>
       </testResource>
     </testResources>
 
     <plugins>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>maven-properties-plugin</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>filter-file</goal>
+            </goals>
+            <configuration>
+              <in>src/test/resources/baseTest.properties</in>
+              <outDir>${build.testOutputDirectory}/</outDir>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.1-SNAPSHOT</version>

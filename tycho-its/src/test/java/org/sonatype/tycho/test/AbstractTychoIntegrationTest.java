@@ -52,10 +52,9 @@ public abstract class AbstractTychoIntegrationTest {
 
         Verifier verifier = new Verifier( testDir.getAbsolutePath() );
         verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + getTargetPlatforn() );
-        verifier.getCliOptions().add( "-o" );
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( getLocalRepo() );
-
+        
         String m2eState = System.getProperty("m2eclipse.workspace.state");
         String m2eResolver = System.getProperty("m2eclipse.workspace.resolver");
 
