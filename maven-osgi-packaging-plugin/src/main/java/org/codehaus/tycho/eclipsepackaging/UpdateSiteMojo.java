@@ -78,11 +78,16 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	protected MavenProject project;
 	
 	/**
+	 * When true you must inform the following parameters too:
+	 * keystore, storepass, alias and keypass
+	 * 
 	 * @parameter expression="${sign}" default-value="false"
 	 */
 	private boolean sign;
 
     /**
+     * Tells the keystore location
+     * 
      * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
      *
      * @parameter expression="${keystore}"
@@ -90,6 +95,8 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
     private File keystore;
 
     /**
+     * Specifies the password which is required to access the keystore.
+     * 
      * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
      *
      * @parameter expression="${storepass}"
@@ -97,14 +104,16 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
     private String storepass;
 
     /**
+     * The alias for the keystore entry containing the private key needed to generate the signature
+     * 
      * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
      *
      * @parameter expression="${alias}"
-     * @required
      */
     private String alias;
 
     /**
+     * Specifies the password used to protect the private key of the keystore entry addressed by the alias
      * See <a href="http://java.sun.com/j2se/1.4.2/docs/tooldocs/windows/jarsigner.html#Options">options</a>.
      *
      * @parameter expression="${keypass}"
