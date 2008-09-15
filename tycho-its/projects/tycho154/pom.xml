@@ -7,6 +7,6 @@
   <packaging>pom</packaging>
   <modules>
     <module>bundle</module>
-    <module>bundle.test</module>
+    <module>bundle.tests</module>
   </modules>
 </project>
