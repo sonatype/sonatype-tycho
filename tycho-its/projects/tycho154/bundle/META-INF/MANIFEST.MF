@@ -1,6 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Bundle_Jar Plug-in
-Bundle-SymbolicName: Bundle_Jar
+Bundle-Name: bundle Plug-in
+Bundle-SymbolicName: bundle
 Bundle-Version: 1.0.0
 Bundle-ClassPath: simple.jar
+Export-Package: simple.jar
