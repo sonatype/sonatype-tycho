@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Bundle_Jar_Test Fragment
+Bundle-SymbolicName: Bundle_Jar_Test;singleton:=true
+Bundle-Version: 1.0.0
+Fragment-Host: Bundle_Jar;bundle-version="1.0.0"
+Require-Bundle: tests.utils;bundle-version="1.0.0",
+ org.junit;bundle-version="3.8.0"
