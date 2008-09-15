@@ -3,6 +3,7 @@ package org.codehaus.tycho.surefire.osgibooter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.service.resolver.HostSpecification;
@@ -18,15 +19,12 @@ import org.osgi.framework.ServiceReference;
 public class Activator implements BundleActivator {
 
 	public static final String PLUGIN_ID = "org.codehaus.tycho.surefire.osgibooter";
-	private static BundleContext context;
 	private static PlatformAdmin platformAdmin;
 
 	public Activator() {
 	}
 
 	public void start(BundleContext context) throws Exception {
-		Activator.context = context;
-
 		ServiceReference platformAdminRef = context.getServiceReference(PlatformAdmin.class.getName());
 		if (platformAdminRef != null) {
 			platformAdmin = (PlatformAdmin) context.getService(platformAdminRef);
@@ -37,12 +35,21 @@ public class Activator implements BundleActivator {
 	}
 
 	public static Bundle getBundle(String symbolicName) {
-		for (Bundle bundle : context.getBundles()) {
-			if (bundle.getSymbolicName().equals(symbolicName)) {
-				return bundle;
-			}
+		Bundle bundle = Platform.getBundle(symbolicName);
+		if (bundle == null) {
+			return null;
 		}
-		return null;
+
+		if (Platform.isFragment(bundle)) {
+			Bundle[] hosts = Platform.getHosts(bundle);
+			if (hosts != null && hosts.length > 0) {
+				// TODO do we care about multiple hosts???
+				return hosts[0];
+			}
+			throw new IllegalArgumentException("Fragment bundle is not attached to a host " + symbolicName);
+		}
+
+		return bundle;
 	}
 
 	public static Set<ResolverError> getResolutionErrors(Bundle bundle) {
