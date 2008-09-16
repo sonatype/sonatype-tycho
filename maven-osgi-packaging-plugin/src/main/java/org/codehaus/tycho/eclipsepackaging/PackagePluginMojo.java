@@ -18,6 +18,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.project.builder.ProjectUri.Build;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 
@@ -28,6 +29,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
  */
 public class PackagePluginMojo extends AbstractMojo {
 	private static final String OUTPUT = "output.";
+	private static final String SOURCE = "source.";
 
 	/**
 	 * @parameter expression="${project.build.directory}"
@@ -114,16 +116,25 @@ public class PackagePluginMojo extends AbstractMojo {
 					String fileName = key.substring(OUTPUT.length());
 					String classesDir[] = buildProperties.getProperty(key)
 							.split(",");
-					File jarFile = new File(project.getBasedir(), fileName);
-					Util.makeJar(project.getBasedir(), jarFile, classesDir,
-							new JarArchiver(), null);
-
+					makeJar(fileName, classesDir);
+				} else if (key.startsWith(SOURCE) && !key.equals("source..")) {
+					String fileName = key.substring(SOURCE.length());
+					String classesDir[] = new String[]{buildDirectory.getName() + "/" + fileName.substring(0, fileName.length() - 4) + "-classes"};
+					makeJar(fileName, classesDir);
 				}
 			}
 		} catch (Exception e) {
 			throw new MojoExecutionException("", e);
 		}
 
+	}
+
+	private File makeJar(String fileName, String[] classesDir)
+			throws MojoExecutionException {
+		File jarFile = new File(project.getBasedir(), fileName);
+		Util.makeJar(project.getBasedir(), jarFile, classesDir,
+				new JarArchiver(), null);
+		return jarFile;
 	}
 
 	private File createPluginJar() throws MojoExecutionException {

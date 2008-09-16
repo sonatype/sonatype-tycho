@@ -52,7 +52,7 @@ public class OsgiCompilerMojo extends AbstractOsgiCompilerMojo {
         return compileSourceRoots;
     }
 
-    protected File getOutputDirectory()
+    protected File getConfiguredOutputDirectory()
     {
         return outputDirectory;
     }

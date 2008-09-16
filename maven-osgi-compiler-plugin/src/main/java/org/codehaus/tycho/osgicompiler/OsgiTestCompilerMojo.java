@@ -63,7 +63,7 @@ public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 	/**
 	 * output directory for this compile - the test output directory
 	 */
-	protected File getOutputDirectory() {
+	protected File getConfiguredOutputDirectory() {
 		return testOutputDirectory;
 	}
 

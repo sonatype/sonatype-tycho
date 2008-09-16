@@ -14,17 +14,18 @@ public class MultipleJarsTest extends TestCase {
 	public void testSrc() {
 		Bundle bundle = Platform.getBundle("bundle");
 		
-		fail("Need a good way to check if classes are coming from nested JARs");
+//		fail("Need a good way to check if classes are coming from nested JARs");
+		//TODO compilation means success??
 
-//		String name = getResourceName(Src.class);
+		String name = getResourceName(Src.class);
 //		assertNotNull(bundle.getResource(name));
 //		assertNotNull(bundle.getEntry(name));
 //
-//		String name2 = getResourceName(Src2.class);
+		String name2 = getResourceName(Src2.class);
 //		assertNotNull(bundle.getResource(name2));
 //		assertNull(bundle.getEntry(name2));
 //
-//		String name3 = getResourceName(Src3.class);
+		String name3 = getResourceName(Src3.class);
 //		assertNotNull(bundle.getResource(name3));
 //		assertNull(bundle.getEntry(name3));
 	}
