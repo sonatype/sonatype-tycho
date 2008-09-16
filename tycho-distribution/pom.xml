@@ -64,53 +64,6 @@
               <goal>unpack</goal>
             </goals>
           </execution>
-          <execution>
-            <id>copy-wagon</id>
-            <configuration>
-              <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-provider-api</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-file</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-http-shared</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-http-lightweight</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-ssh</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-ssh-common</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.apache.maven.wagon</groupId>
-                  <artifactId>wagon-ssh-external</artifactId>
-                  <version>1.0-beta-3-sonatype</version>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-          </execution>
         </executions>
       </plugin>
     </plugins>

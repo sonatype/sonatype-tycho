@@ -4,7 +4,6 @@
       <directory>target/dependency/apache-maven-${maven-version}</directory>
       <outputDirectory>/</outputDirectory>
       <excludes>
-        <exclude>**/wagon*</exclude>
         <exclude>bin/m2.conf</exclude>
         <exclude>conf/settings.xml</exclude>
         <exclude>bin/m2</exclude>
@@ -12,13 +11,6 @@
         <exclude>bin/mvnDebug</exclude>
         <exclude>bin/mvnyjp</exclude>
       </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>target/dependency</directory>
-      <includes>
-        <include>wagon*.jar</include>
-      </includes>
-      <outputDirectory>/lib</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>src/bin</directory>
