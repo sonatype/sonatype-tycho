@@ -255,7 +255,7 @@
   <repositories>
     <repository>
       <id>sonatype-release</id>
-      <url>http://repository.sonatype.org/content/repositories/releases</url>
+      <url>http://repository.sonatype.org/content/groups/public</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
