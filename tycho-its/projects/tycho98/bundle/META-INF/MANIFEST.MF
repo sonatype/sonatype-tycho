@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Bundle Plug-in
 Bundle-SymbolicName: bundle
 Bundle-Version: 1.0.0
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ClassPath: .,
  src2.jar,
  src3.jar
