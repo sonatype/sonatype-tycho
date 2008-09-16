@@ -1,5 +1,7 @@
 package bundle.src;
 
-public class Src {
+import bundle.src3.Src3;
+
+public class Src extends Src3 {
 
 }
