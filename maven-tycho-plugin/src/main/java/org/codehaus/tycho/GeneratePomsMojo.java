@@ -26,6 +26,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
@@ -491,22 +492,23 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private Model readPomTemplate(String name) throws MojoExecutionException {
 		try {
-			InputStream is;
+			XmlStreamReader reader;
 
 			File file = new File(templatesDir, name);
 			if (file.canRead()) {
 				// check custom templates dir first
-				is = new FileInputStream(file);
+				reader = ReaderFactory.newXmlReader(file);
 			} else {
 				// fall back to internal templates 
 				ClassLoader cl = GeneratePomsMojo.class.getClassLoader();
-				is = cl.getResourceAsStream("templates/" + name);
+				InputStream is = cl.getResourceAsStream("templates/" + name);
+				reader = is != null? ReaderFactory.newXmlReader(is): null;
 			}
-			if (is != null) {
+			if (reader != null) {
 				try {
-					return modelReader.read(is);
+					return modelReader.read(reader);
 				} finally {
-					is.close();
+					reader.close();
 				}
 			} else {
 				throw new MojoExecutionException("pom.xml template cannot be found " + name);

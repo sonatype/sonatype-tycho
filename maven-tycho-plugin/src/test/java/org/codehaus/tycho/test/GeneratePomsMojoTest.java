@@ -12,6 +12,7 @@ import java.util.Properties;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.Mojo;
+import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
@@ -147,7 +148,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
     	File pom = new File(baseDir, name);
     	FileInputStream is = new FileInputStream(pom);
     	try {
-    		return modelReader.read(is);
+    		return modelReader.read(ReaderFactory.newXmlReader(is));
     	} finally {
     		is.close();
     	}

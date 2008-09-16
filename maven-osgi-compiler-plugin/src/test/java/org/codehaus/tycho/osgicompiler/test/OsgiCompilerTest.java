@@ -43,7 +43,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		}
 		@SuppressWarnings("unchecked")
 		List<MavenProject> projects = reactorManager.getSortedProjects();
-		calculateConcreteState(projects, request);
 		return projects;
 	}
 

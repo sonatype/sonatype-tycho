@@ -1,12 +1,16 @@
 <component-set>
 	<components>
+<!-- 
     <component>
       <role>org.apache.maven.project.MavenProjectBuilder</role>
       <role-hint>default</role-hint>
       <implementation>org.codehaus.tycho.maven.EclipseMavenProjetBuilder</implementation>
       <requirements>
         <requirement>
-          <role>org.apache.maven.project.builder.ProjectBuilder</role>
+             <role>org.apache.maven.project.RepositoryHelper</role>
+        </requirement>             
+        <requirement>
+             <role>org.apache.maven.project.builder.ProjectBuilder</role>
         </requirement>
         <requirement>
           <role>org.apache.maven.project.workspace.ProjectWorkspace</role>
@@ -15,22 +19,13 @@
           <role>org.apache.maven.artifact.metadata.ArtifactMetadataSource</role>
         </requirement>
         <requirement>
-          <role>org.apache.maven.project.build.model.ModelLineageBuilder</role>
-        </requirement>
-        <requirement>
           <role>org.apache.maven.profiles.build.ProfileAdvisor</role>
         </requirement>
         <requirement>
           <role>org.apache.maven.profiles.MavenProfilesBuilder</role>
         </requirement>
         <requirement>
-          <role>org.apache.maven.project.injection.ModelDefaultsInjector</role>
-        </requirement>
-        <requirement>
           <role>org.apache.maven.project.interpolation.ModelInterpolator</role>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.project.inheritance.ModelInheritanceAssembler</role>
         </requirement>
         <requirement>
           <role>org.apache.maven.project.validation.ModelValidator</role>
@@ -53,33 +48,7 @@
         </requirement>
       </requirements>
     </component>
-
-    <component>
-      <role>org.apache.maven.project.build.model.ModelLineageBuilder</role>
-      <role-hint>default</role-hint>
-      <implementation>org.codehaus.tycho.maven.EclipseModelLineageBuilder</implementation>
-      <requirements>
-        <requirement>
-          <role>org.apache.maven.project.workspace.ProjectWorkspace</role>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.profiles.build.ProfileAdvisor</role>
-          <role-hint>default</role-hint>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.MavenTools</role>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.artifact.resolver.ArtifactResolver</role>
-        </requirement>
-        <requirement>
-          <role>org.codehaus.tycho.osgitools.OsgiState</role>
-        </requirement>
-      </requirements>
-    </component>
+ -->
 
     <component>
       <role>org.apache.maven.Maven</role>
@@ -107,6 +76,7 @@
       </requirements>
     </component>
 
+<!-- 
     <component>
       <role>org.apache.maven.plugin.PluginManager</role>
       <implementation>org.codehaus.tycho.maven.EclipsePluginManager</implementation>
@@ -115,13 +85,10 @@
           <role>org.apache.maven.plugin.PluginManagerSupport</role>
         </requirement>
         <requirement>
-          <role>org.apache.maven.project.interpolation.ModelInterpolator</role>
-        </requirement>
-        <requirement>
           <role>org.apache.maven.ArtifactFilterManager</role>
         </requirement>
         <requirement>
-          <role>org.apache.maven.project.path.PathTranslator</role>
+          <role>org.apache.maven.path.PathTranslator</role>
         </requirement>
         <requirement>
           <role>org.apache.maven.plugin.MavenPluginCollector</role>
@@ -154,7 +121,7 @@
         </requirement>
       </requirements>
     </component>
-
+ -->
 
 		<component>
 			<role>

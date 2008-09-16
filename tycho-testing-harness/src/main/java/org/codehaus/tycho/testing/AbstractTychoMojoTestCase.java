@@ -2,7 +2,6 @@ package org.codehaus.tycho.testing;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -15,9 +14,7 @@ import org.apache.maven.plugin.MavenPluginDiscoverer;
 import org.apache.maven.profiles.DefaultProfileManager;
 import org.apache.maven.profiles.activation.DefaultProfileActivationContext;
 import org.apache.maven.profiles.activation.ProfileActivationContext;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
-import org.apache.maven.project.interpolation.ModelInterpolationException;
 import org.codehaus.plexus.ContainerConfiguration;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -77,13 +74,4 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		return request;
 	}
 
-	protected void calculateConcreteState(List<MavenProject> projects, MavenExecutionRequest request) {
-		for (MavenProject project : projects) {
-			try {
-				projectBuilder.calculateConcreteState(project, request.getProjectBuildingConfiguration());
-			} catch (ModelInterpolationException e) {
-				// ignore
-			}
-		}
-	}
 }

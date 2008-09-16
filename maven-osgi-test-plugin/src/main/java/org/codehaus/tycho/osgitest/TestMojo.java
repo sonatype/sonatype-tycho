@@ -18,7 +18,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
-import org.apache.maven.project.interpolation.ModelInterpolationException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.Arg;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
@@ -392,17 +391,8 @@ public class TestMojo extends AbstractMojo {
 		for (BundleDescription bundle : getReactorBundles()) {
 			MavenProject project = state.getMavenProject(bundle);
 			if ("eclipse-test-plugin".equals(project.getPackaging())) {
-				try {
-					projectBuilder.calculateConcreteState(project, session.getProjectBuilderConfiguration());
-					try {
-						Build build = project.getBuild();
-						dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
-					} finally {
-						projectBuilder.restoreDynamicState(project, session.getProjectBuilderConfiguration());
-					}
-				} catch (ModelInterpolationException e) {
-					throw new MojoExecutionException("Could not create dev.properties file", e);
-				}
+				Build build = project.getBuild();
+				dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
 			}
 		}
 

@@ -17,7 +17,6 @@ import org.apache.maven.model.Activation;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Profile;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.interpolation.ModelInterpolationException;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.osgitools.OsgiState;
@@ -33,37 +32,12 @@ public class EclipseMaven extends DefaultMaven {
 
 	@Override
 	protected List getProjects(MavenExecutionRequest request) throws MavenExecutionException {
-		request.getProperties().put("tycho-version", TychoVersion.getTychoVersion());
+		request.setProperty("tycho-version", TychoVersion.getTychoVersion());
 		List<MavenProject> projects = super.getProjects(request);
 
-		calculateConcreteState(projects, request);
+		resolveOSGiState(projects, request);
 
-		try {
-			resolveOSGiState(projects, request);
-		} finally {
-			restoreDynamicState(projects, request);
-		}
 		return projects;
-	}
-
-	public void restoreDynamicState(List<MavenProject> projects, MavenExecutionRequest request) {
-		for (MavenProject project : projects) {
-			try {
-				projectBuilder.restoreDynamicState(project, request.getProjectBuildingConfiguration());
-			} catch (ModelInterpolationException e) {
-				// ignore
-			}
-		}
-	}
-
-	public void calculateConcreteState(List<MavenProject> projects, MavenExecutionRequest request) {
-		for (MavenProject project : projects) {
-			try {
-				projectBuilder.calculateConcreteState(project, request.getProjectBuildingConfiguration());
-			} catch (ModelInterpolationException e) {
-				// ignore
-			}
-		}
 	}
 
 	private void resolveOSGiState(List<MavenProject> projects,
