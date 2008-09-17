@@ -95,7 +95,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			classpathElements.add(getOutputDirectory().getAbsolutePath());
 		}
 		
-//		projectArtifact.setFile(getOutputDirectory());
+		projectArtifact.setFile(getOutputDirectory());
 	}
 
 	private List<String> getLibraries() throws MojoExecutionException {
