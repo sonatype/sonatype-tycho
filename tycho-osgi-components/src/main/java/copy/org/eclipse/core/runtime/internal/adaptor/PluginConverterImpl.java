@@ -264,8 +264,8 @@ public class PluginConverterImpl implements PluginConverter {
 		long start = System.currentTimeMillis();
 		try {
 			File parentFile = new File(generationLocation.getParent());
-			//TODO just checking parentFile.mkdirs();
-			FileUtils.forceMkdir(parentFile);
+			parentFile.mkdirs();
+
 			generationLocation.createNewFile();
 			if (!generationLocation.isFile()) {
 				String message = NLS.bind(EclipseAdaptorMsg.ECLIPSE_CONVERTER_ERROR_CREATING_BUNDLE_MANIFEST, this.pluginInfo.getUniqueId(), generationLocation);
