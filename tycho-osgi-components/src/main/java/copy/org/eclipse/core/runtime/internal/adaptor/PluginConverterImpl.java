@@ -36,6 +36,7 @@ import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.adaptor.LocationManager;
 import org.eclipse.core.runtime.internal.adaptor.EclipseAdaptorMsg;
 import org.eclipse.core.runtime.internal.adaptor.IModel;
@@ -263,7 +264,8 @@ public class PluginConverterImpl implements PluginConverter {
 		long start = System.currentTimeMillis();
 		try {
 			File parentFile = new File(generationLocation.getParent());
-			parentFile.mkdirs();
+			//TODO just checking parentFile.mkdirs();
+			FileUtils.forceMkdir(parentFile);
 			generationLocation.createNewFile();
 			if (!generationLocation.isFile()) {
 				String message = NLS.bind(EclipseAdaptorMsg.ECLIPSE_CONVERTER_ERROR_CREATING_BUNDLE_MANIFEST, this.pluginInfo.getUniqueId(), generationLocation);
