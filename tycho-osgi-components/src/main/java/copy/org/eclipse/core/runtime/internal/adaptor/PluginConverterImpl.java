@@ -36,7 +36,6 @@ import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.adaptor.LocationManager;
 import org.eclipse.core.runtime.internal.adaptor.EclipseAdaptorMsg;
 import org.eclipse.core.runtime.internal.adaptor.IModel;
