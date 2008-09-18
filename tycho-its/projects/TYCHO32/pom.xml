@@ -18,11 +18,11 @@
           <value>http://java.sun.com/</value>          
         </property>
       </activation>
+    </profile>
+  </profiles>
       <properties>
         <tycho.test.jvmArgs>-Dtest.property=test-value</tycho.test.jvmArgs>
       </properties>
-    </profile>
-  </profiles>
 
   <build>
     <pluginManagement>
@@ -47,7 +47,6 @@
           <artifactId>maven-osgi-test-plugin</artifactId>
           <version>${tycho-version}</version>
           <configuration>
-            <useUIHarness>true</useUIHarness>
             <includes>
               <include>**/*Test.java</include>
             </includes>

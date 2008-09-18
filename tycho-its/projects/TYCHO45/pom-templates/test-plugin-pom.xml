@@ -13,7 +13,8 @@
         <artifactId>maven-osgi-test-plugin</artifactId>
         <version>${tycho-version}</version>
         <configuration>
-          <useUIHarness>true</useUIHarness>
+          <!-- headless harness works better for headless linux builds  -->
+          <useUIHarness>false</useUIHarness>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
         </configuration>
       </plugin>

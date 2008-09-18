@@ -46,10 +46,18 @@ public abstract class AbstractTychoIntegrationTest {
 	}
 
 	protected Verifier getVerifier(String test) throws Exception {
+		/*
+		Test JVM can be started in debug mode by passing the following
+		env to execute(...) methods.
+
+        Map<String, String> env = new HashMap<String, String>();
+        env.put("MAVEN_OPTS", "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000");
+		 */
+		
         System.setProperty("maven.home", getTychoHome()); // XXX do I really need this?
 
         File testDir = getBasedir(test);
-
+        
         Verifier verifier = new Verifier( testDir.getAbsolutePath() );
         verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + getTargetPlatforn() );
         verifier.getCliOptions().add("-X");
