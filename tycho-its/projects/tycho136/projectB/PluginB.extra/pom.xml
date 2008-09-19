@@ -7,7 +7,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>tycho136.projectB</groupId>
-  <artifactId>PluginB</artifactId>
+  <artifactId>PluginB.extra</artifactId>
   <version>1.0.0</version>
   <packaging>eclipse-plugin</packaging>
 

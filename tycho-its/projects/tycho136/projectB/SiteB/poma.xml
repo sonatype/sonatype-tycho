@@ -13,6 +13,7 @@
   <modules>
     <module>../FeatureB</module>
     <module>../PluginB</module>
+    <module>../PluginB.extra</module>
     <module>.</module>
   </modules>
 </project>
