@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -63,7 +65,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	private org.apache.maven.artifact.repository.ArtifactRepository localRepository;
 
 	/** @parameter expression="${project.remoteArtifactRepositories}" */
-	private java.util.List remoteRepositories;
+	private java.util.List<ArtifactRepository> remoteRepositories;
 
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
@@ -189,14 +191,28 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				Properties props = new Properties();
 				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
 
-				for (Feature.PluginRef plugin : feature.getPlugins()) {
-					packagePlugin(plugin, archives, isPack200);
+				List<PluginRef> plugins = feature.getPlugins();
+				for (Feature.PluginRef plugin : plugins) {
+					String pluginId = plugin.getId();
+					//check if should be generated
+					String key = "generate.plugin@" + pluginId;
+					if(props.containsKey(key)) {
+						//plugins copy
+						List<Feature.PluginRef> filteredPlugins = new ArrayList<PluginRef>(plugins);
+						//generate source plugin shouldn't be present at generation
+						filteredPlugins.remove(plugin);
+						
+						generateSourcePlugin(pluginId, filteredPlugins, feature.getVersion(), isPack200);
+					} else {
+						packagePlugin(plugin, archives, isPack200);
+					}
 				}
 	
 				for (IFeatureRef includedRef : feature.getIncludedFeatures()) {
+					String key = "generate.feature@" + includedRef.getId();
 					//check if should be generated
-					if(props.containsKey("generate.feature@" + includedRef.getId())) {
-						generateSourceFeature(includedRef, props.getProperty("generate.feature@" + includedRef.getId()), isPack200);
+					if(props.containsKey(key)) {
+						generateSourceFeature(includedRef, props.getProperty(key), isPack200);
 					} else {
 						packageFeature(includedRef, archives, isPack200);
 					}
