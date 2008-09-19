@@ -4,17 +4,20 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -36,6 +39,7 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.IFeatureRef;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.model.Feature.PluginRef;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
@@ -49,6 +53,18 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	/** @component */
 	private OsgiState state;
 
+	/** @component */
+	private org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
+
+	/** @component */
+	private org.apache.maven.artifact.resolver.ArtifactResolver resolver;
+
+	/**@parameter expression="${localRepository}" */
+	private org.apache.maven.artifact.repository.ArtifactRepository localRepository;
+
+	/** @parameter expression="${project.remoteArtifactRepositories}" */
+	private java.util.List remoteRepositories;
+
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
 
@@ -57,6 +73,9 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	/** @parameter expression="${project.build.directory}/features" */
 	private File features;
+
+	/** @parameter expression="${project.build.directory}/plugins" */
+	private File plugins;
 	
 	/** @parameter expression="${project.basedir}" */
 	private File basedir;
@@ -151,8 +170,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		Feature feature = state.getFeature(featureRef.getId(), featureRef.getVersion());
 
 		if (feature == null) { 
-			String groupId = featureRef.getId().substring(0, featureRef.getId().lastIndexOf('.'));
-			throw new ArtifactResolutionException("Feature " + featureRef.getId() + " not found", groupId, featureRef.getId(), featureRef.getVersion(), "eclipse-feature", null, null)  ;
+			throw new ArtifactResolutionException("Feature " + featureRef.getId() + " not found", "", featureRef.getId(), featureRef.getVersion(), "eclipse-feature", null, null)  ;
 		}
 
 		String artifactId = feature.getId();
@@ -168,12 +186,20 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			if (featureProject != null) {
 				feature = new Feature(feature);
 
+				Properties props = new Properties();
+				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
+
 				for (Feature.PluginRef plugin : feature.getPlugins()) {
 					packagePlugin(plugin, archives, isPack200);
 				}
 	
 				for (IFeatureRef includedRef : feature.getIncludedFeatures()) {
-					packageFeature(includedRef, archives, isPack200);
+					//check if should be generated
+					if(props.containsKey("generate.feature@" + includedRef.getId())) {
+						generateSourceFeature(includedRef, props.getProperty("generate.feature@" + includedRef.getId()), isPack200);
+					} else {
+						packageFeature(includedRef, archives, isPack200);
+					}
 				}
 	
 				feature.setVersion(version);
@@ -182,8 +208,6 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				Feature.write(feature, featureFile);
 	
 				outputJar.getParentFile().mkdirs();
-				Properties props = new Properties();
-				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
 				String[] binIncludes = props.getProperty("bin.includes").split(",");
 				String files[] = Util.getIncludedFiles(featureProject.getBasedir(),	binIncludes);
 	
@@ -216,6 +240,101 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			((UpdateSite.FeatureRef) featureRef).setUrl(url);
 		}
 		featureRef.setVersion(version);
+	}
+
+	private void generateSourceFeature(IFeatureRef generateFeature, String baseFeatureId,
+			boolean isPack200) throws Exception {
+		Feature baseFeature = state.getFeature(baseFeatureId, generateFeature.getVersion());
+
+		String artifactId = generateFeature.getId();
+		String version = baseFeature.getVersion();
+
+		File featureFile = new File(features, artifactId + "-feature.xml");
+		
+		//TODO check if tycho already has something to write a new feature
+		FileWriter fw = new FileWriter(featureFile);
+		fw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append('\n');
+		fw.append("<feature id=\"" + artifactId + "\" version=\"" + version + "\" primary=\"false\" >").append('\n');
+		fw.append("\t<plugin id=\"" + artifactId + "\" version=\"" + version + "\" fragment=\"false\" download-size=\"0\" install-size=\"0\"/>").append('\n');
+		fw.append("</feature>").append('\n');
+		fw.flush();
+		fw.close();
+
+		String url = "features/" + artifactId + "_" + version + ".jar";
+		File outputJar = new File(target, url);
+
+		//TODO refactor to promote reuse with packageFeature
+		JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
+		jarArchiver.setDestFile(outputJar);
+		jarArchiver.addFile(featureFile, "feature.xml");
+		jarArchiver.createArchive();
+
+		if(sign) {
+			signJar(outputJar);
+		}
+		if(isPack200) {
+	        shipPack200(outputJar, url);
+		}
+
+		generateSourcePlugin(artifactId, baseFeature.getPlugins(), version, isPack200);
+	}
+
+	private void generateSourcePlugin(String artifactId, List<PluginRef> plugins, String version, boolean isPack200) throws Exception {
+		File pluginFolder = new File(this.plugins, artifactId );
+		pluginFolder.mkdirs();
+
+		File pluginFile = new File(pluginFolder, "plugin.xml");
+		
+		//TODO check if tycho already has something to write a new feature
+		FileWriter fw = new FileWriter(pluginFile);
+		fw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append('\n');
+		fw.append("<?eclipse version=\"3.0\"?>").append('\n');
+		fw.append("<plugin>").append('\n');
+		fw.append("\t<extension point = \"org.eclipse.pde.core.source\">").append('\n');
+		fw.append("\t\t<location path=\"src\" />").append('\n');
+		fw.append("\t</extension>").append('\n');
+		fw.append("</plugin>").append('\n');
+		fw.flush();
+		fw.close();
+		
+		for (PluginRef pluginRef : plugins) {
+			String bundleId = pluginRef.getId();
+			String bundleVersion = pluginRef.getVersion();
+			
+			if ("0.0.0".equals(bundleVersion)) {
+				bundleVersion = OsgiState.HIGHEST_VERSION;
+			}
+			
+			BundleDescription bundle = state.getBundleDescription(bundleId, bundleVersion);
+			if (bundle == null) {
+				throw new MojoExecutionException("Can't find bundle " + bundleId);
+			}
+			MavenProject bundleProject = state.getMavenProject(bundle);
+
+			//resolve source artifact
+			Artifact bundleSourceArtifact = artifactFactory.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), bundleProject.getPackaging(), "sources");
+			resolver.resolve(bundleSourceArtifact, remoteRepositories, localRepository);
+			
+			File pluginSrc = new File(pluginFolder, "src/" + bundleId + "_" + bundleProject.getVersion() + "/src.zip");
+			FileUtils.copyFile(bundleSourceArtifact.getFile(), pluginSrc);
+		}
+
+		String url = "plugins/" + artifactId + "_" + version + ".jar";
+		File outputJar = new File(target, url);
+
+		//TODO refactor to promote reuse with packageFeature
+		JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
+		jarArchiver.setDestFile(outputJar);
+		jarArchiver.addDirectory(pluginFolder);
+		jarArchiver.createArchive();
+
+		if(sign) {
+			signJar(outputJar);
+		}
+		if(isPack200) {
+	        shipPack200(outputJar, url);
+		}
+		
 	}
 
 	private String expandVerstion(String version) {
