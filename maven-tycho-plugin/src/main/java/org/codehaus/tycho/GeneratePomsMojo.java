@@ -264,7 +264,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private void generateUpdateSitePom(Model parent, File basedir) throws MojoExecutionException {
 		if (groupId == null) {
-			throw new MojoExecutionException("goupId parameter is required to generate pom.xml for Update Site project " + basedir.getName());
+			throw new MojoExecutionException("groupId parameter is required to generate pom.xml for Update Site project " + basedir.getName());
 		}
 		if (version == null) {
 			throw new MojoExecutionException("version parameter is required to generate pom.xml for Update Site project " + basedir.getName());
