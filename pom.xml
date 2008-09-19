@@ -17,6 +17,7 @@
     <module>maven-targetplatform-plugin</module>
     <module>maven-osgi-packaging-plugin</module>
     <module>maven-osgi-compiler-plugin</module>
+    <module>maven-osgi-source-plugin</module>
     <module>tycho-compiler-jdt</module>
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
@@ -182,6 +183,13 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.2</version>
         <type>maven-plugin</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <type>maven-plugin</type>
+        <version>2.0.5-SNAPSHOT</version>
       </dependency>
 
     </dependencies>
