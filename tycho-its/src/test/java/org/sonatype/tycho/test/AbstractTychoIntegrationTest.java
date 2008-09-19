@@ -50,7 +50,7 @@ public abstract class AbstractTychoIntegrationTest {
 		Test JVM can be started in debug mode by passing the following
 		env to execute(...) methods.
 
-        Map<String, String> env = new HashMap<String, String>();
+        java.util.Map<String, String> env = new java.util.HashMap<String, String>();
         env.put("MAVEN_OPTS", "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000");
 		 */
 		
