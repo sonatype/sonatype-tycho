@@ -14,6 +14,7 @@
     <module>../FeatureA</module>
     <module>../FeatureA.sdk</module>
     <module>../PluginA</module>
+    <module>../PluginA.Extra</module>
     <module>.</module>
   </modules>
 </project>

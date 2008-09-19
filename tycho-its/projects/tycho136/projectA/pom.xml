@@ -9,6 +9,7 @@
     <module>FeatureA</module>
     <module>FeatureA.sdk</module>
     <module>PluginA</module>
+    <module>PluginA.Extra</module>
     <module>SiteA</module>
   </modules>
 </project>
