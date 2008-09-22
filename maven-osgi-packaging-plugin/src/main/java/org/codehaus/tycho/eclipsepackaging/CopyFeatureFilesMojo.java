@@ -30,7 +30,6 @@ import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgitools.BundleFile;
 import org.codehaus.tycho.osgitools.OsgiState;
-import org.codehaus.tycho.osgitools.OsgiStateController;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -274,7 +273,7 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 			String id = a.getArtifactId();
 			if (!ArrayUtils.contains(featurePlugins, id))
 			{
-				getLog().error("Plugin found in POM but not in feature: " + id);
+				logValidate("Plugin found in POM but not in feature: " + id);
 				fail = true;
 			}
 		}
@@ -292,7 +291,7 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 			if (found == false)
 			{
 				fail = true;
-				getLog().error("Plugin found in feature but not in POM: " + id);
+				logValidate("Plugin found in feature but not in POM: " + id);
 			}
 		}
 
@@ -301,6 +300,14 @@ public class CopyFeatureFilesMojo extends AbstractMojo
 			throw new MojoFailureException("validation failed");
 		}
 
+	}
+
+	private void logValidate(String content) {
+		if(failOnError) {
+			getLog().error(content);
+		} else {
+			getLog().warn(content);
+		}
 	}
 
 }
