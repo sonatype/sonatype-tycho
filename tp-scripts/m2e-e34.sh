@@ -17,8 +17,8 @@ wget -P $TPDIR  -N http://download.eclipse.org/webtools/downloads/drops/R3.0/R-3
 # zest 3.4 GA
 wget -P $TPDIR  -N http://download.eclipse.org/tools/gef/downloads/drops/3.4.0/R200806091334/GEF-zest-sdk-3.4.0.zip
 
-# AJDT 1.6 *DEV* build (will likely need to change frequently until 1.6 GA is declared)
-wget -P $TPDIR/sites  -N http://download.eclipse.org/tools/ajdt/34/dev/update/ajdt_1.6.0.200808151716_archive.zip
+# AJDT 1.6.0
+wget -P $TPDIR/sites  -N http://download.eclipse.org/tools/ajdt/34/update/ajdt_1.6.0_for_eclipse_3.4.zip
 
 # subclipse 1.4.3
 wget -P $TPDIR/sites -N http://subclipse.tigris.org/files/documents/906/43326/site-1.4.3.zip
