@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +21,7 @@ import java.util.jar.Manifest;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -31,6 +33,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.plexus.archiver.jar.Manifest.Attribute;
 import org.codehaus.plexus.archiver.pack200.Pack200Archiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
@@ -212,7 +215,12 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 					String key = "generate.feature@" + includedRef.getId();
 					//check if should be generated
 					if(props.containsKey(key)) {
-						generateSourceFeature(includedRef, props.getProperty(key), isPack200);
+						boolean individualSourceBundle = "true".equals(props.getProperty("individualSourceBundles"));
+						if(individualSourceBundle) {
+							generateIndividualSourceFeature(includedRef, props.getProperty(key), isPack200);
+						} else {
+							generateSourceFeature(includedRef, props.getProperty(key), isPack200);
+						}
 					} else {
 						packageFeature(includedRef, archives, isPack200);
 					}
@@ -258,20 +266,55 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		featureRef.setVersion(version);
 	}
 
+	private void generateIndividualSourceFeature(IFeatureRef generateFeature, String baseFeatureId, boolean isPack200) throws Exception {
+		Feature baseFeature = state.getFeature(baseFeatureId, generateFeature.getVersion());
+
+		String artifactId = generateFeature.getId();
+		String version = baseFeature.getVersion();
+		generateFeature.setVersion(version);
+		List<Plugin> plugins = new ArrayList<Plugin>();
+
+		
+		for (PluginRef pluginRef : baseFeature.getPlugins()) {
+			String bundleId = pluginRef.getId();
+			String bundleVersion = getPluginVersion(pluginRef);
+			plugins.add(new Plugin(bundleId + ".source", bundleVersion));
+			
+			generateIndividualSourceBundle(bundleId, bundleVersion, isPack200);
+		}
+
+		generateSourceFeature(isPack200, artifactId, version, plugins);
+		
+	}
+
 	private void generateSourceFeature(IFeatureRef generateFeature, String baseFeatureId,
 			boolean isPack200) throws Exception {
 		Feature baseFeature = state.getFeature(baseFeatureId, generateFeature.getVersion());
 
 		String artifactId = generateFeature.getId();
 		String version = baseFeature.getVersion();
+		generateFeature.setVersion(version);
+		
+		List<Plugin> plugins = new ArrayList<Plugin>();
+		plugins.add(new Plugin(artifactId, version));
 
+		generateSourceFeature(isPack200, artifactId, version, plugins);
+
+		generateSourcePlugin(artifactId, baseFeature.getPlugins(), version, isPack200);
+	}
+
+	private void generateSourceFeature(boolean isPack200, String artifactId,
+			String version, List<Plugin> plugins) throws IOException, ComponentLookupException,
+			ArchiverException, MojoExecutionException {
 		File featureFile = new File(features, artifactId + "-feature.xml");
 		
 		//TODO check if tycho already has something to write a new feature
 		FileWriter fw = new FileWriter(featureFile);
 		fw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append('\n');
 		fw.append("<feature id=\"" + artifactId + "\" version=\"" + version + "\" primary=\"false\" >").append('\n');
-		fw.append("\t<plugin id=\"" + artifactId + "\" version=\"" + version + "\" fragment=\"false\" download-size=\"0\" install-size=\"0\"/>").append('\n');
+		for (Plugin plugin : plugins) {
+			fw.append("\t<plugin id=\"" + plugin.getArtifactId() + "\" version=\"" + plugin.getVersion() + "\" />").append('\n');
+		}
 		fw.append("</feature>").append('\n');
 		fw.flush();
 		fw.close();
@@ -291,10 +334,36 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		if(isPack200) {
 	        shipPack200(outputJar, url);
 		}
-
-		generateSourcePlugin(artifactId, baseFeature.getPlugins(), version, isPack200);
 	}
 
+	private void generateIndividualSourceBundle(String bundleId,
+			String bundleVersion, boolean isPack200) throws Exception {
+		File pluginFolder = new File(this.plugins, bundleId );
+		pluginFolder.mkdirs();
+
+		Artifact bundleSourceArtifact = getSourceBundle(bundleId, bundleVersion);
+		Util.extractJar(bundleSourceArtifact.getFile(), pluginFolder);
+		
+		org.codehaus.plexus.archiver.jar.Manifest manifest = new org.codehaus.plexus.archiver.jar.Manifest(new FileReader(new File(pluginFolder, "META-INF/MANIFEST.MF")));
+		manifest.getMainSection().addAttributeAndCheck(new Attribute("Eclipse-SourceBundle", bundleId + ";version=\"" + bundleSourceArtifact.getVersion() + "\""));
+		
+		String url = "plugins/" + bundleId + ".source_" + bundleSourceArtifact.getVersion() + ".jar";
+		File outputJar = new File(target, url);
+
+		JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
+		jarArchiver.setDestFile(outputJar);
+		jarArchiver.addDirectory(pluginFolder);
+		jarArchiver.addConfiguredManifest(manifest);
+		jarArchiver.createArchive();
+
+		if(sign) {
+			signJar(outputJar);
+		}
+		if(isPack200) {
+	        shipPack200(outputJar, url);
+		}
+	}
+	
 	private void generateSourcePlugin(String artifactId, List<PluginRef> plugins, String version, boolean isPack200) throws Exception {
 		File pluginFolder = new File(this.plugins, artifactId );
 		pluginFolder.mkdirs();
@@ -315,23 +384,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		
 		for (PluginRef pluginRef : plugins) {
 			String bundleId = pluginRef.getId();
-			String bundleVersion = pluginRef.getVersion();
+			String bundleVersion = getPluginVersion(pluginRef);
 			
-			if ("0.0.0".equals(bundleVersion)) {
-				bundleVersion = OsgiState.HIGHEST_VERSION;
-			}
+			Artifact bundleSourceArtifact = getSourceBundle(bundleId, bundleVersion);
 			
-			BundleDescription bundle = state.getBundleDescription(bundleId, bundleVersion);
-			if (bundle == null) {
-				throw new MojoExecutionException("Can't find bundle " + bundleId);
-			}
-			MavenProject bundleProject = state.getMavenProject(bundle);
-
-			//resolve source artifact
-			Artifact bundleSourceArtifact = artifactFactory.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), bundleProject.getPackaging(), "sources");
-			resolver.resolve(bundleSourceArtifact, remoteRepositories, localRepository);
-			
-			File pluginSrc = new File(pluginFolder, "src/" + bundleId + "_" + bundleProject.getVersion() + "/src.zip");
+			File pluginSrc = new File(pluginFolder, "src/" + bundleId + "_" + bundleSourceArtifact.getVersion() + "/src.zip");
 			FileUtils.copyFile(bundleSourceArtifact.getFile(), pluginSrc);
 		}
 
@@ -351,6 +408,35 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	        shipPack200(outputJar, url);
 		}
 		
+	}
+
+	private Artifact getSourceBundle(String bundleId, String bundleVersion) throws MojoExecutionException, ArtifactResolutionException, ArtifactNotFoundException {
+		BundleDescription bundle = state.getBundleDescription(bundleId, bundleVersion);
+		if (bundle == null) {
+			throw new MojoExecutionException("Can't find bundle " + bundleId);
+		}
+		MavenProject bundleProject = state.getMavenProject(bundle);
+
+		//resolve source artifact
+		Artifact bundleSourceArtifact = artifactFactory.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), "jar", "sources");
+		resolver.resolve(bundleSourceArtifact, remoteRepositories, localRepository);
+		return bundleSourceArtifact;
+	}
+
+	private String getPluginVersion(PluginRef pluginRef) throws MojoExecutionException {
+		String bundleVersion = pluginRef.getVersion();
+		
+		if ("0.0.0".equals(bundleVersion)) {
+			bundleVersion = OsgiState.HIGHEST_VERSION;
+		}
+		
+		BundleDescription bundle = state.getBundleDescription(pluginRef.getId(), bundleVersion);
+		if (bundle == null) {
+			throw new MojoExecutionException("Can't find bundle " + pluginRef.getId());
+		}
+		MavenProject bundleProject = state.getMavenProject(bundle);
+		
+		return bundleProject.getVersion();
 	}
 
 	private String expandVerstion(String version) {
