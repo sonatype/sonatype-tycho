@@ -39,6 +39,9 @@ public interface OsgiState {
 
 	Manifest loadManifest(File bundleLocation);
 
+	/**
+	 * Returns all bundles known to this state.
+	 */
 	BundleDescription[] getBundles();
 
 	StateHelper getStateHelper();
@@ -53,7 +56,7 @@ public interface OsgiState {
 
 	MavenProject getMavenProject(BundleDescription model);
 
-	void init(File targetPlatform, File workspace, Properties props);
+	void init(File targetPlatform, Properties props);
 
 	BundleDescription getBundleDescription(String symbolicName, String version);
 

@@ -116,6 +116,12 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public OsgiStateController() {
 		patchBundles = new HashMap();
+
+		String property = System.getProperty("user.home");
+		if (property != null) {
+			outputDir = new File(property, ".m2/tycho/manifests");
+			outputDir.mkdirs();
+		}
 	}
 
 	private void loadTargetPlatform(File platform, boolean forceP2) {
@@ -552,7 +558,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return getManifestAttribute(desc, ATTR_GROUP_ID);
 	}
 
-	public void init(File targetPlatform, File workspace, Properties props) {
+	public void init(File targetPlatform, Properties props) {
 		boolean forceP2 = targetPlatform != null;
 
 		state = factory.createState(true);
@@ -578,23 +584,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		}
 		
 		this.targetPlatform = targetPlatform;
-
-		if (workspace != null) {
-			try {
-				this.outputDir = new File(workspace, "TYCHO").getCanonicalFile();
-			} catch (IOException e) {
-				// hmmm
-			}
-		}
-		if (this.outputDir == null) {
-			try {
-				this.outputDir = File.createTempFile("TYCHO", null);
-			} catch (IOException e) {
-				// double hmmm
-				throw new RuntimeException(e);
-			}
-		}
-		this.outputDir.mkdirs();
 
 		loadTargetPlatform(targetPlatform, forceP2);
 	}

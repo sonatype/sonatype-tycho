@@ -184,10 +184,19 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	public void testPre30() throws Exception {
 		File targetPlatform = new File("src/test/resources/targetplatforms/pre-3.0");
-		File workspace = new File("target/workspace");
 		Properties props = new Properties(System.getProperties());
 		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
-		state.init(null, workspace, props);
+		state.init(null, props);
+
+		assertNotNull(state.getBundleDescription("testjar", "1.0.0"));
+		assertNotNull(state.getBundleDescription("testdir", "1.0.0"));
+	}
+
+	public void testPre30NoProjects() throws Exception {
+		File targetPlatform = new File("src/test/resources/targetplatforms/pre-3.0");
+		Properties props = new Properties(System.getProperties());
+		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
+		state.init(null, props);
 
 		assertNotNull(state.getBundleDescription("testjar", "1.0.0"));
 		assertNotNull(state.getBundleDescription("testdir", "1.0.0"));

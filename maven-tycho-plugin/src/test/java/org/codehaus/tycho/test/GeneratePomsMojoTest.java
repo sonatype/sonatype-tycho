@@ -26,8 +26,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		OsgiState state = (OsgiState) lookup(OsgiState.class);
-		File baseDir = new File(getBasedir(), "target");
-		state.init(null, new File(baseDir, "workspace"), new Properties());
+		state.init(null, new Properties());
 	}
 
 	private void generate(File baseDir, Map<String, Object> params) throws Exception {

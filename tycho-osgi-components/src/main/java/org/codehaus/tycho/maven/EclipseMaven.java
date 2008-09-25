@@ -44,11 +44,9 @@ public class EclipseMaven extends DefaultMaven {
 			MavenExecutionRequest request) throws MavenExecutionException {
 		Properties props = getGlobalProperties(request);
 
-		File workspace = null;
 		File targetPlatform = null;
 		if (projects.size() > 0) {
 			MavenProject parent = projects.get(0);
-			workspace = new File(parent.getBuild().getDirectory());
 
 			List<String> repositories = getP2Repositories(projects, request);
 			List<Artifact> rootIUs = getP2Dependencies(projects, request);
@@ -60,7 +58,7 @@ public class EclipseMaven extends DefaultMaven {
 			}
 		}
 
-		state.init(targetPlatform, workspace, props);
+		state.init(targetPlatform, props);
 
 		for (MavenProject project : projects) {
 			try {
