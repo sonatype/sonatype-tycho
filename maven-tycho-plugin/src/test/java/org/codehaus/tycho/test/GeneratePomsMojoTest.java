@@ -103,11 +103,9 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 
 		Model parent1 = readModel(baseDir, "base1/pom.xml");
 		List<String> modules1 = parent1.getModules();
-		assertEquals(3, modules1.size());
+		assertEquals(6, modules1.size());
 
-		Model parent2 = readModel(baseDir, "base2/pom.xml");
-		List<String> modules2 = parent2.getModules();
-		assertEquals(3, modules2.size());
+		assertFalse(new File(baseDir, "base2/pom.xml").exists());
 
 		Model aggmodel = readModel(baseDir, "base2/p006/poma.xml");
 		List<String> aggrmodules = aggmodel.getModules();
@@ -171,5 +169,21 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 
 		assertEquals("eclipse-test-plugin", readModel(baseDir, "p001.tests/pom.xml").getPackaging());
 		assertEquals("eclipse-test-plugin", readModel(baseDir, "p004/pom.xml").getPackaging());
+	}
+
+	public void testRootProjects() throws Exception {
+		File baseDir = getBasedir("projects/rootprojects");
+		Map<String, Object> params  = new HashMap<String, Object>();
+		params.put("groupId", "group");
+		params.put("version", "1.0.0");
+		params.put("aggregator", Boolean.TRUE);
+		params.put("rootProjects", new File(baseDir, "p004").getCanonicalPath());
+		generate(baseDir, params);
+
+		Model parent = readModel(baseDir, "pom.xml");
+		assertEquals(3, parent.getModules().size());
+		
+		Model aggmodel = readModel(baseDir, "p004/poma.xml");
+		assertEquals(3, aggmodel.getModules().size()); // don't forger . module
 	}
 }

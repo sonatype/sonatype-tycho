@@ -8,15 +8,14 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import org.apache.maven.model.Model;
@@ -104,67 +103,151 @@ public class GeneratePomsMojo extends AbstractMojo {
 	 * @parameter expression="${templatesDir}" default-value="${basedir}/pom-templates"
 	 */
 	private File templatesDir;
+	
+	/**
+	 * Comma separated list of root project folders. If specified, generated
+	 * pom.xml files will only include root projects and projects directly
+	 * and indirectly referecned by the root projects.
+	 * 
+	 * @parameter expression="${rootProjects}" default-value=".tests"
+	 */
+	private String rootProjects;
 
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
-	
+
 	private Map<File, Model> updateSites = new LinkedHashMap<File, Model>();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		File[] baseDirs = getBaseDirs();
+		List<File> baseDirs = getBaseDirs();
 		if (getLog().isDebugEnabled()) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("baseDir=").append(toString(baseDir)).append('\n');
 			sb.append("extraDirs=").append(extraDirs).append('\n');
-			for (int i = 0; i < baseDirs.length; i++) {
-				sb.append("dir[").append(i).append("]=").append(toString(baseDirs[i])).append('\n');
+			for (int i = 0; i < baseDirs.size(); i++) {
+				sb.append("dir[").append(i).append("]=").append(toString(baseDirs.get(i))).append('\n');
 			}
 			getLog().debug(sb.toString());
 		}
+
+		List<File> rootProjects = getRootProjects();
+		if (getLog().isDebugEnabled()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("rootProjects=").append(this.rootProjects);
+			for (int i = 0; i < rootProjects.size(); i++) {
+				sb.append("rootProject[").append(i).append("]=").append(toString(rootProjects.get(i))).append('\n');
+			}
+			getLog().debug(sb.toString());
+		}
+		
+		// add all bundles to osgi state
 		for (File basedir : baseDirs) {
-			getLog().info("Scanning " + toString(basedir) + " basedir");
-			if (!generatePom(null, basedir)) {
-				if (groupId == null) {
-					throw new MojoExecutionException("groupId is required");
+			if (isProjectDir(basedir)) {
+				if (isPluginProject(basedir)) {
+					try {
+						state.addBundle(basedir);
+					} catch (BundleException e) {
+						getLog().debug("Exception prescanning OSGi bundles", e);
+					}
 				}
-				Model parent = readPomTemplate("parent-pom.xml");
-				parent.setGroupId(groupId);
-				parent.setArtifactId(basedir.getName());
-				parent.setVersion(version);
+			} else {
 				File[] listFiles = basedir.listFiles();
-				if (null == listFiles) {
-					listFiles = new File[0];
-				}
-				Set<File> dirs = new TreeSet<File>(Arrays.asList(listFiles));
-				if (dirs != null) {
-					for (File dir : dirs) {
-						if (generatePom(parent, dir)) {
-							parent.addModule(getModuleName(basedir, dir));
+				if (listFiles != null) {
+					for (File file : listFiles) {
+						if (isPluginProject(file)) {
+							try {
+								state.addBundle(file);
+							} catch (BundleException e) {
+								getLog().debug("Exception prescanning OSGi bundles", e);
+							}
 						}
 					}
 				}
-				File testSuiteLocation = null;
-				if (testSuite != null) {
-					BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
-					if (bundle != null) {
-						testSuiteLocation = new File(bundle.getLocation());
+				
+			}
+		}
+		state.resolveState();
+
+		Set<File> projects = new LinkedHashSet<File>();
+		
+		// always add baseDir
+		projects.add(baseDirs.get(0));
+
+		if (rootProjects.size() > 0) {
+			for (File rootProject : rootProjects) {
+				getLog().info("Resolving root project " + toString(rootProject));
+				if (isUpdateSiteProject(rootProject)) {
+					projects.add(rootProject);
+					projects.addAll(getSiteFeaturesAndPlugins(rootProject));
+				} else {
+					getLog().warn("Unsupported root project " + toString(rootProject));
+				}
+			}
+		} else {
+			for (File basedir : baseDirs) {
+				getLog().info("Scanning " + toString(basedir) + " basedir");
+				if (isProjectDir(basedir)) {
+					projects.add(basedir);
+				} else {
+					File[] listFiles = basedir.listFiles();
+					if (listFiles != null) {
+						for (File file : listFiles) {
+							if (isProjectDir(file)) {
+								projects.add(file);					
+							}
+						}
 					}
 				}
-				reorderModules(parent, basedir, testSuiteLocation);
-				writePom(basedir, parent);
 			}
 		}
 
-		File testSuiteLocation = null;
-		if (testSuite != null) {
-			BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
-			if (bundle == null) {
-				throw new MojoExecutionException("Cannot find project defining testSuite " + testSuite);
+		if (getLog().isDebugEnabled()) {
+			getLog().debug("Collected " + projects.size() + " projects");
+			for (File dir : projects) {
+				getLog().debug("\t" + toString(dir));
 			}
-			testSuiteLocation = new File(bundle.getLocation());
 		}
 
-		generateAggregatorPoms(testSuiteLocation);
+		// write poms
+		Iterator<File> projectIter = projects.iterator();
+		File parentDir = projectIter.next();
+		if (!projectIter.hasNext()) {
+			if (isProjectDir(parentDir)) {
+				generatePom(null, parentDir);
+			} else {
+				throw new MojoExecutionException("Could not find any valid projects");
+			}
+		} else {
+			Model parent = readPomTemplate("parent-pom.xml");
+			parent.setGroupId(groupId);
+			parent.setArtifactId(parentDir.getName());
+			parent.setVersion(version);
+			while (projectIter.hasNext()) {
+				File projectDir = projectIter.next();
+				generatePom(parent, projectDir);
+				parent.addModule(getModuleName(parentDir, projectDir));
+			}
+			File testSuiteLocation = null;
+			if (testSuite != null) {
+				BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
+				if (bundle != null) {
+					testSuiteLocation = new File(bundle.getLocation());
+				}
+			}
+			reorderModules(parent, parentDir, testSuiteLocation);
+			writePom(parentDir, parent);
+			generateAggregatorPoms(testSuiteLocation);
+		}
+	}
+
+	private List<File> getRootProjects() {
+		return toFileList(rootProjects);
+	}
+
+	private boolean isProjectDir(File dir) {
+		return isPluginProject(dir)
+				|| isFeatureProject(dir)
+				|| isUpdateSiteProject(dir);
 	}
 
 	private void reorderModules(Model parent, File basedir, File testSuiteLocation) throws MojoExecutionException {
@@ -189,20 +272,33 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 	}
 
-	private File[] getBaseDirs() {
+	private List<File> getBaseDirs() {
 		ArrayList<File> dirs = new ArrayList<File>();
 		dirs.add(baseDir);
 		if (extraDirs != null) {
-			StringTokenizer st = new StringTokenizer(extraDirs, ",");
+			dirs.addAll(toFileList(extraDirs));
+		}
+		return dirs;
+	}
+
+	private List<File> toFileList(String str) {
+		ArrayList<File> dirs = new ArrayList<File>();
+		if (str != null) {
+			StringTokenizer st = new StringTokenizer(str, ",");
 			while (st.hasMoreTokens()) {
 				try {
-					dirs.add(new File(st.nextToken()).getCanonicalFile());
+					File dir = new File(st.nextToken()).getCanonicalFile();
+					if (dir.exists() && dir.isDirectory()) {
+						dirs.add(dir);
+					} else {
+						getLog().warn("Not a directory " + dir.getAbsolutePath());
+					}
 				} catch (IOException e) {
 					getLog().warn("Can't parse extraDirs", e);
 				}
 			}
 		}
-		return dirs.toArray(new File[dirs.size()]);
+		return dirs;
 	}
 
 	private String getModuleName(File basedir, File dir) throws MojoExecutionException {
@@ -299,7 +395,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	private void addFeature(Set<File> result, String name) throws IOException, XmlPullParserException, MojoExecutionException {
 		if (name != null) {
 			File dir = getModuleDir(name);
-			if (dir != null) {
+			if (dir != null && isFeatureProject(dir)) {
 				result.add(dir);
 				result.addAll(getFeatureFeaturesAndPlugins(dir));
 			}
@@ -345,15 +441,15 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private void addPlugin(Set<File> result, String name) throws MojoExecutionException {
 		if (name != null) {
-			addPluginImpl(result, name);
-			addPluginImpl(result, name + testSuffix);
+			addPluginImpl(result, name, true);
+			addPluginImpl(result, name + testSuffix, false);
 		}
 	}
 
-	private void addPluginImpl(Set<File> result, String name) throws MojoExecutionException {
+	private void addPluginImpl(Set<File> result, String name, boolean required) throws MojoExecutionException {
 		if (name != null) {
 			File dir = getModuleDir(name);
-			if (dir != null) {
+			if (dir != null && isPluginProject(dir)) {
 				if (result.add(dir)) {
 					BundleDescription bundle = state.getBundleDescription(dir);
 					if (bundle != null) { 
@@ -375,7 +471,10 @@ public class GeneratePomsMojo extends AbstractMojo {
 					}
 				}
 			} else {
-				getLog().warn("Unknown bundle reference " + name);
+				if (required) {
+					// not really required, but lets warn anyways
+					getLog().warn("Unknown bundle reference " + name);
+				}
 			}
 		}
 	}
