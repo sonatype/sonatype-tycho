@@ -71,7 +71,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private Map/* <Long, String> */patchBundles;
 
-	private File outputDir;
+	private File manifestsDir;
 
 	private Properties platformProperties;
 
@@ -116,12 +116,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public OsgiStateController() {
 		patchBundles = new HashMap();
-
-		String property = System.getProperty("user.home");
-		if (property != null) {
-			outputDir = new File(property, ".m2/tycho/manifests");
-			outputDir.mkdirs();
-		}
 	}
 
 	private void loadTargetPlatform(File platform, boolean forceP2) {
@@ -279,7 +273,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		if (name.endsWith(".jar")) {
 			name = name.substring(0, name.length() - 4);
 		}
-		File manifestFile = new File(outputDir, name + "/META-INF/MANIFEST.MF");
+		File manifestFile = new File(manifestsDir, name + "/META-INF/MANIFEST.MF");
 		manifestFile.getParentFile().mkdirs();
 		converter.convertManifest(
 				bundleLocation,
@@ -582,10 +576,28 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			getLogger().warn("Eclipse target platform is empty");
 			return;
 		}
-		
+
+		initManifestsDir(props);
+
 		this.targetPlatform = targetPlatform;
 
 		loadTargetPlatform(targetPlatform, forceP2);
+	}
+
+	private void initManifestsDir(Properties props) {
+		manifestsDir = null;
+
+		String property = props.getProperty("tycho.manifests");
+		if (property != null) {
+			manifestsDir = new File(property);
+		}
+
+		if (manifestsDir == null) {
+			property = System.getProperty("user.home");
+			if (property != null) {
+				manifestsDir = new File(property, ".m2/tycho/manifests");
+			}
+		}
 	}
 
 	public BundleDescription getBundleDescription(String symbolicName, String version) {
