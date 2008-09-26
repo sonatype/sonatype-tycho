@@ -302,10 +302,14 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private String getModuleName(File basedir, File dir) throws MojoExecutionException {
+		File relative = new File(getRelativePath(basedir, dir));
+		return relative.getPath().replace('\\', '/');
+	}
+
+	private String getRelativePath(File basedir, File dir) {
 		// adding extra dependency for a single method is not nice
 		// but I don't want to reimplement this tedious logic
-		File relative = new File(new FilePath(basedir).makeRelative(new FilePath(dir)));
-		return relative.getPath().replace('\\', '/');
+		return new FilePath(basedir).makeRelative(new FilePath(dir));
 	}
 
 	private void generateAggregatorPoms(File testSuiteLocation) throws MojoExecutionException {
@@ -316,7 +320,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			Set<File> modules = getSiteFeaturesAndPlugins(basedir);
 			if (aggregator && modules.size() > 0) {
 				Model modela = readPomTemplate("update-site-poma.xml");
-				setParent(modela, parent);
+				setParent(basedir, modela, parent);
 				modela.setGroupId(groupId);
 				modela.setArtifactId(basedir.getName() + ".aggregator");
 				modela.setVersion(version);
@@ -367,7 +371,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 		
 		Model model = readPomTemplate("update-site-pom.xml");
-		setParent(model, parent);
+		setParent(basedir, model, parent);
 		model.setGroupId(groupId);
 		model.setArtifactId(basedir.getName());
 		model.setVersion(version);
@@ -398,6 +402,8 @@ public class GeneratePomsMojo extends AbstractMojo {
 			if (dir != null && isFeatureProject(dir)) {
 				result.add(dir);
 				result.addAll(getFeatureFeaturesAndPlugins(dir));
+			} else {
+				getLog().warn("Unknown feature reference " + name);
 			}
 		}
 	}
@@ -502,12 +508,16 @@ public class GeneratePomsMojo extends AbstractMojo {
 		return false;
 	}
 
-	private void setParent(Model model, Model parentModel) {
+	private void setParent(File basedir, Model model, Model parentModel) {
 		if (parentModel != null) {
 			Parent parent = new Parent();
 			parent.setGroupId(parentModel.getGroupId());
 			parent.setArtifactId(parentModel.getArtifactId());
 			parent.setVersion(parentModel.getVersion());
+			String relativePath = getRelativePath(basedir, this.baseDir);
+			if (!"../".equals(relativePath)) {
+				parent.setRelativePath(relativePath);
+			}
 			
 			model.setParent(parent);
 		}
@@ -515,7 +525,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private void generateFeaturePom(Model parent, File basedir) throws MojoExecutionException {
 		Model model = readPomTemplate("feature-pom.xml");
-		setParent(model, parent);
+		setParent(basedir, model, parent);
 
 		try {
 			FileInputStream is = new FileInputStream(new File(basedir, "feature.xml"));
@@ -543,19 +553,19 @@ public class GeneratePomsMojo extends AbstractMojo {
 		writePom(basedir, model);
 	}
 
-	private void generatePluginPom(Model parent, File dir) throws MojoExecutionException {
+	private void generatePluginPom(Model parent, File basedir) throws MojoExecutionException {
 		try {
-			BundleDescription bundleDescription = state.addBundle(dir);
+			BundleDescription bundleDescription = state.addBundle(basedir);
 			String groupId = state.getGroupId(bundleDescription);
 
 			Model model;
-			if ( (testSuffix != null && dir.getName().endsWith(testSuffix)) 
+			if ( (testSuffix != null && basedir.getName().endsWith(testSuffix)) 
 					|| (testSuite != null && bundleDescription.getSymbolicName().equals(testSuite))) {
 				model = readPomTemplate("test-plugin-pom.xml");
 			} else {
 				model = readPomTemplate("plugin-pom.xml");
 			}
-			setParent(model, parent);
+			setParent(basedir, model, parent);
 			if (groupId == null) {
 				groupId = this.groupId;
 			}
@@ -566,7 +576,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 			model.setArtifactId(bundleDescription.getSymbolicName());
 			model.setVersion(bundleDescription.getVersion().toString());
 
-			writePom(dir, model);
+			writePom(basedir, model);
 		} catch (BundleException e) {
 			throw new MojoExecutionException("Can't generate pom.xml", e);
 		}
