@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -32,7 +33,10 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
+import org.codehaus.tycho.osgitools.features.FeatureDescriptionImpl;
 import org.codehaus.tycho.osgitools.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
@@ -76,6 +80,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private Properties platformProperties;
 
 	private File targetPlatform;
+	
+	private Set<FeatureDescription> featureDescriptions;
 
 	/** location to feature map */
 	private Map<String, Feature> features = new LinkedHashMap<String, Feature>();
@@ -144,6 +150,23 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			} catch (BundleException e) {
 				getLogger().info("Could not add bundle: " + bundle);
 			}
+		}
+		
+		List<File> features = finder.getFeatures(targetPlatform);
+		for (File featureLocation : features) {
+			Feature feature;
+			try {
+				 feature= Feature.read(new File(featureLocation, Feature.FEATURE_XML));
+			} catch (IOException e) {
+				getLogger().info("Could not read feature " + featureLocation, e);
+				continue;
+			} catch (XmlPullParserException e) {
+				getLogger().info("Could not parse feature " + featureLocation, e);
+				continue;
+			}
+			
+			FeatureDescription description = new FeatureDescriptionImpl(feature, featureLocation);
+			featureDescriptions.add(description);
 		}
 	}
 
@@ -554,6 +577,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public void init(File targetPlatform, Properties props) {
 		boolean forceP2 = targetPlatform != null;
+		
+		featureDescriptions = new LinkedHashSet<FeatureDescription>();
 
 		state = factory.createState(true);
 		features = new LinkedHashMap<String, Feature>();
@@ -671,6 +696,35 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	public Feature getFeature(MavenProject project) {
 		String location = project.getFile().getParentFile().getAbsolutePath();
 		return features.get(location);
+	}
+
+	public FeatureDescription getFeatureDescription(String id, String version) {
+		if(id == null) {
+			return null;
+		}
+		
+		for (FeatureDescription featureDescription : featureDescriptions) {
+			if(id.equals(featureDescription.getName())) {
+				if(version == null) {
+					return featureDescription;
+				} else if (new Version(version).equals(featureDescription.getVersion())) {
+					return featureDescription;
+				}
+			}
+		}
+		return null;
+	}
+
+	public FeatureDescription getFeatureDescription(Feature feature) {
+		if(feature == null) {
+			return null;
+		}
+
+		return getFeatureDescription(feature.getId(), feature.getVersion());
+	}
+	
+	public String getPlatformProperty(String key) {
+		return platformProperties.getProperty(key);
 	}
 
 }

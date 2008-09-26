@@ -41,6 +41,7 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.IFeatureRef;
 import org.codehaus.tycho.model.UpdateSite;
@@ -313,7 +314,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		fw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append('\n');
 		fw.append("<feature id=\"" + artifactId + "\" version=\"" + version + "\" primary=\"false\" >").append('\n');
 		for (Plugin plugin : plugins) {
-			fw.append("\t<plugin id=\"" + plugin.getArtifactId() + "\" version=\"" + plugin.getVersion() + "\" />").append('\n');
+			fw.append("\t<plugin id=\"" + plugin.getId() + "\" version=\"" + plugin.getVersion() + "\" />").append('\n');
 		}
 		fw.append("</feature>").append('\n');
 		fw.flush();

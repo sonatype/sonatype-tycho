@@ -7,6 +7,7 @@ import java.util.jar.Manifest;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ResolverError;
 import org.eclipse.osgi.service.resolver.StateHelper;
@@ -75,5 +76,11 @@ public interface OsgiState {
 	MavenProject getMavenProject(Feature feature);
 
 	Feature getFeature(MavenProject project);
+
+	FeatureDescription getFeatureDescription(String id, String version);
+
+	FeatureDescription getFeatureDescription(Feature feature);
+
+	String getPlatformProperty(String key);
 
 }
