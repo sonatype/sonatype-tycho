@@ -409,17 +409,24 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private File getModuleDir(String name) throws MojoExecutionException {
-		File moduleDir = null;
+		ArrayList<File> moduleDirs = new ArrayList<File>();
 		for (File basedir : getBaseDirs()) {
 			File dir = new File(basedir, name);
-			if (dir.exists() && dir.isDirectory()) {
-				if (moduleDir != null) {
-					throw new MojoExecutionException("Duplicate module directory name " + name);
-				}
-				moduleDir = dir;
+			if (dir.exists() && dir.isDirectory() && isProjectDir(dir)) {
+				moduleDirs.add(dir);
 			}
 		}
-		return moduleDir;
+		if (moduleDirs.size() == 0) {
+			return null;
+		}
+		if (moduleDirs.size() > 1) {
+			StringBuilder sb = new StringBuilder("Duplicate module defintion ").append(name);
+			for (File dir : moduleDirs) {
+				sb.append("\n\t").append(dir.getAbsoluteFile());
+			}
+			throw new MojoExecutionException(sb.toString());
+		}
+		return moduleDirs.get(0);
 	}
 
 	private Set<File> getFeatureFeaturesAndPlugins(File basedir) throws IOException, XmlPullParserException, MojoExecutionException {
