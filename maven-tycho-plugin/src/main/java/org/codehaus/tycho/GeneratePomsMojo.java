@@ -129,7 +129,27 @@ public class GeneratePomsMojo extends AbstractMojo {
 			}
 			getLog().debug(sb.toString());
 		}
+		
+		// find all candidate folders
+		List<File> candidateDirs = new ArrayList<File>();
+		for (File basedir : baseDirs) {
+			getLog().info("Scanning " + toString(basedir) + " basedir");
+			if (isProjectDir(basedir)) {
+				candidateDirs.add(basedir);
+			} else {
+				File[] listFiles = basedir.listFiles();
+				if (listFiles != null) {
+					for (File file : listFiles) {
+						if (isProjectDir(file)) {
+							candidateDirs.add(file);
+						}
+					}
+				}
+				
+			}
+		}
 
+		// find all root projects
 		List<File> rootProjects = getRootProjects();
 		if (getLog().isDebugEnabled()) {
 			StringBuilder sb = new StringBuilder();
@@ -141,64 +161,56 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 		
 		// add all bundles to osgi state
-		for (File basedir : baseDirs) {
-			if (isProjectDir(basedir)) {
-				if (isPluginProject(basedir)) {
-					try {
-						state.addBundle(basedir);
-					} catch (BundleException e) {
-						getLog().debug("Exception prescanning OSGi bundles", e);
-					}
+		for (File dir : candidateDirs) {
+			if (isPluginProject(dir)) {
+				try {
+					state.addBundle(dir);
+				} catch (BundleException e) {
+					getLog().debug("Exception prescanning OSGi bundles", e);
 				}
-			} else {
-				File[] listFiles = basedir.listFiles();
-				if (listFiles != null) {
-					for (File file : listFiles) {
-						if (isPluginProject(file)) {
-							try {
-								state.addBundle(file);
-							} catch (BundleException e) {
-								getLog().debug("Exception prescanning OSGi bundles", e);
-							}
-						}
-					}
-				}
-				
 			}
 		}
 		state.resolveState();
 
+		// testSuite
+		File testSuiteLocation = null;
+		if (testSuite != null) {
+			BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
+			if (bundle != null) {
+				try {
+					testSuiteLocation = new File(bundle.getLocation()).getCanonicalFile();
+				} catch (IOException e) {
+					throw new MojoExecutionException("Unexpected IOException", e);
+				}
+			}
+		}
+		
 		Set<File> projects = new LinkedHashSet<File>();
 		
 		// always add baseDir
 		projects.add(baseDirs.get(0));
 
 		if (rootProjects.size() > 0) {
+			if (testSuiteLocation != null) {
+				rootProjects.add(testSuiteLocation);
+			}
 			for (File rootProject : rootProjects) {
 				getLog().info("Resolving root project " + toString(rootProject));
 				if (isUpdateSiteProject(rootProject)) {
 					projects.add(rootProject);
 					projects.addAll(getSiteFeaturesAndPlugins(rootProject));
+				} else if (isFeatureProject(rootProject)) {
+					projects.add(rootProject);
+					projects.addAll(getFeatureFeaturesAndPlugins(rootProject));
+				} else if (isPluginProject(rootProject)) {
+					projects.add(rootProject);
+					addPluginImpl(projects, rootProject); // TODO getPluginAndDependencies
 				} else {
 					getLog().warn("Unsupported root project " + toString(rootProject));
 				}
 			}
 		} else {
-			for (File basedir : baseDirs) {
-				getLog().info("Scanning " + toString(basedir) + " basedir");
-				if (isProjectDir(basedir)) {
-					projects.add(basedir);
-				} else {
-					File[] listFiles = basedir.listFiles();
-					if (listFiles != null) {
-						for (File file : listFiles) {
-							if (isProjectDir(file)) {
-								projects.add(file);					
-							}
-						}
-					}
-				}
-			}
+			projects.addAll(candidateDirs);
 		}
 
 		if (getLog().isDebugEnabled()) {
@@ -226,13 +238,6 @@ public class GeneratePomsMojo extends AbstractMojo {
 				File projectDir = projectIter.next();
 				generatePom(parent, projectDir);
 				parent.addModule(getModuleName(parentDir, projectDir));
-			}
-			File testSuiteLocation = null;
-			if (testSuite != null) {
-				BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
-				if (bundle != null) {
-					testSuiteLocation = new File(bundle.getLocation());
-				}
 			}
 			reorderModules(parent, parentDir, testSuiteLocation);
 			writePom(parentDir, parent);
@@ -429,27 +434,34 @@ public class GeneratePomsMojo extends AbstractMojo {
 		return moduleDirs.get(0);
 	}
 
-	private Set<File> getFeatureFeaturesAndPlugins(File basedir) throws IOException, XmlPullParserException, MojoExecutionException {
-		Set<File> result = new LinkedHashSet<File>(); 
-
-		Feature feature = Feature.read(new File(basedir, "feature.xml"));
-
-		for (Feature.PluginRef plugin : feature.getPlugins()) {
-			addPlugin(result, plugin.getId());
-		}
-
-		for (Feature.FeatureRef includedFeature : feature.getIncludedFeatures()) {
-			addFeature(result, includedFeature.getId());
-		}
-
-		for (Feature.RequiresRef require : feature.getRequires()) {
-			for (Feature.ImportRef imp : require.getImports()) {
-				addPlugin(result, imp.getPlugin());
-				addFeature(result, imp.getFeature());
+	private Set<File> getFeatureFeaturesAndPlugins(File basedir) throws MojoExecutionException {
+		try {
+			Set<File> result = new LinkedHashSet<File>(); 
+	
+			Feature feature = Feature.read(new File(basedir, "feature.xml"));
+	
+			for (Feature.PluginRef plugin : feature.getPlugins()) {
+				addPlugin(result, plugin.getId());
 			}
+	
+			for (Feature.FeatureRef includedFeature : feature.getIncludedFeatures()) {
+				addFeature(result, includedFeature.getId());
+			}
+	
+			for (Feature.RequiresRef require : feature.getRequires()) {
+				for (Feature.ImportRef imp : require.getImports()) {
+					addPlugin(result, imp.getPlugin());
+					addFeature(result, imp.getFeature());
+				}
+			}
+			return result;
+
+		} catch (IOException e) {
+			throw new MojoExecutionException("Exception processing feature " + toString(basedir), e);
+		} catch (XmlPullParserException e) {
+			throw new MojoExecutionException("Exception processing feature " + toString(basedir), e);
 		}
 		
-		return result;
 	}
 
 	private void addPlugin(Set<File> result, String name) throws MojoExecutionException {
@@ -463,31 +475,39 @@ public class GeneratePomsMojo extends AbstractMojo {
 		if (name != null) {
 			File dir = getModuleDir(name);
 			if (dir != null && isPluginProject(dir)) {
-				if (result.add(dir)) {
-					BundleDescription bundle = state.getBundleDescription(dir);
-					if (bundle != null) { 
-						try {
-							state.assertResolved(bundle);
-							BundleDescription[] requiredBundles = state.getDependencies(bundle);
-							for (int i = 0; i < requiredBundles.length; i++) {
-								BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
-								File suppliedDir = new File(supplier.getLocation());
-								if (isModuleDir(suppliedDir)) {
-									addPlugin(result, suppliedDir.getName());
-								}
-							}
-						} catch (BundleException e) {
-							getLog().warn("Could not determine bundle dependencies", e);
-						}
-					} else {
-						getLog().warn("Not an OSGi bundle " + dir.toString());
-					}
-				}
+				addPluginImpl(result, dir);
 			} else {
 				if (required) {
 					// not really required, but lets warn anyways
 					getLog().warn("Unknown bundle reference " + name);
 				}
+			}
+		}
+	}
+
+	private void addPluginImpl(Set<File> result, File basedir) throws MojoExecutionException {
+		if (result.add(basedir)) {
+			BundleDescription bundle = state.getBundleDescription(basedir);
+			if (bundle != null) { 
+				try {
+					state.assertResolved(bundle);
+					BundleDescription[] requiredBundles = state.getDependencies(bundle);
+					for (int i = 0; i < requiredBundles.length; i++) {
+						BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
+						File suppliedDir = new File(supplier.getLocation());
+						if (supplier.getHost() == null && isModuleDir(suppliedDir)) {
+							addPlugin(result, suppliedDir.getName());
+						}
+					}
+				} catch (BundleException e) {
+					if (getLog().isDebugEnabled()) {
+						getLog().warn("Could not determine bundle dependencies", e);
+					} else {
+						getLog().warn("Could not determine bundle dependencies: " + e.getMessage());
+					}
+				}
+			} else {
+				getLog().warn("Not an OSGi bundle " + basedir.toString());
 			}
 		}
 	}

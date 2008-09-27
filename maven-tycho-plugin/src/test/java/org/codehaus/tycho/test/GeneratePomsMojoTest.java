@@ -138,7 +138,9 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		Model aggmodel = readModel(baseDir, "p003/poma.xml");
 		assertEquals("p003.aggregator", aggmodel.getArtifactId());
 		List<String> aggrmodules = aggmodel.getModules();
-		assertEquals(5, aggrmodules.size());
+		assertEquals(4, aggrmodules.size());
+		// pick up fragments only when they are explicitly referenced from a feature
+		assertFalse(aggrmodules.contains("../p004"));
 	}
 
 	private Model readModel(File baseDir, String name) throws IOException, XmlPullParserException {
@@ -185,5 +187,19 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 		
 		Model aggmodel = readModel(baseDir, "p004/poma.xml");
 		assertEquals(3, aggmodel.getModules().size()); // don't forger . module
+	}
+
+	public void testDeepModule() throws Exception {
+		File baseDir = getBasedir("projects/deepmodule");
+		
+		Map<String, Object> params  = new HashMap<String, Object>();
+		params.put("groupId", "group");
+		params.put("version", "1.0.0");
+		generate(baseDir, new File[] {new File(baseDir, "base")}, params);
+
+		Model module = readModel(baseDir, "base/p001/pom.xml");
+		
+		assertEquals("../../", module.getParent().getRelativePath());
+
 	}
 }
