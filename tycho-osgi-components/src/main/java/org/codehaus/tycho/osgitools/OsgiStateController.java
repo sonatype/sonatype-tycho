@@ -174,7 +174,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return ++id;
 	}
 
-	public BundleDescription addBundle(File bundleLocation)
+	public BundleDescription addBundle(File bundleLocation) throws BundleException {
+		return addBundle(bundleLocation, false);
+	}
+	public BundleDescription addBundle(File bundleLocation, boolean override)
 			throws BundleException {
 		if (bundleLocation == null || !bundleLocation.exists())
 			throw new IllegalArgumentException("bundleLocation not found: "
@@ -182,7 +185,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		Dictionary manifest = loadManifestAttributes(bundleLocation);
 		if (manifest == null)
 			throw new BundleException("manifest not found in " + bundleLocation);
-		return addBundle(manifest, bundleLocation, false);
+		return addBundle(manifest, bundleLocation, override);
 	}
 
 	public BundleDescription addBundle(File manifestLocation,
@@ -271,7 +274,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		} catch (IOException e) {
 			getLogger().warn("Exception reading bundle manifest", e);
 		} catch (PluginConversionException e) {
-			getLogger().warn("Exception reading bundle manifest", e);
+			getLogger().warn("Exception reading bundle manifest: " + e.getMessage());
 		}
 		
 		// not a bundle

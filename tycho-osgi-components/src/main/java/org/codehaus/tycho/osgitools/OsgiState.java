@@ -27,6 +27,7 @@ public interface OsgiState {
 	static final String PACKAGING_ECLIPSE_FEATURE = "eclipse-feature";
 
 	BundleDescription addBundle(File manifest) throws BundleException;
+	BundleDescription addBundle(File manifest, boolean override) throws BundleException;
 
 	/**
 	 * Returns all direct and indirect dependencies of the bundle.
