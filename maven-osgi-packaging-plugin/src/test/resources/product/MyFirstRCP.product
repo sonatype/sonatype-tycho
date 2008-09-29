@@ -3,6 +3,7 @@
 
 <product name="My First RCP" id="MyFirstRCP.product1" application="MyFirstRCP.application" version="1.0.0" useFeatures="false">
 
+   <windowImages/>
 
    <configIni>
       <linux>linux.ini</linux>
@@ -28,5 +29,24 @@
       <plugin id="MyFirstRCP"/>
       <plugin id="com.ibm.icu"/>
    </plugins>
+
+   <launcher>
+      <linux icon="XPM"/>
+      <macosx icon="icns"/>
+      <solaris
+            solarisLarge="large"
+            solarisMedium="medium"
+            solarisSmall="small"
+            solarisTiny="tiny"/>
+      <win useIco="false">
+         <bmp
+            winSmallHigh="16-32"
+            winSmallLow="16-8"
+            winMediumHigh="32-16"
+            winMediumLow="32-8"
+            winLargeHigh="48-16"
+            winLargeLow="48-8"/>
+      </win>
+   </launcher>
    
 </product>
