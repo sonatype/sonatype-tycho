@@ -14,6 +14,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.OsgiStateController;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 /**
@@ -115,7 +116,10 @@ public class ConfigurationHelper {
 		for (BundleDescription bundle : state.getBundles()) {
 			sb.append(bundle.getSymbolicName()).append(',');
 			sb.append(bundle.getVersion().toString()).append(',');
-			sb.append(new File(bundle.getLocation()).toURL().toExternalForm()).append(',');
+			
+			// TODO shame on you!
+			File location = ((OsgiStateController)state).getBundleLocation(bundle);
+			sb.append(location.toURL().toExternalForm()).append(',');
 
 			Integer level = START_LEVEL.get(bundle.getSymbolicName());
 			if (level != null) {

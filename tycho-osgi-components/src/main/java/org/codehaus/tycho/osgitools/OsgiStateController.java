@@ -731,7 +731,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		Map<String, List<Platform.Feature>> siteFeatures = new LinkedHashMap<String, List<Platform.Feature>>();
 
 		for (BundleDescription bundle : getBundles()) {
-			File location = new File(bundle.getLocation());
+			File location = getBundleLocation(bundle);
 			String siteUrl = getSiteUrl(location);
 			if (siteUrl == null) {
 				throw new RuntimeException("Can't determine site for bundle " + bundle.toString() + " at " + location.getAbsolutePath());
@@ -770,6 +770,19 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		}
 
 		return platform;
+	}
+
+	public File getBundleLocation(BundleDescription bundle) {
+		MavenProject project = getMavenProject(bundle);
+		if (project != null) {
+			if ("eclipse-test-plugin".equals(project.getPackaging())) {
+				return project.getBasedir();
+			} else if (project.getArtifact().getFile() != null) {
+				return project.getArtifact().getFile();
+			}
+		}
+		
+		return new File(bundle.getLocation());
 	}
 
 	private String getSiteUrl(File location) {
