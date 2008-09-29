@@ -82,7 +82,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	/** @parameter */
 	private boolean packageSources = true;
 
-	private ArrayList inlcudedArtifacts;
+	private ArrayList<Artifact> inlcudedArtifacts;
 
 	/** @component */
 	private ArtifactFactory artifactFactory;
@@ -325,7 +325,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 		
 		Set allpackages = new HashSet();
 
-		ArrayList instructions = new ArrayList();
+		ArrayList<Instruction> instructions = new ArrayList<Instruction>();
 		StringTokenizer st = new StringTokenizer(exportPackages, ",");
 		while (st.hasMoreTokens()) {
 			instructions.add(Instruction.getPattern(st.nextToken().trim()));
@@ -336,7 +336,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 			if (classes.exists()) {
 				addExportedPackages(allpackages, instructions, classes);
 			}
-			for (Iterator i = getIncludedArtifacts().iterator(); i.hasNext(); ) {
+			for (Iterator<Artifact> i = getIncludedArtifacts().iterator(); i.hasNext(); ) {
 					Artifact a = (Artifact) i.next();
 					File f = a.getFile();
 					addExportedPackages(allpackages, instructions, f);
@@ -462,8 +462,8 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
     /**
      * artifacts provided by bundles this project depends on 
      */
-    private Set getImportedArtifactKeys() throws MojoExecutionException  {
-    	HashSet result = new HashSet();
+    private Set<String> getImportedArtifactKeys() throws MojoExecutionException  {
+    	HashSet<String> result = new HashSet<String>();
 
     	ArtifactRepository localRepository = session.getLocalRepository();
     	List remoteRepositories = project.getRemoteArtifactRepositories();
@@ -501,12 +501,12 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
     	return groupId + ":" + artifactId;
     }
 
-    public List getIncludedArtifacts() throws MojoExecutionException {
+    public List<Artifact> getIncludedArtifacts() throws MojoExecutionException {
 
     	if (inlcudedArtifacts == null) {
-	    	inlcudedArtifacts = new ArrayList();
+	    	inlcudedArtifacts = new ArrayList<Artifact>();
 
-	    	Set exclusionKeys = new HashSet();
+	    	Set<String> exclusionKeys = new HashSet<String>();
 	    	if (exclusions != null) {
 		    	for (int i = 0; i < exclusions.length; i++) {
 		    		exclusionKeys.add(getArtifactKey(exclusions[i].getGroupId(), exclusions[i].getArtifactId()));
@@ -514,7 +514,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	    	}
 	    	exclusionKeys.addAll(getImportedArtifactKeys());
 	
-	        for (Iterator i = project.getArtifacts().iterator(); i.hasNext(); ) {
+	        for (Iterator<Artifact> i = project.getArtifacts().iterator(); i.hasNext(); ) {
 	        	Artifact a = (Artifact) i.next();
 	        	if (!exclusionKeys.contains(getArtifactKey(a.getGroupId(), a.getArtifactId()))) {
 	        		inlcudedArtifacts.add(a);
