@@ -25,6 +25,7 @@ import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 /**
@@ -202,6 +203,11 @@ public class TestMojo extends AbstractMojo {
 
 		work.mkdirs();
 
+		try {
+			state.addBundle(getOsgiSurefireBooterPlugin());
+		} catch (BundleException e) {
+			throw new MojoExecutionException("Can't configure test runtime", e);
+		}
 		new ConfigurationHelper(state).createConfiguration(work, targetPlatform, getTestBundles());
 		createDevProperties();
 		createSurefireProperties();

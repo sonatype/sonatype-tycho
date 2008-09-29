@@ -35,6 +35,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.features.FeatureDescriptionImpl;
 import org.codehaus.tycho.osgitools.utils.ExecutionEnvironmentUtils;
@@ -72,8 +73,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private State state;
 
 	private long id = 0;
-
-	private Map/* <Long, String> */patchBundles;
 
 	private File manifestsDir;
 
@@ -121,13 +120,17 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public OsgiStateController() {
-		patchBundles = new HashMap();
 	}
 
 	private void loadTargetPlatform(File platform, boolean forceP2) {
 		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
 
 		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(forceP2, getLogger());
+
+		sites.clear();
+		for (File site : finder.getSites(platform)) {
+			addSite(site);
+		}
 
 		Set<File> bundles = finder.getPlugins(platform);
 
@@ -324,27 +327,16 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return result;
 	}
 
-	private String fillPatchData(Dictionary manifest) {
-		if (manifest.get("Eclipse-ExtensibleAPI") != null) {
-			return "Eclipse-ExtensibleAPI: true";
-		}
-
-		if (manifest.get("Eclipse-PatchFragment") != null) {
-			return "Eclipse-PatchFragment: true";
-		}
-		return null;
-	}
-
 	private BundleDescription addBundle(Dictionary enhancedManifest,
 			File bundleLocation, boolean override) throws BundleException {
+
+		addSite(bundleLocation.getParentFile());
+		
 		// TODO Qualifier Replacement. do we do this for maven?
 		// updateVersionNumber(enhancedManifest);
 		BundleDescription descriptor;
 		descriptor = factory.createBundleDescription(state, enhancedManifest,
 				bundleLocation.getAbsolutePath(), getNextId());
-		String patchValue = fillPatchData(enhancedManifest);
-		if (patchValue != null)
-			patchBundles.put(new Long(descriptor.getBundleId()), patchValue);
 		// rememberQualifierTagPresence(descriptor);
 
 		setUserProperty(descriptor, PROP_MANIFEST, enhancedManifest);
@@ -365,10 +357,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public StateHelper getStateHelper() {
 		return state.getStateHelper();
-	}
-
-	public Map getPatchData() {
-		return patchBundles;
 	}
 
 	public BundleDescription getResolvedBundle(String bundleId) {
@@ -725,10 +713,104 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 		return getFeatureDescription(feature.getId(), feature.getVersion());
 	}
-	
+
 	public String getPlatformProperty(String key) {
 		return platformProperties.getProperty(key);
 	}
 
+	Set<String> sites = new LinkedHashSet<String>();
+
+	/**
+	 * Quick-n-dirty. Create transient Platform that includes all 
+	 * features and bundles known to this State.
+	 */
+	public Platform getPlatform() {
+		Platform platform = new Platform();
+		
+		Map<String, List<String>> sitePlugins = new LinkedHashMap<String, List<String>>();
+		Map<String, List<Platform.Feature>> siteFeatures = new LinkedHashMap<String, List<Platform.Feature>>();
+
+		for (BundleDescription bundle : getBundles()) {
+			File location = new File(bundle.getLocation());
+			String siteUrl = getSiteUrl(location);
+			if (siteUrl == null) {
+				throw new RuntimeException("Can't determine site for bundle " + bundle.toString() + " at " + location.getAbsolutePath());
+			}
+			List<String> plugins = sitePlugins.get(siteUrl);
+			if (plugins == null) {
+				plugins = new ArrayList<String>();
+				sitePlugins.put(siteUrl, plugins);
+			}
+			plugins.add(getRelativeUrl(siteUrl, location));
+		}
+		
+		// lets pretend I know what I am doing
+		for (FeatureDescription feature : featureDescriptions) {
+			String siteUrl = getSiteUrl(feature.getLocation());
+			if (siteUrl == null) {
+				throw new RuntimeException("Can't determine site for feature " + feature.getName() + " at " + feature.getLocation().getAbsolutePath());
+			}
+			List<Platform.Feature> features = siteFeatures.get(siteUrl);
+			if (features == null) {
+				features = new ArrayList<Platform.Feature>();
+				siteFeatures.put(siteUrl, features);
+			}
+			features.add(getFeature(siteUrl, feature));
+		}
+		
+		Set<String> sites = new LinkedHashSet<String>();
+		sites.addAll(sitePlugins.keySet());
+		sites.addAll(siteFeatures.keySet());
+		for (String siteUrl : sites) {
+			Platform.Site site = new Platform.Site(siteUrl);
+			site.setPlugins(sitePlugins.get(siteUrl));
+			site.setFeatures(siteFeatures.get(siteUrl));
+			
+			platform.addSite(site);
+		}
+
+		return platform;
+	}
+
+	private String getSiteUrl(File location) {
+		String locationStr = toUrl(location);
+		for (String siteUrl : sites) {
+			if (locationStr.startsWith(siteUrl)) {
+				return siteUrl;
+			}
+		}
+		return null;
+		// throw new RuntimeException("Can't determine site location for " + locationStr);
+	}
+
+	private Platform.Feature getFeature(String siteUrl, FeatureDescription feature) {
+		Platform.Feature result = new Platform.Feature();
+		result.setId(feature.getName());
+		result.setVersion(feature.getVersion().toString());
+		result.setUrl(getRelativeUrl(siteUrl, feature.getLocation()));
+		return result;
+	}
+
+	private String getRelativeUrl(String siteUrl, File location) {
+		String locationStr = toUrl(location);
+		if (!locationStr.startsWith(siteUrl)) {
+			throw new IllegalArgumentException();
+		}
+		return locationStr.substring(siteUrl.length());
+	}
+
+	private void addSite(File basedir) {
+		String siteUrl = getSiteUrl(basedir);
+		if (siteUrl == null) {
+			sites.add(toUrl(basedir));
+		}
+	}
+
+	private String toUrl(File file) {
+		try {
+			return file.getCanonicalFile().toURL().toExternalForm();
+		} catch (IOException e) {
+			throw new RuntimeException("Unexpected IOException", e);
+		}
+	}
 }
- 
