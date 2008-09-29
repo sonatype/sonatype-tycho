@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.FileUtils;
@@ -114,20 +116,25 @@ public class ConfigurationHelper {
 	private void createBundlesInfoFile(File work) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		for (BundleDescription bundle : state.getBundles()) {
-			sb.append(bundle.getSymbolicName()).append(',');
-			sb.append(bundle.getVersion().toString()).append(',');
-			
-			// TODO shame on you!
+			// TODO shame on me!
 			File location = ((OsgiStateController)state).getBundleLocation(bundle);
+
+			// TODO another dirty hack -- compensate for .qualifier expansion
+			Manifest manifest = state.loadManifest(location);
+			Attributes attributes = manifest.getMainAttributes();
+			String version = attributes.getValue("Bundle-Version");
+
+			sb.append(bundle.getSymbolicName()).append(',');
+			sb.append(version).append(',');
 			sb.append(location.toURL().toExternalForm()).append(',');
 
 			Integer level = START_LEVEL.get(bundle.getSymbolicName());
 			if (level != null) {
 				sb.append(level).append(','); // start level
-				sb.append("true").append(','); // autostart
+				sb.append("true"); // autostart
 			} else {
 				sb.append("4").append(','); // start level
-				sb.append("false").append(','); // autostart
+				sb.append("false"); // autostart
 			}
 			sb.append('\n');
 		}

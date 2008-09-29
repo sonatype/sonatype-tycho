@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codehaus.tycho.tycho-its.tycho-170</groupId>
+  <artifactId>parent</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>bundle</module>
+    <module>bundle.tests</module>
+  </modules>
+  
+  <properties>
+    <buildNumber>123</buildNumber>
+  </properties>
+</project>
