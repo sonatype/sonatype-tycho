@@ -196,6 +196,28 @@
       	<artifactId>xstream</artifactId>
       	<version>1.3</version>
       </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
+      <dependency>
+        <groupId>org.apache.maven.release</groupId>
+        <artifactId>maven-release-manager</artifactId>
+        <version>1.0-alpha-4</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-component-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-container-default</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+    
     </dependencies>
   </dependencyManagement>
 
