@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.codehaus.tycho.eclipsepackaging.product.ConfigIni;
 import org.codehaus.tycho.eclipsepackaging.product.LauncherArguments;
 import org.codehaus.tycho.eclipsepackaging.product.ProductConfiguration;
+import org.codehaus.tycho.eclipsepackaging.product.ProductConfigurationConverter;
 import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
@@ -12,17 +13,20 @@ import com.thoughtworks.xstream.XStream;
 public class ProductConfigurationParseTest {
 
 	@Test
-	public void testProductConfigurationParse() {
+	public void testProductConfigurationParse() throws Exception {
 		XStream xs = new XStream();
+		xs.registerConverter(new ProductConfigurationConverter());
 		xs.processAnnotations(ProductConfiguration.class);
-		
-		ProductConfiguration config = (ProductConfiguration) xs.fromXML(getClass().getResourceAsStream("/product/MyFirstRCP.product"));
-		
+
+		ProductConfiguration config = (ProductConfiguration) xs
+				.fromXML(getClass().getResourceAsStream(
+						"/product/MyFirstRCP.product"));
+
 		Assert.assertEquals("My First RCP", config.getName());
 		Assert.assertEquals("MyFirstRCP.product1", config.getId());
 		Assert.assertEquals("MyFirstRCP.application", config.getApplication());
 		Assert.assertEquals(false, config.getUseFeatures().booleanValue());
-		
+
 		ConfigIni configIni = config.getConfigIni();
 		Assert.assertNotNull(configIni);
 		Assert.assertEquals("linux.ini", configIni.getLinux());

@@ -15,6 +15,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.eclipsepackaging.product.ProductConfiguration;
+import org.codehaus.tycho.eclipsepackaging.product.ProductConfigurationConverter;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
@@ -76,6 +77,7 @@ public class ProductExportMojo extends AbstractMojo {
 		}
 
 		XStream xs = new XStream();
+		xs.registerConverter(new ProductConfigurationConverter(getLog()));
 		xs.processAnnotations(ProductConfiguration.class);
 
 		try {
@@ -96,6 +98,7 @@ public class ProductExportMojo extends AbstractMojo {
 		copyPlugins();
 		copyExecutable();
 	}
+
 
 	private void addOsgiLauncherPlugins() {
 		String ws = state.getPlatformProperty(PlatformPropertiesUtils.OSGI_WS);

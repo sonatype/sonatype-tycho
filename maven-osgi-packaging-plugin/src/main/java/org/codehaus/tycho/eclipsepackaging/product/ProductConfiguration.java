@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 @XStreamAlias("product")
 public class ProductConfiguration {
@@ -29,13 +28,6 @@ public class ProductConfiguration {
 
 	@XStreamAsAttribute
 	private String version;
-
-	@XStreamOmitField
-	private String windowImages;
-	@XStreamOmitField
-	private String launcher;
-	@XStreamOmitField
-	private String vm;
 	
 	public String getApplication() {
 		return application;
