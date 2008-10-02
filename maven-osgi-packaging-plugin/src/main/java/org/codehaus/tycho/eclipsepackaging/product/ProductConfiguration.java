@@ -13,6 +13,8 @@ public class ProductConfiguration {
 
 	private ConfigIni configIni;
 
+	private List<Feature> features;
+
 	@XStreamAsAttribute
 	private String id;
 
@@ -28,13 +30,17 @@ public class ProductConfiguration {
 
 	@XStreamAsAttribute
 	private String version;
-	
+
 	public String getApplication() {
 		return application;
 	}
 
 	public ConfigIni getConfigIni() {
 		return configIni;
+	}
+
+	public List<Feature> getFeatures() {
+		return features;
 	}
 
 	public String getId() {
@@ -67,6 +73,10 @@ public class ProductConfiguration {
 
 	public void setConfigIni(ConfigIni configIni) {
 		this.configIni = configIni;
+	}
+
+	public void setFeatures(List<Feature> features) {
+		this.features = features;
 	}
 
 	public void setId(String id) {
