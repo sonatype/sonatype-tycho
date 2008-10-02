@@ -258,7 +258,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 					InputStream is = jar.getInputStream(me);
 					try {
 						Manifest mf = new Manifest(is);
-						if (mf.getMainAttributes().getValue("Bundle-ManifestVersion") != null) {
+						if (mf.getMainAttributes().getValue("Bundle-SymbolicName") != null) {
 							return mf;
 						}
 					} finally {

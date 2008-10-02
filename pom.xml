@@ -29,7 +29,7 @@
       Check out maven 3.0 source and make note of the svn rev.
       Rename the 3.0-SNAPSHOT to something like 3.0-TYCHO-[svnrev] in all the poms,
       including cross dependencies.
-      Override deployment repository with -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/content/repositories/tycho-pseudo-releases/
+      Override deployment repository with source:jar -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/content/repositories/tycho-pseudo-releases/
       DO NOT FORGET TO DEPLOY SOURCES (add source:jar goal)
 
       By versioning it from the svn rev, we can always reproduce without having

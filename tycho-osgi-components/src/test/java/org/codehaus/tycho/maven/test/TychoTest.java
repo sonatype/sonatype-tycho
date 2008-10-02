@@ -13,6 +13,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public class TychoTest extends AbstractTychoMojoTestCase {
 
@@ -197,4 +198,15 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertTrue(new File(manifests, "testjar_1.0.0/META-INF/MANIFEST.MF").canRead());
 	}
 
+	public void testMNGECLIPSE942() throws Exception {
+		File targetPlatform = new File("src/test/resources/targetplatforms/MNGECLIPSE-942");
+		Properties props = new Properties(System.getProperties());
+		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
+		state.init(null, props);
+
+		BundleDescription[] bundles = state.getBundles();
+		
+		assertEquals(1, bundles.length);
+		assertEquals("org.junit4.nl_ru", bundles[0].getSymbolicName());
+	}
 }
