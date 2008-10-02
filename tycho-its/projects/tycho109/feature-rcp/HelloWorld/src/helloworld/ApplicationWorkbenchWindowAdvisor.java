@@ -23,4 +23,10 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
         configurer.setShowStatusLine(false);
         configurer.setTitle("Hello RCP");
     }
+
+    public void postWindowCreate() {
+    	super.postWindowCreate();
+    	System.exit(101);
+    }
+
 }

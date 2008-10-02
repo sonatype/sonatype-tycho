@@ -22,4 +22,10 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
         configurer.setShowCoolBar(false);
         configurer.setShowStatusLine(false);
     }
+    
+    @Override
+    public void postWindowCreate() {
+    	super.postWindowCreate();
+    	System.exit(101);
+    }
 }
