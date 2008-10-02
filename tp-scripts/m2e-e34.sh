@@ -4,8 +4,14 @@ rm -rf $TPDIR
 mkdir -p $TPDIR
 
 # eclipse 3.4 GA
-wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk-x86_64.tar.gz
-wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk.tar.gz                                                          
+# wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk-x86_64.tar.gz
+# wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk.tar.gz
+# eclipse 3.4.1
+wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4.1-200809111700/eclipse-SDK-3.4.1-linux-gtk.tar.gz
+wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4.1-200809111700/eclipse-SDK-3.4.1-linux-gtk-x86_64.tar.gz
+wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4.1-200809111700/eclipse-SDK-3.4.1-win32.zip
+wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4.1-200809111700/eclipse-SDK-3.4.1-win32-x86_64.zip
+wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4.1-200809111700/eclipse-SDK-3.4.1-macosx-carbon.tar.gz
 
 # wtp&co 3.0 GA
 wget -P $TPDIR  -N http://download.eclipse.org/modeling/emf/emf/downloads/drops/2.4.0/R200806091234/emf-runtime-2.4.0.zip
