@@ -1,10 +1,15 @@
 package org.sonatype.tycho.test.tycho109;
 
 import java.io.File;
+import java.io.StringWriter;
 
 import junit.framework.Assert;
 
 import org.apache.maven.it.Verifier;
+import org.apache.maven.it.util.cli.CommandLineUtils;
+import org.apache.maven.it.util.cli.Commandline;
+import org.apache.maven.it.util.cli.StreamConsumer;
+import org.apache.maven.it.util.cli.WriterStreamConsumer;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
@@ -21,8 +26,6 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 	@Test
 	public void exportPluginProduct() throws Exception {
 		Verifier verifier = getVerifier("/tycho109/plugin-rcp/MyFirstRCP");
-		verifier.setAutoclean(false);
-
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 
@@ -31,14 +34,65 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 
 		Assert.assertTrue("Exported product folder not found", output
 				.isDirectory());
-		Assert.assertTrue("Launcher not found", getLauncher(output).isFile());
+
+		File launcher = getLauncher(output);
+		Assert.assertTrue("Launcher not found", launcher.isFile());
 		Assert.assertTrue("config.ini not found", new File(output,
 				"configuration/config.ini").isFile());
+
 		File plugins = new File(output, "plugins");
 		Assert.assertTrue("Plugins not found", plugins.isDirectory());
 		Assert.assertEquals("No found the expected plugins number", 26, plugins
 				.list().length);
 
+		// launch to be sure
+		Commandline cmd = new Commandline();
+		cmd.setExecutable(launcher.getAbsolutePath());
+
+		StringWriter logWriter = new StringWriter();
+		StreamConsumer out = new WriterStreamConsumer(logWriter);
+		StreamConsumer err = new WriterStreamConsumer(logWriter);
+		int returnCode = CommandLineUtils.executeCommandLine(cmd, out, err);
+		Assert.assertEquals("Did got a controled exit\n" + logWriter, 101,
+				returnCode);
+	}
+
+	@Test
+	public void exportFeatureProduct() throws Exception {
+		Verifier verifier = getVerifier("/tycho109/feature-rcp");
+		verifier.executeGoal("package");
+		verifier.verifyErrorFreeLog();
+
+		File basedir = new File(verifier.getBasedir());
+		File output = new File(basedir, "target/product");
+
+		Assert.assertTrue("Exported product folder not found", output
+				.isDirectory());
+		File launcher = getLauncher(output);
+		Assert.assertTrue("Launcher not found", launcher.isFile());
+		Assert.assertTrue("config.ini not found", new File(output,
+				"configuration/config.ini").isFile());
+
+		File plugins = new File(output, "plugins");
+		Assert.assertTrue("Plugins folder not found", plugins.isDirectory());
+		Assert.assertEquals("No found the expected plugins number", 324,
+				plugins.list().length);
+
+		File features = new File(output, "features");
+		Assert.assertTrue("Features folder not found", features.isDirectory());
+		Assert.assertEquals("No found the expected features number", 18,
+				features.list().length);
+
+		// launch to be sure
+		Commandline cmd = new Commandline();
+		cmd.setExecutable(launcher.getAbsolutePath());
+
+		StringWriter logWriter = new StringWriter();
+		StreamConsumer out = new WriterStreamConsumer(logWriter);
+		StreamConsumer err = new WriterStreamConsumer(logWriter);
+		int returnCode = CommandLineUtils.executeCommandLine(cmd, out, err);
+		Assert.assertEquals("Did got a controled exit\n" + logWriter, 101,
+				returnCode);
 	}
 
 	private File getLauncher(File output) {
