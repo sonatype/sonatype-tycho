@@ -78,6 +78,18 @@ public class Feature {
 		public String getVersion() {
 			return dom.getAttribute("version");
 		}
+		
+		public String getOs() {
+			return dom.getAttribute("os");
+		}
+
+		public String getWs() {
+			return dom.getAttribute("ws");
+		}
+		
+		public String getArch() {
+			return dom.getAttribute("arch");
+		}
 
 		public void setVersion(String version) {
 			dom.setAttribute("version", version);
