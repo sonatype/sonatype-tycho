@@ -3,6 +3,7 @@ package org.codehaus.tycho.eclipsepackaging.product.test;
 import junit.framework.Assert;
 
 import org.codehaus.tycho.eclipsepackaging.product.ConfigIni;
+import org.codehaus.tycho.eclipsepackaging.product.Launcher;
 import org.codehaus.tycho.eclipsepackaging.product.LauncherArguments;
 import org.codehaus.tycho.eclipsepackaging.product.ProductConfiguration;
 import org.codehaus.tycho.eclipsepackaging.product.ProductConfigurationConverter;
@@ -34,18 +35,36 @@ public class ProductConfigurationParseTest {
 		Assert.assertEquals("solaris.ini", configIni.getSolaris());
 		Assert.assertEquals("win32.ini", configIni.getWin32());
 
-		LauncherArguments launcher = config.getLauncherArgs();
+		LauncherArguments launcherArgs = config.getLauncherArgs();
+		Assert.assertNotNull(launcherArgs);
+		Assert.assertEquals("-all args", launcherArgs.getProgramArgs());
+		Assert.assertEquals("-linux args", launcherArgs.getProgramArgsLin());
+		Assert.assertEquals("-mac args", launcherArgs.getProgramArgsMac());
+		Assert.assertEquals("-solaris args", launcherArgs.getProgramArgsSol());
+		Assert.assertEquals("-win32 args", launcherArgs.getProgramArgsWin());
+		Assert.assertEquals("-all vm", launcherArgs.getVmArgs());
+		Assert.assertEquals("-linux vm", launcherArgs.getVmArgsLin());
+		Assert.assertEquals("-mac vm", launcherArgs.getVmArgsMac());
+		Assert.assertEquals("-solaris vm", launcherArgs.getVmArgsSol());
+		Assert.assertEquals("-win32 vm", launcherArgs.getVmArgsWin());
+
+		Launcher launcher = config.getLauncher();
 		Assert.assertNotNull(launcher);
-		Assert.assertEquals("-all args", launcher.getProgramArgs());
-		Assert.assertEquals("-linux args", launcher.getProgramArgsLin());
-		Assert.assertEquals("-mac args", launcher.getProgramArgsMac());
-		Assert.assertEquals("-solaris args", launcher.getProgramArgsSol());
-		Assert.assertEquals("-win32 args", launcher.getProgramArgsWin());
-		Assert.assertEquals("-all vm", launcher.getVmArgs());
-		Assert.assertEquals("-linux vm", launcher.getVmArgsLin());
-		Assert.assertEquals("-mac vm", launcher.getVmArgsMac());
-		Assert.assertEquals("-solaris vm", launcher.getVmArgsSol());
-		Assert.assertEquals("-win32 vm", launcher.getVmArgsWin());
+		Assert.assertEquals("launchername", launcher.getName());
+		Assert.assertEquals("XPM", launcher.getLinux().getIcon());
+		Assert.assertEquals("icns", launcher.getMacosx().getIcon());
+		Assert.assertEquals("large", launcher.getSolaris().getSolarisLarge());
+		Assert.assertEquals("medium", launcher.getSolaris().getSolarisMedium());
+		Assert.assertEquals("small", launcher.getSolaris().getSolarisSmall());
+		Assert.assertEquals("tiny", launcher.getSolaris().getSolarisTiny());
+		Assert.assertEquals(false, launcher.getWin().getUseIco());
+		Assert.assertEquals("iconon", launcher.getWin().getIco().getPath());
+		Assert.assertEquals("16-32", launcher.getWin().getBmp().getWinSmallHigh());
+		Assert.assertEquals("16-8", launcher.getWin().getBmp().getWinSmallLow());
+		Assert.assertEquals("32-32", launcher.getWin().getBmp().getWinMediumHigh());
+		Assert.assertEquals("32-8", launcher.getWin().getBmp().getWinMediumLow());
+		Assert.assertEquals("48-32", launcher.getWin().getBmp().getWinLargeHigh());
+		Assert.assertEquals("48-8", launcher.getWin().getBmp().getWinLargeLow());
 
 	}
 

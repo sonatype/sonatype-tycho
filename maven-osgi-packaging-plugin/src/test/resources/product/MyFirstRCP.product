@@ -30,7 +30,7 @@
       <plugin id="com.ibm.icu"/>
    </plugins>
 
-   <launcher>
+   <launcher name="launchername">
       <linux icon="XPM"/>
       <macosx icon="icns"/>
       <solaris
@@ -39,12 +39,13 @@
             solarisSmall="small"
             solarisTiny="tiny"/>
       <win useIco="false">
+         <ico path="iconon"/>
          <bmp
             winSmallHigh="16-32"
             winSmallLow="16-8"
-            winMediumHigh="32-16"
+            winMediumHigh="32-32"
             winMediumLow="32-8"
-            winLargeHigh="48-16"
+            winLargeHigh="48-32"
             winLargeLow="48-8"/>
       </win>
    </launcher>

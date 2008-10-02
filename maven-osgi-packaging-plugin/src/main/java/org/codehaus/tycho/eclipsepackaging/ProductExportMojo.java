@@ -13,6 +13,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -259,7 +262,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		}
 		MavenProject project = state.getMavenProject(featureRef);
 		if (project != null) {
-			File soruce = project.getArtifact().getFile();
+			File source = project.getArtifact().getFile();
 
 			ZipUnArchiver unArchiver;
 			try {
@@ -271,7 +274,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			}
 
 			unArchiver.setDestDirectory(featuresFolder.getParentFile());
-			unArchiver.setSourceFile(soruce);
+			unArchiver.setSourceFile(source);
 
 			List<ArchiveFileFilter> filters = new ArrayList<ArchiveFileFilter>();
 			filters.add(new ArchiveFileFilter() {
@@ -416,12 +419,59 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 
 		File osLauncher = new File(location, "bin/" + ws + "/" + os + "/"
 				+ arch);
+
 		try {
-			FileUtils.copyDirectory(osLauncher, target);
+			// Don't copy eclipsec file
+			IOFileFilter eclipsecFilter = FileFilterUtils
+					.notFileFilter(FileFilterUtils.prefixFileFilter("eclipsec"));
+			FileUtils.copyDirectory(osLauncher, target, eclipsecFilter);
 		} catch (IOException e) {
 			throw new MojoExecutionException(
 					"Unable to copy launcher executable", e);
 		}
+
+		// Rename launcher
+		if (productConfiguration.getLauncher() != null
+				&& productConfiguration.getLauncher().getName() != null) {
+
+			File launcher = getLauncher();
+
+			String launcherName = productConfiguration.getLauncher().getName();
+
+			String newName = launcherName;
+
+			// win32 has extensions
+			if (PlatformPropertiesUtils.OS_WIN32.equals(os)) {
+				String extension = FilenameUtils.getExtension(launcher
+						.getAbsolutePath());
+				newName = launcherName + "." + extension;
+			}
+
+			launcher.renameTo(new File(launcher.getParentFile(), newName));
+
+		}
+	}
+
+	private File getLauncher() throws MojoExecutionException {
+		String os = state.getPlatformProperty(PlatformPropertiesUtils.OSGI_OS);
+
+		if (PlatformPropertiesUtils.OS_WIN32.equals(os)) {
+			return new File(target, "launcher.exe");
+		}
+
+		if (PlatformPropertiesUtils.OS_LINUX.equals(os)
+				|| PlatformPropertiesUtils.OS_SOLARIS.equals(os)
+				|| PlatformPropertiesUtils.OS_HPUX.equals(os)
+				|| PlatformPropertiesUtils.OS_AIX.equals(os)) {
+			return new File(target, "launcher");
+		}
+
+		if (PlatformPropertiesUtils.OS_MACOSX.equals(os)) {
+			// TODO need to check this at macos
+			return new File(target, "Eclipse.app/Contents/MacOS/launcher");
+		}
+
+		throw new MojoExecutionException("Unexpected OS: " + os);
 	}
 
 	private void setPropertyIfNotNull(Properties properties, String key,

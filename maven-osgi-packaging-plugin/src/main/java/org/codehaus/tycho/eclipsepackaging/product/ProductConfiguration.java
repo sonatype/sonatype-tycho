@@ -19,6 +19,8 @@ public class ProductConfiguration {
 	private String id;
 
 	private LauncherArguments launcherArgs;
+	
+	private Launcher launcher;
 
 	@XStreamAsAttribute
 	private String name;
@@ -101,6 +103,14 @@ public class ProductConfiguration {
 
 	public void setVersion(String version) {
 		this.version = version;
+	}
+
+	public Launcher getLauncher() {
+		return launcher;
+	}
+
+	public void setLauncher(Launcher launcher) {
+		this.launcher = launcher;
 	}
 
 }
