@@ -3,6 +3,8 @@
 
 <product name="My First RCP" id="MyFirstRCP.product1" application="MyFirstRCP.application" useFeatures="false">
 
+   <launcher name="MyFirstRCPProduct"/>
+
    <plugins>
       <plugin id="MyFirstRCP"/>
       <plugin id="com.ibm.icu"/>

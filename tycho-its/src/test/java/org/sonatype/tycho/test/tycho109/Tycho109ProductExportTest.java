@@ -35,8 +35,8 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Exported product folder not found", output
 				.isDirectory());
 
-		File launcher = getLauncher(output);
-		Assert.assertTrue("Launcher not found", launcher.isFile());
+		File launcher = getLauncher(output, "MyFirstRCPProduct");
+		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
 		Assert.assertTrue("config.ini not found", new File(output,
 				"configuration/config.ini").isFile());
 
@@ -53,7 +53,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		StreamConsumer out = new WriterStreamConsumer(logWriter);
 		StreamConsumer err = new WriterStreamConsumer(logWriter);
 		int returnCode = CommandLineUtils.executeCommandLine(cmd, out, err);
-		Assert.assertEquals("Did got a controled exit\n" + logWriter, 101,
+		Assert.assertEquals("Didn't get a controled exit\n" + logWriter, 101,
 				returnCode);
 	}
 
@@ -66,10 +66,10 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		File basedir = new File(verifier.getBasedir());
 		File output = new File(basedir, "target/product");
 
-		Assert.assertTrue("Exported product folder not found", output
+		Assert.assertTrue("Exported product folder not found\n" + output.getAbsolutePath(), output
 				.isDirectory());
-		File launcher = getLauncher(output);
-		Assert.assertTrue("Launcher not found", launcher.isFile());
+		File launcher = getLauncher(output, null);
+		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
 		Assert.assertTrue("config.ini not found", new File(output,
 				"configuration/config.ini").isFile());
 
@@ -91,18 +91,22 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		StreamConsumer out = new WriterStreamConsumer(logWriter);
 		StreamConsumer err = new WriterStreamConsumer(logWriter);
 		int returnCode = CommandLineUtils.executeCommandLine(cmd, out, err);
-		Assert.assertEquals("Did got a controled exit\n" + logWriter, 101,
+		Assert.assertEquals("Didn't get a controled exit\n" + logWriter, 101,
 				returnCode);
 	}
 
-	private File getLauncher(File output) {
+	private File getLauncher(File output, String expectedName) {
+		if (expectedName == null) {
+			expectedName = "launcher";
+		}
 		String os = System.getProperty("os.name").toLowerCase();
 		if (os.startsWith(WINDOWS_OS)) {
-			return new File(output, "launcher.exe");
+			return new File(output, expectedName + ".exe");
 		} else if (os.startsWith(LINUX_OS)) {
-			return new File(output, "launcher");
+			return new File(output, expectedName);
 		} else if (os.startsWith(MAC_OS) || os.startsWith(MAC_OS_DARWIN)) {
-			return new File(output, "Eclipse.app/Contents/MacOS/launcher");
+			return new File(output, "Eclipse.app/Contents/MacOS/"
+					+ expectedName);
 		} else {
 			Assert.fail("Unable to determine launcher to current OS: " + os);
 			return null;
