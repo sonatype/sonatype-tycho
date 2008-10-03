@@ -25,6 +25,7 @@ import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.ArchiveFileFilter;
 import org.codehaus.plexus.archiver.ArchiveFilterException;
+import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
@@ -437,13 +438,23 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 					"Unable to copy launcher executable", e);
 		}
 
+		File launcher = getLauncher();
+
+		// make launcher executable
+		if (!PlatformPropertiesUtils.OS_WIN32.equals(os)) {
+			try {
+				ArchiveEntryUtils.chmod(launcher, 777, null);
+			} catch (Exception e) {
+				throw new MojoExecutionException(
+						"Unable to make launcher being executable", e);
+			}
+		}
+
 		// Rename launcher
 		if (productConfiguration.getLauncher() != null
 				&& productConfiguration.getLauncher().getName() != null) {
 			String launcherName = productConfiguration.getLauncher().getName();
 			getLog().debug("Renaming launcher to " + launcherName);
-
-			File launcher = getLauncher();
 
 			String newName = launcherName;
 
