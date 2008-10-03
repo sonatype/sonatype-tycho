@@ -38,7 +38,12 @@ wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/rele
 cd $TPDIR
 
 # install
-tar xfz *.tar.gz
+
+for i in *.tar.gz
+do 
+  tar xfz $i 
+done
+
 for i in *.zip
 do 
   unzip -o $i 
