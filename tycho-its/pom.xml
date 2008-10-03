@@ -17,6 +17,7 @@
     <offline-repo>${project.build.directory}/offline-repo</offline-repo>
     
     <!-- tested artifacts -->
+    <tycho-osgi-components>${tycho-dir}/tycho/tycho-osgi-components-${pom.version}.jar</tycho-osgi-components>
     <maven-osgi-compiler-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-compiler-plugin/${pom.version}/maven-osgi-compiler-plugin-${pom.version}.jar</maven-osgi-compiler-plugin>
     <maven-osgi-lifecycle-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-lifecycle-plugin/${pom.version}/maven-osgi-lifecycle-plugin-${pom.version}.jar</maven-osgi-lifecycle-plugin>
     <maven-osgi-packaging-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-packaging-plugin/${pom.version}/maven-osgi-packaging-plugin-${pom.version}.jar</maven-osgi-packaging-plugin>
@@ -84,6 +85,23 @@
                   <artifactId>emma</artifactId>
                   <version>2.0.5312</version>
                   <outputDirectory>${tycho-dir}/lib/</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-tycho-osgi-components</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.codehaus.tycho</groupId>
+                  <artifactId>tycho-osgi-components</artifactId>
+                  <version>${pom.version}</version>
+                  <outputDirectory>${tycho-dir}/tycho/</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -183,7 +201,7 @@
           </sourceFolders>
 -->
           <jarFiles>
-            <jarFile>${tycho-dir}/tycho/tycho-osgi-components-${pom.version}.jar</jarFile>
+            <jarFile>${tycho-osgi-components}</jarFile>
             <jarFile>${maven-osgi-compiler-plugin}</jarFile>
             <jarFile>${maven-osgi-lifecycle-plugin}</jarFile>
             <jarFile>${maven-osgi-packaging-plugin}</jarFile>

@@ -64,7 +64,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "target/product");
+		File output = new File(basedir, "Feature/target/product");
 
 		Assert.assertTrue("Exported product folder not found\n" + output.getAbsolutePath(), output
 				.isDirectory());

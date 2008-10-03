@@ -103,6 +103,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		xs.processAnnotations(ProductConfiguration.class);
 
 		try {
+			getLog().debug("Parsing productConfiguration");
 			productConfiguration = (ProductConfiguration) xs
 					.fromXML(new FileInputStream(productConfigurationFile));
 		} catch (IOException e) {
@@ -143,6 +144,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	}
 
 	private void generateEclipseProduct() throws MojoExecutionException {
+		getLog().debug("Generating .eclipseproduct");
 		Properties props = new Properties();
 		setPropertyIfNotNull(props, "version", productConfiguration
 				.getVersion());
@@ -163,6 +165,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	}
 
 	private void generateConfigIni() throws MojoExecutionException {
+		getLog().debug("Generating config.ini");
 		Properties props = new Properties();
 		setPropertyIfNotNull(props, "osgi.splashPath",
 				"platform:/base/plugins/"
@@ -226,6 +229,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 
 	private void copyFeatures(List<Feature> features)
 			throws MojoExecutionException {
+		getLog().debug("Coping " + features.size() + " features ");
 		File featuresFolder = new File(target, "features");
 		featuresFolder.mkdirs();
 		Set<Plugin> plugins = new LinkedHashSet<Plugin>();
@@ -333,6 +337,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 
 	private void copyPlugins(Collection<Plugin> plugins)
 			throws MojoExecutionException {
+		getLog().debug("Coping " + plugins.size() + " plugins ");
 		File pluginsFolder = new File(target, "plugins");
 		pluginsFolder.mkdirs();
 
@@ -400,6 +405,8 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	}
 
 	private void copyExecutable() throws MojoExecutionException {
+		getLog().debug("Creating launcher.exe");
+
 		FeatureDescription feature = state.getFeatureDescription(
 				"org.eclipse.equinox.executable", null);
 
@@ -433,10 +440,10 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		// Rename launcher
 		if (productConfiguration.getLauncher() != null
 				&& productConfiguration.getLauncher().getName() != null) {
+			String launcherName = productConfiguration.getLauncher().getName();
+			getLog().debug("Renaming launcher to " + launcherName);
 
 			File launcher = getLauncher();
-
-			String launcherName = productConfiguration.getLauncher().getName();
 
 			String newName = launcherName;
 
