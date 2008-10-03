@@ -268,7 +268,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 		//
 		// ----------------------------------------------------------------------
 
-		List compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
+		List<String> compileSourceRoots = removeEmptyCompileSourceRoots(getCompileSourceRoots());
 
 		if (compileSourceRoots.isEmpty()) {
 			getLog().info("No sources to compile");
@@ -291,88 +291,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 		// Create the compiler configuration
 		// ----------------------------------------------------------------------
 
-		CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-
-		compilerConfiguration.setOutputLocation(getOutputDirectory()
-				.getAbsolutePath());
-
-		compilerConfiguration.setClasspathEntries(getClasspathElements());
-
-		compilerConfiguration.setSourceLocations(compileSourceRoots);
-
-		compilerConfiguration.setOptimize(optimize);
-
-		compilerConfiguration.setDebug(debug);
-
-		compilerConfiguration.setVerbose(verbose);
-
-		compilerConfiguration.setShowWarnings(showWarnings);
-
-		compilerConfiguration.setShowDeprecation(showDeprecation);
-
-		compilerConfiguration.setSourceVersion(source);
-
-		compilerConfiguration.setTargetVersion(target);
-
-		compilerConfiguration.setSourceEncoding(encoding);
-
-		if ((compilerArguments != null) || (compilerArgument != null)) {
-			LinkedHashMap cplrArgsCopy = new LinkedHashMap();
-			if (compilerArguments != null) {
-				for (Iterator i = compilerArguments.entrySet().iterator(); i
-						.hasNext();) {
-					Map.Entry me = (Map.Entry) i.next();
-					String key = (String) me.getKey();
-					String value = (String) me.getValue();
-					if (!key.startsWith("-")) {
-						key = "-" + key;
-					}
-					cplrArgsCopy.put(key, value);
-				}
-			}
-			if (!StringUtils.isEmpty(compilerArgument)) {
-				cplrArgsCopy.put(compilerArgument, null);
-			}
-			compilerConfiguration.setCustomCompilerArguments(cplrArgsCopy);
-		}
-
-		compilerConfiguration.setFork(fork);
-
-		if (fork) {
-			if (!StringUtils.isEmpty(meminitial)) {
-				String value = getMemoryValue(meminitial);
-
-				if (value != null) {
-					compilerConfiguration.setMeminitial(value);
-				} else {
-					getLog().info(
-							"Invalid value for meminitial '" + meminitial
-									+ "'. Ignoring this option.");
-				}
-			}
-
-			if (!StringUtils.isEmpty(maxmem)) {
-				String value = getMemoryValue(maxmem);
-
-				if (value != null) {
-					compilerConfiguration.setMaxmem(value);
-				} else {
-					getLog().info(
-							"Invalid value for maxmem '" + maxmem
-									+ "'. Ignoring this option.");
-				}
-			}
-		}
-
-		compilerConfiguration.setExecutable(executable);
-
-		compilerConfiguration.setWorkingDirectory(basedir);
-
-		compilerConfiguration.setCompilerVersion(compilerVersion);
-
-		compilerConfiguration.setBuildDirectory(buildDirectory);
-
-		compilerConfiguration.setOutputFileName(outputFileName);
+		CompilerConfiguration compilerConfiguration = getCompilerConfiguration(compileSourceRoots);
 
 		// TODO: have an option to always compile (without need to clean)
 		Set staleSources;
@@ -490,6 +409,93 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 				getLog().warn(message.toString());
 			}
 		}
+	}
+
+	protected CompilerConfiguration getCompilerConfiguration(List<String> compileSourceRoots) throws MojoExecutionException {
+
+		CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+
+		compilerConfiguration.setOutputLocation(getOutputDirectory()
+				.getAbsolutePath());
+
+		compilerConfiguration.setClasspathEntries(getClasspathElements());
+
+		compilerConfiguration.setSourceLocations(compileSourceRoots);
+
+		compilerConfiguration.setOptimize(optimize);
+
+		compilerConfiguration.setDebug(debug);
+
+		compilerConfiguration.setVerbose(verbose);
+
+		compilerConfiguration.setShowWarnings(showWarnings);
+
+		compilerConfiguration.setShowDeprecation(showDeprecation);
+
+		compilerConfiguration.setSourceVersion(source);
+
+		compilerConfiguration.setTargetVersion(target);
+
+		compilerConfiguration.setSourceEncoding(encoding);
+
+		if ((compilerArguments != null) || (compilerArgument != null)) {
+			LinkedHashMap cplrArgsCopy = new LinkedHashMap();
+			if (compilerArguments != null) {
+				for (Iterator i = compilerArguments.entrySet().iterator(); i
+						.hasNext();) {
+					Map.Entry me = (Map.Entry) i.next();
+					String key = (String) me.getKey();
+					String value = (String) me.getValue();
+					if (!key.startsWith("-")) {
+						key = "-" + key;
+					}
+					cplrArgsCopy.put(key, value);
+				}
+			}
+			if (!StringUtils.isEmpty(compilerArgument)) {
+				cplrArgsCopy.put(compilerArgument, null);
+			}
+			compilerConfiguration.setCustomCompilerArguments(cplrArgsCopy);
+		}
+
+		compilerConfiguration.setFork(fork);
+
+		if (fork) {
+			if (!StringUtils.isEmpty(meminitial)) {
+				String value = getMemoryValue(meminitial);
+
+				if (value != null) {
+					compilerConfiguration.setMeminitial(value);
+				} else {
+					getLog().info(
+							"Invalid value for meminitial '" + meminitial
+									+ "'. Ignoring this option.");
+				}
+			}
+
+			if (!StringUtils.isEmpty(maxmem)) {
+				String value = getMemoryValue(maxmem);
+
+				if (value != null) {
+					compilerConfiguration.setMaxmem(value);
+				} else {
+					getLog().info(
+							"Invalid value for maxmem '" + maxmem
+									+ "'. Ignoring this option.");
+				}
+			}
+		}
+
+		compilerConfiguration.setExecutable(executable);
+
+		compilerConfiguration.setWorkingDirectory(basedir);
+
+		compilerConfiguration.setCompilerVersion(compilerVersion);
+
+		compilerConfiguration.setBuildDirectory(buildDirectory);
+
+		compilerConfiguration.setOutputFileName(outputFileName);
+		return compilerConfiguration;
 	}
 
 	private String getMemoryValue(String setting) {

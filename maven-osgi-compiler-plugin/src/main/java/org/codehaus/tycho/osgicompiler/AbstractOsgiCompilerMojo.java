@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -34,6 +33,7 @@ import java.util.StringTokenizer;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
@@ -262,4 +262,16 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		return buildProperties;
 	}
 
+	@Override
+	protected CompilerConfiguration getCompilerConfiguration(List<String> compileSourceRoots) throws MojoExecutionException {
+		CompilerConfiguration compilerConfiguration = super.getCompilerConfiguration(compileSourceRoots);
+		if (usePdeSourceRoots) {
+			Properties props = getBuildProperties();
+			String encoding = props.getProperty("javacDefaultEncoding." + libraryName);
+			if (encoding != null) {
+				compilerConfiguration.setSourceEncoding(encoding);
+			}
+		}
+		return compilerConfiguration;
+	}
 }

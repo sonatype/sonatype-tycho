@@ -33,6 +33,8 @@ import org.eclipse.jdt.internal.compiler.util.Util;
 /**
  * @plexus.component role="org.codehaus.plexus.compiler.Compiler"
  *                   role-hint="jdt"
+ *                   
+ * See http://help.eclipse.org/ganymede/topic/org.eclipse.jdt.doc.isv/guide/jdt_api_options.htm
  */
 public class JDTCompiler extends AbstractCompiler {
 
