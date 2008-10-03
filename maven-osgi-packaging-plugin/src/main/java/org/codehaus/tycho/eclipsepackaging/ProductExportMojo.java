@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -23,11 +22,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.archiver.ArchiveFileFilter;
-import org.codehaus.plexus.archiver.ArchiveFilterException;
 import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.components.io.fileselectors.FileInfo;
+import org.codehaus.plexus.components.io.fileselectors.FileSelector;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
@@ -281,14 +280,12 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			unArchiver.setDestDirectory(featuresFolder.getParentFile());
 			unArchiver.setSourceFile(source);
 
-			List<ArchiveFileFilter> filters = new ArrayList<ArchiveFileFilter>();
-			filters.add(new ArchiveFileFilter() {
-				public boolean include(InputStream dataStream, String entryName)
-						throws ArchiveFilterException {
-					return entryName.startsWith("features");
+			FileSelector[] fileSelectors = new FileSelector[] { new FileSelector() {
+				public boolean isSelected(FileInfo fileInfo) throws IOException {
+					return fileInfo.getName().startsWith("features");
 				}
-			});
-			unArchiver.setArchiveFilters(filters);
+			} };
+			unArchiver.setFileSelectors(fileSelectors);
 			try {
 				unArchiver.extract();
 			} catch (Exception e) {
