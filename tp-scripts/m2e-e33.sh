@@ -5,9 +5,9 @@ mkdir -p $TPDIR
 
 # eclipse 3.3.2
 wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-linux-gtk-x86_64.tar.gz
-wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-linux-gtk.tar.gz
-wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-win32.zip
-wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-macosx-carbon.tar.gz
+#wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-linux-gtk.tar.gz
+#wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-win32.zip
+#wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.3.2-200802211800/eclipse-SDK-3.3.2-macosx-carbon.tar.gz
 
 # wtp&co 2.0.3
 wget -P $TPDIR  -N http://download.eclipse.org/modeling/emf/emf/downloads/drops/2.3.2/R200802051830/emf-sdo-xsd-SDK-2.3.2.zip
