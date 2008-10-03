@@ -3,7 +3,7 @@ TPDIR=$DIR/tycho-tp-e32
 rm -rf $TPDIR
 mkdir -p $TPDIR
 
-TPDIR=.
+#TPDIR=.
 
 # eclipse 3.2.2
 wget -P $TPDIR  -N http://archive.eclipse.org/eclipse/downloads/drops/R-3.2.2-200702121330/eclipse-SDK-3.2.2-linux-gtk-x86_64.tar.gz
