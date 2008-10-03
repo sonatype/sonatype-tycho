@@ -229,7 +229,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 
 	private void copyFeatures(List<Feature> features)
 			throws MojoExecutionException {
-		getLog().debug("Coping " + features.size() + " features ");
+		getLog().debug("copying " + features.size() + " features ");
 		File featuresFolder = new File(target, "features");
 		featuresFolder.mkdirs();
 		Set<Plugin> plugins = new LinkedHashSet<Plugin>();
@@ -335,7 +335,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 
 	private void copyPlugins(Collection<Plugin> plugins)
 			throws MojoExecutionException {
-		getLog().debug("Coping " + plugins.size() + " plugins ");
+		getLog().debug("copying " + plugins.size() + " plugins ");
 		File pluginsFolder = new File(target, "plugins");
 		pluginsFolder.mkdirs();
 
@@ -440,6 +440,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		// make launcher executable
 		if (!PlatformPropertiesUtils.OS_WIN32.equals(os)) {
 			try {
+				getLog().debug("Non-windows OS, running chmod");
 				ArchiveEntryUtils.chmod(launcher, 777, null);
 			} catch (Exception e) {
 				throw new MojoExecutionException(
