@@ -74,9 +74,6 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	/** @parameter expression="${project.build.directory}/site" */
 	private File target;
 
-	/** @parameter expression="${project.build.outputDirectory}" */
-	private File temp;
-
 	/** @parameter expression="${project.build.directory}/features" */
 	private File features;
 
@@ -531,7 +528,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 	private void shipPack200(File jar, String url)
 			throws ArchiverException, IOException, ComponentLookupException {
-		File outputPack = new File(temp, url + ".pack");
+		File outputPack = new File(jar.getParentFile(), jar.getName() + ".pack");
 		
 		Pack200Archiver packArchiver = new Pack200Archiver();
 		packArchiver.setSourceJar( jar );
@@ -539,9 +536,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		packArchiver.createArchive();
 		
 		GZipCompressor gzCompressor = new GZipCompressor();
-		gzCompressor.setDestFile(new File(target, url + ".pack.gz"));
+		gzCompressor.setDestFile(new File(jar.getParentFile(), jar.getName() + ".pack.gz"));
 		gzCompressor.setSourceFile(outputPack);
 		gzCompressor.execute();
+		
+		outputPack.delete();
 	}
 
 	private void signJar(File outputJar) throws MojoExecutionException {

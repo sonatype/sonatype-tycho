@@ -43,17 +43,12 @@ public class Pack200Archiver {
 		Packer packer = Pack200.newPacker();
 
 		packer.properties().putAll(getProperties());
-		try {
-			JarFile jarFile = new JarFile(getSourceJar());
-			FileOutputStream fos = new FileOutputStream(getDestFile());
-			// Call the packer
-			packer.pack(jarFile, fos);
-			jarFile.close();
-			fos.close();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-
+		JarFile jarFile = new JarFile(getSourceJar());
+		FileOutputStream fos = new FileOutputStream(getDestFile());
+		// Call the packer
+		packer.pack(jarFile, fos);
+		jarFile.close();
+		fos.close();
 	}
 
 	public File getSourceJar() {
