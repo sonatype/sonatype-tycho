@@ -25,7 +25,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 
 	@Test
 	public void exportPluginProduct() throws Exception {
-		Verifier verifier = getVerifier("/tycho109/plugin-rcp/MyFirstRCP");
+		Verifier verifier = getVerifier("/tycho109/plugin-rcp");
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 
@@ -35,14 +35,14 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Exported product folder not found", output
 				.isDirectory());
 
-		File launcher = getLauncher(output, "MyFirstRCPProduct");
+		File launcher = getLauncher(output, "headless");
 		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
 		Assert.assertTrue("config.ini not found", new File(output,
 				"configuration/config.ini").isFile());
 
 		File plugins = new File(output, "plugins");
 		Assert.assertTrue("Plugins not found", plugins.isDirectory());
-		Assert.assertEquals("No found the expected plugins number", 26, plugins
+		Assert.assertEquals("No found the expected plugins number", 12, plugins
 				.list().length);
 
 		// launch to be sure
@@ -53,7 +53,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		StreamConsumer out = new WriterStreamConsumer(logWriter);
 		StreamConsumer err = new WriterStreamConsumer(logWriter);
 		int returnCode = CommandLineUtils.executeCommandLine(cmd, out, err);
-		Assert.assertEquals("Didn't get a controled exit\n" + logWriter, 101,
+		Assert.assertEquals("Didn't get a controled exit\n" + logWriter, 911,
 				returnCode);
 	}
 
