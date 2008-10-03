@@ -1,5 +1,5 @@
 DIR=/home/j2ee-hudson
-TPDIR=$DIR/eclipse-tp-e33
+TPDIR=$DIR/tycho-tp-e33
 rm -rf $TPDIR
 mkdir -p $TPDIR
 
