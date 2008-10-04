@@ -1,26 +1,20 @@
 package headlessproduct;
 
-import org.eclipse.equinox.app.IApplication;
-import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.core.runtime.IPlatformRunnable;
 
 /**
  * This class controls all aspects of the application's execution
  */
-public class Application implements IApplication {
+public class Application implements IPlatformRunnable {
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.equinox.app.IApplication#start(org.eclipse.equinox.app.IApplicationContext)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.eclipse.core.runtime.IPlatformRunnable#run(java.lang.Object)
 	 */
-	public Object start(IApplicationContext context) throws Exception {
+	public Object run(Object args) throws Exception {
 		System.out.println("Hello RCP World!");
 		System.exit(911);
-		return IApplication.EXIT_OK;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.eclipse.equinox.app.IApplication#stop()
-	 */
-	public void stop() {
-		// nothing to do
+		return IPlatformRunnable.EXIT_OK;
 	}
 }

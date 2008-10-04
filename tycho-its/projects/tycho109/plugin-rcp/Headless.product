@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?pde version="3.4"?>
+<?pde version="3.1"?>
 
 <product name="Headless Product" id="HeadlessProduct.product" application="HeadlessProduct.application" useFeatures="false">
 
-
-   <configIni use="default">
-   </configIni>
+   <configIni use="default"/>
 
    <launcherArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts</vmArgsMac>
    </launcherArgs>
-
-   <windowImages/>
-
 
    <launcher name="headless">
       <solaris/>
@@ -20,11 +15,6 @@
          <bmp/>
       </win>
    </launcher>
-
-
-   <vm>
-   </vm>
-
    <plugins>
       <plugin id="HeadlessProduct"/>
       <plugin id="org.eclipse.core.contenttype"/>
