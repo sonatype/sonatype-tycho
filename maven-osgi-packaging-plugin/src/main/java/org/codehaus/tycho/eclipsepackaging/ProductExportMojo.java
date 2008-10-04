@@ -438,14 +438,12 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		File launcher = getLauncher();
 
 		// make launcher executable
-		if (!PlatformPropertiesUtils.OS_WIN32.equals(os)) {
-			try {
-				getLog().debug("Non-windows OS, running chmod");
-				ArchiveEntryUtils.chmod(launcher, 777, null);
-			} catch (Exception e) {
-				throw new MojoExecutionException(
-						"Unable to make launcher being executable", e);
-			}
+		try {
+			getLog().debug("running chmod");
+			ArchiveEntryUtils.chmod(launcher, 777, null);
+		} catch (Exception e) {
+			throw new MojoExecutionException(
+					"Unable to make launcher being executable", e);
 		}
 
 		// Rename launcher
