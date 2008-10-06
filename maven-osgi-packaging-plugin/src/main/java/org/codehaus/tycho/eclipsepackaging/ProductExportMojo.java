@@ -250,6 +250,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 				featureVersion);
 		org.codehaus.tycho.model.Feature featureRef;
 		if (bundle != null) {
+			getLog().debug("feature = bundle: " + bundle.getLocation());
 			try {
 				featureRef = org.codehaus.tycho.model.Feature.read(new File(
 						bundle.getLocation(), "feature.xml"));
@@ -258,6 +259,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 						"Error reading feature.xml for " + featureId);
 			}
 		} else {
+			getLog().debug("feature = project");
 			featureRef = state.getFeature(featureId, featureVersion);
 		}
 

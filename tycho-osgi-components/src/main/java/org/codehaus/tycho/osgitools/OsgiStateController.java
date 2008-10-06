@@ -161,10 +161,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			try {
 				 feature= Feature.read(new File(featureLocation, Feature.FEATURE_XML));
 			} catch (IOException e) {
-				getLogger().info("Could not read feature " + featureLocation, e);
+				getLogger().warn("Could not read feature " + featureLocation, e);
 				continue;
 			} catch (XmlPullParserException e) {
-				getLogger().info("Could not parse feature " + featureLocation, e);
+				getLogger().warn("Could not parse feature " + featureLocation, e);
 				continue;
 			}
 			
@@ -694,15 +694,22 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			return null;
 		}
 		
+		List<Version> foundVersion = new ArrayList<Version>();
+		
 		for (FeatureDescription featureDescription : featureDescriptions) {
 			if(id.equals(featureDescription.getName())) {
 				if(version == null) {
 					return featureDescription;
 				} else if (new Version(version).equals(featureDescription.getVersion())) {
 					return featureDescription;
+				} else {
+					foundVersion.add(featureDescription.getVersion());
 				}
 			}
 		}
+		
+		getLogger().debug("Feature " + id + " not found at version " + version + "." + (foundVersion.size() > 0 ? "Found at version(s): " + foundVersion + "." : "" ));
+		
 		return null;
 	}
 
