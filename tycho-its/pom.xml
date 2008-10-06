@@ -180,6 +180,26 @@
         <groupId>org.sonatype.maven.plugin</groupId>
         <artifactId>emma4it-maven-plugin</artifactId>
         <version>1.2-SNAPSHOT</version>
+        <configuration>
+
+          <searchPath>${basedir}</searchPath>
+<!--
+          <sourceFolders>
+            <sourceFolder>${source-dir}/tycho-osgi-components</sourceFolder>
+            <sourceFolder>${source-dir}/maven-tycho-plugin</sourceFolder>
+          </sourceFolders>
+-->
+          <jarFiles>
+            <jarFile>${tycho-osgi-components}</jarFile>
+            <jarFile>${maven-osgi-compiler-plugin}</jarFile>
+            <jarFile>${maven-osgi-lifecycle-plugin}</jarFile>
+            <jarFile>${maven-osgi-packaging-plugin}</jarFile>
+            <jarFile>${maven-osgi-test-plugin}</jarFile>
+            <jarFile>${maven-targetplatform-plugin}</jarFile>
+            <jarFile>${maven-tycho-plugin}</jarFile>
+          </jarFiles>
+
+        </configuration>
       </plugin>
     </plugins>
   </build>
