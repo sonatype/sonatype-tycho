@@ -65,7 +65,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "Feature/target/product");
+		File output = new File(basedir, "HeadlessFeature/target/product");
 
 		Assert.assertTrue("Exported product folder not found\n"
 				+ output.getAbsolutePath(), output.isDirectory());
@@ -97,9 +97,10 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		StringWriter logWriter = new StringWriter();
 		StreamConsumer out = new WriterStreamConsumer(logWriter);
 		StreamConsumer err = new WriterStreamConsumer(logWriter);
-		int returnCode = CommandLineUtils.executeCommandLine(cmd, out, err);
-		Assert.assertEquals("Didn't get a controled exit\n" + logWriter, 101,
-				returnCode);
+		CommandLineUtils.executeCommandLine(cmd, out, err);
+		Assert.assertTrue("Didn't get a controled exit\n"
+				+ logWriter.toString(), logWriter.toString().startsWith(
+				"Headless application OK!"));
 	}
 
 	private File getLauncher(File output, String expectedName) {
