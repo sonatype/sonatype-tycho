@@ -22,6 +22,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
@@ -440,8 +441,8 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		// make launcher executable
 		try {
 			getLog().debug("running chmod");
-			ArchiveEntryUtils.chmod(launcher, 777, null);
-		} catch (Exception e) {
+			ArchiveEntryUtils.chmod(launcher, 0755, null);
+		} catch (ArchiverException e) {
 			throw new MojoExecutionException(
 					"Unable to make launcher being executable", e);
 		}
