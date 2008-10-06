@@ -333,7 +333,8 @@ public class TestMojo extends AbstractMojo {
 				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
 
-			getLog().info(cli.toString());
+			getLog().info("Expected eclipse log file: " + new File(workspace, ".metadata/.log").getCanonicalPath());
+			getLog().info("Command line:\n\t" + cli.toString());
 
 			StreamConsumer out = new StreamConsumer() {
 				public void consumeLine(String line) {
