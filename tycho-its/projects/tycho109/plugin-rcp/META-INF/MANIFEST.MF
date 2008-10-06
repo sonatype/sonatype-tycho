@@ -3,6 +3,4 @@ Bundle-ManifestVersion: 2
 Bundle-Name: HeadlessProduct Plug-in
 Bundle-SymbolicName: HeadlessProduct; singleton:=true
 Bundle-Version: 1.0.0
-Bundle-Activator: headlessproduct.Activator
 Require-Bundle: org.eclipse.core.runtime
-Eclipse-LazyStart: true
