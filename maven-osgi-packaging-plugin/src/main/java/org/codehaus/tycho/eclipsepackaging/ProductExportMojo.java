@@ -265,7 +265,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 
 		if (featureRef == null) {
 			throw new MojoExecutionException("Unable to resolve feature "
-					+ featureId);
+					+ featureId + "_" + featureVersion);
 		}
 		MavenProject project = state.getMavenProject(featureRef);
 		if (project != null) {
