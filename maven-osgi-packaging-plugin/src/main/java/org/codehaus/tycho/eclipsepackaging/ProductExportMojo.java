@@ -15,7 +15,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -41,6 +40,7 @@ import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.Version;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
@@ -408,22 +408,28 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	private void copyExecutable() throws MojoExecutionException {
 		getLog().debug("Creating launcher.exe");
 
-		FeatureDescription feature = state.getFeatureDescription(
-				"org.eclipse.equinox.executable", null);
+		Version osgiVersion = state.getPlatformVersion();
+
+		FeatureDescription feature;
+		// eclipse 3.2
+		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+			feature = state.getFeatureDescription(
+					"org.eclipse.platform.launchers", null);
+		} else {
+			feature = state.getFeatureDescription(
+					"org.eclipse.equinox.executable", null);
+		}
 
 		if (feature == null) {
-			String msg = "RPC delta feature not found!";
-			throw new MojoExecutionException(msg,
-					new ArtifactResolutionException(msg, "",
-							"org.eclipse.equinox.executable", "",
-							"eclipse-feature", null, null));
+			throw new MojoExecutionException("RPC delta feature not found!");
 		}
+
+		File location = feature.getLocation();
 
 		String ws = state.getPlatformProperty(PlatformPropertiesUtils.OSGI_WS);
 		String os = state.getPlatformProperty(PlatformPropertiesUtils.OSGI_OS);
 		String arch = state
 				.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
-		File location = feature.getLocation();
 
 		File osLauncher = new File(location, "bin/" + ws + "/" + os + "/"
 				+ arch);
@@ -467,6 +473,18 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			launcher.renameTo(new File(launcher.getParentFile(), newName));
 
 		}
+
+		// eclipse 3.2
+		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+			File startUpJar = new File(location, "bin/startup.jar");
+			try {
+				FileUtils.copyFileToDirectory(startUpJar, target);
+			} catch (IOException e) {
+				throw new MojoExecutionException(
+						"Unable to copy startup.jar executable", e);
+			}
+		}
+
 	}
 
 	private File getLauncher() throws MojoExecutionException {

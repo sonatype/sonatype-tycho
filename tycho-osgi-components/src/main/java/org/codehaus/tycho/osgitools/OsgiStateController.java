@@ -727,6 +727,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	Set<String> sites = new LinkedHashSet<String>();
 
+	private Version platformVersion;
+
 	/**
 	 * Quick-n-dirty. Create transient Platform that includes all 
 	 * features and bundles known to this State.
@@ -832,5 +834,14 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		} catch (IOException e) {
 			throw new RuntimeException("Unexpected IOException", e);
 		}
+	}
+
+	public Version getPlatformVersion() {
+		if (platformVersion == null) {
+			BundleDescription osgi = getBundleDescription("org.eclipse.osgi",
+					OsgiState.HIGHEST_VERSION);
+			platformVersion = osgi.getVersion();
+		}
+		return platformVersion;
 	}
 }

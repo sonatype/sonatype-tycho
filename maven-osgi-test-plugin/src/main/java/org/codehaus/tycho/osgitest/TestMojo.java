@@ -356,7 +356,7 @@ public class TestMojo extends AbstractMojo {
 
 	private String getTestApplication() {
 		if (useUIHarness) {
-			Version osgiVersion = getPlatformVersion();
+			Version osgiVersion = state.getPlatformVersion();
 			if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
 				return "org.codehaus.tycho.surefire.osgibooter.uitest32";
 			} else {
@@ -368,7 +368,7 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private File getEclipseLauncher() throws IOException {
-		Version osgiVersion = getPlatformVersion();
+		Version osgiVersion = state.getPlatformVersion();
 		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
 			return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
@@ -376,11 +376,6 @@ public class TestMojo extends AbstractMojo {
 			BundleDescription launcher = state.getBundleDescription("org.eclipse.equinox.launcher", OsgiState.HIGHEST_VERSION);
 			return new File(launcher.getLocation()).getCanonicalFile();
 		}
-	}
-
-	private Version getPlatformVersion() {
-		BundleDescription osgi = state.getBundleDescription("org.eclipse.osgi", OsgiState.HIGHEST_VERSION);
-		return osgi.getVersion();
 	}
 
 	private File getOsgiSurefireBooterPlugin() throws MojoExecutionException {

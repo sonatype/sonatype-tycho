@@ -12,6 +12,7 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ResolverError;
 import org.eclipse.osgi.service.resolver.StateHelper;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 
 public interface OsgiState {
 	static final String ROLE = OsgiState.class.getName();
@@ -91,5 +92,7 @@ public interface OsgiState {
 	 * the current platform.
 	 */
 	Platform getPlatform();
+
+	Version getPlatformVersion();
 
 }

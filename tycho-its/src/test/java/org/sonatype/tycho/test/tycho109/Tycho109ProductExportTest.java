@@ -60,7 +60,13 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 
 	@Test
 	public void exportFeatureProduct() throws Exception {
-		Verifier verifier = getVerifier("/tycho109/feature-rcp");
+		Verifier verifier ;
+		if(new File(getTargetPlatforn(), "startup.jar").exists()) {
+			verifier = getVerifier("/tycho109/eclipse32/feature-rcp");
+		} else {
+			verifier = getVerifier("/tycho109/feature-rcp");
+		}
+		
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 
