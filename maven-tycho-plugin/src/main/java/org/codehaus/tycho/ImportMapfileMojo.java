@@ -112,8 +112,15 @@ public class ImportMapfileMojo extends AbstractMojo implements Contextualizable 
 
 		File workingDirectory = new File(baseFolder, childName);
 
+		char separator;
+		if (entry.getScmUrl().indexOf('|') != -1) {
+			separator = '|';
+		} else {
+			separator = ':';
+		}
+
 		ScmRepository scmRepository = scmManager.makeScmRepository("scm:"
-				+ scmSystem + entry.getScmUrl() + ":" + scmModule);
+				+ scmSystem + entry.getScmUrl() + separator + scmModule);
 
 		ScmVersion version = new ScmTag(entry.getVersion());
 
