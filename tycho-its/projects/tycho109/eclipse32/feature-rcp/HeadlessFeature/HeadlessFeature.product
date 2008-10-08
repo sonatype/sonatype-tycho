@@ -25,7 +25,7 @@
 
    <features>
       <feature id="HeadlessFeature" version="1.0.0"/>
-      <feature id="org.eclipse.sdk" version="3.2.0.v20060609m-GNq6oQq-7es-Y81"/>
+      <feature id="org.eclipse.sdk" version="3.2.2.r322_v20070104-dCGKm0Ln38lm-8s"/>
    </features>
 
 </product>
