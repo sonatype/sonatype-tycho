@@ -63,48 +63,6 @@ public class Feature {
 		return Collections.unmodifiableList(requires);
 	}
 
-	public static class PluginRef {
-		
-		private final Xpp3Dom dom;
-		
-		public PluginRef(Xpp3Dom dom) {
-			this.dom = dom;
-		}
-
-		public String getId() {
-			return dom.getAttribute("id");
-		}
-
-		public String getVersion() {
-			return dom.getAttribute("version");
-		}
-		
-		public String getOs() {
-			return dom.getAttribute("os");
-		}
-
-		public String getWs() {
-			return dom.getAttribute("ws");
-		}
-		
-		public String getArch() {
-			return dom.getAttribute("arch");
-		}
-
-		public void setVersion(String version) {
-			dom.setAttribute("version", version);
-		}
-
-		public void setDownloadSide(long size) {
-			dom.setAttribute("download-size", Long.toString(size));
-		}
-
-		public void setInstallSize(long size) {
-			dom.setAttribute("install-size", Long.toString(size));
-		}
-
-	}
-
 	public static class FeatureRef implements IFeatureRef {
 		private final Xpp3Dom dom;
 

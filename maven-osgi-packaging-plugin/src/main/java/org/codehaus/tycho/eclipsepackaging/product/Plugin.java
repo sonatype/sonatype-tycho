@@ -1,18 +1,9 @@
 package org.codehaus.tycho.eclipsepackaging.product;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-
-@XStreamAlias("plugin")
 public class Plugin {
 
-	@XStreamAsAttribute
-	private Boolean fragment;
-
-	@XStreamAsAttribute
 	private String id;
 
-	@XStreamAsAttribute
 	private String version;
 
 	public Plugin() {
@@ -25,20 +16,12 @@ public class Plugin {
 		this.version = version;
 	}
 
-	public Boolean getFragment() {
-		return fragment;
-	}
-
 	public String getId() {
 		return id;
 	}
 
 	public String getVersion() {
 		return version;
-	}
-
-	public void setFragment(Boolean fragment) {
-		this.fragment = fragment;
 	}
 
 	public void setId(String id) {

@@ -44,8 +44,8 @@ import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.IFeatureRef;
+import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
-import org.codehaus.tycho.model.Feature.PluginRef;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
@@ -193,13 +193,13 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
 
 				List<PluginRef> plugins = feature.getPlugins();
-				for (Feature.PluginRef plugin : plugins) {
+				for (PluginRef plugin : plugins) {
 					String pluginId = plugin.getId();
 					//check if should be generated
 					String key = "generate.plugin@" + pluginId;
 					if(props.containsKey(key)) {
 						//plugins copy
-						List<Feature.PluginRef> filteredPlugins = new ArrayList<PluginRef>(plugins);
+						List<PluginRef> filteredPlugins = new ArrayList<PluginRef>(plugins);
 						//generate source plugin shouldn't be present at generation
 						filteredPlugins.remove(plugin);
 						
@@ -445,7 +445,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		return version;
 	}
 
-	private void packagePlugin(Feature.PluginRef plugin, Map<String, String> archives, boolean isPack200) throws Exception {
+	private void packagePlugin(PluginRef plugin, Map<String, String> archives, boolean isPack200) throws Exception {
 		String bundleId = plugin.getId();
 		String version = plugin.getVersion();
 

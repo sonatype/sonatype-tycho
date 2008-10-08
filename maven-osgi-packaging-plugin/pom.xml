@@ -73,14 +73,6 @@
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>com.thoughtworks.xstream</groupId>
-      <artifactId>xstream</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>commons-beanutils</groupId>
-    	<artifactId>commons-beanutils</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-archiver</artifactId>
     </dependency>    

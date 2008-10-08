@@ -71,7 +71,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 				"Headless application OK!"));
 	}
 
-	// @Test
+	@Test
 	public void exportFeatureProduct() throws Exception {
 		Verifier verifier;
 		if (isEclipse32Platform()) {

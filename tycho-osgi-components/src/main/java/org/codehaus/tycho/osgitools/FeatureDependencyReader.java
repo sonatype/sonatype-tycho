@@ -7,6 +7,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.PluginRef;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 /**
@@ -26,7 +27,7 @@ public class FeatureDependencyReader extends AbstractDependenciesReader {
 		}
 
 		ArrayList<Dependency> result = new ArrayList<Dependency>();
-		for (Feature.PluginRef pluginRef : feature.getPlugins()) {
+		for (PluginRef pluginRef : feature.getPlugins()) {
 			BundleDescription bundle = state.getBundleDescription(pluginRef.getId(), getPluginVersion(pluginRef.getVersion()));
 			if (bundle == null) {
 				continue;

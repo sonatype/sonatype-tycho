@@ -82,6 +82,7 @@ public class UpdateSite {
 
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static UpdateSite read(File file) throws IOException, XmlPullParserException {
 		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
 		try {

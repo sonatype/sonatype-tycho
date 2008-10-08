@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.Platform;
+import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
 
 public class EclipseModelTest extends TestCase {
@@ -51,7 +52,7 @@ public class EclipseModelTest extends TestCase {
 
 		assertEquals("1.0.0", feature.getVersion());
 
-		List<Feature.PluginRef> plugins = feature.getPlugins();
+		List<PluginRef> plugins = feature.getPlugins();
 		assertEquals(1, plugins.size());
 		assertEquals("pluginA", plugins.get(0).getId());
 

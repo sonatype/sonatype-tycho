@@ -31,6 +31,7 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.framework.adaptor.FilePath;
@@ -440,7 +441,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	
 			Feature feature = Feature.read(new File(basedir, "feature.xml"));
 	
-			for (Feature.PluginRef plugin : feature.getPlugins()) {
+			for (PluginRef plugin : feature.getPlugins()) {
 				addPlugin(result, plugin.getId());
 			}
 	

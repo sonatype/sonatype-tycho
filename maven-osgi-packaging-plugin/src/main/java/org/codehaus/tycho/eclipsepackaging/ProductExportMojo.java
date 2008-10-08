@@ -1,7 +1,6 @@
 package org.codehaus.tycho.eclipsepackaging;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,20 +29,15 @@ import org.codehaus.plexus.components.io.fileselectors.FileSelector;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
-import org.codehaus.tycho.eclipsepackaging.product.Feature;
-import org.codehaus.tycho.eclipsepackaging.product.Plugin;
-import org.codehaus.tycho.eclipsepackaging.product.ProductConfiguration;
-import org.codehaus.tycho.eclipsepackaging.product.ProductConfigurationConverter;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.model.PluginRef;
+import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.Feature.FeatureRef;
-import org.codehaus.tycho.model.Feature.PluginRef;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
-
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.XStreamException;
 
 /**
  * @goal product-export
@@ -99,25 +93,16 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 							+ productConfigurationFile.getAbsolutePath());
 		}
 
-		XStream xs = new XStream();
-		xs.registerConverter(new ProductConfigurationConverter(getLog()));
-		xs.processAnnotations(ProductConfiguration.class);
-
 		try {
 			getLog().debug("Parsing productConfiguration");
-			productConfiguration = (ProductConfiguration) xs
-					.fromXML(new FileInputStream(productConfigurationFile));
+			productConfiguration = ProductConfiguration
+					.read(productConfigurationFile);
 		} catch (IOException e) {
 			throw new MojoExecutionException(
 					"Error reading product configuration file", e);
-		} catch (XStreamException e) {
+		} catch (XmlPullParserException e) {
 			throw new MojoExecutionException(
 					"Error parsing product configuration file", e);
-		}
-
-		// eclipse 3.2
-		if (!isEclipse32Platform()) {
-			addOsgiLauncherPlugins();
 		}
 
 		generateEclipseProduct();
@@ -135,23 +120,6 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	private boolean isEclipse32Platform() {
 		Version osgiVersion = state.getPlatformVersion();
 		return osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2;
-	}
-
-	private void addOsgiLauncherPlugins() {
-		String ws = state.getPlatformProperty(PlatformPropertiesUtils.OSGI_WS);
-		String os = state.getPlatformProperty(PlatformPropertiesUtils.OSGI_OS);
-		String arch = state
-				.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
-
-		// required plugins, RCP didn't start without both
-		// org.eclipse.equinox.launcher
-		productConfiguration.getPlugins().add(
-				new Plugin("org.eclipse.equinox.launcher", null));
-
-		// org.eclipse.equinox.launcher.win32.win32.x86
-		productConfiguration.getPlugins().add(
-				new Plugin("org.eclipse.equinox.launcher." + ws + "." + os
-						+ "." + arch, null));
 	}
 
 	private void generateEclipseProduct() throws MojoExecutionException {
@@ -178,9 +146,10 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	private void generateConfigIni() throws MojoExecutionException {
 		getLog().debug("Generating config.ini");
 		Properties props = new Properties();
+		String splash = productConfiguration.getId().split("\\.")[0];
 		setPropertyIfNotNull(props, "osgi.splashPath",
-				"platform:/base/plugins/"
-						+ productConfiguration.getPlugins().get(0).getId());
+				"platform:/base/plugins/" + splash);
+
 		setPropertyIfNotNull(props, "eclipse.product", productConfiguration
 				.getId());
 		// TODO check if there are any other levels
@@ -213,9 +182,9 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	}
 
 	private String getPluginsOsgiBundles() {
-		List<Plugin> plugins = productConfiguration.getPlugins();
+		List<PluginRef> plugins = productConfiguration.getPlugins();
 		StringBuilder buf = new StringBuilder(plugins.size() * 10);
-		for (Plugin plugin : plugins) {
+		for (PluginRef plugin : plugins) {
 			// reverse engineering discovered
 			// this plugin is not present on config.ini, and if so nothing
 			// starts
@@ -241,24 +210,41 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			}
 		}
 
+		// required plugins, RCP didn't start without both
+		if (!isEclipse32Platform()) {
+			if (buf.length() != 0) {
+				buf.append(',');
+			}
+			String ws = state
+					.getPlatformProperty(PlatformPropertiesUtils.OSGI_WS);
+			String os = state
+					.getPlatformProperty(PlatformPropertiesUtils.OSGI_OS);
+			String arch = state
+					.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
+
+			buf.append("org.eclipse.equinox.launcher,");
+			buf.append("org.eclipse.equinox.launcher." + ws + "." + os + "."
+					+ arch);
+		}
+
 		return buf.toString();
 	}
 
-	private void copyFeatures(List<Feature> features)
+	private void copyFeatures(List<FeatureRef> features)
 			throws MojoExecutionException {
 		getLog().debug("copying " + features.size() + " features ");
 		File featuresFolder = new File(target, "features");
 		featuresFolder.mkdirs();
-		Set<Plugin> plugins = new LinkedHashSet<Plugin>();
+		Set<PluginRef> plugins = new LinkedHashSet<PluginRef>();
 
-		for (Feature feature : features) {
+		for (FeatureRef feature : features) {
 			plugins.addAll(copyFeature(feature, featuresFolder));
 		}
 
 		copyPlugins(plugins);
 	}
 
-	private List<Plugin> copyFeature(Feature feature, File featuresFolder)
+	private List<PluginRef> copyFeature(FeatureRef feature, File featuresFolder)
 			throws MojoExecutionException {
 		String featureId = feature.getId();
 		String featureVersion = feature.getVersion();
@@ -319,18 +305,16 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		}
 
 		List<FeatureRef> featureRefs = featureRef.getIncludedFeatures();
-		List<Plugin> plugins = new ArrayList<Plugin>();
+		List<PluginRef> plugins = new ArrayList<PluginRef>();
 		for (FeatureRef fRef : featureRefs) {
-			plugins.addAll(copyFeature(new Feature(fRef.getId(), fRef
-					.getVersion()), featuresFolder));
+			plugins.addAll(copyFeature(fRef, featuresFolder));
 		}
 
 		// copy all plugins from all features
 		List<PluginRef> pluginRefs = featureRef.getPlugins();
 		for (PluginRef pluginRef : pluginRefs) {
 			if (matchCurrentPlataform(pluginRef)) {
-				plugins.add(new Plugin(pluginRef.getId(), pluginRef
-						.getVersion()));
+				plugins.add(pluginRef);
 			}
 		}
 
@@ -352,38 +336,57 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 				(pluginArch == null || arch.equals(pluginArch));
 	}
 
-	private void copyPlugins(Collection<Plugin> plugins)
+	private void copyPlugins(Collection<PluginRef> plugins)
 			throws MojoExecutionException {
 		getLog().debug("copying " + plugins.size() + " plugins ");
 		File pluginsFolder = new File(target, "plugins");
 		pluginsFolder.mkdirs();
 
-		for (Plugin plugin : plugins) {
+		for (PluginRef plugin : plugins) {
 			String bundleId = plugin.getId();
 			String bundleVersion = plugin.getVersion();
-			if (bundleVersion == null || "0.0.0".equals(bundleVersion)) {
-				bundleVersion = OsgiState.HIGHEST_VERSION;
-			}
+			copyPlugin(bundleId, bundleVersion, pluginsFolder);
+		}
 
-			BundleDescription bundle = state.getBundleDescription(bundleId,
-					bundleVersion);
-			if (bundle == null) {
-				throw new MojoExecutionException("Plugin " + bundleId
-						+ " not found!");
-			}
+		// required plugins, RCP didn't start without both
+		if (!isEclipse32Platform()) {
+			String ws = state
+					.getPlatformProperty(PlatformPropertiesUtils.OSGI_WS);
+			String os = state
+					.getPlatformProperty(PlatformPropertiesUtils.OSGI_OS);
+			String arch = state
+					.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
 
-			MavenProject bundleProject = state.getMavenProject(bundle);
-			if (bundleProject != null) {
-				File source = bundleProject.getArtifact().getFile();
-				File target = new File(pluginsFolder, bundleProject
-						.getArtifactId()
-						+ "_" + bundleProject.getVersion() + ".jar");
-				copyToFile(source, target);
-			} else {
-				File source = new File(bundle.getLocation());
-				copyToDirectory(source, pluginsFolder);
-			}
+			copyPlugin("org.eclipse.equinox.launcher", null, pluginsFolder);
+			copyPlugin("org.eclipse.equinox.launcher." + ws + "." + os + "."
+					+ arch, null, pluginsFolder);
+		}
+	}
 
+	private void copyPlugin(String bundleId, String bundleVersion,
+			File pluginsFolder) throws MojoExecutionException {
+		getLog().debug("Copying plugin " + bundleId + "_" + bundleVersion);
+
+		if (bundleVersion == null || "0.0.0".equals(bundleVersion)) {
+			bundleVersion = OsgiState.HIGHEST_VERSION;
+		}
+
+		BundleDescription bundle = state.getBundleDescription(bundleId,
+				bundleVersion);
+		if (bundle == null) {
+			throw new MojoExecutionException("Plugin " + bundleId
+					+ " not found!");
+		}
+
+		MavenProject bundleProject = state.getMavenProject(bundle);
+		if (bundleProject != null) {
+			File source = bundleProject.getArtifact().getFile();
+			File target = new File(pluginsFolder, bundleProject.getArtifactId()
+					+ "_" + bundleProject.getVersion() + ".jar");
+			copyToFile(source, target);
+		} else {
+			File source = new File(bundle.getLocation());
+			copyToDirectory(source, pluginsFolder);
 		}
 	}
 

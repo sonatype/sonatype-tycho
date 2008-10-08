@@ -153,6 +153,7 @@ public class Platform {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public static Platform read(File file) throws IOException, XmlPullParserException {
 		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
 		try {
