@@ -22,6 +22,7 @@ import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
+import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.components.io.fileselectors.FileInfo;
@@ -30,6 +31,7 @@ import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.Feature.FeatureRef;
@@ -115,6 +117,31 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		}
 
 		copyExecutable();
+
+		packProduct();
+	}
+
+	private void packProduct() throws MojoExecutionException {
+		ZipArchiver zipper;
+		try {
+			zipper = (ZipArchiver) plexus.lookup(ZipArchiver.ROLE, "zip");
+		} catch (ComponentLookupException e) {
+			throw new MojoExecutionException("Unable to resolve ZipArchiver", e);
+		}
+
+		File destFile = new File(project.getBuild().getDirectory(), project
+				.getBuild().getFinalName()
+				+ ".zip");
+
+		try {
+			zipper.addDirectory(target);
+			zipper.setDestFile(destFile);
+			zipper.createArchive();
+		} catch (Exception e) {
+			throw new MojoExecutionException("Error packing product", e);
+		}
+
+		project.getArtifact().setFile(destFile);
 	}
 
 	private boolean isEclipse32Platform() {
@@ -250,12 +277,12 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		String featureVersion = feature.getVersion();
 		FeatureDescription bundle = state.getFeatureDescription(featureId,
 				featureVersion);
-		org.codehaus.tycho.model.Feature featureRef;
+		Feature featureRef;
 		if (bundle != null) {
 			getLog().debug("feature = bundle: " + bundle.getLocation());
 			try {
-				featureRef = org.codehaus.tycho.model.Feature.read(new File(
-						bundle.getLocation(), "feature.xml"));
+				featureRef = Feature.read(new File(bundle.getLocation(),
+						"feature.xml"));
 			} catch (Exception e) {
 				throw new MojoExecutionException(
 						"Error reading feature.xml for " + featureId);

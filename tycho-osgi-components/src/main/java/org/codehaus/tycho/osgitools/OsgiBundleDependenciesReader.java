@@ -16,10 +16,7 @@ import org.osgi.framework.BundleException;
  */
 public class OsgiBundleDependenciesReader extends AbstractDependenciesReader {
 
-    /** @plexus.requirement */
-	private OsgiState state;
-
-	public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
+    public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
 		BundleDescription bundleDescription = state.getBundleDescription(project);
 		if (bundleDescription == null) {
 			return NO_DEPENDENCIES ;

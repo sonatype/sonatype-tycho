@@ -6,6 +6,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
+    <module>HeadlessProduct</module>
     <module>HeadlessFeature</module>
     <module>HeadlessPlugin</module>
   </modules>

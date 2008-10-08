@@ -9,10 +9,8 @@ import java.util.Set;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
-import org.codehaus.plexus.logging.Logger;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.UpdateSite;
-import org.codehaus.tycho.model.Feature.FeatureRef;
 
 /**
   * @plexus.component role="org.codehaus.tycho.maven.DependenciesReader"
@@ -20,10 +18,7 @@ import org.codehaus.tycho.model.Feature.FeatureRef;
  */
 public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 
-    /** @plexus.requirement */
-	private OsgiState state;
-
-	public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
+    public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
 		try {
 			File siteXml = new File(project.getBasedir(), "site.xml");
 			UpdateSite site = UpdateSite.read(siteXml);

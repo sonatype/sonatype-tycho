@@ -7,7 +7,8 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>tycho109</groupId>
-  <artifactId>HeadlessFeature</artifactId>
+  <artifactId>HeadlessProduct</artifactId>
   <version>1.0.0</version>
-  <packaging>eclipse-feature</packaging>
+  <packaging>eclipse-application</packaging>
+
 </project>

@@ -253,46 +253,7 @@
 				<includesDependencies>false</includesDependencies>
 			</configuration>
 		</component>
-		<component>
-			<role>
-				org.apache.maven.lifecycle.mapping.LifecycleMapping
-			</role>
-			<role-hint>eclipse-application</role-hint>
-			<implementation>
-				org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
-			</implementation>
-			<configuration>
-				<phases>
-					<package>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:package-application
-					</package>
-					<install>
-						org.apache.maven.plugins:maven-install-plugin:install
-					</install>
-					<deploy>
-						org.apache.maven.plugins:maven-deploy-plugin:deploy
-					</deploy>
-				</phases>
-			</configuration>
-		</component>
-		<component>
-			<role>
-				org.apache.maven.artifact.handler.ArtifactHandler
-			</role>
-			<role-hint>eclipse-application</role-hint>
-			<implementation>
-				org.apache.maven.artifact.handler.DefaultArtifactHandler
-			</implementation>
-			<configuration>
-				<classifier></classifier>
-				<extension>jar</extension>
-				<type>eclipse-application</type>
-				<packaging>eclipse-application</packaging>
-				<language>java</language>
-				<addedToClasspath>false</addedToClasspath>
-				<includesDependencies>true</includesDependencies>
-			</configuration>
-		</component>
+
 
 
 
@@ -326,6 +287,49 @@
                 <phases>
                     <package>
                         org.codehaus.tycho:maven-osgi-packaging-plugin:update-site
+                    </package>
+                    <install>
+                        org.apache.maven.plugins:maven-install-plugin:install
+                    </install>
+                    <deploy>
+                        org.apache.maven.plugins:maven-deploy-plugin:deploy
+                    </deploy>
+                </phases>
+            </configuration>
+        </component>
+
+
+
+        <component>
+            <role>
+                org.apache.maven.artifact.handler.ArtifactHandler
+            </role>
+            <role-hint>eclipse-application</role-hint>
+            <implementation>
+                org.apache.maven.artifact.handler.DefaultArtifactHandler
+            </implementation>
+            <configuration>
+                <classifier></classifier>
+                <extension>zip</extension>
+                <type>eclipse-application</type>
+                <packaging>eclipse-application</packaging>
+                <language>java</language>
+                <addedToClasspath>false</addedToClasspath>
+                <includesDependencies>false</includesDependencies>
+            </configuration>
+        </component>
+        <component>
+            <role>
+                org.apache.maven.lifecycle.mapping.LifecycleMapping
+            </role>
+            <role-hint>eclipse-application</role-hint>
+            <implementation>
+                org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
+            </implementation>
+            <configuration>
+                <phases>
+                    <package>
+                        org.codehaus.tycho:maven-osgi-packaging-plugin:product-export
                     </package>
                     <install>
                         org.apache.maven.plugins:maven-install-plugin:install

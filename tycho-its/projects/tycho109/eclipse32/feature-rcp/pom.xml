@@ -2,10 +2,11 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <groupId>tycho109</groupId>
-  <artifactId>eclipse32</artifactId>
+  <artifactId>feature-rcp</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
+    <module>HeadlessProduct</module>
     <module>HeadlessFeature</module>
     <module>HeadlessPlugin</module>
   </modules>
