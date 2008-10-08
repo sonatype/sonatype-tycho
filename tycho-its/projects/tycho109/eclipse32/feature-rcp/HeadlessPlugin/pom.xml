@@ -2,7 +2,7 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>eclipse32</artifactId>
+    <artifactId>feature-rcp</artifactId>
     <groupId>tycho109</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
