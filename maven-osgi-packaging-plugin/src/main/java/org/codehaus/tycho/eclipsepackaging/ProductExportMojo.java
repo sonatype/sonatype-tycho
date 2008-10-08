@@ -115,16 +115,26 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 					"Error parsing product configuration file", e);
 		}
 
-		addOsgiLauncherPlugins();
+		// eclipse 3.2
+		if (!isEclipse32Platform()) {
+			addOsgiLauncherPlugins();
+		}
 
 		generateEclipseProduct();
 		generateConfigIni();
+
 		if (productConfiguration.getUseFeatures()) {
 			copyFeatures(productConfiguration.getFeatures());
 		} else {
 			copyPlugins(productConfiguration.getPlugins());
 		}
+
 		copyExecutable();
+	}
+
+	private boolean isEclipse32Platform() {
+		Version osgiVersion = state.getPlatformVersion();
+		return osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2;
 	}
 
 	private void addOsgiLauncherPlugins() {
@@ -206,14 +216,15 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		List<Plugin> plugins = productConfiguration.getPlugins();
 		StringBuilder buf = new StringBuilder(plugins.size() * 10);
 		for (Plugin plugin : plugins) {
-			if (buf.length() != 0) {
-				buf.append(',');
-			}
 			// reverse engineering discovered
 			// this plugin is not present on config.ini, and if so nothing
 			// starts
 			if ("org.eclipse.osgi".equals(plugin.getId())) {
 				continue;
+			}
+
+			if (buf.length() != 0) {
+				buf.append(',');
 			}
 
 			buf.append(plugin.getId());
@@ -222,6 +233,11 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			// the final bundle has @start after runtime
 			if ("org.eclipse.core.runtime".equals(plugin.getId())) {
 				buf.append("@start");
+			}
+
+			if (isEclipse32Platform()
+					&& "org.eclipse.equinox.common".equals(plugin.getId())) {
+				buf.append("@2:start");
 			}
 		}
 
@@ -408,11 +424,9 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	private void copyExecutable() throws MojoExecutionException {
 		getLog().debug("Creating launcher.exe");
 
-		Version osgiVersion = state.getPlatformVersion();
-
 		FeatureDescription feature;
 		// eclipse 3.2
-		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+		if (isEclipse32Platform()) {
 			feature = state.getFeatureDescription(
 					"org.eclipse.platform.launchers", null);
 		} else {
@@ -475,7 +489,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		}
 
 		// eclipse 3.2
-		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+		if (isEclipse32Platform()) {
 			File startUpJar = new File(location, "bin/startup.jar");
 			try {
 				FileUtils.copyFileToDirectory(startUpJar, target);
