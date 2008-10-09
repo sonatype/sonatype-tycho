@@ -55,6 +55,10 @@
       <implementation>org.codehaus.tycho.maven.EclipseMaven</implementation>
       <requirements>
         <requirement>
+          <role>org.apache.maven.extension.BuildExtensionScanner</role>
+          <role-hint>default</role-hint>
+        </requirement>
+        <requirement>
           <role>org.apache.maven.project.MavenProjectBuilder</role>
         </requirement>
         <requirement>
