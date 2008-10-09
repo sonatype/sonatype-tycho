@@ -79,6 +79,8 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 	}
 
 	public void createTargetPlatform(OsgiState state, File installation) {
+		state.setTargetPlatform(installation);
+
 		EclipseInstallationLayout finder = new EclipseInstallationLayout(getLogger(), installation);
 		Set<File> sites = finder.getSites();
 		for (File site : sites) {

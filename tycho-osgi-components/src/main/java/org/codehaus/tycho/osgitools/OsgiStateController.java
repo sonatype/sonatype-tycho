@@ -791,6 +791,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			sites.add(toUrl(basedir));
 		}
 	}
+	
+	public void setTargetPlatform(File location) {
+		this.targetPlatform = location;
+	}
 
 	private String toUrl(File file) {
 		try {

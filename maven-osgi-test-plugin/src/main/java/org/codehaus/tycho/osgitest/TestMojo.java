@@ -197,8 +197,7 @@ public class TestMojo extends AbstractMojo {
 		File targetPlatform = state.getTargetPlaform();
 
 		if (targetPlatform == null) {
-			getLog().info("Cannot determinate build target platform location -- not executing tests");
-			return;
+			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
 		}
 
 		work.mkdirs();

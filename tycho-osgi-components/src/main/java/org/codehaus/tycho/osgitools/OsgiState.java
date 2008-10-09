@@ -94,6 +94,7 @@ public interface OsgiState {
 	 */
 	Platform getPlatform();
 
+	void setTargetPlatform(File installation);
 	void addSite(File site, Set<File> features, Set<File> bundles);
 
 	Version getPlatformVersion();
