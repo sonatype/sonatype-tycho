@@ -18,7 +18,8 @@ public class EclipseApplicationDependenciesReader extends
 
 	public List<Dependency> getDependencies(MavenProject project)
 			throws MavenExecutionException {
-		// at present time there is no way to get plugin configuration here
+		// XXX at present time there is no way to get plugin configuration here
+		// http://issues.sonatype.org/browse/TYCHO-190
 		String productFilename = project.getArtifactId() + ".product";
 
 		File productFile = new File(project.getBasedir(), productFilename);
