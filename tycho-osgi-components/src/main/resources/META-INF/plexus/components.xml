@@ -55,10 +55,6 @@
       <implementation>org.codehaus.tycho.maven.EclipseMaven</implementation>
       <requirements>
         <requirement>
-          <role>org.apache.maven.extension.BuildExtensionScanner</role>
-          <role-hint>default</role-hint>
-        </requirement>
-        <requirement>
           <role>org.apache.maven.project.MavenProjectBuilder</role>
         </requirement>
         <requirement>
@@ -71,7 +67,10 @@
           <role>org.codehaus.tycho.osgitools.OsgiState</role>
         </requirement>
         <requirement>
-          <role>org.codehaus.tycho.p2.P2</role>
+          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
+        </requirement>
+        <requirement>
+          <role>org.apache.maven.artifact.resolver.ArtifactResolver</role>
         </requirement>
       </requirements>
     </component>

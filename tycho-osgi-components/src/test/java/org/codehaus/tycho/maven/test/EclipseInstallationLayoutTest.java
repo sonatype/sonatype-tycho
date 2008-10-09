@@ -8,30 +8,30 @@ import java.util.Set;
 
 import org.apache.maven.plugin.testing.SilentLog;
 import org.codehaus.plexus.PlexusTestCase;
-import org.codehaus.tycho.osgitools.EclipsePluginPathFinder;
+import org.codehaus.tycho.osgitools.targetplatform.EclipseInstallationLayout;
 
-public class PluginPathFinderTest extends PlexusTestCase {
-
+public class EclipseInstallationLayoutTest extends PlexusTestCase {
+	
 	public void testTargetPlatform() throws Exception {
-		EclipsePluginPathFinder finder = getPluginFinder();
-
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
-		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
+		EclipseInstallationLayout finder = getPluginFinder(targetPlatform);
 
-		assertEquals(3, sites.size());
+		List<File> sites = getCannonicalFiles(finder.getSites());
+
+		assertEquals(4, sites.size());
 		assertTrue(sites.toString(), sites.contains(targetPlatform));
 		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/zest-3.4")));
 		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
 	}
 
-	private EclipsePluginPathFinder getPluginFinder() {
-		return new EclipsePluginPathFinder(false, new SilentLog());
+	private EclipseInstallationLayout getPluginFinder(File location) {
+		return new EclipseInstallationLayout(new SilentLog(), location);
 	}
 
 	public void testPlugins33() throws Exception {
-		EclipsePluginPathFinder finder = getPluginFinder();
-
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-2.0").getCanonicalFile();
+		EclipseInstallationLayout finder = getPluginFinder(targetPlatform);
+
 		List<File> plugins = getCannonicalFiles(finder.getPlugins(targetPlatform));
 
 		assertEquals(2, plugins.size());
@@ -40,10 +40,13 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testPlugins34() throws Exception {
-		EclipsePluginPathFinder finder = getPluginFinder();
-
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
-		List<File> plugins = getCannonicalFiles(finder.getPlugins(targetPlatform));
+		EclipseInstallationLayout finder = getPluginFinder(targetPlatform);
+
+		List<File> plugins = new ArrayList<File>();
+		for (File site : finder.getSites()) {
+			plugins.addAll(getCannonicalFiles(finder.getPlugins(site)));
+		}
 
 		assertEquals(2, plugins.size());
 //		assertTrue(plugins.contains(new File(targetPlatform, "plugins/com.ibm.icu_3.8.1.v20080402.jar").getCanonicalFile()));
@@ -53,12 +56,12 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSites34() throws Exception {
-		EclipsePluginPathFinder finder = getPluginFinder();
-
 		File targetPlatform = new File("src/test/resources/targetplatforms/wtp-3.0").getCanonicalFile();
-		List<File> sites = getCannonicalFiles(finder.getSites(targetPlatform));
+		EclipseInstallationLayout finder = getPluginFinder(targetPlatform);
 
-		assertEquals(5, sites.size());
+		List<File> sites = getCannonicalFiles(finder.getSites());
+
+		assertEquals(6, sites.size());
 		assertTrue(sites.toString(), sites.contains(targetPlatform));
 		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/ajdt")));
 		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "dropins/eclipse")));
@@ -75,12 +78,12 @@ public class PluginPathFinderTest extends PlexusTestCase {
 	}
 
 	public void testSitesSimple() throws Exception {
-		EclipsePluginPathFinder finder = getPluginFinder();
-
 		File targetPlatform = new File("src/test/resources/targetplatforms/simple").getCanonicalFile();
-		List<File> sites = new ArrayList<File>(finder.getSites(targetPlatform));
+		EclipseInstallationLayout finder = getPluginFinder(targetPlatform);
 
-		assertEquals(1, sites.size());
+		List<File> sites = new ArrayList<File>(finder.getSites());
+
+		assertEquals(2, sites.size());
 		assertEquals(targetPlatform, sites.get(0));
 	}
 }

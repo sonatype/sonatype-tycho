@@ -7,21 +7,19 @@ import org.osgi.framework.Version;
 
 public class FeatureDescriptionImpl implements FeatureDescription {
 
-	private Version version;
+	private final String name;
 
-	private String name;
+	private final Version version;
 
-	private File location;
-
-	public FeatureDescriptionImpl(String name, Version version, File location) {
-		super();
-		this.name = name;
-		this.version = version;
-		this.location = location;
-	}
+	private final File location;
+	
+	private final Feature feature;
 
 	public FeatureDescriptionImpl(Feature feature, File location) {
-		this(feature.getId(), new Version(feature.getVersion()), location);
+		this.feature = feature;
+		this.name = feature.getId();
+		this.location = location;
+		this.version = new Version(feature.getVersion());
 	}
 
 	public File getLocation() {
@@ -65,6 +63,10 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 		} else if (!version.equals(other.getVersion()))
 			return false;
 		return true;
+	}
+
+	public Feature getFeature() {
+		return feature;
 	}
 
 }

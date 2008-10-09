@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2008 Sonatype, Inc.
+  All rights reserved. This program and the accompanying materials
+  are made available under the terms of the Eclipse Public License v1.0
+  which accompanies this distribution, and is available at
+  http://www.eclipse.org/legal/epl-v10.html
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.codehaus.tycho.tychoits.tycho12.build02.bundle02</groupId>
+  <artifactId>org.codehaus.tycho.tychoits.tycho12.build02.bundle02</artifactId>
+  <version>1.0.0</version>
+  <packaging>eclipse-plugin</packaging>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- import does not seem to work
+      <dependency>
+        <groupId>org.codehaus.tycho.tychoits.tycho12.build01.bundle01</groupId>
+        <artifactId>org.codehaus.tycho.tychoits.tycho12.build01.bundle01</artifactId>
+        <version>1.0.0</version>
+        <scope>import</scope>
+      </dependency>
+       -->
+      <dependency>
+        <!-- needed to make maven core happy only, not used by tycho -->
+        <groupId>eclipse.org</groupId>
+        <artifactId>installation</artifactId>
+        <version>0.0.0</version>
+
+        <!--  important stuff -->
+        <type>eclipse-installation</type>
+        <scope>system</scope>
+        <systemPath>${targetPlatform}</systemPath>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.tycho.tychoits.tycho12.build01.bundle01</groupId>
+        <artifactId>org.codehaus.tycho.tychoits.tycho12.build01.bundle01</artifactId>
+        <version>1.0.0</version>
+        <type>eclipse-plugin</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>

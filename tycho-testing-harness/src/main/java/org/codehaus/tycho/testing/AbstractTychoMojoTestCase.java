@@ -61,7 +61,7 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		return r;
 	}
 
-	protected MavenExecutionRequest newMavenExecutionRequest(File pom) {
+	protected MavenExecutionRequest newMavenExecutionRequest(File pom) throws Exception {
 		Properties props = new Properties(System.getProperties());
         ProfileActivationContext ctx = new DefaultProfileActivationContext( props, false );
 
@@ -71,6 +71,7 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		request.setProfileManager(new DefaultProfileManager( getContainer(), ctx ));
 		request.setProperties(props);
 		request.setUserProperties(props);
+		request.setLocalRepository(getLocalRepository());
 		return request;
 	}
 

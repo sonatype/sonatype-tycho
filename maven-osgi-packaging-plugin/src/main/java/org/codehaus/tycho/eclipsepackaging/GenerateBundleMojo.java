@@ -31,9 +31,11 @@ import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.DefaultProjectBuilderConfiguration;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.project.ProjectBuilderConfiguration;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.shared.osgi.DefaultMaven2OsgiConverter;
 import org.apache.maven.shared.osgi.Maven2OsgiConverter;
@@ -478,7 +480,10 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 
 					FileUtils.copyFileToDirectory(pomArtifact.getFile(), buildTarget);
 
-					MavenProject pomProject = mavenProjectBuilder.buildWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), localRepository, null);
+					ProjectBuilderConfiguration pbc = new DefaultProjectBuilderConfiguration();
+			        pbc.setLocalRepository( localRepository );
+
+					MavenProject pomProject = mavenProjectBuilder.buildProjectWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), pbc).getProject();
 
 	    			for (Iterator j = pomProject.getArtifacts().iterator(); j.hasNext();) {
 	    				Artifact b = (Artifact) j.next();

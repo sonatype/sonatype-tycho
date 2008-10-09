@@ -2,6 +2,7 @@ package org.codehaus.tycho.osgitools;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.Manifest;
 
 import org.apache.maven.project.MavenProject;
@@ -61,7 +62,7 @@ public interface OsgiState {
 
 	MavenProject getMavenProject(BundleDescription model);
 
-	void init(File targetPlatform, Properties props);
+	void reset(Properties props);
 
 	BundleDescription getBundleDescription(String symbolicName, String version);
 
@@ -92,6 +93,8 @@ public interface OsgiState {
 	 * the current platform.
 	 */
 	Platform getPlatform();
+
+	void addSite(File site, Set<File> features, Set<File> bundles);
 
 	Version getPlatformVersion();
 

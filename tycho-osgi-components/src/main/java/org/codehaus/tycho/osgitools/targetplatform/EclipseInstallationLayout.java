@@ -1,4 +1,4 @@
-package org.codehaus.tycho.osgitools;
+package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,44 +32,46 @@ import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
  * @author igor
  *
  */
-public class EclipsePluginPathFinder extends AbstractLogEnabled {
+public class EclipseInstallationLayout extends AbstractLogEnabled {
 	
-	private boolean forceP2;
-	
-	public EclipsePluginPathFinder(boolean forceP2, Logger logger) {
-		this.forceP2 = forceP2;
+	private final File location;
+	private final File dropinsLocation;
+
+	public EclipseInstallationLayout(Logger logger, File location) {
+		this.location = location;
+		this.dropinsLocation = new File(location, "dropins");
 		enableLogging(logger);
 	}
 
-	public List<File> getFeatures(File targetPlatform) {
-		List<File> result = new ArrayList<File>();
+	public Set<File> getFeatures(File site) {
+		Set<File> result = new LinkedHashSet<File>();
 
-		for (File site : getSites(targetPlatform)) {
-			File[] plugins = new File(site, "features").listFiles();
-			if (plugins != null) {
-				result.addAll(Arrays.asList(plugins));
-			}
+		File[] plugins = new File(site, "features").listFiles();
+		if (plugins != null) {
+			result.addAll(Arrays.asList(plugins));
 		}
 
 		return result;
 	}
 
-	public Set<File> getPlugins(File targetPlatform) {
-		Set<File> result = null;
+	public Set<File> getInstalledPlugins() {
+		Set<File> result = new LinkedHashSet<File>();
+		try {
+			result.addAll(readBundlesTxt(location));
+		} catch (IOException e) {
+			getLogger().warn("Exception reading P2 bundles list", e);
+		}
+		return result;
+	}
+
+	public Set<File> getPlugins(File site) {
+		Set<File> result = new LinkedHashSet<File>();
 		
-		if (forceP2) {
-			try {
-				result = new LinkedHashSet<File>(readBundlesTxt(targetPlatform));
-			} catch (IOException e) {
-				getLogger().warn("Exception reading P2 bundles list", e);
-			}
-		} else {
-			result = new LinkedHashSet<File>();
-	
-			for (File site : getSites(targetPlatform)) {
-				addPlugins(result, new File(site, "plugins").listFiles());
-			}
-			addPlugins(result, new File(targetPlatform, "dropins").listFiles());
+		addPlugins(result, new File(site, "plugins").listFiles());
+		
+		// check for bundles in the root of dropins directory
+		if (dropinsLocation.equals(site)) {
+			addPlugins(result, site.listFiles());
 		}
 
 		return result;
@@ -93,14 +95,14 @@ public class EclipsePluginPathFinder extends AbstractLogEnabled {
 			|| new File(plugin, PluginConverterImpl.FRAGMENT_MANIFEST).canRead();
 	}
 
-	public Set<File> getSites(File targetPlatform) {
+	public Set<File> getSites() {
 		Set<File> result = new LinkedHashSet<File>();
 
-		if (new File(targetPlatform, "plugins").isDirectory()) {
-			result.add(targetPlatform);
+		if (new File(location, "plugins").isDirectory()) {
+			result.add(location);
 		}
 
-		File platform = new File(targetPlatform, "configuration/org.eclipse.update/platform.xml");
+		File platform = new File(location, "configuration/org.eclipse.update/platform.xml");
 		if (platform.canRead()) {
 			try {
 				FileInputStream is = new FileInputStream(platform);
@@ -111,7 +113,7 @@ public class EclipsePluginPathFinder extends AbstractLogEnabled {
 					for (Xpp3Dom site : sites) {
 						String enabled = site.getAttribute("enabled");
 						if (enabled == null || Boolean.parseBoolean(enabled)) {
-							File dir = parsePlatformURL(targetPlatform, site.getAttribute("url"));
+							File dir = parsePlatformURL(location, site.getAttribute("url"));
 							if (dir != null) {
 								result.add(dir);
 							}
@@ -125,12 +127,12 @@ public class EclipsePluginPathFinder extends AbstractLogEnabled {
 			}
 		}
 
-		addLinks(result, targetPlatform, new File(targetPlatform, "links"));
+		addLinks(result, location, new File(location, "links"));
 
 		// deal with dropins folder
-		File dropins = new File(targetPlatform, "dropins");
+		result.add(dropinsLocation);
 
-		File[] dropinsFiles = dropins.listFiles();
+		File[] dropinsFiles = dropinsLocation.listFiles();
 		if (dropinsFiles != null) {
 			for (File dropinsFile : dropinsFiles) {
 				File plugins = new File(dropinsFile, "plugins");
@@ -145,7 +147,7 @@ public class EclipsePluginPathFinder extends AbstractLogEnabled {
 			}
 		}
 
-		addLinks(result, targetPlatform, dropins);
+		addLinks(result, location, dropinsLocation);
 
 		return result;
 	}

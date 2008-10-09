@@ -79,11 +79,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private Properties platformProperties;
 
 	private File targetPlatform;
-	
-	private Set<FeatureDescription> featureDescriptions;
 
-	/** location to feature map */
-	private Map<String, Feature> features = new LinkedHashMap<String, Feature>();
+	private Set<FeatureDescription> features;
 
 	public static BundleDescription[] getDependentBundles(BundleDescription root) {
 		if (root == null)
@@ -120,57 +117,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public OsgiStateController() {
-	}
-
-	private void loadTargetPlatform(File platform, boolean forceP2) {
-		getLogger().info("Using " + platform.getAbsolutePath() + " eclipse target platform");
-
-		EclipsePluginPathFinder finder = new EclipsePluginPathFinder(forceP2, getLogger());
-
-		sites.clear();
-		for (File site : finder.getSites(platform)) {
-			addSite(site);
-		}
-
-		Set<File> bundles = finder.getPlugins(platform);
-
-		if (bundles == null || bundles.size() == 0) {
-			throw new RuntimeException("No bundles found!");
-		}
-
-		getLogger().info("Found " + bundles.size() + " bundles");
-		if (getLogger().isDebugEnabled()) {
-			StringBuilder sb = new StringBuilder();
-			for (File bundle : bundles) {
-				sb.append('\t').append(bundle.getAbsolutePath()).append('\n');
-			}
-			getLogger().debug(sb.toString());
-		}
-
-		for (File bundle : bundles) {
-			try {
-				addBundle(bundle);
-			} catch (BundleException e) {
-				getLogger().info("Could not add bundle: " + bundle);
-			}
-		}
-		
-		List<File> features = finder.getFeatures(targetPlatform);
-		for (File featureLocation : features) {
-			Feature feature;
-			try {
-				 feature= Feature.read(new File(featureLocation, Feature.FEATURE_XML));
-			} catch (IOException e) {
-				getLogger().warn("Could not read feature " + featureLocation, e);
-				continue;
-			} catch (XmlPullParserException e) {
-				getLogger().warn("Could not parse feature " + featureLocation, e);
-				continue;
-			}
-			
-			FeatureDescription description = new FeatureDescriptionImpl(feature, featureLocation);
-			featureDescriptions.add(description);
-		}
 	}
 
 	private long getNextId() {
@@ -522,8 +468,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			try {
 				Feature feature = Feature.read(new File(basedir, Feature.FEATURE_XML));
 				feature.setUserProperty(PROP_MAVEN_PROJECT, project);
-				String location = project.getFile().getParentFile().getAbsolutePath();
-				features.put(location, feature);
+				File location = project.getFile().getParentFile().getAbsoluteFile();
+				addFeature(location, feature);
 			} catch (Exception e) {
 				throw new BundleException("Exception reading eclipse feature", e);
 			}
@@ -566,13 +512,11 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return getManifestAttribute(desc, ATTR_GROUP_ID);
 	}
 
-	public void init(File targetPlatform, Properties props) {
-		boolean forceP2 = targetPlatform != null;
-		
-		featureDescriptions = new LinkedHashSet<FeatureDescription>();
+	public void reset(Properties props) {
+		features = new LinkedHashSet<FeatureDescription>();
+		sites = new LinkedHashSet<String>();
 
 		state = factory.createState(true);
-		features = new LinkedHashMap<String, Feature>();
 
 		platformProperties = new Properties(props);
 		platformProperties.put(PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS(platformProperties));
@@ -583,21 +527,36 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		// Set the JRE profile
 		ExecutionEnvironmentUtils.loadVMProfile(platformProperties);
 
-		String property = props.getProperty("tycho.targetPlatform");
-		if (property != null) {
-			targetPlatform = new File(property);
-		}
-
-		if (targetPlatform == null) {
-			getLogger().warn("Eclipse target platform is empty");
-			return;
-		}
-
 		initManifestsDir(props);
 
 		this.targetPlatform = targetPlatform;
 
-		loadTargetPlatform(targetPlatform, forceP2);
+	}
+
+	public void dump() {
+//		getLogger().info("Bundles count " + bundles.size());
+//		if (getLogger().isDebugEnabled()) {
+//			StringBuilder sb = new StringBuilder();
+//			for (Map.Entry<File, Set<File>> site : bundles.entrySet()) {
+//				sb.append("Site ").append(site.getKey().getAbsolutePath()).append('\n');
+//				for (File bundle : site.getValue()) {
+//					sb.append('\t').append(bundle.getAbsolutePath()).append('\n');
+//				}
+//			}
+//			getLogger().debug(sb.toString());
+//		}
+//
+//		getLogger().info("Features count " + features.size());
+//		if (getLogger().isDebugEnabled()) {
+//			StringBuilder sb = new StringBuilder();
+//			for (Map.Entry<File, Set<File>> site : features.entrySet()) {
+//				sb.append("Site ").append(site.getKey().getAbsolutePath()).append('\n');
+//				for (File feature : site.getValue()) {
+//					sb.append('\t').append(feature.getAbsolutePath()).append('\n');
+//				}
+//			}
+//			getLogger().debug(sb.toString());
+//		}
 	}
 
 	private void initManifestsDir(Properties props) {
@@ -672,9 +631,9 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public Feature getFeature(String id, String version) {
-		for (Feature feature : features.values()) {
-			if (id.equals(feature.getId())) {
-				return feature;
+		for (FeatureDescription feature : features) {
+			if (id.equals(feature.getName())) {
+				return feature.getFeature();
 			}
 		}
 		return null;
@@ -685,8 +644,13 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public Feature getFeature(MavenProject project) {
-		String location = project.getFile().getParentFile().getAbsolutePath();
-		return features.get(location);
+		File location = project.getFile().getParentFile().getAbsoluteFile();
+		for (FeatureDescription feature : features) {
+			if (feature.getLocation().equals(location)) {
+				return feature.getFeature();
+			}
+		}
+		return null;
 	}
 
 	public FeatureDescription getFeatureDescription(String id, String version) {
@@ -696,7 +660,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		
 		List<Version> foundVersion = new ArrayList<Version>();
 		
-		for (FeatureDescription featureDescription : featureDescriptions) {
+		for (FeatureDescription featureDescription : features) {
 			if(id.equals(featureDescription.getName())) {
 				if(version == null) {
 					return featureDescription;
@@ -754,7 +718,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		}
 		
 		// lets pretend I know what I am doing
-		for (FeatureDescription feature : featureDescriptions) {
+		for (FeatureDescription feature : features) {
 			String siteUrl = getSiteUrl(feature.getLocation());
 			if (siteUrl == null) {
 				throw new RuntimeException("Can't determine site for feature " + feature.getName() + " at " + feature.getLocation().getAbsolutePath());
@@ -834,6 +798,40 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		} catch (IOException e) {
 			throw new RuntimeException("Unexpected IOException", e);
 		}
+	}
+
+	public void addSite(File site, Set<File> features, Set<File> bundles) {
+		addSite(site);
+		
+		for (File feature : features) {
+			addFeature(feature);
+		}
+		
+		for (File bundle : bundles) {
+			try {
+				addBundle(bundle);
+			} catch (BundleException e) {
+				getLogger().info("Could not add bundle: " + bundle);
+			}
+		}
+
+	}
+
+	private void addFeature(File featureLocation) {
+		try {
+			Feature feature = Feature.read(new File(featureLocation, Feature.FEATURE_XML));
+			addFeature(featureLocation, feature);
+		} catch (IOException e) {
+			getLogger().warn("Could not read feature " + featureLocation, e);
+		} catch (XmlPullParserException e) {
+			getLogger().warn("Could not parse feature " + featureLocation, e);
+		}
+
+	}
+
+	private void addFeature(File featureLocation, Feature feature) {
+		FeatureDescription description = new FeatureDescriptionImpl(feature, featureLocation);
+		features.add(description);
 	}
 
 	public Version getPlatformVersion() {

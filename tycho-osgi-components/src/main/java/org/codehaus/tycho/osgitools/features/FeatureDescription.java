@@ -2,6 +2,7 @@ package org.codehaus.tycho.osgitools.features;
 
 import java.io.File;
 
+import org.codehaus.tycho.model.Feature;
 import org.osgi.framework.Version;
 
 public interface FeatureDescription {
@@ -11,5 +12,7 @@ public interface FeatureDescription {
 	Version getVersion();
 
 	File getLocation();
+
+	Feature getFeature();
 
 }
