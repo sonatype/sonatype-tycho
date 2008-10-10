@@ -198,14 +198,14 @@ public class GeneratePomsMojo extends AbstractMojo {
 			for (File rootProject : rootProjects) {
 				getLog().info("Resolving root project " + toString(rootProject));
 				if (isUpdateSiteProject(rootProject)) {
-					projects.add(rootProject);
 					projects.addAll(getSiteFeaturesAndPlugins(rootProject));
+					projects.add(rootProject);
 				} else if (isFeatureProject(rootProject)) {
-					projects.add(rootProject);
 					projects.addAll(getFeatureFeaturesAndPlugins(rootProject));
-				} else if (isPluginProject(rootProject)) {
 					projects.add(rootProject);
+				} else if (isPluginProject(rootProject)) {
 					addPluginImpl(projects, rootProject); // TODO getPluginAndDependencies
+					projects.add(rootProject);
 				} else {
 					getLog().warn("Unsupported root project " + toString(rootProject));
 				}
