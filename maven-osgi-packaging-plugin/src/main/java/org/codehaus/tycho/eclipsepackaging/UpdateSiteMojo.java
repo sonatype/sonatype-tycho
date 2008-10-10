@@ -34,6 +34,8 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.Manifest.Attribute;
+import org.codehaus.plexus.archiver.zip.ZipArchiver;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
@@ -164,6 +166,8 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			UpdateSite.write(site, file);
 
 			project.getArtifact().setFile(file);
+		} catch (MojoExecutionException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
@@ -187,8 +191,6 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 
 			MavenProject featureProject = state.getMavenProject(feature);
 			if (featureProject != null) {
-				feature = new Feature(feature);
-
 				Properties props = new Properties();
 				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
 
@@ -210,41 +212,29 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				}
 	
 				for (IFeatureRef includedRef : feature.getIncludedFeatures()) {
-					String key = "generate.feature@" + includedRef.getId();
+//					String key = "generate.feature@" + includedRef.getId();
 					//check if should be generated
-					if(props.containsKey(key)) {
-						boolean individualSourceBundle = "true".equals(props.getProperty("individualSourceBundles"));
-						if(individualSourceBundle) {
-							generateIndividualSourceFeature(includedRef, props.getProperty(key), isPack200);
-						} else {
-							generateSourceFeature(includedRef, props.getProperty(key), isPack200);
-						}
-					} else {
+//					if(props.containsKey(key)) {
+//						boolean individualSourceBundle = "true".equals(props.getProperty("individualSourceBundles"));
+//						if(individualSourceBundle) {
+//							generateIndividualSourceFeature(includedRef, props.getProperty(key), isPack200);
+//						} else {
+//							generateSourceFeature(includedRef, props.getProperty(key), isPack200);
+//						}
+//					} else {
 						packageFeature(includedRef, archives, isPack200);
-					}
+//					}
 				}
 	
 				feature.setVersion(version);
-				features.mkdirs();
-				File featureFile = new File(features, artifactId + "-feature.xml");
-				Feature.write(feature, featureFile);
-	
+
+				File featureDir = new File(features, artifactId);
+				featureDir.mkdirs();
+				unpackToDir(featureProject.getArtifact().getFile(), featureDir);
+				Feature.write(feature, new File(featureDir, Feature.FEATURE_XML));
 				outputJar.getParentFile().mkdirs();
-				String[] binIncludes = props.getProperty("bin.includes").split(",");
-				String files[] = Util.getIncludedFiles(featureProject.getBasedir(),	binIncludes);
-	
-				JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
-				jarArchiver.setDestFile(outputJar);
-	
-				for (int i = 0; i < files.length; i++) {
-					String fileName = files[i];
-					File f = "feature.xml".equals(fileName) ? featureFile: new File(featureProject.getBasedir(), fileName);
-					if (!f.isDirectory())
-					{
-						jarArchiver.addFile(f, fileName);
-					}
-				}
-				jarArchiver.createArchive();
+				packDir(featureDir, outputJar);
+//				FileUtils.copyFile(featureProject.getArtifact().getFile(), outputJar);
 				
 				if(sign) {
 					signJar(outputJar);
@@ -262,6 +252,40 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			((UpdateSite.FeatureRef) featureRef).setUrl(url);
 		}
 		featureRef.setVersion(version);
+	}
+
+	private void packDir(File sourceDir, File targetZip) throws MojoExecutionException {
+		ZipArchiver archiver ;
+		try {
+			archiver = (ZipArchiver) plexus.lookup(ZipArchiver.ROLE, "zip");
+		} catch (ComponentLookupException e) {
+			throw new MojoExecutionException("Unable to resolve ZipArchiver", e);
+		}
+		
+		archiver.setDestFile(targetZip);
+		try {
+			archiver.addDirectory(sourceDir);
+			archiver.createArchive();
+		} catch (Exception e) {
+			throw new MojoExecutionException("Error packing zip", e);
+		}
+	}
+
+	private void unpackToDir(File sourceZip, File targetDir) throws MojoExecutionException {
+		ZipUnArchiver unArchiver ;
+		try {
+			unArchiver = (ZipUnArchiver) plexus.lookup(ZipUnArchiver.ROLE, "zip");
+		} catch (ComponentLookupException e) {
+			throw new MojoExecutionException("Unable to resolve ZipUnArchiver", e);
+		}
+		
+		unArchiver.setSourceFile(sourceZip);
+		unArchiver.setDestDirectory(targetDir);
+		try {
+			unArchiver.extract();
+		} catch (ArchiverException e) {
+			throw new MojoExecutionException("Error extracting zip", e);
+		}
 	}
 
 	private void generateIndividualSourceFeature(IFeatureRef generateFeature, String baseFeatureId, boolean isPack200) throws Exception {
