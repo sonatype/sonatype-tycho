@@ -179,7 +179,7 @@ under the License.
         </plugin>
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
-          <artifactId>maven-tycho-plugin</artifactId>
+          <artifactId>maven-osgi-source-plugin</artifactId>
           <version>${tycho-version}</version>
         </plugin>
 
