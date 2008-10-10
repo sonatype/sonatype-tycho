@@ -257,6 +257,13 @@
       <version>1.2-SNAPSHOT</version>
     </dependency>
 
+    <!-- update site tests -->
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>embedded</artifactId>
+      <version>6.0.0rc2</version>
+    </dependency> 
+
     <!-- artifacts to be tested -->
     <dependency>
       <groupId>org.codehaus.tycho</groupId>

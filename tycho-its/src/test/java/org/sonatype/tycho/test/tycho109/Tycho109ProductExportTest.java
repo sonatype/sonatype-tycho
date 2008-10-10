@@ -1,7 +1,11 @@
 package org.sonatype.tycho.test.tycho109;
 
+import static org.sonatype.tycho.test.util.EnvironmentUtil.isEclipse32Platform;
+import static org.sonatype.tycho.test.util.EnvironmentUtil.isLinux;
+import static org.sonatype.tycho.test.util.EnvironmentUtil.isMac;
+import static org.sonatype.tycho.test.util.EnvironmentUtil.isWindows;
+
 import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
 
 import junit.framework.Assert;
@@ -15,14 +19,6 @@ import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
-
-	private static final String WINDOWS_OS = "windows";
-
-	private static final String MAC_OS = "mac os x";
-
-	private static final String MAC_OS_DARWIN = "darwin";
-
-	private static final String LINUX_OS = "linux";
 
 	@Test
 	public void exportPluginProduct() throws Exception {
@@ -126,22 +122,17 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		if (expectedName == null) {
 			expectedName = "launcher";
 		}
-		String os = System.getProperty("os.name").toLowerCase();
-		if (os.startsWith(WINDOWS_OS)) {
+		if (isWindows()) {
 			return new File(output, expectedName + ".exe");
-		} else if (os.startsWith(LINUX_OS)) {
+		} else if (isLinux()) {
 			return new File(output, expectedName);
-		} else if (os.startsWith(MAC_OS) || os.startsWith(MAC_OS_DARWIN)) {
+		} else if (isMac()) {
 			return new File(output, "Eclipse.app/Contents/MacOS/"
 					+ expectedName);
 		} else {
-			Assert.fail("Unable to determine launcher to current OS: " + os);
+			Assert.fail("Unable to determine launcher to current OS");
 			return null;
 		}
-	}
-
-	private boolean isEclipse32Platform() throws IOException {
-		return new File(getTargetPlatforn(), "startup.jar").exists();
 	}
 
 }

@@ -2,31 +2,12 @@ package org.sonatype.tycho.test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 import org.apache.maven.it.Verifier;
 import org.codehaus.plexus.util.FileUtils;
+import org.sonatype.tycho.test.util.EnvironmentUtil;
 
 public abstract class AbstractTychoIntegrationTest {
-	
-	private static Properties props; 
-	
-	private static synchronized String getProperty(String key) throws IOException {
-		if (props == null) {
-			props = new Properties();
-			ClassLoader cl = AbstractTychoIntegrationTest.class.getClassLoader();
-			InputStream is = cl.getResourceAsStream("baseTest.properties");
-			if (is != null) {
-				try {
-					props.load(is);
-				} finally {
-					is.close();
-				}
-			}
-		}
-		return props.getProperty(key);
-	}
 	
 	protected File getBasedir(String test) throws IOException {
 		File src = new File("projects", test).getCanonicalFile();
@@ -45,6 +26,7 @@ public abstract class AbstractTychoIntegrationTest {
 		return dst;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Verifier getVerifier(String test, boolean setTargetPlatform) throws Exception {
 		/*
 		Test JVM can be started in debug mode by passing the following
@@ -81,15 +63,15 @@ public abstract class AbstractTychoIntegrationTest {
 		return getVerifier(test, true);
 	}
 
-	protected String getLocalRepo() throws IOException {
-		return getProperty("local-repo");
+	protected String getLocalRepo() {
+		return EnvironmentUtil.getLocalRepo();
 	}
 
-	protected String getTargetPlatforn() throws IOException {
-		return getProperty("eclipse-dir");
+	protected String getTargetPlatforn() {
+		return  EnvironmentUtil.getTargetPlatforn();
 	}
 	
-	protected String getTychoHome() throws IOException {
-		return getProperty("tycho-dir");
+	protected String getTychoHome() {
+		return EnvironmentUtil.getTychoHome();
 	}
 }
