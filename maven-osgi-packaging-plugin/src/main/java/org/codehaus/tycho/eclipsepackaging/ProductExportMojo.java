@@ -422,6 +422,10 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		if (source.isDirectory()) {
 			copyToDirectory(source, pluginsFolder);
 		} else if (unpack) {
+			//when unpacked doesn't have .jar extension
+			String path = target.getAbsolutePath();
+			path = path.substring(0, path.length() - 4);
+			target = new File(path);
 			unpackToDirectory(source, target);
 		} else {
 			copyToFile(source, target);

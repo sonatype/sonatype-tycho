@@ -96,6 +96,10 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		 * Assert.assertTrue("No found the expected plugins number", 324,
 		 * plugins.list().length);
 		 */
+		
+		//MNGECLIPSE-974
+		File headlessPlugin = new File(plugins, "HeadlessPlugin_1.0.0");
+		Assert.assertTrue("Plugin should be unpacked", headlessPlugin.isDirectory());
 
 		File features = new File(output, "features");
 		Assert.assertTrue("Features folder not found", features.isDirectory());
