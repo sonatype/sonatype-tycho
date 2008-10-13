@@ -3,6 +3,7 @@ package org.codehaus.tycho.model;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -122,6 +123,16 @@ public class Feature {
 	@SuppressWarnings("deprecation")
 	public static Feature read(File file) throws IOException, XmlPullParserException {
 		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
+		try {
+			return new Feature(Xpp3DomBuilder.build(reader));
+		} finally {
+			reader.close();
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	public static Feature read(InputStream input) throws IOException, XmlPullParserException {
+		XmlStreamReader reader = ReaderFactory.newXmlReader(input);
 		try {
 			return new Feature(Xpp3DomBuilder.build(reader));
 		} finally {
