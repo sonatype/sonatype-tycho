@@ -34,6 +34,9 @@ public class UpdateSiteUtil {
 	 */
 	public static int mirrorSite(File site, File detination) throws Exception {
 		int port = EnvironmentUtil.getHttpServerPort();
+		//Avoid java bind on hudson, tests are run in parallel
+		int extra = (int) (Math.random() * 200);
+		port = port + extra;
 		Server server = startSiteHost(site, port);
 		try {
 			String siteUrl = "http://localhost:" + port;
