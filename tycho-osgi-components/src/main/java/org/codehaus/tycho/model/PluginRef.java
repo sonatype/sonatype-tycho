@@ -6,15 +6,16 @@ package org.codehaus.tycho.model;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 public class PluginRef {
-	
+
 	private final Xpp3Dom dom;
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-		result = prime * result + ((getVersion() == null) ? 0 : getVersion().hashCode());
+		result = prime * result
+				+ ((getVersion() == null) ? 0 : getVersion().hashCode());
 		return result;
 	}
 
@@ -51,7 +52,7 @@ public class PluginRef {
 	public String getVersion() {
 		return dom.getAttribute("version");
 	}
-	
+
 	public String getOs() {
 		return dom.getAttribute("os");
 	}
@@ -59,9 +60,13 @@ public class PluginRef {
 	public String getWs() {
 		return dom.getAttribute("ws");
 	}
-	
+
 	public String getArch() {
 		return dom.getAttribute("arch");
+	}
+
+	public boolean isUnpack() {
+		return Boolean.parseBoolean(dom.getAttribute("unpack"));
 	}
 
 	public void setVersion(String version) {

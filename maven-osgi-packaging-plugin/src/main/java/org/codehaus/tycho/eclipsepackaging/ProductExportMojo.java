@@ -372,7 +372,8 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		for (PluginRef plugin : plugins) {
 			String bundleId = plugin.getId();
 			String bundleVersion = plugin.getVersion();
-			copyPlugin(bundleId, bundleVersion, pluginsFolder);
+			copyPlugin(bundleId, bundleVersion, pluginsFolder, plugin
+					.isUnpack());
 		}
 
 		// required plugins, RCP didn't start without both
@@ -384,14 +385,15 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			String arch = state
 					.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
 
-			copyPlugin("org.eclipse.equinox.launcher", null, pluginsFolder);
+			copyPlugin("org.eclipse.equinox.launcher", null, pluginsFolder,
+					false);
 			copyPlugin("org.eclipse.equinox.launcher." + ws + "." + os + "."
-					+ arch, null, pluginsFolder);
+					+ arch, null, pluginsFolder, false);
 		}
 	}
 
 	private void copyPlugin(String bundleId, String bundleVersion,
-			File pluginsFolder) throws MojoExecutionException {
+			File pluginsFolder, boolean unpack) throws MojoExecutionException {
 		getLog().debug("Copying plugin " + bundleId + "_" + bundleVersion);
 
 		if (bundleVersion == null || "0.0.0".equals(bundleVersion)) {
@@ -406,14 +408,23 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		}
 
 		MavenProject bundleProject = state.getMavenProject(bundle);
+		File source;
+		File target;
 		if (bundleProject != null) {
-			File source = bundleProject.getArtifact().getFile();
-			File target = new File(pluginsFolder, bundleProject.getArtifactId()
+			source = bundleProject.getArtifact().getFile();
+			target = new File(pluginsFolder, bundleProject.getArtifactId()
 					+ "_" + bundleProject.getVersion() + ".jar");
-			copyToFile(source, target);
 		} else {
-			File source = new File(bundle.getLocation());
+			source = new File(bundle.getLocation());
+			target = new File(pluginsFolder, bundleId + "_"
+					+ bundle.getVersion() + ".jar");
+		}
+		if (source.isDirectory()) {
 			copyToDirectory(source, pluginsFolder);
+		} else if (unpack) {
+			unpackToDirectory(source, target);
+		} else {
+			copyToFile(source, target);
 		}
 	}
 
@@ -448,6 +459,27 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		} catch (IOException e) {
 			throw new MojoExecutionException("Unable to copy "
 					+ source.getName(), e);
+		}
+	}
+
+	private void unpackToDirectory(File sourceZip, File targetDir)
+			throws MojoExecutionException {
+		targetDir.mkdirs();
+		ZipUnArchiver unArchiver;
+		try {
+			unArchiver = (ZipUnArchiver) plexus.lookup(ZipUnArchiver.ROLE,
+					"zip");
+		} catch (ComponentLookupException e) {
+			throw new MojoExecutionException("Unable to resolve ZipUnArchiver",
+					e);
+		}
+
+		unArchiver.setSourceFile(sourceZip);
+		unArchiver.setDestDirectory(targetDir);
+		try {
+			unArchiver.extract();
+		} catch (ArchiverException e) {
+			throw new MojoExecutionException("Error extracting zip", e);
 		}
 	}
 
