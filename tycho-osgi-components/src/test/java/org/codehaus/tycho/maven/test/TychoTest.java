@@ -206,7 +206,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	private void resetState(Properties props) {
 		state.reset(props);
-		EclipseTargetPlatformFactory factory = new EclipseTargetPlatformFactory(logger, null, null, null);
+		EclipseTargetPlatformFactory factory = new EclipseTargetPlatformFactory(logger, null, null, null, null);
 		String property = props.getProperty("tycho.targetPlatform");
 		factory.createTargetPlatform(state, new File(property));
 	}

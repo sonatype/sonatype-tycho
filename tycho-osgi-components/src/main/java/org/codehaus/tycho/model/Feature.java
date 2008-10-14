@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
@@ -163,6 +165,17 @@ public class Feature {
 
 	public Object getUserProperty(String key) {
 		return userProperties.get(key);
+	}
+
+	public static Feature readJar(File file) throws IOException, XmlPullParserException {
+		JarFile jar = new JarFile(file);
+		try {
+			ZipEntry ze = jar.getEntry(FEATURE_XML);
+			InputStream is = jar.getInputStream(ze);
+			return read(is);
+		} finally {
+			jar.close();
+		}
 	}
 
 }

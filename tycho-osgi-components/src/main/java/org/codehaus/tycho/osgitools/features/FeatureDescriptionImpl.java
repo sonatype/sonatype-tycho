@@ -26,7 +26,7 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 		return this.location;
 	}
 
-	public String getName() {
+	public String getId() {
 		return this.name;
 	}
 
@@ -53,9 +53,9 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 			return false;
 		FeatureDescription other = (FeatureDescription) obj;
 		if (name == null) {
-			if (other.getName() != null)
+			if (other.getId() != null)
 				return false;
-		} else if (!name.equals(other.getName()))
+		} else if (!name.equals(other.getId()))
 			return false;
 		if (version == null) {
 			if (other.getVersion() != null)
@@ -69,4 +69,8 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 		return feature;
 	}
 
+	@Override
+	public String toString() {
+		return name + "_" + version.toString();
+	}
 }

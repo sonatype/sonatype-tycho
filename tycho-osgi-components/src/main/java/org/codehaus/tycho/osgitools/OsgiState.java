@@ -98,5 +98,6 @@ public interface OsgiState {
 	void addSite(File site, Set<File> features, Set<File> bundles);
 
 	Version getPlatformVersion();
+	File getFeatureDir(String id, String version);
 
 }

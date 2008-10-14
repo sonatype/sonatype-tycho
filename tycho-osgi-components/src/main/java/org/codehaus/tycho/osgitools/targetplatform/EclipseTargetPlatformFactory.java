@@ -15,6 +15,7 @@ import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -30,10 +31,12 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 
 	private ArtifactResolver artifactResolver;
 	private ArtifactFactory artifactFactory;
+	private final PlexusContainer plexus;
 
 	private ArtifactRepository localRepository;
-	
-	public EclipseTargetPlatformFactory(Logger logger, ArtifactResolver artifactResolver, ArtifactFactory artifactFactory, ArtifactRepository localRepository) {
+
+	public EclipseTargetPlatformFactory(Logger logger, PlexusContainer plexus, ArtifactResolver artifactResolver, ArtifactFactory artifactFactory, ArtifactRepository localRepository) {
+		this.plexus = plexus;
 		this.artifactResolver = artifactResolver;
 		this.artifactFactory = artifactFactory;
 		this.localRepository = localRepository;
@@ -59,7 +62,7 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 				for (Artifact artifact : versionMap.values()) {
 					try {
 						if (PACKAGING_ECLIPSE_FEATURE.equals(artifact.getType())) {
-							resolveFeature(artifact, features, bundles, project.getRemoteArtifactRepositories());
+							resolveFeature(artifact, features, bundles, project.getRemoteArtifactRepositories(), state);
 						} else if (PACKAGING_ECLIPSE_PLUGIN.equals(artifact.getType())) {
 							resolvePlugin(artifact, bundles, project.getRemoteArtifactRepositories());
 						}
@@ -90,20 +93,29 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 		}
 	}
 
-	private void resolveFeature(Artifact artifact, Set<File> features, Set<File> bundles, List<ArtifactRepository> remoteRepositories) throws AbstractArtifactResolutionException, IOException, XmlPullParserException {
+	private void resolveFeature(Artifact artifact, Set<File> features, Set<File> bundles, List<ArtifactRepository> remoteRepositories, OsgiState state) throws AbstractArtifactResolutionException, IOException, XmlPullParserException {
 		resolveArtifact(artifact, remoteRepositories);
+		Feature feature = Feature.readJar(artifact.getFile());
+//		File featureDir = unpackFeature(artifact, feature, state);
 		features.add(artifact.getFile());
-		// XXX unpack feature
-		Feature feature = Feature.read(artifact.getFile());
 		for (PluginRef ref : feature.getPlugins()) {
 			Artifact includedArtifact = artifactFactory.createArtifact(ref.getId(), ref.getId(), ref.getVersion(), null, PACKAGING_ECLIPSE_PLUGIN);
 			resolvePlugin(includedArtifact, bundles, remoteRepositories);
 		}
 		for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
 			Artifact includedArtifact = artifactFactory.createArtifact(ref.getId(), ref.getId(), ref.getVersion(), null, PACKAGING_ECLIPSE_FEATURE);
-			resolveFeature(includedArtifact, features, bundles, remoteRepositories);
+			resolveFeature(includedArtifact, features, bundles, remoteRepositories, state);
 		}
 	}
+
+//	private File unpackFeature(Artifact artifact, Feature feature, OsgiState state) throws AbstractArtifactResolutionException, IOException {
+//		File dstDir = state.getFeatureDir(feature.getId(), feature.getVersion());
+//		ZipUnArchiver unzipper = new ZipUnArchiver();
+//		unzipper.setSourceFile(artifact.getFile());
+//		unzipper.setDestDirectory(dstDir);
+//		unzipper.extract();
+//		return dstDir;
+//	}
 
 	private void assertResolved(Artifact artifact) throws ArtifactNotFoundException {
 		if (!artifact.isResolved() || artifact.getFile() == null || !artifact.getFile().canRead()) {

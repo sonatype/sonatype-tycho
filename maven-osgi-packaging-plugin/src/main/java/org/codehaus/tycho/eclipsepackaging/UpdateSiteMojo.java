@@ -49,6 +49,7 @@ import org.codehaus.tycho.model.IFeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 /**
@@ -174,64 +175,33 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	}
 
 	private void packageFeature(IFeatureRef featureRef, Map<String, String> archives, boolean isPack200) throws Exception {
-		Feature feature = state.getFeature(featureRef.getId(), featureRef.getVersion());
+		FeatureDescription feature = state.getFeatureDescription(featureRef.getId(), featureRef.getVersion());
 
 		if (feature == null) { 
 			throw new ArtifactResolutionException("Feature " + featureRef.getId() + " not found", "", featureRef.getId(), featureRef.getVersion(), "eclipse-feature", null, null)  ;
 		}
 
 		String artifactId = feature.getId();
-		String version = expandVerstion(feature.getVersion());
+		String version = expandVerstion(feature.getVersion().toString());
 
 		String url = "features/" + artifactId + "_" + version + ".jar";
 		File outputJar = new File(target, url);
 
-
 		if (!outputJar.canRead()) {
 
-			MavenProject featureProject = state.getMavenProject(feature);
+			MavenProject featureProject = state.getMavenProject(feature.getFeature());
+			Properties props = new Properties();
 			if (featureProject != null) {
-				Properties props = new Properties();
 				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
 
-				List<PluginRef> plugins = feature.getPlugins();
-				for (PluginRef plugin : plugins) {
-					String pluginId = plugin.getId();
-					//check if should be generated
-					String key = "generate.plugin@" + pluginId;
-					if(props.containsKey(key)) {
-						//plugins copy
-						List<PluginRef> filteredPlugins = new ArrayList<PluginRef>(plugins);
-						//generate source plugin shouldn't be present at generation
-						filteredPlugins.remove(plugin);
-						
-						generateSourcePlugin(pluginId, filteredPlugins, feature.getVersion(), isPack200);
-					} else {
-						packagePlugin(plugin, archives, isPack200);
-					}
-				}
+				packageIncludedArtifacts(feature, props, archives, isPack200);
 	
-				for (IFeatureRef includedRef : feature.getIncludedFeatures()) {
-//					String key = "generate.feature@" + includedRef.getId();
-					//check if should be generated
-//					if(props.containsKey(key)) {
-//						boolean individualSourceBundle = "true".equals(props.getProperty("individualSourceBundles"));
-//						if(individualSourceBundle) {
-//							generateIndividualSourceFeature(includedRef, props.getProperty(key), isPack200);
-//						} else {
-//							generateSourceFeature(includedRef, props.getProperty(key), isPack200);
-//						}
-//					} else {
-						packageFeature(includedRef, archives, isPack200);
-//					}
-				}
-	
-				feature.setVersion(version);
+				feature.getFeature().setVersion(version);
 
 				File featureDir = new File(features, artifactId);
 				featureDir.mkdirs();
 				unpackToDir(featureProject.getArtifact().getFile(), featureDir);
-				Feature.write(feature, new File(featureDir, Feature.FEATURE_XML));
+				Feature.write(feature.getFeature(), new File(featureDir, Feature.FEATURE_XML));
 				outputJar.getParentFile().mkdirs();
 				packDir(featureDir, outputJar);
 //				FileUtils.copyFile(featureProject.getArtifact().getFile(), outputJar);
@@ -244,7 +214,14 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 				}
 				
 			} else {
-				// TODO include external features
+				packageIncludedArtifacts(feature, props, archives, isPack200);
+
+				File src = feature.getLocation();
+				if (src.isDirectory()) {
+					packDir(src, outputJar);
+				} else {
+					FileUtils.copyFile(src, outputJar);
+				}
 			}
 		}
 
@@ -252,6 +229,40 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			((UpdateSite.FeatureRef) featureRef).setUrl(url);
 		}
 		featureRef.setVersion(version);
+	}
+
+	private void packageIncludedArtifacts(FeatureDescription feature, Properties buildProperties, Map<String, String> archives, boolean isPack200) throws Exception {
+		List<PluginRef> plugins = feature.getFeature().getPlugins();
+		for (PluginRef plugin : plugins) {
+			String pluginId = plugin.getId();
+			//check if should be generated
+			String key = "generate.plugin@" + pluginId;
+			if(buildProperties.containsKey(key)) {
+				//plugins copy
+				List<PluginRef> filteredPlugins = new ArrayList<PluginRef>(plugins);
+				//generate source plugin shouldn't be present at generation
+				filteredPlugins.remove(plugin);
+				
+				generateSourcePlugin(pluginId, filteredPlugins, feature.getVersion().toString(), isPack200);
+			} else {
+				packagePlugin(plugin, archives, isPack200);
+			}
+		}
+
+		for (IFeatureRef includedRef : feature.getFeature().getIncludedFeatures()) {
+//					String key = "generate.feature@" + includedRef.getId();
+			//check if should be generated
+//					if(props.containsKey(key)) {
+//						boolean individualSourceBundle = "true".equals(props.getProperty("individualSourceBundles"));
+//						if(individualSourceBundle) {
+//							generateIndividualSourceFeature(includedRef, props.getProperty(key), isPack200);
+//						} else {
+//							generateSourceFeature(includedRef, props.getProperty(key), isPack200);
+//						}
+//					} else {
+				packageFeature(includedRef, archives, isPack200);
+//					}
+		}
 	}
 
 	private void packDir(File sourceDir, File targetZip) throws MojoExecutionException {

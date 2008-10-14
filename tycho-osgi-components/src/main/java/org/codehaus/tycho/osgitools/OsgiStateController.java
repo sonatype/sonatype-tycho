@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -74,7 +77,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private long id = 0;
 
-	private File manifestsDir;
+	private File cacheDir;
 
 	private Properties platformProperties;
 
@@ -248,7 +251,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		if (name.endsWith(".jar")) {
 			name = name.substring(0, name.length() - 4);
 		}
-		File manifestFile = new File(manifestsDir, name + "/META-INF/MANIFEST.MF");
+		File manifestFile = new File(getManifestsDir(), name + "/META-INF/MANIFEST.MF");
 		manifestFile.getParentFile().mkdirs();
 		converter.convertManifest(
 				bundleLocation,
@@ -261,6 +264,16 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			return manifestFile;
 		}
 		return null;
+	}
+
+	private File getManifestsDir() {
+		return new File(cacheDir, "manifests");
+	}
+
+	public File getFeatureDir(String id, String version) {
+		File dir = new File(cacheDir, "features/" + id + "_" + version);
+		dir.mkdirs();
+		return dir;
 	}
 
 	private Properties manifestToProperties(Attributes d) {
@@ -527,7 +540,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		// Set the JRE profile
 		ExecutionEnvironmentUtils.loadVMProfile(platformProperties);
 
-		initManifestsDir(props);
+		initCacheDir(props);
 
 		this.targetPlatform = targetPlatform;
 
@@ -559,18 +572,18 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 //		}
 	}
 
-	private void initManifestsDir(Properties props) {
-		manifestsDir = null;
+	private void initCacheDir(Properties props) {
+		cacheDir = null;
 
-		String property = props.getProperty("tycho.manifests");
+		String property = props.getProperty("tycho.chacheDir");
 		if (property != null) {
-			manifestsDir = new File(property);
+			cacheDir = new File(property);
 		}
 
-		if (manifestsDir == null) {
+		if (cacheDir == null) {
 			property = System.getProperty("user.home");
 			if (property != null) {
-				manifestsDir = new File(property, ".m2/tycho/manifests");
+				cacheDir = new File(property, ".m2/tycho");
 			}
 		}
 	}
@@ -631,10 +644,9 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public Feature getFeature(String id, String version) {
-		for (FeatureDescription feature : features) {
-			if (id.equals(feature.getName())) {
-				return feature.getFeature();
-			}
+		FeatureDescription desc = getFeatureDescription(id, version);
+		if (desc != null) {
+			return desc.getFeature();
 		}
 		return null;
 	}
@@ -653,28 +665,62 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return null;
 	}
 
+	private static final Version VERSION_0_0_0 = new Version("0.0.0");
+
 	public FeatureDescription getFeatureDescription(String id, String version) {
 		if(id == null) {
 			return null;
 		}
-		
-		List<Version> foundVersion = new ArrayList<Version>();
-		
-		for (FeatureDescription featureDescription : features) {
-			if(id.equals(featureDescription.getName())) {
-				if(version == null) {
-					return featureDescription;
-				} else if (new Version(version).equals(featureDescription.getVersion())) {
-					return featureDescription;
-				} else {
-					foundVersion.add(featureDescription.getVersion());
+
+		// features with matching id, sorted by version, highest version first
+		SortedMap<Version, FeatureDescription> features = new TreeMap<Version, FeatureDescription>(
+				new Comparator<Version>() {
+					public int compare(Version o1, Version o2) {
+						return - o1.compareTo(o2);
+					};
 				}
+		);
+
+		for (FeatureDescription desc : this.features) {
+			if (id.equals(desc.getId())) {
+				features.put(desc.getVersion(), desc);
 			}
 		}
 		
-		getLogger().debug("Feature " + id + " not found at version " + version + "." + (foundVersion.size() > 0 ? "Found at version(s): " + foundVersion + "." : "" ));
-		
+		if (version == null) {
+			return features.get(features.firstKey()); // latest version
+		}
+
+		Version parsedVersion = new Version(version);
+		if (VERSION_0_0_0.equals(parsedVersion)) {
+			return features.get(features.firstKey()); // latest version
+		}
+
+		FeatureDescription perfectMatch = features.get(parsedVersion);
+
+		if (perfectMatch != null) {
+			return perfectMatch; // perfect match
+		}
+
+		boolean qualified = !"".equals(parsedVersion.getQualifier());
+
+		if (qualified) {
+			return null; // must be perfect match for qualified versions
+		}
+
+		for (FeatureDescription desc : features.values()) {
+			if (baseVersionEquals(parsedVersion, desc.getVersion())) {
+				return desc;
+			}
+		}
+
 		return null;
+	}
+
+	private boolean baseVersionEquals(Version v1, Version v2) {
+		return v1.getMajor() == v2.getMajor()
+				&& v1.getMinor() == v2.getMinor()
+				&& v1.getMicro() == v2.getMicro();
 	}
 
 	public FeatureDescription getFeatureDescription(Feature feature) {
@@ -721,7 +767,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		for (FeatureDescription feature : features) {
 			String siteUrl = getSiteUrl(feature.getLocation());
 			if (siteUrl == null) {
-				throw new RuntimeException("Can't determine site for feature " + feature.getName() + " at " + feature.getLocation().getAbsolutePath());
+				throw new RuntimeException("Can't determine site for feature " + feature.getId() + " at " + feature.getLocation().getAbsolutePath());
 			}
 			List<Platform.Feature> features = siteFeatures.get(siteUrl);
 			if (features == null) {
@@ -771,7 +817,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private Platform.Feature getFeature(String siteUrl, FeatureDescription feature) {
 		Platform.Feature result = new Platform.Feature();
-		result.setId(feature.getName());
+		result.setId(feature.getId());
 		result.setVersion(feature.getVersion().toString());
 		result.setUrl(getRelativeUrl(siteUrl, feature.getLocation()));
 		return result;
@@ -823,7 +869,13 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	private void addFeature(File featureLocation) {
 		try {
-			Feature feature = Feature.read(new File(featureLocation, Feature.FEATURE_XML));
+			Feature feature;
+			if (featureLocation.isDirectory()) {
+				feature = Feature.read(new File(featureLocation, Feature.FEATURE_XML));
+			} else {
+				// eclipse does NOT support packed features
+				feature = Feature.readJar(featureLocation);
+			}
 			addFeature(featureLocation, feature);
 		} catch (IOException e) {
 			getLogger().warn("Could not read feature " + featureLocation, e);

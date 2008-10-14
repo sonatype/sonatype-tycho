@@ -43,7 +43,7 @@ public class EclipseMaven extends DefaultMaven {
 
 		state.reset(props);
 
-		EclipseTargetPlatformFactory factory = new EclipseTargetPlatformFactory(getLogger(), artifactResolver, artifactFactory, request.getLocalRepository());
+		EclipseTargetPlatformFactory factory = new EclipseTargetPlatformFactory(getLogger(), container, artifactResolver, artifactFactory, request.getLocalRepository());
 
 		String property = props.getProperty("tycho.targetPlatform");
 		if (property != null) {

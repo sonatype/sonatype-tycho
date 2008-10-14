@@ -7,7 +7,7 @@ import org.osgi.framework.Version;
 
 public interface FeatureDescription {
 
-	String getName();
+	String getId();
 
 	Version getVersion();
 
