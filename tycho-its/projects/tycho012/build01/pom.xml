@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codehaus.tycho.tychoits.tycho12.build01</groupId>
+  <artifactId>parent</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  
+  <modules>
+    <module>build01.bundle01</module>
+    <module>build01.bundle02</module>
+    <module>build01.feature01</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <!-- needed to make maven core happy only, not used by tycho -->
+        <groupId>eclipse.org</groupId>
+        <artifactId>installation</artifactId>
+        <version>0.0.0</version>
+
+        <!--  important stuff -->
+        <type>eclipse-installation</type>
+        <scope>system</scope>
+        <systemPath>${targetPlatform}</systemPath>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+</project>
