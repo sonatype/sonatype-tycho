@@ -264,7 +264,6 @@
     <dependency>
         <groupId>de.schlichtherle.io</groupId>
         <artifactId>truezip</artifactId>
-        <version>6.6</version>
     </dependency>     
 
     <!-- update site tests -->

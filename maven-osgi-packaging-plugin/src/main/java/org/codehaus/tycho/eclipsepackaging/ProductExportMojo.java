@@ -3,12 +3,10 @@ package org.codehaus.tycho.eclipsepackaging;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
+import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -23,10 +21,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.components.io.fileselectors.FileInfo;
-import org.codehaus.plexus.components.io.fileselectors.FileSelector;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
@@ -40,6 +35,8 @@ import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
+
+import de.schlichtherle.io.FileInputStream;
 
 /**
  * @goal product-export
@@ -57,8 +54,19 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	 */
 	protected MavenProject project;
 
+	/**
+	 * @parameter expression="${buildNumber}"
+	 */
+	protected String qualifier;
+
 	/** @parameter expression="${project.build.directory}/product" */
 	private File target;
+
+	/** @parameter expression="${project.build.directory}/product/plugins" */
+	private File pluginsFolder;
+
+	/** @parameter expression="${project.build.directory}/product/features" */
+	private File featuresFolder;
 
 	/**
 	 * The product configuration, a .product file.
@@ -110,7 +118,9 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		generateEclipseProduct();
 		generateConfigIni();
 
+		pluginsFolder.mkdirs();
 		if (productConfiguration.getUseFeatures()) {
+			featuresFolder.mkdirs();
 			copyFeatures(productConfiguration.getFeatures());
 		} else {
 			copyPlugins(productConfiguration.getPlugins());
@@ -260,92 +270,86 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	private void copyFeatures(List<FeatureRef> features)
 			throws MojoExecutionException {
 		getLog().debug("copying " + features.size() + " features ");
-		File featuresFolder = new File(target, "features");
-		featuresFolder.mkdirs();
-		Set<PluginRef> plugins = new LinkedHashSet<PluginRef>();
 
 		for (FeatureRef feature : features) {
-			plugins.addAll(copyFeature(feature, featuresFolder));
+			copyFeature(feature);
 		}
-
-		copyPlugins(plugins);
 	}
 
-	private List<PluginRef> copyFeature(FeatureRef feature, File featuresFolder)
-			throws MojoExecutionException {
+	private void copyFeature(FeatureRef feature) throws MojoExecutionException {
 		String featureId = feature.getId();
 		String featureVersion = feature.getVersion();
-		FeatureDescription bundle = state.getFeatureDescription(featureId,
-				featureVersion);
-		Feature featureRef;
-		if (bundle != null) {
-			getLog().debug("feature = bundle: " + bundle.getLocation());
-			try {
-				featureRef = Feature.read(new File(bundle.getLocation(),
-						"feature.xml"));
-			} catch (Exception e) {
-				throw new MojoExecutionException(
-						"Error reading feature.xml for " + featureId);
-			}
-		} else {
-			getLog().debug("feature = project");
-			featureRef = state.getFeature(featureId, featureVersion);
-		}
 
+		Feature featureRef = state.getFeature(featureId, featureVersion);
 		if (featureRef == null) {
 			throw new MojoExecutionException("Unable to resolve feature "
 					+ featureId + "_" + featureVersion);
 		}
+
 		MavenProject project = state.getMavenProject(featureRef);
-		if (project != null) {
-			File source = project.getArtifact().getFile();
 
-			ZipUnArchiver unArchiver;
-			try {
-				unArchiver = (ZipUnArchiver) plexus.lookup(ZipUnArchiver.ROLE,
-						"zip");
-			} catch (ComponentLookupException e) {
-				throw new MojoExecutionException(
-						"Unable to resolve ZipUnArchiver", e);
+		de.schlichtherle.io.File source;
+		if (project == null) {
+			FeatureDescription bundle = state.getFeatureDescription(featureId,
+					featureVersion);
+
+			if (bundle == null) {
+				throw new MojoExecutionException("Unable to resolve feature "
+						+ featureId + "_" + featureVersion);
 			}
+			getLog().debug("feature = bundle: " + bundle.getLocation());
 
-			unArchiver.setDestDirectory(featuresFolder.getParentFile());
-			unArchiver.setSourceFile(source);
+			source = new de.schlichtherle.io.File(bundle.getLocation());
 
-			FileSelector[] fileSelectors = new FileSelector[] { new FileSelector() {
-				public boolean isSelected(FileInfo fileInfo) throws IOException {
-					return fileInfo.getName().startsWith("features");
-				}
-			} };
-			unArchiver.setFileSelectors(fileSelectors);
-			try {
-				unArchiver.extract();
-			} catch (Exception e) {
-				throw new MojoExecutionException("Error extracting feature "
-						+ featureId, e);
-			}
-
-			// copyToDirectory(file, featuresFolder);
 		} else {
-			File source = bundle.getLocation();
-			copyToDirectory(source, featuresFolder);
+			getLog().debug("feature = project: " + project.getArtifact());
+
+			source = new de.schlichtherle.io.File(project.getArtifact()
+					.getFile());
 		}
 
+		featureVersion = expandVerstion(featureRef.getVersion());
+
+		File targetFolder = new File(featuresFolder, featureRef.getId() + "_"
+				+ featureVersion);
+		targetFolder.mkdirs();
+
+		source.copyAllTo(targetFolder);
+
 		List<FeatureRef> featureRefs = featureRef.getIncludedFeatures();
-		List<PluginRef> plugins = new ArrayList<PluginRef>();
 		for (FeatureRef fRef : featureRefs) {
-			plugins.addAll(copyFeature(fRef, featuresFolder));
+			copyFeature(fRef);
 		}
 
 		// copy all plugins from all features
 		List<PluginRef> pluginRefs = featureRef.getPlugins();
 		for (PluginRef pluginRef : pluginRefs) {
 			if (matchCurrentPlataform(pluginRef)) {
-				plugins.add(pluginRef);
+				String pluginVersion = pluginRef.getVersion();
+				String bundleVersion = copyPlugin(pluginRef.getId(),
+						pluginVersion, pluginRef.isUnpack());
+				if (!pluginVersion.equals(bundleVersion)) {
+					pluginRef.setVersion(bundleVersion);
+				}
 			}
 		}
 
-		return plugins;
+		featureRef.setVersion(featureVersion);
+		try {
+			Feature.write(featureRef, new File(targetFolder,
+					Feature.FEATURE_XML));
+		} catch (IOException e) {
+			throw new MojoExecutionException("Fail to update feature.xml", e);
+		}
+
+	}
+
+	private String expandVerstion(String version) {
+		if (qualifier != null && version.endsWith(".qualifier")) {
+			version = version.substring(0, version.lastIndexOf('.') + 1);
+			version = version + qualifier;
+		}
+		return version;
 	}
 
 	private boolean matchCurrentPlataform(PluginRef pluginRef) {
@@ -366,14 +370,11 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	private void copyPlugins(Collection<PluginRef> plugins)
 			throws MojoExecutionException {
 		getLog().debug("copying " + plugins.size() + " plugins ");
-		File pluginsFolder = new File(target, "plugins");
-		pluginsFolder.mkdirs();
 
 		for (PluginRef plugin : plugins) {
 			String bundleId = plugin.getId();
 			String bundleVersion = plugin.getVersion();
-			copyPlugin(bundleId, bundleVersion, pluginsFolder, plugin
-					.isUnpack());
+			copyPlugin(bundleId, bundleVersion, plugin.isUnpack());
 		}
 
 		// required plugins, RCP didn't start without both
@@ -385,15 +386,14 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			String arch = state
 					.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
 
-			copyPlugin("org.eclipse.equinox.launcher", null, pluginsFolder,
-					false);
+			copyPlugin("org.eclipse.equinox.launcher", null, false);
 			copyPlugin("org.eclipse.equinox.launcher." + ws + "." + os + "."
-					+ arch, null, pluginsFolder, false);
+					+ arch, null, false);
 		}
 	}
 
-	private void copyPlugin(String bundleId, String bundleVersion,
-			File pluginsFolder, boolean unpack) throws MojoExecutionException {
+	private String copyPlugin(String bundleId, String bundleVersion,
+			boolean unpack) throws MojoExecutionException {
 		getLog().debug("Copying plugin " + bundleId + "_" + bundleVersion);
 
 		if (bundleVersion == null || "0.0.0".equals(bundleVersion)) {
@@ -403,33 +403,44 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		BundleDescription bundle = state.getBundleDescription(bundleId,
 				bundleVersion);
 		if (bundle == null) {
-			throw new MojoExecutionException("Plugin " + bundleId
-					+ " not found!");
+			throw new MojoExecutionException("Plugin '" + bundleId + "_"
+					+ bundleVersion + "' not found!");
 		}
 
 		MavenProject bundleProject = state.getMavenProject(bundle);
 		File source;
-		File target;
 		if (bundleProject != null) {
 			source = bundleProject.getArtifact().getFile();
-			target = new File(pluginsFolder, bundleProject.getArtifactId()
-					+ "_" + bundleProject.getVersion() + ".jar");
 		} else {
 			source = new File(bundle.getLocation());
-			target = new File(pluginsFolder, bundleId + "_"
-					+ bundle.getVersion() + ".jar");
 		}
+
+		de.schlichtherle.io.File manifestMf = new de.schlichtherle.io.File(
+				source, "META-INF/MANIFEST.MF");
+		Manifest manifest;
+		try {
+			manifest = new Manifest(new FileInputStream(manifestMf));
+		} catch (IOException e) {
+			throw new MojoExecutionException("Unable to read manifest file", e);
+		}
+		bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
+
+		File target = new File(pluginsFolder, bundleId + "_" + bundleVersion
+				+ ".jar");
 		if (source.isDirectory()) {
 			copyToDirectory(source, pluginsFolder);
 		} else if (unpack) {
-			//when unpacked doesn't have .jar extension
+			// when unpacked doesn't have .jar extension
 			String path = target.getAbsolutePath();
 			path = path.substring(0, path.length() - 4);
 			target = new File(path);
-			unpackToDirectory(source, target);
+			new de.schlichtherle.io.File(source).copyAllTo(target);
+			// unpackToDirectory(source, target);
 		} else {
 			copyToFile(source, target);
 		}
+
+		return bundleVersion;
 	}
 
 	private void copyToFile(File source, File target)
@@ -463,27 +474,6 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		} catch (IOException e) {
 			throw new MojoExecutionException("Unable to copy "
 					+ source.getName(), e);
-		}
-	}
-
-	private void unpackToDirectory(File sourceZip, File targetDir)
-			throws MojoExecutionException {
-		targetDir.mkdirs();
-		ZipUnArchiver unArchiver;
-		try {
-			unArchiver = (ZipUnArchiver) plexus.lookup(ZipUnArchiver.ROLE,
-					"zip");
-		} catch (ComponentLookupException e) {
-			throw new MojoExecutionException("Unable to resolve ZipUnArchiver",
-					e);
-		}
-
-		unArchiver.setSourceFile(sourceZip);
-		unArchiver.setDestDirectory(targetDir);
-		try {
-			unArchiver.extract();
-		} catch (ArchiverException e) {
-			throw new MojoExecutionException("Error extracting zip", e);
 		}
 	}
 

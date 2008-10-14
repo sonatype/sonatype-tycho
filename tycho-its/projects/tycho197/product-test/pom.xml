@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>tycho197</groupId>
+  <artifactId>tycho197</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>Feature</module>
+    <module>Plugin</module>
+    <module>Product</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.tycho</groupId>
+        <artifactId>maven-osgi-packaging-plugin
+        </artifactId>
+        <executions>
+          <execution>
+            <id>timestamp</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>timestamp</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
