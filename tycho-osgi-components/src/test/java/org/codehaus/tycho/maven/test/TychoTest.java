@@ -194,7 +194,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		File manifests = new File("target/manifests");
 		Properties props = new Properties(System.getProperties());
 		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
-		props.put("tycho.manifests", manifests.getCanonicalPath());
+		props.put("tycho.cacheDir", manifests.getParentFile().getCanonicalPath());
 		resetState(props);
 
 		assertNotNull(state.getBundleDescription("testjar", "1.0.0"));

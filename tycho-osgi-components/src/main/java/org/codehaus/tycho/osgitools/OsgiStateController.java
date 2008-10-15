@@ -575,7 +575,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private void initCacheDir(Properties props) {
 		cacheDir = null;
 
-		String property = props.getProperty("tycho.chacheDir");
+		String property = props.getProperty("tycho.cacheDir");
 		if (property != null) {
 			cacheDir = new File(property);
 		}
