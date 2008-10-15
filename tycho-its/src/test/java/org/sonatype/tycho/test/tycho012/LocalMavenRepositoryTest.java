@@ -11,12 +11,12 @@ public class LocalMavenRepositoryTest extends AbstractTychoIntegrationTest {
 
 	@Test
 	public void testLocalMavenRepository() throws Exception {
-        Verifier v01 = getVerifier("tycho012/build01", false);
+        Verifier v01 = getVerifier("tycho164/build01", false);
     	v01.getCliOptions().add( "-DtargetPlatform=" + getTargetPlatforn() );
         v01.executeGoal("install");
         v01.verifyErrorFreeLog();
 
-        Verifier v02 = getVerifier("tycho012/build02", false);
+        Verifier v02 = getVerifier("tycho164/build02", false);
     	v02.getCliOptions().add( "-DtargetPlatform=" + getTargetPlatforn() );
         v02.executeGoal("install");
         v02.verifyErrorFreeLog();
