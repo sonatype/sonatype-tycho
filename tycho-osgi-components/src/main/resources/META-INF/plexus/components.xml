@@ -289,7 +289,8 @@
             <configuration>
                 <phases>
                     <package>
-                        org.codehaus.tycho:maven-osgi-packaging-plugin:update-site
+                        org.codehaus.tycho:maven-osgi-packaging-plugin:update-site,
+                        org.codehaus.tycho:maven-osgi-packaging-plugin:p2-metadata
                     </package>
                     <install>
                         org.apache.maven.plugins:maven-install-plugin:install

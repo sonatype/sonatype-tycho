@@ -12,4 +12,9 @@ public interface P2 {
 
 	String materializeTargetPlatform(String key, List<String> repositories, List<Artifact> rootIUs, Properties props) throws MavenExecutionException;
 
+	/** 
+	 * @returns local path to P2 runtime.
+	 * @throws MavenExecutionException if P2 runtime cannot be located 
+	 */
+	String getP2RuntimeLocation() throws MavenExecutionException;
 }

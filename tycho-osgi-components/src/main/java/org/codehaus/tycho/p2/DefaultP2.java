@@ -23,15 +23,15 @@ public class DefaultP2 extends AbstractLogEnabled implements P2 {
 
 		try {
 			Map<String, String> properties = new HashMap<String, String>();
-			properties.put("osgi.install.area", getPPLocation());
-			properties.put("osgi.syspath", getPPLocation() + "/plugins");
-			properties.put("osgi.configuration.area", getPPLocation() + "/configuration");
+			properties.put("osgi.install.area", getP2RuntimeLocation());
+			properties.put("osgi.syspath", getP2RuntimeLocation() + "/plugins");
+			properties.put("osgi.configuration.area", getP2RuntimeLocation() + "/configuration");
 
 			properties.put("eclipse.p2.data.area", getPPBase() + "/p2");
 
 			String[] args = {
 					"-application", "org.codehaus.tycho.p2.materializeTargetPlatform",
-					"-install", getPPLocation(),
+					"-install", getP2RuntimeLocation(),
 //					"-console", 
 //					"-debug", "-consolelog", 
 //					"-noexit",
@@ -81,7 +81,7 @@ public class DefaultP2 extends AbstractLogEnabled implements P2 {
 		}
 	}
 
-	private String getPPLocation() throws  MavenExecutionException {
+	public String getP2RuntimeLocation() throws  MavenExecutionException {
 		// nasty hack
 		File ppLocation;
 		String property = System.getProperty("tycho.p2.location");

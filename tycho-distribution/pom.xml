@@ -119,7 +119,6 @@
       <id>deploy</id>
       <dependencies>
         <dependency>
-          <!-- this dependency is built/deployed manually atm -->
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>tycho-p2-runtime</artifactId>
           <version>${tycho-p2-runtime-version}</version>
@@ -140,13 +139,13 @@
               <execution>
                 <id>copy-osgi</id>
                 <configuration>
-                  <outputAbsoluteArtifactFilename>true</outputAbsoluteArtifactFilename>
                   <artifactItems>
                     <artifactItem>
                       <groupId>org.codehaus.tycho</groupId>
                       <artifactId>tycho-p2-runtime</artifactId>
                       <version>${tycho-p2-runtime-version}</version>
                       <type>zip</type>
+                      <outputDirectory>${project.build.directory}/dependency/tycho-p2-runtime</outputDirectory>
                     </artifactItem>
                   </artifactItems>
                 </configuration>
