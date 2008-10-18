@@ -70,6 +70,8 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private static final String PROP_MAVEN_PROJECT = "MavenProject";
 
 	private static final String PROP_MANIFEST = "BundleManifest";
+	
+	private static final String PROP_FINAL_VERSION = "FinalVersion";
 
 	private StateObjectFactory factory = StateObjectFactory.defaultFactory;
 
@@ -480,20 +482,20 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		} else if (PACKAGING_ECLIPSE_FEATURE.equals(project.getPackaging())) {
 			try {
 				Feature feature = Feature.read(new File(basedir, Feature.FEATURE_XML));
-				feature.setUserProperty(PROP_MAVEN_PROJECT, project);
 				File location = project.getFile().getParentFile().getAbsoluteFile();
-				addFeature(location, feature);
+				FeatureDescription description = addFeature(location, feature);
+				description.setUserProperty(PROP_MAVEN_PROJECT, project);
 			} catch (Exception e) {
 				throw new BundleException("Exception reading eclipse feature", e);
 			}
 		}
 	}
 
-	private static void setUserProperty(BundleDescription desc, String name, Object value) throws BundleException {
+	private static void setUserProperty(BundleDescription desc, String name, Object value) {
 		Object userObject = desc.getUserObject();
 		
 		if (userObject != null && !(userObject instanceof Map)) {
-			throw new BundleException("Unexpected user object " + desc.toString());
+			throw new IllegalStateException("Unexpected user object " + desc.toString());
 		}
 	
 		Map props = (Map) userObject;
@@ -651,15 +653,15 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return null;
 	}
 
-	public MavenProject getMavenProject(Feature feature) {
+	public MavenProject getMavenProject(FeatureDescription feature) {
 		return (MavenProject) feature.getUserProperty(PROP_MAVEN_PROJECT);
 	}
 
-	public Feature getFeature(MavenProject project) {
+	public FeatureDescription getFeatureDescription(MavenProject project) {
 		File location = project.getFile().getParentFile().getAbsoluteFile();
 		for (FeatureDescription feature : features) {
 			if (feature.getLocation().equals(location)) {
-				return feature.getFeature();
+				return feature;
 			}
 		}
 		return null;
@@ -721,14 +723,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		return v1.getMajor() == v2.getMajor()
 				&& v1.getMinor() == v2.getMinor()
 				&& v1.getMicro() == v2.getMicro();
-	}
-
-	public FeatureDescription getFeatureDescription(Feature feature) {
-		if(feature == null) {
-			return null;
-		}
-
-		return getFeatureDescription(feature.getId(), feature.getVersion());
 	}
 
 	public String getPlatformProperty(String key) {
@@ -864,7 +858,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 				getLogger().info("Could not add bundle: " + bundle);
 			}
 		}
-
 	}
 
 	private void addFeature(File featureLocation) {
@@ -885,9 +878,10 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	}
 
-	private void addFeature(File featureLocation, Feature feature) {
+	private FeatureDescription addFeature(File featureLocation, Feature feature) {
 		FeatureDescription description = new FeatureDescriptionImpl(feature, featureLocation);
 		features.add(description);
+		return description;
 	}
 
 	public Version getPlatformVersion() {
@@ -897,5 +891,29 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			platformVersion = osgi.getVersion();
 		}
 		return platformVersion;
+	}
+
+	public Version getFinalVersion(BundleDescription bundle) {
+		Version version = (Version) getUserProperty(bundle, PROP_FINAL_VERSION);
+		if (version == null) {
+			version = bundle.getVersion();
+		}
+		return version;
+	}
+
+	public void setFinalVersion(FeatureDescription feature, Version version) {
+		feature.setUserProperty(PROP_FINAL_VERSION, version);
+	}
+
+	public void setFinalVersion(BundleDescription bundle, Version version) {
+		setUserProperty(bundle, PROP_FINAL_VERSION, version);
+	}
+
+	public Version getFinalVersion(FeatureDescription feature) {
+		Version version = (Version) feature.getUserProperty(PROP_FINAL_VERSION);
+		if (version == null) {
+			version = feature.getVersion();
+		}
+		return version;
 	}
 }

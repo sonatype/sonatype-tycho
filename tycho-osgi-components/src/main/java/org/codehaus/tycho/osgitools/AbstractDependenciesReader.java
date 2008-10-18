@@ -13,6 +13,7 @@ import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.Feature.FeatureRef;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public abstract class AbstractDependenciesReader extends AbstractLogEnabled implements DependenciesReader {
@@ -56,13 +57,11 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 	protected Collection<? extends Dependency> getFeaturesDependencies(List<FeatureRef> features) {
 		Collection<Dependency> result = new ArrayList<Dependency>();
 		for (Feature.FeatureRef featureRef : features) {
-			Feature otherFeature = state.getFeature(featureRef.getId(),
-					featureRef.getVersion());
+			FeatureDescription otherFeature = state.getFeatureDescription(featureRef.getId(), featureRef.getVersion());
 			if (otherFeature == null) {
 				continue;
 			}
-			Dependency dependency = newProjectDependency(state
-					.getMavenProject(otherFeature));
+			Dependency dependency = newProjectDependency(state.getMavenProject(otherFeature));
 			if (dependency != null) {
 				result.add(dependency);
 			}

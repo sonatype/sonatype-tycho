@@ -11,22 +11,4 @@
     <module>Product</module>
   </modules>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.tycho</groupId>
-        <artifactId>maven-osgi-packaging-plugin
-        </artifactId>
-        <executions>
-          <execution>
-            <id>timestamp</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>timestamp</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

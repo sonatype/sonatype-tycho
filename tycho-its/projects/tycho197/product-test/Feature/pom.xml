@@ -8,6 +8,6 @@
   </parent>
   <groupId>tycho197</groupId>
   <artifactId>Feature</artifactId>
-  <version>1.0.0.qualifier</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>eclipse-feature</packaging>
 </project>

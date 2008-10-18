@@ -7,6 +7,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
 
 /**
  * @plexus.component role="org.codehaus.tycho.maven.DependenciesReader"
@@ -14,15 +15,17 @@ import org.codehaus.tycho.model.Feature;
  */
 public class FeatureDependencyReader extends AbstractDependenciesReader {
 
-	public List<Dependency> getDependencies(MavenProject project)
-			throws MavenExecutionException {
-		Feature feature = state.getFeature(project);
+	public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
 
-		if (feature == null) {
+		FeatureDescription description = state.getFeatureDescription(project);
+
+		if (description == null) {
 			return NO_DEPENDENCIES;
 		}
 
 		ArrayList<Dependency> result = new ArrayList<Dependency>();
+
+		Feature feature = description.getFeature();
 
 		result.addAll(getPluginsDependencies(feature.getPlugins()));
 		result.addAll(getFeaturesDependencies(feature.getIncludedFeatures()));

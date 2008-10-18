@@ -1,6 +1,8 @@
 package org.codehaus.tycho.osgitools.features;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.codehaus.tycho.model.Feature;
 import org.osgi.framework.Version;
@@ -14,6 +16,8 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 	private final File location;
 	
 	private final Feature feature;
+	
+	private final Map<String, Object> userProperties = new HashMap<String, Object>();
 
 	public FeatureDescriptionImpl(Feature feature, File location) {
 		this.feature = feature;
@@ -73,4 +77,13 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 	public String toString() {
 		return name + "_" + version.toString();
 	}
+
+	public void setUserProperty(String key, Object value) {
+		userProperties.put(key, value);
+	}
+
+	public Object getUserProperty(String key) {
+		return userProperties.get(key);
+	}
+
 }

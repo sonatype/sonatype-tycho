@@ -15,4 +15,8 @@ public interface FeatureDescription {
 
 	Feature getFeature();
 
+	void setUserProperty(String key, Object value);
+
+	Object getUserProperty(String key);
+
 }

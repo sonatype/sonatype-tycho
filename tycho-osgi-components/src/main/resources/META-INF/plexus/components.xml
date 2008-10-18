@@ -136,6 +136,9 @@
 			</implementation>
 			<configuration>
 				<phases>
+				    <validate>
+				    	org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
+				    </validate>
 					<process-resources>
 						org.apache.maven.plugins:maven-resources-plugin:resources
 					</process-resources>
@@ -188,6 +191,9 @@
 			</implementation>
 			<configuration>
 				<phases>
+				    <validate>
+				    	org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
+				    </validate>
 					<process-resources>
 						org.apache.maven.plugins:maven-resources-plugin:resources
 					</process-resources>
@@ -223,6 +229,9 @@
 			</implementation>
 			<configuration>
 				<phases>
+				    <validate>
+				    	org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
+				    </validate>
 					<generate-resources>
 						org.codehaus.tycho:maven-osgi-packaging-plugin:copy-feature-files
 					</generate-resources>

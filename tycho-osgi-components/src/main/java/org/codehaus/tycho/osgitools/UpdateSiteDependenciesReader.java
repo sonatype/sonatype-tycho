@@ -9,8 +9,8 @@ import java.util.Set;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
-import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
 
 /**
   * @plexus.component role="org.codehaus.tycho.maven.DependenciesReader"
@@ -35,7 +35,7 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 					getLogger().warn("Bad site feature id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;
 				}
-				Feature feature = state.getFeature(id, version);
+				FeatureDescription feature = state.getFeatureDescription(id, version);
 				if (null == feature) {
 					getLogger().warn("No OSGI feature for id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;

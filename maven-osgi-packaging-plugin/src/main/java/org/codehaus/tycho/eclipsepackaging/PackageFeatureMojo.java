@@ -5,9 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -24,7 +27,11 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.features.FeatureDescription;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.Version;
 
 /**
  * @phase package
@@ -33,8 +40,9 @@ import org.codehaus.tycho.osgitools.OsgiState;
  * @requiresDependencyResolution runtime
  * 
  */
-public class PackageFeatureMojo extends AbstractMojo implements
-		Contextualizable {
+public class PackageFeatureMojo extends AbstractMojo implements Contextualizable {
+
+	private static final int KBYTE = 1024;
 
 	/** @component */
 	private OsgiState state;
@@ -74,28 +82,35 @@ public class PackageFeatureMojo extends AbstractMojo implements
 	 */
 	private String finalName;
 
+	/**
+	 * Build qualifier. Recommended way to set this parameter is using
+	 * build-qualifier goal. 
+	 * 
+	 * @parameter expression="${buildQualifier}"
+	 */
+	protected String qualifier;
+
+	private VersionExpander versionExpander = new VersionExpander();
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		Properties props = new Properties();
 		try {
-			props.load(new FileInputStream(
-					new File(basedir, "build.properties")));
+			FileInputStream is = new FileInputStream(new File(basedir, "build.properties"));
+			try {
+				props.load(is);
+			} finally {
+				is.close();
+			}
 		} catch (IOException e) {
-			throw new MojoExecutionException("Error reading build properties",
-					e);
+			throw new MojoExecutionException("Error reading build properties", e);
 		}
 
-		// update version at feature.xml
-		// XXX is that really necessary?
-		// File featureXml = new File(outputDirectory, Feature.FEATURE_XML);
-		// try {
-		// Feature feature = Feature.read(new File(basedir,
-		// Feature.FEATURE_XML));
-		// feature.setVersion(project.getVersion());
-		// Feature.write(feature, featureXml);
-		// } catch (Exception e) {
-		// throw new MojoExecutionException("Error updating feature version",
-		// e);
-		// }
+		File featureXml = new File(outputDirectory, Feature.FEATURE_XML);
+		try {
+			updateFeatureXml(featureXml);
+		} catch (IOException e) {
+			throw new MojoExecutionException("Error updating feature.xml", e);
+		}
 
 		File outputJar = new File(outputDirectory, finalName + ".jar");
 		outputJar.getParentFile().mkdirs();
@@ -111,15 +126,12 @@ public class PackageFeatureMojo extends AbstractMojo implements
 		try {
 			for (int i = 0; i < files.length; i++) {
 				String fileName = files[i];
-				File f = /*
-						 * "feature.xml".equals(fileName) ? featureXml :
-						 */new File(basedir, fileName);
+				File f = Feature.FEATURE_XML.equals(fileName)? featureXml: new File(basedir, fileName);
 				if (!f.isDirectory()) {
 					jarArchiver.addFile(f, fileName);
 				}
 			}
 			archiver.createArchive(project, archive);
-
 		} catch (Exception e) {
 			throw new MojoExecutionException("Error creating feature package",
 					e);
@@ -131,6 +143,67 @@ public class PackageFeatureMojo extends AbstractMojo implements
 			//TODO generate source not supported yet
 			generateSources(props);
 		}
+	}
+
+	private void updateFeatureXml(File featureXml) throws MojoExecutionException, IOException {
+		FeatureDescription featureDesc = state.getFeatureDescription(project);
+		Feature feature = new Feature(featureDesc.getFeature());
+
+		// expand version if necessary
+		if (versionExpander.isSnapshotVersion(featureDesc.getVersion())) {
+			Version version = versionExpander.expandVersion(featureDesc.getVersion(), qualifier);
+			feature.setVersion(version.toString());
+			state.setFinalVersion(featureDesc, version);
+		}
+
+		// deal with download/install sizes of included bundles
+		for (PluginRef plugin : feature.getPlugins()) {
+			String bundleId = plugin.getId();
+			String bundleVersion = plugin.getVersion();
+
+			if ("0.0.0".equals(bundleVersion)) {
+				bundleVersion = OsgiState.HIGHEST_VERSION;
+			}
+
+			BundleDescription bundle = state.getBundleDescription(bundleId, bundleVersion);
+			if (bundle == null) {
+				getLog().warn(project.getId() + " referenced uknown bundle " + bundleId + ":" + bundleVersion);
+				continue;
+			}
+
+			plugin.setVersion(state.getFinalVersion(bundle).toString());
+
+			File file;
+			MavenProject bundleProject = state.getMavenProject(bundle);
+			if (bundleProject != null) {
+				file = bundleProject.getArtifact().getFile();
+			} else {
+				file = new File(bundle.getLocation());
+				if (file.isDirectory()) {
+					throw new MojoExecutionException("Directory based bundle " + bundleId);
+				}
+			}
+
+			JarFile jar = new JarFile(file);
+			long installSize = 0;
+			try {
+				Enumeration<JarEntry> entries = jar.entries();
+				while (entries.hasMoreElements()) {
+					JarEntry entry = (JarEntry) entries.nextElement();
+					long entrySize = entry.getSize();
+					if (entrySize > 0) {
+						installSize += entrySize;
+					}
+				}
+			} finally {
+				jar.close();
+			}
+
+			plugin.setDownloadSide(file.length() / KBYTE);
+			plugin.setInstallSize(installSize / KBYTE);
+			
+		}
+		Feature.write(feature, featureXml);
 	}
 
 	private void generateSources(Properties props)
@@ -165,18 +238,18 @@ public class PackageFeatureMojo extends AbstractMojo implements
 		}
 	}
 
-	private void generateSourceFeature(String baseFeatureId,
-			String sourceFeature) throws MojoExecutionException {
-		Feature baseFeature = state.getFeature(baseFeatureId,
-				OsgiState.HIGHEST_VERSION);
+	private void generateSourceFeature(String baseFeatureId, String sourceFeature) throws MojoExecutionException {
+		FeatureDescription baseFeature = state.getFeatureDescription(baseFeatureId,	OsgiState.HIGHEST_VERSION);
 		if (baseFeature == null) {
 			getLog().warn("Base feature not found: " + baseFeatureId);
 			return;
 		}
 
+		String version = baseFeature.getVersion().toString();
+
 		List<Plugin> plugins = new ArrayList<Plugin>();
-		plugins.add(new Plugin(sourceFeature, baseFeature.getVersion()));
-		generateSourceFeature(sourceFeature, baseFeature.getVersion(), plugins);
+		plugins.add(new Plugin(sourceFeature, version));
+		generateSourceFeature(sourceFeature, version, plugins);
 	}
 
 	private void generateSourceFeature(String featureId, String featureVersion,

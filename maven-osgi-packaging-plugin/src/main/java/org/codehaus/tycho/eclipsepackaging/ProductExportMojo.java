@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-import java.util.jar.Manifest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -36,8 +35,6 @@ import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
-import de.schlichtherle.io.FileInputStream;
-
 /**
  * @goal product-export
  */
@@ -53,11 +50,6 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	 * @required
 	 */
 	protected MavenProject project;
-
-	/**
-	 * @parameter expression="${buildNumber}"
-	 */
-	protected String qualifier;
 
 	/** @parameter expression="${project.build.directory}/product" */
 	private File target;
@@ -280,38 +272,27 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		String featureId = feature.getId();
 		String featureVersion = feature.getVersion();
 
-		Feature featureRef = state.getFeature(featureId, featureVersion);
-		if (featureRef == null) {
-			throw new MojoExecutionException("Unable to resolve feature "
-					+ featureId + "_" + featureVersion);
+		FeatureDescription featureDescription = state.getFeatureDescription(featureId, featureVersion);
+		if (featureDescription == null) {
+			throw new MojoExecutionException("Unable to resolve feature " + featureId + "_" + featureVersion);
 		}
 
-		MavenProject project = state.getMavenProject(featureRef);
+		featureVersion = state.getFinalVersion(featureDescription).toString();
+
+		Feature featureRef = featureDescription.getFeature();
+
+		MavenProject project = state.getMavenProject(featureDescription);
 
 		de.schlichtherle.io.File source;
 		if (project == null) {
-			FeatureDescription bundle = state.getFeatureDescription(featureId,
-					featureVersion);
-
-			if (bundle == null) {
-				throw new MojoExecutionException("Unable to resolve feature "
-						+ featureId + "_" + featureVersion);
-			}
-			getLog().debug("feature = bundle: " + bundle.getLocation());
-
-			source = new de.schlichtherle.io.File(bundle.getLocation());
-
+			getLog().debug("feature = bundle: " + featureDescription.getLocation());
+			source = new de.schlichtherle.io.File(featureDescription.getLocation());
 		} else {
 			getLog().debug("feature = project: " + project.getArtifact());
-
-			source = new de.schlichtherle.io.File(project.getArtifact()
-					.getFile());
+			source = new de.schlichtherle.io.File(project.getArtifact().getFile());
 		}
 
-		featureVersion = expandVerstion(featureRef.getVersion());
-
-		File targetFolder = new File(featuresFolder, featureRef.getId() + "_"
-				+ featureVersion);
+		File targetFolder = new File(featuresFolder, featureRef.getId() + "_" + featureVersion);
 		targetFolder.mkdirs();
 
 		source.copyAllTo(targetFolder);
@@ -325,31 +306,10 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		List<PluginRef> pluginRefs = featureRef.getPlugins();
 		for (PluginRef pluginRef : pluginRefs) {
 			if (matchCurrentPlataform(pluginRef)) {
-				String pluginVersion = pluginRef.getVersion();
-				String bundleVersion = copyPlugin(pluginRef.getId(),
-						pluginVersion, pluginRef.isUnpack());
-				if (!pluginVersion.equals(bundleVersion)) {
-					pluginRef.setVersion(bundleVersion);
-				}
+				copyPlugin(pluginRef.getId(), pluginRef.getVersion(), pluginRef.isUnpack());
 			}
 		}
 
-		featureRef.setVersion(featureVersion);
-		try {
-			Feature.write(featureRef, new File(targetFolder,
-					Feature.FEATURE_XML));
-		} catch (IOException e) {
-			throw new MojoExecutionException("Fail to update feature.xml", e);
-		}
-
-	}
-
-	private String expandVerstion(String version) {
-		if (qualifier != null && version.endsWith(".qualifier")) {
-			version = version.substring(0, version.lastIndexOf('.') + 1);
-			version = version + qualifier;
-		}
-		return version;
 	}
 
 	private boolean matchCurrentPlataform(PluginRef pluginRef) {
@@ -372,9 +332,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		getLog().debug("copying " + plugins.size() + " plugins ");
 
 		for (PluginRef plugin : plugins) {
-			String bundleId = plugin.getId();
-			String bundleVersion = plugin.getVersion();
-			copyPlugin(bundleId, bundleVersion, plugin.isUnpack());
+			copyPlugin(plugin.getId(), plugin.getVersion(), plugin.isUnpack());
 		}
 
 		// required plugins, RCP didn't start without both
@@ -415,15 +373,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 			source = new File(bundle.getLocation());
 		}
 
-		de.schlichtherle.io.File manifestMf = new de.schlichtherle.io.File(
-				source, "META-INF/MANIFEST.MF");
-		Manifest manifest;
-		try {
-			manifest = new Manifest(new FileInputStream(manifestMf));
-		} catch (IOException e) {
-			throw new MojoExecutionException("Unable to read manifest file", e);
-		}
-		bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
+		bundleVersion = state.getFinalVersion(bundle).toString();
 
 		File target = new File(pluginsFolder, bundleId + "_" + bundleVersion
 				+ ".jar");

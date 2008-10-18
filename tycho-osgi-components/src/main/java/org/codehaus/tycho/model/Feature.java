@@ -8,9 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -26,8 +24,6 @@ public class Feature {
 	public static final String FEATURE_XML = "feature.xml";
 
 	private final Xpp3Dom dom;
-	
-	private final Map<String, Object> userProperties = new HashMap<String, Object>();
 
 	public Feature(Xpp3Dom dom) {
 		this.dom = dom;
@@ -157,14 +153,6 @@ public class Feature {
 
 	public String getId() {
 		return dom.getAttribute("id");
-	}
-
-	public void setUserProperty(String key, Object value) {
-		userProperties.put(key, value);
-	}
-
-	public Object getUserProperty(String key) {
-		return userProperties.get(key);
 	}
 
 	public static Feature readJar(File file) throws IOException, XmlPullParserException {

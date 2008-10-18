@@ -22,7 +22,7 @@ public class Tycho197qualifierTest extends AbstractTychoIntegrationTest {
 		Verifier verifier = getVerifier("/tycho197/product-test");
 
 		final String timestamp = "20022002-2002";
-		verifier.getCliOptions().add("-DbuildNumber=" + timestamp);
+		verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
 		verifier.executeGoal("install");
 		verifier.verifyErrorFreeLog();
 
@@ -70,7 +70,7 @@ public class Tycho197qualifierTest extends AbstractTychoIntegrationTest {
 		Verifier verifier = getVerifier("/tycho197/site-test");
 
 		final String timestamp = "20022002-2002";
-		verifier.getCliOptions().add("-DbuildNumber=" + timestamp);
+		verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
 		verifier.executeGoal("install");
 		verifier.verifyErrorFreeLog();
 

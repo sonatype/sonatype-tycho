@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.jar.Manifest;
 
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -76,15 +75,11 @@ public interface OsgiState {
 
 	BundleDescription getBundleDescription(File location);
 
-	Feature getFeature(String id, String version);
-
-	MavenProject getMavenProject(Feature feature);
-
-	Feature getFeature(MavenProject project);
+	MavenProject getMavenProject(FeatureDescription feature);
 
 	FeatureDescription getFeatureDescription(String id, String version);
 
-	FeatureDescription getFeatureDescription(Feature feature);
+	FeatureDescription getFeatureDescription(MavenProject project);
 
 	String getPlatformProperty(String key);
 
@@ -99,5 +94,9 @@ public interface OsgiState {
 
 	Version getPlatformVersion();
 	File getFeatureDir(String id, String version);
+	Version getFinalVersion(BundleDescription bundle);
+	void setFinalVersion(FeatureDescription featureDesc, Version version);
+	void setFinalVersion(BundleDescription bundle, Version version);
+	Version getFinalVersion(FeatureDescription feature);
 
 }

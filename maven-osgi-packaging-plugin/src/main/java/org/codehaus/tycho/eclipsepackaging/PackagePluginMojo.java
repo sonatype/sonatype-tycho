@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.jar.Attributes;
@@ -20,6 +21,9 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.tycho.osgitools.OsgiState;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.Version;
 
 /**
  * Creates a jar-based plugin and attaches it as an artifact
@@ -77,9 +81,17 @@ public class PackagePluginMojo extends AbstractMojo {
 	protected MavenProjectHelper projectHelper;
 
 	/**
-	 * @parameter expression="${buildNumber}"
+	 * Build qualifier. Recommended way to set this parameter is using
+	 * build-qualifier goal. 
+	 * 
+	 * @parameter expression="${buildQualifier}"
 	 */
 	protected String qualifier;
+
+	/** @component */
+	protected OsgiState state;
+
+	private VersionExpander versionExpander = new VersionExpander();
 
 	private Properties buildProperties;
 
@@ -162,7 +174,7 @@ public class PackagePluginMojo extends AbstractMojo {
 				addToArchiver(archiver, binIncludes, true);
 			}
 
-			File manifest = expandVersion(new File(project.getBasedir(), "META-INF/MANIFEST.MF"));
+			File manifest = expandVersion();
 			if (manifest.exists()) {
 				archive.setManifestFile(manifest);
 			}
@@ -177,17 +189,30 @@ public class PackagePluginMojo extends AbstractMojo {
 		}
 	}
 
-	private File expandVersion(File mfile) throws FileNotFoundException, IOException 
+	private File expandVersion() throws FileNotFoundException, IOException, MojoExecutionException 
 	{
-		FileInputStream is = new FileInputStream(mfile);
-		Manifest mf;
-		try {
-			mf = new Manifest(is);
-		} finally {
-			is.close();
-		}
+		BundleDescription bundle = state.getBundleDescription(project);
+		Version version = bundle.getVersion();
 
-		if (expandVersion(mf)) {
+		versionExpander.validateVersion(project, version);
+		
+		File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
+
+		if (versionExpander.isSnapshotVersion(version)) {
+			Version expandedVersion = versionExpander.expandVersion(version, qualifier);
+			
+			InputStream is = new FileInputStream(mfile);
+			Manifest mf;
+			try {
+				mf = new Manifest(is);
+			} finally {
+				is.close();
+			}
+
+			Attributes attributes = mf.getMainAttributes();
+			attributes.putValue("Bundle-Version", expandedVersion.toString());
+			state.setFinalVersion(bundle, expandedVersion);
+
 			mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
 			mfile.getParentFile().mkdirs();
 			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(mfile));
@@ -196,23 +221,10 @@ public class PackagePluginMojo extends AbstractMojo {
 			} finally {
 				os.close();
 			}
-		}
-		return mfile;
-	}
-
-	private boolean expandVersion(Manifest mf) {
-		Attributes attributes = mf.getMainAttributes();
-
-		String version = attributes.getValue("Bundle-Version");
-		if (qualifier != null && version.endsWith(".qualifier")) {
-			version = version.substring(0, version.lastIndexOf('.') + 1);
-			version = version + qualifier;
-			attributes.putValue("Bundle-Version", version);
 			
-			return true;
 		}
-
-		return false;
+		
+		return mfile;
 	}
 
 	private void addToArchiver(MavenArchiver archiver, String[] includes,
