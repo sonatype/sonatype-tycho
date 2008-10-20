@@ -139,7 +139,8 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		}
 	}
 
-	public void testPluginRcpApplication() throws Exception {
+	@Test
+	public void exportPluginRcpApplication() throws Exception {
 		if (isEclipse32Platform()) {
 			// regression test for TYCHO-199, no need to verify on e32 
 			return;
