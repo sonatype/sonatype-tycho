@@ -87,7 +87,7 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 	}
 
 	private String getPluginVersion(String version) {
-		return "0.0.0".equals(version) ? OsgiState.HIGHEST_VERSION : version;
+		return version == null || "0.0.0".equals(version) ? OsgiState.HIGHEST_VERSION : version;
 	}
 	
 }
