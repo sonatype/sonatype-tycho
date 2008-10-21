@@ -179,27 +179,30 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 				file = bundleProject.getArtifact().getFile();
 			} else {
 				file = new File(bundle.getLocation());
-				if (file.isDirectory()) {
-					throw new MojoExecutionException("Directory based bundle " + bundleId);
-				}
 			}
 
-			JarFile jar = new JarFile(file);
+			long downloadSize = 0;
 			long installSize = 0;
-			try {
-				Enumeration<JarEntry> entries = jar.entries();
-				while (entries.hasMoreElements()) {
-					JarEntry entry = (JarEntry) entries.nextElement();
-					long entrySize = entry.getSize();
-					if (entrySize > 0) {
-						installSize += entrySize;
+			if (file.isFile()) {
+				JarFile jar = new JarFile(file);
+				try {
+					Enumeration<JarEntry> entries = jar.entries();
+					while (entries.hasMoreElements()) {
+						JarEntry entry = (JarEntry) entries.nextElement();
+						long entrySize = entry.getSize();
+						if (entrySize > 0) {
+							installSize += entrySize;
+						}
 					}
+				} finally {
+					jar.close();
 				}
-			} finally {
-				jar.close();
+				downloadSize = file.length();
+			} else {
+				getLog().info("Download/install size is not calculated for directory based bundle " + bundleId);
 			}
 
-			plugin.setDownloadSide(file.length() / KBYTE);
+			plugin.setDownloadSide(downloadSize / KBYTE);
 			plugin.setInstallSize(installSize / KBYTE);
 			
 		}

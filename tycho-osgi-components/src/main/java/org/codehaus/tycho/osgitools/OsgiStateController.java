@@ -689,7 +689,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			}
 		}
 		
-		if (version == null) {
+		if (version == null || version == HIGHEST_VERSION) {
 			return features.get(features.firstKey()); // latest version
 		}
 

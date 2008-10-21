@@ -29,7 +29,6 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
@@ -265,24 +264,6 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			throw new MojoExecutionException("Error packing zip", e);
 		}
 	}
-
-	private void unpackToDir(File sourceZip, File targetDir) throws MojoExecutionException {
-		ZipUnArchiver unArchiver ;
-		try {
-			unArchiver = (ZipUnArchiver) plexus.lookup(ZipUnArchiver.ROLE, "zip");
-		} catch (ComponentLookupException e) {
-			throw new MojoExecutionException("Unable to resolve ZipUnArchiver", e);
-		}
-		
-		unArchiver.setSourceFile(sourceZip);
-		unArchiver.setDestDirectory(targetDir);
-		try {
-			unArchiver.extract();
-		} catch (ArchiverException e) {
-			throw new MojoExecutionException("Error extracting zip", e);
-		}
-	}
-
 	
 	private void generateSourcePlugin(String artifactId, List<PluginRef> plugins, String version, boolean isPack200) throws Exception {
 		File pluginFolder = new File(this.plugins, artifactId );
@@ -395,11 +376,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		MavenProject bundleProject = state.getMavenProject(bundle);
 		if (bundleProject != null) {
 			file = bundleProject.getArtifact().getFile();
+			if (file.isDirectory()) {
+				throw new MojoExecutionException("Bundle project " + bundleProject.getId() + " artifact is a directory. The build should at least run ``package'' phase.");
+			}
 		} else {
 			file = new File(bundle.getLocation());
-			if (file.isDirectory()) {
-				throw new MojoExecutionException("Directory based bundle " + bundleId);
-			}
 		}
 
 		String bundleVersion = state.getFinalVersion(bundle).toString();
@@ -407,7 +388,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		String url = "plugins/" + bundleId + "_" + bundleVersion + ".jar";
 		File outputJar = new File(target, url);
 		outputJar.getParentFile().mkdirs();
-		FileUtils.copyFile(file, outputJar);
+		if (file.isDirectory()) {
+			packDir(file, outputJar);
+		} else {
+			FileUtils.copyFile(file, outputJar);
+		}
 
 		if(sign) {
 			signJar(outputJar);
