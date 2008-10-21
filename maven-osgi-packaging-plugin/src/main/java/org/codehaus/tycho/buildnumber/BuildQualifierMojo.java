@@ -44,14 +44,14 @@ public class BuildQualifierMojo extends AbstractMojo {
 	private MavenSession session;
 
 	/**
-     * You can rename the buildNumber property name to another property name if desired.
+     * You can rename the buildQualifier property name to another property name if desired.
      *
      * @parameter expression="${maven.buildNumber.buildNumberPropertyName}" default-value="buildQualifier"
      */
     private String buildNumberPropertyName;
 
     /**
-     * Specify a message as specified by java.text.SimpleDateFormat.
+     * Specify a message format as specified by java.text.SimpleDateFormat.
      *
      * @parameter default-value="yyyyMMddHHmm"
      */
@@ -66,7 +66,7 @@ public class BuildQualifierMojo extends AbstractMojo {
     /**
      * @parameter default-value="${project.baseDir}/build.properties"
      */
-    private File buildProperties;
+    private File buildPropertiesFile;
 
     /**
      * @parameter expression="${forceContextQualifier}"
@@ -109,8 +109,8 @@ public class BuildQualifierMojo extends AbstractMojo {
 	private Properties getBuildProperties() {
 		Properties props = new Properties();
 		try {
-			if (buildProperties.canRead()) {
-				InputStream is = new BufferedInputStream(new FileInputStream(buildProperties));
+			if (buildPropertiesFile.canRead()) {
+				InputStream is = new BufferedInputStream(new FileInputStream(buildPropertiesFile));
 				try {
 					props.load(is);
 				} finally {
