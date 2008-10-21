@@ -15,35 +15,31 @@ import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.osgitools.OsgiState;
 
+/**
+ * @plexus.component role="org.codehaus.tycho.osgitools.targetplatform.EclipseTargetPlatformFactory"
+ */
 public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 
 	public static final String PACKAGING_ECLIPSE_INSTALLATION = "eclipse-installation";
 	public static final String PACKAGING_ECLIPSE_PLUGIN = "eclipse-plugin";
 	public static final String PACKAGING_ECLIPSE_FEATURE = "eclipse-feature";
 
+	/** @plexus.requirement */
 	private ArtifactResolver artifactResolver;
+
+	/** @plexus.requirement */
 	private ArtifactFactory artifactFactory;
-	private final PlexusContainer plexus;
 
-	private ArtifactRepository localRepository;
-
-	public EclipseTargetPlatformFactory(Logger logger, PlexusContainer plexus, ArtifactResolver artifactResolver, ArtifactFactory artifactFactory, ArtifactRepository localRepository) {
-		this.plexus = plexus;
-		this.artifactResolver = artifactResolver;
-		this.artifactFactory = artifactFactory;
-		this.localRepository = localRepository;
-		enableLogging(logger);
+	public EclipseTargetPlatformFactory() {
 	}
 
-	public void createTargetPlatform(List<MavenProject> projects, OsgiState state) {
+	public void createTargetPlatform(List<MavenProject> projects, ArtifactRepository localRepository, OsgiState state) {
 
 		File installation = getEclipseInstallation(projects);
 		if (installation != null) {
@@ -62,9 +58,9 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 				for (Artifact artifact : versionMap.values()) {
 					try {
 						if (PACKAGING_ECLIPSE_FEATURE.equals(artifact.getType())) {
-							resolveFeature(artifact, features, bundles, project.getRemoteArtifactRepositories(), state);
+							resolveFeature(artifact, features, bundles, project.getRemoteArtifactRepositories(), localRepository);
 						} else if (PACKAGING_ECLIPSE_PLUGIN.equals(artifact.getType())) {
-							resolvePlugin(artifact, bundles, project.getRemoteArtifactRepositories());
+							resolvePlugin(artifact, bundles, project.getRemoteArtifactRepositories(), localRepository);
 						}
 					} catch (Exception e) {
 						exceptions.put(artifact, e);
@@ -93,18 +89,18 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 		}
 	}
 
-	private void resolveFeature(Artifact artifact, Set<File> features, Set<File> bundles, List<ArtifactRepository> remoteRepositories, OsgiState state) throws AbstractArtifactResolutionException, IOException, XmlPullParserException {
-		resolveArtifact(artifact, remoteRepositories);
+	private void resolveFeature(Artifact artifact, Set<File> features, Set<File> bundles, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository) throws AbstractArtifactResolutionException, IOException, XmlPullParserException {
+		resolveArtifact(artifact, remoteRepositories, localRepository);
 		Feature feature = Feature.readJar(artifact.getFile());
 //		File featureDir = unpackFeature(artifact, feature, state);
 		features.add(artifact.getFile());
 		for (PluginRef ref : feature.getPlugins()) {
 			Artifact includedArtifact = artifactFactory.createArtifact(ref.getId(), ref.getId(), ref.getVersion(), null, PACKAGING_ECLIPSE_PLUGIN);
-			resolvePlugin(includedArtifact, bundles, remoteRepositories);
+			resolvePlugin(includedArtifact, bundles, remoteRepositories, localRepository);
 		}
 		for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
 			Artifact includedArtifact = artifactFactory.createArtifact(ref.getId(), ref.getId(), ref.getVersion(), null, PACKAGING_ECLIPSE_FEATURE);
-			resolveFeature(includedArtifact, features, bundles, remoteRepositories, state);
+			resolveFeature(includedArtifact, features, bundles, remoteRepositories, localRepository);
 		}
 	}
 
@@ -123,12 +119,12 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 		}
 	}
 
-	private void resolvePlugin(Artifact artifact, Set<File> bundles, List<ArtifactRepository> remoteRepositories) throws AbstractArtifactResolutionException {
-		resolveArtifact(artifact, remoteRepositories);
+	private void resolvePlugin(Artifact artifact, Set<File> bundles, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository) throws AbstractArtifactResolutionException {
+		resolveArtifact(artifact, remoteRepositories, localRepository);
 		bundles.add(artifact.getFile());
 	}
 
-	private void resolveArtifact(Artifact artifact, List<ArtifactRepository> remoteRepositories) throws AbstractArtifactResolutionException	{
+	private void resolveArtifact(Artifact artifact, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository) throws AbstractArtifactResolutionException	{
 		artifactResolver.resolve(artifact, remoteRepositories, localRepository);
 		assertResolved(artifact);
 	}

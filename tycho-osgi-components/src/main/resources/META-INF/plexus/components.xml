@@ -71,10 +71,7 @@
           <role>org.codehaus.tycho.osgitools.OsgiState</role>
         </requirement>
         <requirement>
-          <role>org.apache.maven.artifact.factory.ArtifactFactory</role>
-        </requirement>
-        <requirement>
-          <role>org.apache.maven.artifact.resolver.ArtifactResolver</role>
+          <role>org.codehaus.tycho.osgitools.targetplatform.EclipseTargetPlatformFactory</role>
         </requirement>
       </requirements>
     </component>

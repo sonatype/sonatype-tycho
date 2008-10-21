@@ -24,6 +24,8 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	protected OsgiState state;
 	
+	protected EclipseTargetPlatformFactory factory;
+	
 	protected Logger logger;
 
 	protected void setUp() throws Exception {
@@ -35,6 +37,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 			maven = (Maven) lookup(Maven.ROLE);
 		}
 		state = (OsgiState) lookup(OsgiState.ROLE);
+		factory = (EclipseTargetPlatformFactory) lookup(EclipseTargetPlatformFactory.class);
 		logger = new SilentLog();
 	}
 
@@ -206,7 +209,6 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	private void resetState(Properties props) {
 		state.reset(props);
-		EclipseTargetPlatformFactory factory = new EclipseTargetPlatformFactory(logger, null, null, null, null);
 		String property = props.getProperty("tycho.targetPlatform");
 		factory.createTargetPlatform(state, new File(property));
 	}

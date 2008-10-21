@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.DefaultMaven;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.model.Activation;
 import org.apache.maven.model.Dependency;
@@ -23,9 +21,7 @@ import org.osgi.framework.BundleException;
 public class EclipseMaven extends DefaultMaven {
 
 	private OsgiState state;
-
-	private ArtifactResolver artifactResolver;
-	private ArtifactFactory artifactFactory;
+	private EclipseTargetPlatformFactory factory;
 
 	@Override
 	protected List getProjects(MavenExecutionRequest request) throws MavenExecutionException {
@@ -43,13 +39,11 @@ public class EclipseMaven extends DefaultMaven {
 
 		state.reset(props);
 
-		EclipseTargetPlatformFactory factory = new EclipseTargetPlatformFactory(getLogger(), container, artifactResolver, artifactFactory, request.getLocalRepository());
-
 		String property = props.getProperty("tycho.targetPlatform");
 		if (property != null) {
 			factory.createTargetPlatform(state, new File(property));
  		} else {
- 			factory.createTargetPlatform(projects, state);
+ 			factory.createTargetPlatform(projects, request.getLocalRepository(), state);
  		}
 
 		for (MavenProject project : projects) {
