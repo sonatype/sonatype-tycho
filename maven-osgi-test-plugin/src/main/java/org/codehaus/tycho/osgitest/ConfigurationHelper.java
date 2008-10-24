@@ -60,6 +60,9 @@ public class ConfigurationHelper {
 
 			p.setProperty("osgi.bundles", newOsgiBundles);
 
+			// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=234069
+			p.setProperty("osgi.bundlefile.limit", "100");
+
 			// @see SimpleConfiguratorConstants#PROP_KEY_EXCLUSIVE_INSTALLATION
 //			p.setProperty("org.eclipse.equinox.simpleconfigurator.exclusiveInstallation", "false");
 
