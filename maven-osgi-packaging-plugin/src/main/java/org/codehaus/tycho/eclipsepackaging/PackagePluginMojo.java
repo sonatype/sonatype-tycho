@@ -105,7 +105,12 @@ public class PackagePluginMojo extends AbstractMojo {
 
 			File file = new File(project.getBasedir(), "build.properties");
 			if (file.canRead()) {
-				buildProperties.load(new FileInputStream(file));
+				FileInputStream is = new FileInputStream(file);
+				try {
+					buildProperties.load(is);
+				} finally {
+					is.close();
+				}
 			}
 
 			createSubJars();

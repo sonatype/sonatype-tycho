@@ -2,9 +2,11 @@ package org.codehaus.tycho.osgitest;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
@@ -173,6 +175,12 @@ public class TestMojo extends AbstractMojo {
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
+			getLog().info("Skipping tests");
+			return;
+		}
+
+		if (!"eclipse-test-plugin".equals(project.getPackaging())) {
+			getLog().warn("Unsupported packaging type " + project.getPackaging());
 			return;
 		}
 
@@ -392,8 +400,12 @@ public class TestMojo extends AbstractMojo {
 		for (BundleDescription bundle : getReactorBundles()) {
 			MavenProject project = state.getMavenProject(bundle);
 			if ("eclipse-test-plugin".equals(project.getPackaging())) {
-				Build build = project.getBuild();
-				dev.put(bundle.getSymbolicName(), build.getOutputDirectory() + "," + build.getTestOutputDirectory());
+				dev.put(bundle.getSymbolicName(), getBuildOutputDirectories(project));
+			} else if ("eclipse-plugin".equals(project.getPackaging())) {
+				File file = project.getArtifact().getFile();
+				if (file == null || file.isDirectory()) {
+					dev.put(bundle.getSymbolicName(), getBuildOutputDirectories(project));
+				}
 			}
 		}
 
@@ -407,6 +419,51 @@ public class TestMojo extends AbstractMojo {
 		} catch (IOException e) {
 			throw new MojoExecutionException("Can't create osgi dev properties file", e);
 		}
+	}
+
+	private String getBuildOutputDirectories(MavenProject project) {
+		StringBuilder sb = new StringBuilder();
+		
+		Build build = project.getBuild();
+		sb.append(build.getOutputDirectory());
+		sb.append(',').append(build.getTestOutputDirectory());
+
+		Properties buildProperties = new Properties();
+		File file = new File(project.getBasedir(), "build.properties");
+		try {
+			FileInputStream is = new FileInputStream(file);
+			try {
+				buildProperties.load(is);
+			} finally {
+				is.close();
+			}
+
+			// TODO plugin package mojo has this same logic, move to a helper
+			final String OUTPUT = "output.";
+			final String SOURCE = "source.";
+			
+			for (Iterator iterator = buildProperties.keySet().iterator(); iterator.hasNext();) {
+				String key = (String) iterator.next();
+				String[] classesDir = null;
+				if (key.startsWith(OUTPUT) && !key.equals("output..")) {
+					classesDir = buildProperties.getProperty(key).split(",");
+				} else if (key.startsWith(SOURCE) && !key.equals("source..")) {
+					String fileName = key.substring(SOURCE.length());
+					classesDir = new String[] {new File(project.getBuild().getDirectory()).getName() + "/" + fileName.substring(0, fileName.length() - 4) + "-classes"};
+				}
+				if (classesDir != null) {
+					for (String dir : classesDir) {
+						if (sb.length() > 0) sb.append(',');
+						sb.append(dir);
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			getLog().debug("Exception reading build.properties of " + project.getId(), e);
+		}
+
+		return sb.toString();
 	}
 
 	private Set<BundleDescription> getReactorBundles() {
