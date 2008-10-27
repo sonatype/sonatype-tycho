@@ -149,6 +149,9 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 		FeatureDescription featureDesc = state.getFeatureDescription(project);
 		Feature feature = new Feature(featureDesc.getFeature());
 
+		feature.setMavenGroupId(project.getGroupId());
+		feature.setMavenBaseVersion(project.getVersion()); // not expanded yet
+
 		// expand version if necessary
 		if (versionExpander.isSnapshotVersion(featureDesc.getVersion())) {
 			Version version = versionExpander.expandVersion(featureDesc.getVersion(), qualifier);
@@ -156,10 +159,10 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 			state.setFinalVersion(featureDesc, version);
 		}
 
-		// deal with download/install sizes of included bundles
-		for (PluginRef plugin : feature.getPlugins()) {
-			String bundleId = plugin.getId();
-			String bundleVersion = plugin.getVersion();
+		// update included/referenced plugins
+		for (PluginRef pluginRef : feature.getPlugins()) {
+			String bundleId = pluginRef.getId();
+			String bundleVersion = pluginRef.getVersion();
 
 			if ("0.0.0".equals(bundleVersion)) {
 				bundleVersion = OsgiState.HIGHEST_VERSION;
@@ -171,7 +174,17 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 				continue;
 			}
 
-			plugin.setVersion(state.getFinalVersion(bundle).toString());
+			String pluginGroupId = state.getGroupId(bundle);
+			if (pluginGroupId != null) {
+				pluginRef.setMavenGroupId(pluginGroupId);
+			}
+			
+			String pluginBaseVersion = state.getMavenBaseVersion(bundle);
+			if (pluginBaseVersion != null) {
+				pluginRef.setMavenBaseVersion(pluginBaseVersion);
+			}
+
+			pluginRef.setVersion(state.getFinalVersion(bundle).toString());
 
 			File file;
 			MavenProject bundleProject = state.getMavenProject(bundle);
@@ -202,10 +215,25 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 				getLog().info("Download/install size is not calculated for directory based bundle " + bundleId);
 			}
 
-			plugin.setDownloadSide(downloadSize / KBYTE);
-			plugin.setInstallSize(installSize / KBYTE);
-			
+			pluginRef.setDownloadSide(downloadSize / KBYTE);
+			pluginRef.setInstallSize(installSize / KBYTE);
 		}
+
+		// update included/referenced features
+		for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
+			FeatureDescription refDescription = state.getFeatureDescription(ref.getId(), ref.getVersion());
+
+			String refGroupId = refDescription.getMavenGroupId();
+			if (refGroupId != null) {
+				ref.setMavenGroupId(refGroupId);
+			}
+
+			String refBaseVersion = refDescription.getMavenBaseVersion();
+			if (refBaseVersion != null) {
+				ref.setMavenBaseVersion(refBaseVersion);
+			}
+		}
+
 		Feature.write(feature, featureXml);
 	}
 

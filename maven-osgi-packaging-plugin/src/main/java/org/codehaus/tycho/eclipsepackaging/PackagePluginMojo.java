@@ -174,7 +174,7 @@ public class PackagePluginMojo extends AbstractMojo {
 				addToArchiver(archiver, binIncludes, true);
 			}
 
-			File manifest = expandVersion();
+			File manifest = updateManifest();
 			if (manifest.exists()) {
 				archive.setManifestFile(manifest);
 			}
@@ -189,7 +189,7 @@ public class PackagePluginMojo extends AbstractMojo {
 		}
 	}
 
-	private File expandVersion() throws FileNotFoundException, IOException, MojoExecutionException 
+	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 
 	{
 		BundleDescription bundle = state.getBundleDescription(project);
 		Version version = bundle.getVersion();
@@ -198,32 +198,34 @@ public class PackagePluginMojo extends AbstractMojo {
 		
 		File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
 
+		InputStream is = new FileInputStream(mfile);
+		Manifest mf;
+		try {
+			mf = new Manifest(is);
+		} finally {
+			is.close();
+		}
+		Attributes attributes = mf.getMainAttributes();
+
 		if (versionExpander.isSnapshotVersion(version)) {
 			Version expandedVersion = versionExpander.expandVersion(version, qualifier);
-			
-			InputStream is = new FileInputStream(mfile);
-			Manifest mf;
-			try {
-				mf = new Manifest(is);
-			} finally {
-				is.close();
-			}
 
-			Attributes attributes = mf.getMainAttributes();
 			attributes.putValue("Bundle-Version", expandedVersion.toString());
 			state.setFinalVersion(bundle, expandedVersion);
-
-			mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
-			mfile.getParentFile().mkdirs();
-			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(mfile));
-			try {
-				mf.write(os);
-			} finally {
-				os.close();
-			}
-			
 		}
-		
+
+		attributes.putValue(OsgiState.ATTR_GROUP_ID, project.getGroupId());
+		attributes.putValue(OsgiState.ATTR_BASE_VERSION, project.getVersion());
+
+		mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
+		mfile.getParentFile().mkdirs();
+		BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(mfile));
+		try {
+			mf.write(os);
+		} finally {
+			os.close();
+		}
+
 		return mfile;
 	}
 

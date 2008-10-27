@@ -484,7 +484,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 				Feature feature = Feature.read(new File(basedir, Feature.FEATURE_XML));
 				File location = project.getFile().getParentFile().getAbsoluteFile();
 				FeatureDescription description = addFeature(location, feature);
-				description.setUserProperty(PROP_MAVEN_PROJECT, project);
+				description.setMavenProject(project);
 			} catch (Exception e) {
 				throw new BundleException("Exception reading eclipse feature", e);
 			}
@@ -525,6 +525,14 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 			return mavenProject.getGroupId();
 		}
 		return getManifestAttribute(desc, ATTR_GROUP_ID);
+	}
+
+	public String getMavenBaseVersion(BundleDescription desc) {
+		MavenProject mavenProject = getMavenProject(desc);
+		if (mavenProject != null) {
+			return mavenProject.getVersion(); // not expanded yet
+		}
+		return getManifestAttribute(desc, ATTR_BASE_VERSION);
 	}
 
 	public void reset(Properties props) {
@@ -654,7 +662,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public MavenProject getMavenProject(FeatureDescription feature) {
-		return (MavenProject) feature.getUserProperty(PROP_MAVEN_PROJECT);
+		return feature.getMavenProject();
 	}
 
 	public FeatureDescription getFeatureDescription(MavenProject project) {

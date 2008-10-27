@@ -81,4 +81,20 @@ public class PluginRef {
 		dom.setAttribute("install-size", Long.toString(size));
 	}
 
+	public void setMavenGroupId(String groupId) {
+		dom.setAttribute("maven-groupId", groupId);
+	}
+
+	public String getMavenGroupId() {
+		return dom.getAttribute("maven-groupId");
+	}
+
+	public void setMavenBaseVersion(String version) {
+		dom.setAttribute("maven-baseVersion", version);
+	}
+
+	public String getMavenVersion() {
+		return dom.getAttribute("maven-baseVersion");
+	}
+
 }

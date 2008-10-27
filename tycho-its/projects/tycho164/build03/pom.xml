@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.codehaus.tycho.tychoits.tycho12.build02</groupId>
+  <groupId>org.codehaus.tycho.tychoits.tycho12.build03</groupId>
   <artifactId>parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
     <!-- <module>build02.bundle01</module>  -->
-    <module>build02.bundle02</module>
-    <module>build02.feature01</module>
-    <module>build02.site01</module>
+    <module>build03.bundle02</module>
+    <module>build03.feature01</module>
+    <module>build03.site01</module>
   </modules>
+
+  <repositories>
+    <repository>
+        <id>build01</id>
+        <url>file:/workspaces/tycho-dev/tycho/tycho-its/projects/tycho164/build01/build01.site01/target/site</url>
+        <releases><enabled>true</enabled></releases>
+        <snapshots><enabled>true</enabled></snapshots>
+        <layout>p2</layout>        
+     </repository>
+  </repositories>
 
   <dependencyManagement>
     <dependencies>
@@ -36,14 +46,14 @@
       </dependency>
 
       <dependency>
-        <groupId>org.codehaus.tycho.tychoits.tycho12.build01</groupId>
+        <groupId>   org.codehaus.tycho.tychoits.tycho12.build01.feature01</groupId>
         <artifactId>org.codehaus.tycho.tychoits.tycho12.build01.feature01</artifactId>
         <version>1.0.0</version>
         <type>eclipse-feature</type>
       </dependency>
 
       <dependency>
-        <groupId>org.codehaus.tycho.tychoits.tycho12.build01</groupId>
+        <groupId>   org.codehaus.tycho.tychoits.tycho12.build01.bundle02</groupId>
         <artifactId>org.codehaus.tycho.tychoits.tycho12.build01.bundle02</artifactId>
         <version>1.0.0</version>
         <type>eclipse-plugin</type>

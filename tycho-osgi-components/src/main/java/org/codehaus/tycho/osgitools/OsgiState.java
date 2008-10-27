@@ -66,6 +66,7 @@ public interface OsgiState {
 	BundleDescription getBundleDescription(String symbolicName, String version);
 
 	String getGroupId(BundleDescription desc);
+	String getMavenBaseVersion(BundleDescription bundle);
 
 	void assertResolved(BundleDescription desc) throws BundleException;
 

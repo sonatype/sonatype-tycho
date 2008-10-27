@@ -17,7 +17,6 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <groupId>   org.codehaus.tycho.tychoits.tycho12.build02.bundle02</groupId>
   <artifactId>org.codehaus.tycho.tychoits.tycho12.build02.bundle02</artifactId>
   <version>1.0.0</version>
   <packaging>eclipse-plugin</packaging>

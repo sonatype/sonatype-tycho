@@ -68,9 +68,12 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 				}
 			}
 		}
-		
+
 		if (!exceptions.isEmpty()) {
-			throw new TargetPlatformException("Cannot resolve target platform", exceptions);
+			getLogger().warn("There were exceptions resolving build target platform");
+			for (Map.Entry<Artifact, Exception> e : exceptions.entrySet()) {
+				getLogger().warn(e.getKey() + " " + e.getValue().getMessage());
+			}
 		}
 		
 		state.addSite(new File(localRepository.getBasedir()), features, bundles);
@@ -95,11 +98,11 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 //		File featureDir = unpackFeature(artifact, feature, state);
 		features.add(artifact.getFile());
 		for (PluginRef ref : feature.getPlugins()) {
-			Artifact includedArtifact = artifactFactory.createArtifact(ref.getId(), ref.getId(), ref.getVersion(), null, PACKAGING_ECLIPSE_PLUGIN);
+			Artifact includedArtifact = artifactFactory.createArtifact(ref.getMavenGroupId(), ref.getId(), ref.getMavenVersion(), null, PACKAGING_ECLIPSE_PLUGIN);
 			resolvePlugin(includedArtifact, bundles, remoteRepositories, localRepository);
 		}
 		for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
-			Artifact includedArtifact = artifactFactory.createArtifact(ref.getId(), ref.getId(), ref.getVersion(), null, PACKAGING_ECLIPSE_FEATURE);
+			Artifact includedArtifact = artifactFactory.createArtifact(ref.getMavenGroupId(), ref.getId(), ref.getMavenVersion(), null, PACKAGING_ECLIPSE_FEATURE);
 			resolveFeature(includedArtifact, features, bundles, remoteRepositories, localRepository);
 		}
 	}

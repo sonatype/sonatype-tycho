@@ -2,6 +2,7 @@ package org.codehaus.tycho.osgitools.features;
 
 import java.io.File;
 
+import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.model.Feature;
 import org.osgi.framework.Version;
 
@@ -18,5 +19,13 @@ public interface FeatureDescription {
 	void setUserProperty(String key, Object value);
 
 	Object getUserProperty(String key);
+
+	String getMavenGroupId();
+
+	void setMavenProject(MavenProject project);
+
+	MavenProject getMavenProject();
+
+	String getMavenBaseVersion();
 
 }

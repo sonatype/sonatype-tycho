@@ -17,7 +17,6 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-
   <artifactId>build02.site01</artifactId>
   <version>1.0.0</version>
   <packaging>eclipse-update-site</packaging>

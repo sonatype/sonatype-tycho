@@ -12,13 +12,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.codehaus.tycho.tychoits.tycho12.build02</groupId>
+    <groupId>org.codehaus.tycho.tychoits.tycho12.build03</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.codehaus.tycho.tychoits.tycho12.build02.feature01</artifactId>
+  <groupId>   org.codehaus.tycho.tychoits.tycho12.build03.bundle02</groupId>
+  <artifactId>org.codehaus.tycho.tychoits.tycho12.build03.bundle02</artifactId>
   <version>1.0.0</version>
-  <packaging>eclipse-feature</packaging>
+  <packaging>eclipse-plugin</packaging>
 
 </project>

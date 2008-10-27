@@ -80,6 +80,22 @@ public class Feature {
 		public void setVersion(String version) {
 			dom.setAttribute("version", version);
 		}
+
+		public String getMavenGroupId() {
+			return dom.getAttribute("maven-groupId");
+		}
+
+		public void setMavenGroupId(String groupId) {
+			dom.setAttribute("maven-groupId", groupId);
+		}
+
+		public void setMavenBaseVersion(String version) {
+			dom.setAttribute("maven-baseVersion", version);
+		}
+
+		public String getMavenVersion() {
+			return dom.getAttribute("maven-baseVersion");
+		}
 	}
 
 	public static class RequiresRef {
@@ -164,6 +180,22 @@ public class Feature {
 		} finally {
 			jar.close();
 		}
+	}
+
+	public void setMavenGroupId(String groupId) {
+		dom.setAttribute("maven-groupId", groupId);
+	}
+
+	public String getMavenGroupId() {
+		return dom.getAttribute("maven-groupId");
+	}
+
+	public void setMavenBaseVersion(String version) {
+		dom.setAttribute("maven-baseVersion", version);
+	}
+
+	public String getMavenBaseVersion() {
+		return dom.getAttribute("maven-baseVersion");
 	}
 
 }

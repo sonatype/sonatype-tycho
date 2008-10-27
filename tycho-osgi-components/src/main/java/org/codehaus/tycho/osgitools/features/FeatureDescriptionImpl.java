@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.model.Feature;
 import org.osgi.framework.Version;
 
@@ -18,6 +19,8 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 	private final Feature feature;
 	
 	private final Map<String, Object> userProperties = new HashMap<String, Object>();
+	
+	private MavenProject mavenProject;
 
 	public FeatureDescriptionImpl(Feature feature, File location) {
 		this.feature = feature;
@@ -84,6 +87,32 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 
 	public Object getUserProperty(String key) {
 		return userProperties.get(key);
+	}
+
+	public String getMavenGroupId() {
+		MavenProject project = getMavenProject();
+		if (project != null) {
+			return project.getGroupId();
+		}
+
+		return feature.getMavenGroupId();
+	}
+
+	public MavenProject getMavenProject() {
+		return mavenProject;
+	}
+
+	public void setMavenProject(MavenProject project) {
+		this.mavenProject = project;
+	}
+
+	public String getMavenBaseVersion() {
+		MavenProject project = getMavenProject();
+		if (project != null) {
+			return project.getVersion();
+		}
+		
+		return feature.getMavenBaseVersion();
 	}
 
 }
