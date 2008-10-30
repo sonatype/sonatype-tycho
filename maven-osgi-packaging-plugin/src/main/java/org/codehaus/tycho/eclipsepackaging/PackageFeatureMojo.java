@@ -221,7 +221,14 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 
 		// update included/referenced features
 		for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
-			FeatureDescription refDescription = state.getFeatureDescription(ref.getId(), ref.getVersion());
+			String refVersion = ref.getVersion();
+			String refId = ref.getId();
+
+			FeatureDescription refDescription = state.getFeatureDescription(refId, refVersion);
+			if (refDescription == null) {
+				getLog().warn(project.getId() + " referenced uknown feature " + refId + ":" + refVersion);
+				continue;
+			}
 
 			String refGroupId = refDescription.getMavenGroupId();
 			if (refGroupId != null) {
