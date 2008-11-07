@@ -22,6 +22,8 @@
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
     <module>tycho-testing-harness</module>
+    <module>tycho-surefire-junit</module>
+    <module>tycho-surefire-junit4</module>
   </modules>
 
   <properties>
