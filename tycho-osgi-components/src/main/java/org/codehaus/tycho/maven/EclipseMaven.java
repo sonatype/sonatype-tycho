@@ -37,12 +37,20 @@ public class EclipseMaven extends DefaultMaven {
 
 		Properties props = getGlobalProperties(request);
 
+		String mode = props.getProperty("tycho.mode");
+		
+		if ("maven".equals(mode)) {
+			return;
+		}
+
 		state.reset(props);
 
 		String property = props.getProperty("tycho.targetPlatform");
 		if (property != null) {
 			factory.createTargetPlatform(state, new File(property));
  		} else {
+ 			getLogger().info("Build target platform tycho.targetPlatform=" + property 
+ 					+ "\n. This overrides target platform specified in pom.xml files, if any.");
  			factory.createTargetPlatform(projects, request.getLocalRepository(), state);
  		}
 
@@ -56,17 +64,17 @@ public class EclipseMaven extends DefaultMaven {
 
 		state.resolveState();
 
-		try {
-			for (MavenProject project : projects) {
+		for (MavenProject project : projects) {
+			try {
 				DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
-					if (dr != null) {
+				if (dr != null) {
 					for (Dependency dependency : dr.getDependencies(project)) {
 						project.getModel().addDependency(dependency);
 					}
 				}
+			} catch (ComponentLookupException e) {
+				// no biggie 
 			}
-		} catch (ComponentLookupException e) {
-			// no biggie 
 		}
 	}
 
