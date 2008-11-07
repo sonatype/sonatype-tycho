@@ -38,6 +38,10 @@ import org.osgi.framework.Version;
  */
 public class TestMojo extends AbstractMojo {
 
+	private static final String TEST_JUNIT = "org.junit";
+
+	private static final String TEST_JUNIT4 = "org.junit4";
+
 	/**
 	 * @parameter default-value="${project.build.directory}/work"
 	 */
@@ -210,14 +214,23 @@ public class TestMojo extends AbstractMojo {
 
 		work.mkdirs();
 
+		BundleDescription bundle = state.getBundleDescription(project);
+		String testFramework = getTestFramework(bundle);
+		Set<File> surefireBundles = getSurefirePlugins(testFramework);
+
 		try {
-			state.addBundle(getOsgiSurefireBooterPlugin());
+			for (File file : surefireBundles) {
+				state.addBundle(file);
+			}
 		} catch (BundleException e) {
 			throw new MojoExecutionException("Can't configure test runtime", e);
 		}
-		new ConfigurationHelper(state).createConfiguration(work, targetPlatform, getTestBundles());
+
+		Set<File> testBundles = getTestBundles();
+		testBundles.addAll(surefireBundles);
+		new ConfigurationHelper(state).createConfiguration(work, targetPlatform, testBundles);
 		createDevProperties();
-		createSurefireProperties();
+		createSurefireProperties(bundle, testFramework);
 
 		reportsDirectory.mkdirs();
 
@@ -239,7 +252,6 @@ public class TestMojo extends AbstractMojo {
 				addBundle(testBundles, fragment);
 			}
 		}
-		testBundles.add(getOsgiSurefireBooterPlugin());
 		return testBundles;
 	}
 
@@ -252,13 +264,13 @@ public class TestMojo extends AbstractMojo {
 		}
 	}
 
-	private void createSurefireProperties() throws MojoExecutionException {
+	private void createSurefireProperties(BundleDescription bundle, String testFramework) throws MojoExecutionException {
 		Properties p = new Properties();
 
-		BundleDescription bundle = state.getBundleDescription(project);
 		p.put("testpluginname", bundle.getSymbolicName());
 		p.put("testclassesdirectory", testClassesDirectory.getAbsolutePath());
 		p.put("reportsdirectory", reportsDirectory.getAbsolutePath());
+		p.put("testrunner", getTestRunner(testFramework));
 
 		if (testClass != null) {
 			p.put("includes", testClass.replace('.', '/')+".class");
@@ -277,6 +289,26 @@ public class TestMojo extends AbstractMojo {
 		} catch (IOException e) {
 			throw new MojoExecutionException("Can't write test launcher properties file", e);
 		}
+	}
+
+	private String getTestRunner(String testFramework) {
+		if (TEST_JUNIT.equals(testFramework)) {
+			return "org.codehaus.tycho.surefire.junit.JUnitDirectoryTestSuite";
+		} else if (TEST_JUNIT4.equals(testFramework)) {
+			return "org.apache.maven.surefire.junit4.JUnit4DirectoryTestSuite";
+		}
+		throw new IllegalArgumentException(); // can't happen
+	}
+
+	private String getTestFramework(BundleDescription bundle) throws MojoExecutionException {
+		for (BundleDescription dependency : state.getDependencies(bundle)) {
+			if (TEST_JUNIT.equals(dependency.getSymbolicName())) {
+				return TEST_JUNIT;
+			} else if (TEST_JUNIT4.equals(dependency.getSymbolicName())) {
+				return TEST_JUNIT4;
+			}
+		}
+		throw new MojoExecutionException("Could not determine test framework used by test bundle " + bundle.toString());
 	}
 
 	private String getIncludesExcludes(List<String> patterns) {
@@ -385,13 +417,32 @@ public class TestMojo extends AbstractMojo {
 		}
 	}
 
-	private File getOsgiSurefireBooterPlugin() throws MojoExecutionException {
+	private Set<File> getSurefirePlugins(String testFramework) throws MojoExecutionException {
+		Set<File> result = new LinkedHashSet<File>();
+		
+		
+		String fragment;
+		if (TEST_JUNIT.equals(testFramework)) {
+			fragment = "tycho-surefire-junit";
+		} else if (TEST_JUNIT4.equals(testFramework)) {
+			fragment = "tycho-surefire-junit4";
+		} else {
+			throw new IllegalArgumentException();
+		}
+
 		for (Artifact artifact : pluginArtifacts) {
-			if ("org.codehaus.tycho".equals(artifact.getGroupId()) && "tycho-surefire-osgi-booter".equals(artifact.getArtifactId())) {
-				return artifact.getFile();
+			if ("org.codehaus.tycho".equals(artifact.getGroupId())) {
+				if ("tycho-surefire-osgi-booter".equals(artifact.getArtifactId()) || fragment.equals(artifact.getArtifactId())) {
+					result.add(artifact.getFile());
+				}
 			}
 		}
-		throw new MojoExecutionException("Unable to locate org.codehaus.tycho:tycho-surefire-osgi-booter");
+
+		if (result.size() != 2) {
+			throw new MojoExecutionException("Unable to locate org.codehaus.tycho:tycho-surefire-osgi-booter and/or its fragments");
+		}
+
+		return result;
 	}
 
 	private void createDevProperties() throws MojoExecutionException {

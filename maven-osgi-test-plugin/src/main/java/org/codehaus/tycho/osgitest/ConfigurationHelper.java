@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -176,53 +175,9 @@ public class ConfigurationHelper {
 		return result.toString();
 	}
 
-	private String createOsgiBundlesProperty(File targetPlatform, String osgiBundles, Set<File> testPlugins) throws IOException, MojoExecutionException {
-		StringBuilder result = new StringBuilder();
-		
-		StringTokenizer st = new StringTokenizer(osgiBundles, ",");
-		while(st.hasMoreTokens()) {
-			if (result.length() > 0) {
-				result.append(",");
-			}
-			String t = st.nextToken().trim();
-			int at = t.indexOf('@');
-			String url =  getPlatformURL(targetPlatform, at > 0 ? t.substring(0, at) : t);
-			if (url != null) {
-				result.append(url);
-				if (at > 0) {
-					result.append(t.substring(at));
-				}
-			} else {
-				result.append(t);
-			}
-		}
-
-		for (File file : testPlugins) {
-			if (result.length() > 0) {
-				result.append(",");
-			}
-			result.append(appendAbsolutePath(file));
-		}
-		return result.toString();
-	}
-
 	private String appendAbsolutePath(File file) throws IOException {
 		String url = file.getAbsolutePath().replace('\\', '/');
 		return "reference:file:" + url;
-	}
-
-	private String getPlatformURL(File targetPlatform, String id) throws IOException {
-		BundleDescription desc = state.getBundleDescription(id, OsgiState.HIGHEST_VERSION);
-		if (desc != null) {
-			return appendAbsolutePath(new File(desc.getLocation()));
-		} else if (id.startsWith("reference:file:")) {
-			String path = id.substring("reference:file:".length());
-			if (!new File(path).isAbsolute()) {
-				return appendAbsolutePath(new File(targetPlatform, "plugins/" + path));
-			}
-		}
-
-		return null;
 	}
 
 	private static void addRequiredProperties(Properties properties, File targetPlatform) {

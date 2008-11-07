@@ -30,6 +30,8 @@ public class OsgiSurefireBooter {
 		File testDir = new File(p.getProperty("testclassesdirectory"));
 		File reportsDir = new File(p.getProperty("reportsdirectory"));
 		
+		String runner = p.getProperty("testrunner");
+		
 		ArrayList<String> includes = getIncludesExcludes(p.getProperty("includes"));
 		ArrayList<String> excludes = getIncludesExcludes(p.getProperty("excludes"));
 
@@ -55,7 +57,7 @@ public class OsgiSurefireBooter {
 
 		List tests = new ArrayList();
 		tests.add(new Object[] {
-			"org.codehaus.tycho.surefire.junit.JUnitDirectoryTestSuite",
+			runner,
 			new Object[] {
 				testDir,
 				includes,
