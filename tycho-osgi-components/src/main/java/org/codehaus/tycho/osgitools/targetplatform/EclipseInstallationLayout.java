@@ -174,12 +174,10 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 							is.close();
 						}
 						String path = props.getProperty("path");
-						if (path != null && path.length() > 0) {
-							File dir;
-							if (path.startsWith(".")) {
-								dir = new File(targetPlatform, path);
-							} else {
-								dir = new File(path);
+						if (path != null) {
+							File dir = new File(path);
+							if (!dir.isAbsolute() && targetPlatform.getParentFile() != null) {
+								dir = new File(targetPlatform.getParentFile(), path);
 							}
 							dir = dir.getCanonicalFile();
 							if (dir.isDirectory()) {
