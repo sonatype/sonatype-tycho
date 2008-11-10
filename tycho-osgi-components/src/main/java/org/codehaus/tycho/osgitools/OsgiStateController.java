@@ -41,6 +41,8 @@ import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.features.FeatureDescriptionImpl;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
 import org.codehaus.tycho.osgitools.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
@@ -68,6 +70,9 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	
 	/** maven project bundle user property */
 	private static final String PROP_MAVEN_PROJECT = "MavenProject";
+
+	/** eclipse plugin project user property */
+	private static final String PROP_ECLIPSE_PLUGIN_PROJECT = "EclipsePluginProject";
 
 	private static final String PROP_MANIFEST = "BundleManifest";
 	
@@ -466,28 +471,31 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public void addProject(MavenProject project) throws BundleException {
 		File basedir = project.getBasedir();
-		if (PACKAGING_ECLIPSE_PLUGIN.equals(project.getPackaging()) 
-				|| PACKAGING_ECLIPSE_TEST_PLUGIN.equals(project.getPackaging())) {
-			File mf = new File(basedir, "META-INF/MANIFEST.MF");
-			if (mf.canRead()) {
-				BundleDescription desc = addBundle(mf, basedir, true);
-
-				String groupId = getManifestAttribute(desc, ATTR_GROUP_ID);
-				if (groupId != null && !groupId.equals(project.getGroupId())) {
-					throw new BundleException("groupId speicified in bundle manifest does not match pom.xml");
+		try {
+			if (PACKAGING_ECLIPSE_PLUGIN.equals(project.getPackaging()) 
+					|| PACKAGING_ECLIPSE_TEST_PLUGIN.equals(project.getPackaging())) {
+				File mf = new File(basedir, "META-INF/MANIFEST.MF");
+				if (mf.canRead()) {
+					BundleDescription desc = addBundle(mf, basedir, true);
+	
+					String groupId = getManifestAttribute(desc, ATTR_GROUP_ID);
+					if (groupId != null && !groupId.equals(project.getGroupId())) {
+						throw new BundleException("groupId speicified in bundle manifest does not match pom.xml");
+					}
+	
+					setUserProperty(desc, PROP_MAVEN_PROJECT, project);
+					setUserProperty(desc, PROP_ECLIPSE_PLUGIN_PROJECT, new EclipsePluginProjectImpl(project, desc));
 				}
-
-				setUserProperty(desc, PROP_MAVEN_PROJECT, project);
+			} else if (PACKAGING_ECLIPSE_FEATURE.equals(project.getPackaging())) {
+					Feature feature = Feature.read(new File(basedir, Feature.FEATURE_XML));
+					File location = project.getFile().getParentFile().getAbsoluteFile();
+					FeatureDescription description = addFeature(location, feature);
+					description.setMavenProject(project);
 			}
-		} else if (PACKAGING_ECLIPSE_FEATURE.equals(project.getPackaging())) {
-			try {
-				Feature feature = Feature.read(new File(basedir, Feature.FEATURE_XML));
-				File location = project.getFile().getParentFile().getAbsoluteFile();
-				FeatureDescription description = addFeature(location, feature);
-				description.setMavenProject(project);
-			} catch (Exception e) {
-				throw new BundleException("Exception reading eclipse feature", e);
-			}
+		} catch (BundleException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new BundleException("Exception reading eclipse project", e);
 		}
 	}
 
@@ -517,6 +525,14 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public MavenProject getMavenProject(BundleDescription desc) {
 		return (MavenProject) getUserProperty(desc, PROP_MAVEN_PROJECT);
+	}
+
+	public EclipsePluginProject getEclipsePluginProject(MavenProject project) {
+		BundleDescription desc = getBundleDescription(project);
+		if (desc == null) {
+			return null;
+		}
+		return (EclipsePluginProject) getUserProperty(desc, PROP_ECLIPSE_PLUGIN_PROJECT);
 	}
 
 	public String getGroupId(BundleDescription desc) {

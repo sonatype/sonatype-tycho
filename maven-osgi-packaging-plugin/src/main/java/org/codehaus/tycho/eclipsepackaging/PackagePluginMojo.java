@@ -1,6 +1,5 @@
 package org.codehaus.tycho.eclipsepackaging;
 
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,8 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
-import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -19,9 +16,10 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.osgitools.project.BuildOutputJar;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
@@ -31,8 +29,6 @@ import org.osgi.framework.Version;
  * @goal package-plugin
  */
 public class PackagePluginMojo extends AbstractMojo {
-	private static final String OUTPUT = "output.";
-	private static final String SOURCE = "source.";
 
 	/**
 	 * @parameter expression="${project.build.directory}"
@@ -41,16 +37,12 @@ public class PackagePluginMojo extends AbstractMojo {
 	protected File buildDirectory;
 
 	/**
-	 * @parameter expression="${project.build.outputDirectory}"
-	 * @required
-	 */
-	protected File outputDirectory;
-
-	/**
 	 * @parameter expression="${project}"
 	 * @required
 	 */
 	protected MavenProject project;
+
+	protected EclipsePluginProject pdeProject;
 
 	/**
 	 * The Jar archiver.
@@ -93,64 +85,35 @@ public class PackagePluginMojo extends AbstractMojo {
 
 	private VersionExpander versionExpander = new VersionExpander();
 
-	private Properties buildProperties;
-
 	public void execute() throws MojoExecutionException {
-		createPlugin();
-	}
+		pdeProject = state.getEclipsePluginProject(project);
 
-	private void createPlugin() throws MojoExecutionException {
-		try {
-			buildProperties = new Properties();
+		createSubJars();
 
-			File file = new File(project.getBasedir(), "build.properties");
-			if (file.canRead()) {
-				FileInputStream is = new FileInputStream(file);
-				try {
-					buildProperties.load(is);
-				} finally {
-					is.close();
-				}
-			}
+		File pluginFile = createPluginJar();
 
-			createSubJars();
-
-			File pluginFile = createPluginJar();
-
-			project.getArtifact().setFile(pluginFile);
-
-		} catch (Exception e) {
-			throw new MojoExecutionException("", e);
-		}
+		project.getArtifact().setFile(pluginFile);
 	}
 
 	private void createSubJars() throws MojoExecutionException {
-		try {
-			for (Iterator iterator = buildProperties.keySet().iterator(); iterator.hasNext();) {
-				String key = (String) iterator.next();
-				if (key.startsWith(OUTPUT) && !key.equals("output..")) {
-					String fileName = key.substring(OUTPUT.length());
-					String classesDir[] = buildProperties.getProperty(key)
-							.split(",");
-					makeJar(fileName, classesDir);
-				} else if (key.startsWith(SOURCE) && !key.equals("source..")) {
-					String fileName = key.substring(SOURCE.length());
-					String classesDir[] = new String[]{buildDirectory.getName() + "/" + fileName.substring(0, fileName.length() - 4) + "-classes"};
-					makeJar(fileName, classesDir);
-				}
+		for (BuildOutputJar jar : pdeProject.getOutputJars()) {
+			if (!".".equals(jar.getName())) {
+				makeJar(jar.getName(), jar.getOutputDirectory());
 			}
-		} catch (Exception e) {
-			throw new MojoExecutionException("", e);
 		}
-
 	}
 
-	private File makeJar(String fileName, String[] classesDir)
-			throws MojoExecutionException {
-		File jarFile = new File(project.getBasedir(), fileName);
-		Util.makeJar(project.getBasedir(), jarFile, classesDir,
-				new JarArchiver(), null);
-		return jarFile;
+	private File makeJar(String jarName, File classesFolder) throws MojoExecutionException {
+		try {
+			File jarFile = new File(project.getBasedir(), jarName);
+			JarArchiver archiver = new JarArchiver();
+			archiver.setDestFile(jarFile);
+			archiver.addDirectory(classesFolder);
+	        archiver.createArchive();
+			return jarFile;
+		} catch (Exception e) {
+			throw new MojoExecutionException("Could not create jar " + jarName, e);
+		}
 	}
 
 	private File createPluginJar() throws MojoExecutionException {
@@ -163,20 +126,15 @@ public class PackagePluginMojo extends AbstractMojo {
 				pluginFile.delete();
 			}
 
-			String output = buildProperties.getProperty(OUTPUT + ".");
-			if (output != null) {
-				String[] includes = output.split(",");
-				addToArchiver(archiver, includes, false);
+			BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
+			if (dotOutputJar != null) {
+				archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory());
 			}
 
-			if (outputDirectory.exists()) {
-				archiver.getArchiver().addDirectory(outputDirectory);
-			}
-			
-			if (buildProperties.containsKey("bin.includes")) {
-				String[] binIncludes = buildProperties.getProperty("bin.includes")
-						.split(",");
-				addToArchiver(archiver, binIncludes, true);
+			String binIncludes = pdeProject.getBuildProperties().getProperty("bin.includes");
+			String binExcludes = pdeProject.getBuildProperties().getProperty("bin.excludes");
+			if (binIncludes != null) {
+				archiver.getArchiver().addDirectory(project.getBasedir(), toFilePattern(binIncludes), toFilePattern(binExcludes));
 			}
 
 			File manifest = updateManifest();
@@ -192,6 +150,14 @@ public class PackagePluginMojo extends AbstractMojo {
 		} catch (Exception e) {
 			throw new MojoExecutionException("Error assembling JAR", e);
 		}
+	}
+
+	private String[] toFilePattern(String pattern) {
+		if (pattern == null) {
+			return null;
+		}
+		
+		return pattern.split(",");
 	}
 
 	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 
@@ -232,25 +198,6 @@ public class PackagePluginMojo extends AbstractMojo {
 		}
 
 		return mfile;
-	}
-
-	private void addToArchiver(MavenArchiver archiver, String[] includes,
-			boolean includeBase) throws ArchiverException {
-		for (int i = 0; i < includes.length; i++) {
-			String file = includes[i];
-			if (!file.equals(".")) {
-				File f = new File(project.getBasedir(), file);
-				if (f.exists()) {
-					if (f.isDirectory()) {
-						archiver.getArchiver().addDirectory(f,
-								includeBase ? file : "", Util.DEFAULT_INCLUDES,
-								Util.DEFAULT_EXCLUDES);
-					} else {
-						archiver.getArchiver().addFile(f, file);
-					}
-				}
-			}
-		}
 	}
 
 }

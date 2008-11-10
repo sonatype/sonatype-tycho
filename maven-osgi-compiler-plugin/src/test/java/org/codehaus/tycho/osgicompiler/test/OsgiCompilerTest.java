@@ -50,7 +50,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		AbstractOsgiCompilerMojo mojo = (AbstractOsgiCompilerMojo) lookupMojo("compile", project.getFile());
 		setVariableValueToObject(mojo, "project", project);
 		setVariableValueToObject(mojo, "storage", storage);
-		setVariableValueToObject(mojo, "projectArtifact", project.getArtifact());
 		setVariableValueToObject(mojo, "outputDirectory", new File(project.getBuild().getOutputDirectory()).getAbsoluteFile());
 		// tycho-compiler-jdt does not support forked compilation
 //		        setVariableValueToObject(mojo, "fork", fork? Boolean.TRUE: Boolean.FALSE);

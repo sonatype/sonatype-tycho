@@ -8,6 +8,7 @@ import java.util.jar.Manifest;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.ResolverError;
 import org.eclipse.osgi.service.resolver.StateHelper;
@@ -53,13 +54,12 @@ public interface OsgiState {
 
 	StateHelper getStateHelper();
 
-	BundleDescription getBundleDescription(MavenProject project);
-
 	ResolverError[] getResolverErrors(BundleDescription thisBundle);
 
 	void addProject(MavenProject project) throws BundleException;
-
-	MavenProject getMavenProject(BundleDescription model);
+	EclipsePluginProject getEclipsePluginProject(MavenProject project);
+	BundleDescription getBundleDescription(MavenProject project); // deprecated, use getEclipsePluginProject
+	MavenProject getMavenProject(BundleDescription model); // deprecated, use getEclipsePluginProject
 
 	void reset(Properties props);
 

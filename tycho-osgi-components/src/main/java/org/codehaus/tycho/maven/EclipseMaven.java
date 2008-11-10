@@ -47,10 +47,10 @@ public class EclipseMaven extends DefaultMaven {
 
 		String property = props.getProperty("tycho.targetPlatform");
 		if (property != null) {
-			factory.createTargetPlatform(state, new File(property));
- 		} else {
  			getLogger().info("Build target platform tycho.targetPlatform=" + property 
  					+ "\n. This overrides target platform specified in pom.xml files, if any.");
+			factory.createTargetPlatform(state, new File(property));
+ 		} else {
  			factory.createTargetPlatform(projects, request.getLocalRepository(), state);
  		}
 
