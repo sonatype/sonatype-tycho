@@ -103,6 +103,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
 		for (BuildOutputJar jar : pdeProject.getOutputJars()) {
 			this.outputJar = jar;
+			this.outputJar.getOutputDirectory().mkdirs();
 			super.execute();
 			getClasspathComputer().addOutputDirectory(this.outputJar.getOutputDirectory());
 		}
