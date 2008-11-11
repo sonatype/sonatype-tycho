@@ -7,6 +7,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.tycho.maven.EclipseMavenProjetBuilder;
+import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 
@@ -15,6 +16,9 @@ import org.osgi.framework.BundleException;
  * 		role-hint="eclipse-plugin"
  */
 public class OsgiBundleDependenciesReader extends AbstractDependenciesReader {
+
+	/** @plexus.requirement */
+	private DependencyComputer dependencyComputer;
 
     public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
 		BundleDescription bundleDescription = state.getBundleDescription(project);
@@ -30,9 +34,8 @@ public class OsgiBundleDependenciesReader extends AbstractDependenciesReader {
 
 		ArrayList<Dependency> result = new ArrayList<Dependency>();
 
-		BundleDescription[] requiredBundles = state.getDependencies(bundleDescription);
-		for (int i = 0; i < requiredBundles.length; i++) {
-			BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
+		for (DependencyEntry entry : dependencyComputer.computeDependencies(bundleDescription)) {
+			BundleDescription supplier = entry.desc;
 
 			MavenProject otherProject = state.getMavenProject(supplier);
 			

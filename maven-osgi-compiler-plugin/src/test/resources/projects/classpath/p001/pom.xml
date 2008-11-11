@@ -12,19 +12,13 @@
   <packaging>eclipse-plugin</packaging>
   <version>1.0.0</version>
   <build>
-    <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <groupId>org.codehaus.tycho</groupId>
         <artifactId>maven-osgi-compiler-plugin</artifactId>
         <version>${tycho.version}</version>
         <configuration>
-          <compileSourceRoots>
-            <compileSourceRoot>target/projects/classpath/p001/src</compileSourceRoot>
-          </compileSourceRoots>
           <compilerId>jdt</compilerId>
-          <outputDirectory>target/projects/classpath/p001/target/classes</outputDirectory>
-          <buildDirectory>target/projects/classpath/p001/target</buildDirectory>
         </configuration>
       </plugin>
     </plugins>

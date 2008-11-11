@@ -22,8 +22,6 @@
     <module>tycho-osgi-components</module>
     <module>tycho-distribution</module>
     <module>tycho-testing-harness</module>
-    <module>tycho-surefire-junit</module>
-    <module>tycho-surefire-junit4</module>
   </modules>
 
   <properties>
@@ -359,6 +357,8 @@
         <module>tycho-p2-app</module>
         <module>maven-osgi-test-plugin</module>
         <module>tycho-surefire-osgi-booter</module>
+	    <module>tycho-surefire-junit</module>
+	    <module>tycho-surefire-junit4</module>
         <module>tycho-p2-runtime</module>
       </modules>
     </profile>

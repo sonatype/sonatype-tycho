@@ -37,9 +37,6 @@ public interface OsgiState {
 
 	/**
 	 * Returns all direct and indirect dependencies of the bundle.
-	 * 
-	 * Fragments attached to the bundle are NOT included, however,
-	 * fragments attached to bundles referenced by the bundle are.
 	 */
 	BundleDescription[] getDependencies(BundleDescription bundle);
 
@@ -99,5 +96,4 @@ public interface OsgiState {
 	void setFinalVersion(FeatureDescription featureDesc, Version version);
 	void setFinalVersion(BundleDescription bundle, Version version);
 	Version getFinalVersion(FeatureDescription feature);
-
 }

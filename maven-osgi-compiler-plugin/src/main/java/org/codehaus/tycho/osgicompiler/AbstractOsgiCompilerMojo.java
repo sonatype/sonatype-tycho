@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -32,13 +31,12 @@ import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
-import org.codehaus.tycho.osgicompiler.ClasspathComputer3_0.ClasspathElement;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
+import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
-import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
@@ -72,11 +70,10 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	/** @component */
 	private OsgiState state;
 
-	/**
-	 * Accumulated classpath includes all output class folder built so far.
-	 */
-	private ArrayList<String> classpathElements;
+	/** @component */
+	private DependencyComputer dependencyComputer;
 
+	private ClasspathComputer classpathComputer;
 
 	/**
 	 * A list of inclusion filters for the compiler.
@@ -107,7 +104,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		for (BuildOutputJar jar : pdeProject.getOutputJars()) {
 			this.outputJar = jar;
 			super.execute();
-			classpathElements.add(this.outputJar.getOutputDirectory().getAbsolutePath());
+			getClasspathComputer().addOutputDirectory(this.outputJar.getOutputDirectory());
 		}
 
 		// this does not include classes from nested jars
@@ -123,20 +120,14 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	}
 
 	public List<String> getClasspathElements() {
-		if(classpathElements == null) {
-			BundleDescription thisBundle = state.getBundleDescription(project);
-	
-			ClasspathComputer3_0 cc = new ClasspathComputer3_0(thisBundle, state, storage);
-	
-			List<ClasspathElement> classpath = cc.getClasspath();
-			classpathElements = new ArrayList<String>(classpath.size());
-			for (Iterator<ClasspathElement> it = classpath.iterator(); it.hasNext();) {
-				ClasspathElement cp = (ClasspathElement) it.next();
-				classpathElements.add(cp.getPath() + cp.getAccessRules());
-			}
-		}
+		return getClasspathComputer().computeClasspath();
+	}
 
-		return classpathElements;
+	private ClasspathComputer getClasspathComputer() {
+		if (classpathComputer == null) {
+			classpathComputer = new ClasspathComputer(state, dependencyComputer, project, storage);
+		}
+		return classpathComputer;
 	}
 
 	protected final List<String> getCompileSourceRoots() throws MojoExecutionException {

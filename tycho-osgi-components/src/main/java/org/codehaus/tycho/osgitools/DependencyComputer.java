@@ -1,0 +1,248 @@
+package org.codehaus.tycho.osgitools;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.eclipse.osgi.service.resolver.BaseDescription;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.BundleSpecification;
+import org.eclipse.osgi.service.resolver.ExportPackageDescription;
+import org.eclipse.osgi.service.resolver.HostSpecification;
+import org.eclipse.osgi.service.resolver.ImportPackageSpecification;
+import org.eclipse.osgi.service.resolver.StateHelper;
+
+/**
+ * Helper class that computes compile dependencies of a bundle project.
+ * 
+ * Code below is copy&paste of org.eclipse.pde.internal.core.RequiredPluginsClasspathContainer
+ * adopted to work outside of Eclipse runtime.
+ * 
+ * Note that some functionality, namely SecondaryDependencies,
+ * ExtraClasspathEntries and isPatchFragment, has been removed due to time constraints.
+ * 
+ * @plexus.component role="org.codehaus.tycho.osgitools.DependencyComputer"
+ */
+public class DependencyComputer {
+
+	static final String ROLE = DependencyComputer.class.getName();
+
+	/** @plexus.requirement */
+	OsgiState state;
+
+	public static class AccessRule {
+		public String path;
+		public boolean discouraged;
+
+		public boolean equals(Object other) {
+			if (!(other instanceof AccessRule))
+				return false;
+			return discouraged == ((AccessRule) other).discouraged && path.equals(((AccessRule) other).path);
+		}
+	}
+
+	public static class DependencyEntry {
+		public final BundleDescription desc;
+		public final AccessRule[] rules;
+
+		public DependencyEntry(BundleDescription desc, AccessRule[] rules) {
+			this.desc = desc;
+			this.rules = rules;
+		}
+
+		public boolean equals(Object other) {
+			if (!(other instanceof DependencyEntry))
+				return false;
+			return desc.equals(((DependencyEntry) other).desc) && Arrays.equals(rules, ((DependencyEntry) other).rules);
+		}
+	}
+
+	public List<DependencyEntry> computeDependencies(BundleDescription desc) {
+		ArrayList<DependencyEntry> entries = new ArrayList<DependencyEntry>();
+
+		if (desc == null)
+			return entries;
+
+		Map<BundleDescription, ArrayList<AccessRule>> map = retrieveVisiblePackagesFromState(desc);
+
+		HashSet<BundleDescription> added = new HashSet<BundleDescription>();
+
+		// to avoid cycles, e.g. when a bundle imports a package it exports
+		added.add(desc);
+
+		HostSpecification host = desc.getHost();
+		if (host != null) {
+			addHostPlugin(host, added, map, entries);
+		}
+
+		// add dependencies
+		BundleSpecification[] required = desc.getRequiredBundles();
+		for (int i = 0; i < required.length; i++) {
+			addDependency((BundleDescription) required[i].getSupplier(), added, map, entries);
+		}
+
+//		addSecondaryDependencies(desc, added, entries);
+
+		// add Import-Package
+		// sort by symbolicName_version to get a consistent order
+		Map<String, BundleDescription> sortedMap = new TreeMap<String, BundleDescription>();
+		Iterator<BundleDescription> iter = map.keySet().iterator();
+		while (iter.hasNext()) {
+			BundleDescription bundle = iter.next();
+			sortedMap.put(bundle.toString(), bundle);
+		}
+
+		iter = sortedMap.values().iterator();
+		while (iter.hasNext()) {
+			BundleDescription bundle = (BundleDescription) iter.next();
+			if (state.getMavenProject(bundle) != null)
+				addDependencyViaImportPackage(bundle, added, map, entries);
+		}
+
+//		addExtraClasspathEntries(added, entries);
+
+		return entries;
+	}
+
+	private Map<BundleDescription, ArrayList<AccessRule>> retrieveVisiblePackagesFromState(BundleDescription desc) {
+		Map<BundleDescription, ArrayList<AccessRule>> visiblePackages = new HashMap<BundleDescription, ArrayList<AccessRule>>();
+		StateHelper helper = state.getStateHelper();
+		addVisiblePackagesFromState(helper, desc, visiblePackages);
+		if (desc.getHost() != null)
+			addVisiblePackagesFromState(helper, (BundleDescription) desc.getHost().getSupplier(), visiblePackages);
+		return visiblePackages;
+	}
+
+	private void addVisiblePackagesFromState(StateHelper helper, BundleDescription desc, Map<BundleDescription, ArrayList<AccessRule>> visiblePackages) {
+		if (desc == null)
+			return;
+		ExportPackageDescription[] exports = helper.getVisiblePackages(desc);
+		for (int i = 0; i < exports.length; i++) {
+			BundleDescription exporter = exports[i].getExporter();
+			if (exporter == null)
+				continue;
+			ArrayList<AccessRule> list = visiblePackages.get(exporter);
+			if (list == null)
+				list = new ArrayList<AccessRule>();
+			AccessRule rule = getRule(helper, desc, exports[i]);
+			if (!list.contains(rule))
+				list.add(rule);
+			visiblePackages.put(exporter, list);
+		}
+	}
+
+	private AccessRule getRule(StateHelper helper, BundleDescription desc, ExportPackageDescription export) {
+		AccessRule rule = new AccessRule();
+		rule.discouraged = helper.getAccessCode(desc, export) == StateHelper.ACCESS_DISCOURAGED;
+		String name = export.getName();
+		rule.path = (name.equals(".")) ? "*" : name.replaceAll("\\.", "/") + "/*";
+		return rule;
+	}
+
+	protected void addDependencyViaImportPackage(BundleDescription desc, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
+		if (desc == null || !added.add(desc))
+			return;
+
+		addPlugin(desc, true, map, entries);
+
+		if (hasExtensibleAPI(desc) && desc.getContainingState() != null) {
+			BundleDescription[] fragments = desc.getFragments();
+			for (int i = 0; i < fragments.length; i++) {
+				if (fragments[i].isResolved())
+					addDependencyViaImportPackage(fragments[i], added, map, entries);
+			}
+		}
+	}
+
+	private void addDependency(BundleDescription desc, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
+		addDependency(desc, added, map, entries, true);
+	}
+
+	private void addDependency(BundleDescription desc, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries, boolean useInclusion) {
+		if (desc == null || !added.add(desc))
+			return;
+
+		BundleDescription[] fragments = hasExtensibleAPI(desc) ? desc.getFragments() : new BundleDescription[0];
+
+		// add fragment patches before host
+		for (int i = 0; i < fragments.length; i++) {
+			if (fragments[i].isResolved() && isPatchFragment(fragments[i])) {
+				addDependency(fragments[i], added, map, entries, useInclusion);
+			}
+		}
+
+		addPlugin(desc, useInclusion, map, entries);
+
+		// add fragments that are not patches after the host
+		for (int i = 0; i < fragments.length; i++) {
+			if (fragments[i].isResolved() && !isPatchFragment(fragments[i])) {
+				addDependency(fragments[i], added, map, entries, useInclusion);
+			}
+		}
+
+		BundleSpecification[] required = desc.getRequiredBundles();
+		for (int i = 0; i < required.length; i++) {
+			if (required[i].isExported()) {
+				addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
+			}
+		}
+	}
+
+	private boolean isPatchFragment(BundleDescription bundleDescription) {
+		return false; // TODO
+	}
+
+	private boolean addPlugin(BundleDescription desc, boolean useInclusions, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
+		AccessRule[] rules = useInclusions ? getInclusions(map, desc) : null;
+		DependencyEntry entry = new DependencyEntry(desc, rules);
+		if (!entries.contains(entry))
+			entries.add(entry);
+		return true;
+	}
+
+	private AccessRule[] getInclusions(Map<BundleDescription, ArrayList<AccessRule>> map, BundleDescription desc) {
+		ArrayList<AccessRule> rules;
+
+		if (desc.getHost() != null)
+			rules = map.get((BundleDescription) desc.getHost().getSupplier());
+		else
+			rules = map.get(desc);
+
+		return (rules == null || rules.size() == 0) ? new AccessRule[0] : rules.toArray(new AccessRule[rules.size()]);
+	}
+
+	private void addHostPlugin(HostSpecification hostSpec, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
+		BaseDescription desc = hostSpec.getSupplier();
+
+		if (desc instanceof BundleDescription) {
+			BundleDescription host = (BundleDescription) desc;
+
+			// add host plug-in
+			if (added.add(host) && addPlugin(host, false, map, entries)) {
+				BundleSpecification[] required = host.getRequiredBundles();
+				for (int i = 0; i < required.length; i++) {
+					addDependency((BundleDescription) required[i].getSupplier(), added, map, entries);
+				}
+
+				// add Import-Package
+				ImportPackageSpecification[] imports = host.getImportPackages();
+				for (int i = 0; i < imports.length; i++) {
+					BaseDescription supplier = imports[i].getSupplier();
+					if (supplier instanceof ExportPackageDescription) {
+						addDependencyViaImportPackage(((ExportPackageDescription) supplier).getExporter(), added, map, entries);
+					}
+				}
+			}
+		}
+	}
+
+	private boolean hasExtensibleAPI(BundleDescription desc) {
+		return "true".equals(state.getManifestAttribute(desc, "Eclipse-ExtensibleAPI"));
+	}
+
+}

@@ -19,7 +19,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 	private final BundleDescription bundleDescription;
 	private final Properties buildProperties;
 
-	private final List<BuildOutputJar> outputJars = new ArrayList<BuildOutputJar>();
+	private final LinkedHashMap<String, BuildOutputJar> outputJars = new LinkedHashMap<String, BuildOutputJar>();
 	private final BuildOutputJar dotOutputJar;
 
 	public EclipsePluginProjectImpl(MavenProject project, BundleDescription desc) throws IOException {
@@ -54,7 +54,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 
 		for (BuildOutputJar jar : jars.values()) {
 			if (jar != null) {
-				this.outputJars.add(jar);
+				this.outputJars.put(jar.getName(), jar);
 			}
 		}
 	}
@@ -99,11 +99,15 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 	}
 
 	public List<BuildOutputJar> getOutputJars() {
-		return outputJars;
+		return new ArrayList<BuildOutputJar>(outputJars.values());
 	}
 
 	public BuildOutputJar getDotOutputJar() {
 		return dotOutputJar;
+	}
+
+	public Map<String, BuildOutputJar> getOutputJarMap() {
+		return outputJars;
 	}
 
 }

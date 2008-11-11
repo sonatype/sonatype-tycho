@@ -11,6 +11,7 @@
   <modules>
     <module>client</module>
     <module>fragment</module>
+    <module>fragment2</module>
     <module>host</module>
     <module>dep</module>
   </modules>

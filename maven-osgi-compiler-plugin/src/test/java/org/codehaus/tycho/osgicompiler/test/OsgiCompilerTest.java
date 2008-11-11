@@ -13,7 +13,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
-import org.codehaus.tycho.osgicompiler.ClasspathComputer3_0;
+import org.codehaus.tycho.osgicompiler.ClasspathComputer;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
@@ -85,8 +85,9 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertEquals(4, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*:-**/*]"), cp.get(1));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*:-**/*]"), cp.get(2));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*:-**/*]"), cp.get(3));
+		// note that PDE sorts dependencies coming via imported-package by symbolicName_version
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*:-**/*]"), cp.get(2));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*:-**/*]"), cp.get(3));
 	}
 
 	public void testClasspath() throws Exception {
@@ -120,7 +121,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 	private String getClasspathElement(File base, String path, String accessRules) throws IOException {
 		String file = new File(base, path).getCanonicalPath();
-		return file.replace('\\', '/') + accessRules.replace(":", ClasspathComputer3_0.ACCESS_RULE_SEPARATOR);
+		return file.replace('\\', '/') + accessRules.replace(":", ClasspathComputer.ACCESS_RULE_SEPARATOR);
 	}
 
 	public void test_multisourceP001_viaMojoConfiguration() throws Exception {
@@ -145,4 +146,14 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertTrue(new File(project.getBasedir(), "target/classes/p002/p2/P2.class").canRead());
 	}
 
+	public void test_multipleOutputJars() throws Exception {
+		File basedir = getBasedir("projects/multijar");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+
+		MavenProject project = projects.get(0);
+		getMojo(project).execute();
+
+		assertTrue(new File(project.getBasedir(), "target/classes/src/Src.class").canRead());
+		assertTrue(new File(project.getBasedir(), "target/library.jar-classes/src2/Src2.class").canRead());
+	}
 }

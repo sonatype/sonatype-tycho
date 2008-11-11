@@ -167,29 +167,37 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 		List<MavenProject> projects = reactorManager.getSortedProjects();
 
-		MavenProject dep = projects.get(1);
-		MavenProject host = projects.get(2);
+		MavenProject host = projects.get(1);
+		MavenProject dep = projects.get(2);
 		MavenProject fragment = projects.get(3);
-		MavenProject client = projects.get(4);
+		MavenProject fragment2 = projects.get(4);
+		MavenProject client = projects.get(5);
 
 		assertEquals("host", host.getArtifactId());
-		// host depends on all fragments' dependencies but not the fragments
+		// host does not know anything about fragments
 		List<Dependency> hostDependencies = host.getModel().getDependencies();
-		assertEquals(1, hostDependencies.size());
-		assertEquals("dep", hostDependencies.get(0).getArtifactId());
+		assertEquals(0, hostDependencies.size());
 
 		assertEquals("fragment", fragment.getArtifactId());
 		List<Dependency> fragmentDependencies = fragment.getModel().getDependencies();
+		// host first, then fragment dependency
 		assertEquals(2, fragmentDependencies.size());
-		assertEquals("dep", fragmentDependencies.get(0).getArtifactId());
-		assertEquals("host", fragmentDependencies.get(1).getArtifactId()); // TODO not sure about the order
+		assertEquals("host", fragmentDependencies.get(0).getArtifactId()); 
+		assertEquals("dep", fragmentDependencies.get(1).getArtifactId());
+
+		assertEquals("fragment2", fragment2.getArtifactId());
+		// host only
+		List<Dependency> fragment2Dependencies = fragment2.getModel().getDependencies();
+		assertEquals(1, fragment2Dependencies.size());
+		assertEquals("host", fragment2Dependencies.get(0).getArtifactId());
 
 		assertEquals("client", client.getArtifactId());
+		// depends on host and because host has ExtensibleAPI also depends fragment and fragent2
 		List<Dependency> clientDependencies = client.getModel().getDependencies();
 		assertEquals(3, clientDependencies.size());
 		assertEquals("host", clientDependencies.get(0).getArtifactId());
-		assertEquals("fragment", clientDependencies.get(1).getArtifactId()); // TODO not sure about the order
-		assertEquals("dep", clientDependencies.get(2).getArtifactId());
+		assertEquals("fragment", clientDependencies.get(1).getArtifactId());
+		assertEquals("fragment2", clientDependencies.get(2).getArtifactId());
 	}
 
 	public void testPre30() throws Exception {

@@ -409,9 +409,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 		for (long bundleId : bundleIds) {
 			if (desc.getBundleId() != bundleId) {
 				BundleDescription dependency = state.getBundle(bundleId);
-				BundleDescription supplier = dependency.getSupplier().getSupplier();
-				HostSpecification host = supplier.getHost();
-				if (host == null || !desc.equals(host.getSupplier())) {
+				if (dependency != null) {
 					dependencies.add(dependency);
 				}
 			}
