@@ -105,6 +105,10 @@ public class DependencyComputer {
 		}
 
 //		addExtraClasspathEntries(added, entries);
+		
+//		for (int i = 0; i < entries.size(); i++) {
+//			System.err.println(i + "\t" + entries.get(i).desc);
+//		}
 
 		return entries;
 	}
@@ -187,9 +191,8 @@ public class DependencyComputer {
 
 		BundleSpecification[] required = desc.getRequiredBundles();
 		for (int i = 0; i < required.length; i++) {
-			if (required[i].isExported()) {
-				addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
-			}
+			// igorf: original pde code had "if (required[i].isExported())" here
+			addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
 		}
 	}
 
@@ -242,7 +245,8 @@ public class DependencyComputer {
 	}
 
 	private boolean hasExtensibleAPI(BundleDescription desc) {
-		return "true".equals(state.getManifestAttribute(desc, "Eclipse-ExtensibleAPI"));
+		// TODO re-enable Eclipse-ExtensibleAPI
+		return true; //"true".equals(state.getManifestAttribute(desc, "Eclipse-ExtensibleAPI"));
 	}
 
 }
