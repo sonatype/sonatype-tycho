@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -91,17 +90,11 @@ public class DependencyComputer {
 		// add Import-Package
 		// sort by symbolicName_version to get a consistent order
 		Map<String, BundleDescription> sortedMap = new TreeMap<String, BundleDescription>();
-		Iterator<BundleDescription> iter = map.keySet().iterator();
-		while (iter.hasNext()) {
-			BundleDescription bundle = iter.next();
+		for (BundleDescription bundle : map.keySet()) {
 			sortedMap.put(bundle.toString(), bundle);
 		}
-
-		iter = sortedMap.values().iterator();
-		while (iter.hasNext()) {
-			BundleDescription bundle = (BundleDescription) iter.next();
-			if (state.getMavenProject(bundle) != null)
-				addDependencyViaImportPackage(bundle, added, map, entries);
+		for (BundleDescription bundle : sortedMap.values()) {
+			addDependencyViaImportPackage(bundle, added, map, entries);
 		}
 
 //		addExtraClasspathEntries(added, entries);
@@ -191,8 +184,9 @@ public class DependencyComputer {
 
 		BundleSpecification[] required = desc.getRequiredBundles();
 		for (int i = 0; i < required.length; i++) {
-			// igorf: original pde code had "if (required[i].isExported())" here
-			addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
+			if (required[i].isExported()) {
+				addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
+			}
 		}
 	}
 
