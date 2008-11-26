@@ -37,22 +37,20 @@ public class EclipseMaven extends DefaultMaven {
 
 		Properties props = getGlobalProperties(request);
 
-		String mode = props.getProperty("tycho.mode");
-		
-		if ("maven".equals(mode)) {
-			return;
-		}
-
 		state.reset(props);
 
-		String property = props.getProperty("tycho.targetPlatform");
-		if (property != null) {
- 			getLogger().info("Build target platform tycho.targetPlatform=" + property 
- 					+ "\n. This overrides target platform specified in pom.xml files, if any.");
-			factory.createTargetPlatform(state, new File(property));
- 		} else {
- 			factory.createTargetPlatform(projects, request.getLocalRepository(), state);
- 		}
+		String mode = props.getProperty("tycho.mode");
+		
+		if (!"maven".equals(mode)) {
+			String property = props.getProperty("tycho.targetPlatform");
+			if (property != null) {
+	 			getLogger().info("Build target platform tycho.targetPlatform=" + property 
+	 					+ "\n. This overrides target platform specified in pom.xml files, if any.");
+				factory.createTargetPlatform(state, new File(property));
+	 		} else {
+	 			factory.createTargetPlatform(projects, request.getLocalRepository(), state);
+	 		}
+		}
 
 		for (MavenProject project : projects) {
 			try {
@@ -62,18 +60,20 @@ public class EclipseMaven extends DefaultMaven {
 			}
 		}
 
-		state.resolveState();
-
-		for (MavenProject project : projects) {
-			try {
-				DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
-				if (dr != null) {
-					for (Dependency dependency : dr.getDependencies(project)) {
-						project.getModel().addDependency(dependency);
+		if (!"maven".equals(mode)) {
+			state.resolveState();
+	
+			for (MavenProject project : projects) {
+				try {
+					DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
+					if (dr != null) {
+						for (Dependency dependency : dr.getDependencies(project)) {
+							project.getModel().addDependency(dependency);
+						}
 					}
+				} catch (ComponentLookupException e) {
+					// no biggie 
 				}
-			} catch (ComponentLookupException e) {
-				// no biggie 
 			}
 		}
 	}
