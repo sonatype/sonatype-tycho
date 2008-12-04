@@ -32,6 +32,7 @@ import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.testing.ConfigurationException;
 import org.apache.maven.plugin.testing.ResolverExpressionEvaluatorStub;
+import org.apache.maven.plugin.testing.SilentLog;
 import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.plexus.component.configurator.ComponentConfigurator;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluator;
@@ -70,7 +71,7 @@ public abstract class AbstractMojoTestCase
     {
         super.setUp();
 
-        configurator = (ComponentConfigurator) getContainer().lookup( ComponentConfigurator.ROLE );
+        configurator = (ComponentConfigurator) getContainer().lookup( ComponentConfigurator.ROLE, "basic" );
 
         //projectBuilder = (MavenProjectBuilder) getContainer().lookup( MavenProjectBuilder.ROLE );
     }
@@ -183,7 +184,7 @@ public abstract class AbstractMojoTestCase
 
         Mojo mojo = (Mojo) lookup( Mojo.ROLE, groupId + ":" + artifactId + ":" + version + ":" + goal );
 
-        Log mojoLogger = new DefaultLog( getContainer().getLoggerManager().getLoggerForComponent( Mojo.ROLE ) );
+        Log mojoLogger = new DefaultLog( new SilentLog() );
 
         mojo.setLog( mojoLogger );
 

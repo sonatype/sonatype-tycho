@@ -15,16 +15,17 @@ import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.repository.layout.DefaultRepositoryLayout;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 
 /**
- * @plexus.component role="org.codehaus.tycho.CLITools"
- *                   role-hint="default"
  * @author tom
  */
+@Component( role = CLITools.class )
 public class DefaultCLITools implements Contextualizable, CLITools
 {
 
@@ -33,9 +34,7 @@ public class DefaultCLITools implements Contextualizable, CLITools
 
 	private PlexusContainer container;
 
-	/**
-	 * @plexus.requirement
-	 */
+	@Requirement
 	private ArtifactFactory artifactFactory;
 
 	public List createRemoteRepositories(String repositories)

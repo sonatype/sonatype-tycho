@@ -8,8 +8,6 @@ import org.apache.maven.reactor.MavenExecutionException;
 
 
 public interface P2 {
-	static final String ROLE = P2.class.getName();
-
 	String materializeTargetPlatform(String key, List<String> repositories, List<Artifact> rootIUs, Properties props) throws MavenExecutionException;
 
 	/** 

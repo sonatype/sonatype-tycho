@@ -50,7 +50,7 @@
             </goals>
             <configuration>
               <in>src/test/resources/baseTest.properties</in>
-              <outDir>${project.build.testOutputDirectory}/</outDir>
+              <outDir>target/test-classes/</outDir>
             </configuration>
           </execution>
         </executions>

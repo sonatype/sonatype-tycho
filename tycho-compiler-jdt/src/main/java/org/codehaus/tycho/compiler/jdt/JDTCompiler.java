@@ -20,6 +20,7 @@ import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.CompilerError;
 import org.codehaus.plexus.compiler.CompilerException;
 import org.codehaus.plexus.compiler.CompilerOutputStyle;
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.cli.CommandLineException;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
@@ -31,11 +32,11 @@ import org.eclipse.jdt.internal.compiler.util.SuffixConstants;
 import org.eclipse.jdt.internal.compiler.util.Util;
 
 /**
- * @plexus.component role="org.codehaus.plexus.compiler.Compiler"
- *                   role-hint="jdt"
- *                   
  * See http://help.eclipse.org/ganymede/topic/org.eclipse.jdt.doc.isv/guide/jdt_api_options.htm
  */
+
+@SuppressWarnings("unchecked")
+@Component( role = org.codehaus.plexus.compiler.Compiler.class, hint = "jdt" )
 public class JDTCompiler extends AbstractCompiler {
 
 	private static final String SEPARATOR = "----------";

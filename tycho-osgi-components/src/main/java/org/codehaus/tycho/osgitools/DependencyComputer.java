@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.osgi.service.resolver.BaseDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -24,14 +26,13 @@ import org.eclipse.osgi.service.resolver.StateHelper;
  * 
  * Note that some functionality, namely SecondaryDependencies,
  * ExtraClasspathEntries and isPatchFragment, has been removed due to time constraints.
- * 
- * @plexus.component role="org.codehaus.tycho.osgitools.DependencyComputer"
  */
+@Component( role = DependencyComputer.class )
 public class DependencyComputer {
 
 	static final String ROLE = DependencyComputer.class.getName();
 
-	/** @plexus.requirement */
+	@Requirement
 	OsgiState state;
 
 	public static class AccessRule {

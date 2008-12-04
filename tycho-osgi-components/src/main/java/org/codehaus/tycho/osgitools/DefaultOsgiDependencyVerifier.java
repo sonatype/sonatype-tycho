@@ -3,17 +3,16 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 
 import org.apache.maven.artifact.Artifact;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.eclipse.osgi.service.resolver.ResolverError;
 
-/**
- * @plexus.component role="org.codehaus.tycho.osgitools.OsgiDependencyVerifier"
- *                   hint="default"
- */
+@Component( role = OsgiDependencyVerifier.class )
 public class DefaultOsgiDependencyVerifier extends AbstractLogEnabled implements
 		OsgiDependencyVerifier {
 
-	/** @component */
+	@Requirement
 	private OsgiState state;
 
 	public ResolverError[] resolve(File outputDir, File[] bundles) {

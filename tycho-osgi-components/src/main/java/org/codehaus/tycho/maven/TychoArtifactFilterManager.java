@@ -6,14 +6,13 @@ import java.util.Set;
 import org.apache.maven.ArtifactFilterManager;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.artifact.resolver.filter.ExclusionSetFilter;
+import org.codehaus.plexus.component.annotations.Component;
 
 /**
- * @plexus.component role="org.apache.maven.ArtifactFilterManager"
- *                   role-hint="default"
- *                   
  * Copy&paste of DefaultArtifactFilterManager. Needed to exclude tycho components
  * from getting loaded into plugin class realms
  */
+@Component( role = ArtifactFilterManager.class )
 public class TychoArtifactFilterManager implements ArtifactFilterManager {
 
     private static final Set<String> DEFAULT_EXCLUSIONS;
@@ -59,6 +58,8 @@ public class TychoArtifactFilterManager implements ArtifactFilterManager {
         artifacts.add( "tycho-osgi-components" );
         artifacts.add( "org.eclipse.osgi" );
 
+        artifacts.add( "maven-compat" );
+        
         DEFAULT_EXCLUSIONS = artifacts;
     }
 

@@ -6,13 +6,12 @@ import java.util.List;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 
-/**
- * @plexus.component role="org.codehaus.tycho.maven.DependenciesReader"
- *                   role-hint="eclipse-feature"
- */
+@Component( role = DependenciesReader.class, hint = "eclipse-feature" )
 public class FeatureDependencyReader extends AbstractDependenciesReader {
 
 	public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {

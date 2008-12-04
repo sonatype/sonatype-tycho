@@ -36,7 +36,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 			// default over to the main project builder...
 			maven = (Maven) lookup(Maven.ROLE);
 		}
-		state = (OsgiState) lookup(OsgiState.ROLE);
+		state = (OsgiState) lookup(OsgiState.class);
 		factory = (EclipseTargetPlatformFactory) lookup(EclipseTargetPlatformFactory.class);
 		logger = new SilentLog();
 	}

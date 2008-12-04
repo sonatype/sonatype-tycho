@@ -26,26 +26,8 @@
     <plugins>
       <plugin>
         <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-maven-plugin</artifactId>
-        <version>1.3.8</version>
-        <executions>
-          <execution>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>descriptor</goal>
-              <goal>merge-descriptors</goal>
-            </goals>
-            <configuration>
-              <fileName>generated-components.xml</fileName>
-              <descriptors>
-                <descriptor>${project.build.outputDirectory}/generated-components.xml</descriptor>
-                <descriptor>src/main/resources/META-INF/plexus/components.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
+        <artifactId>plexus-component-metadata</artifactId>
       </plugin>
-
     </plugins>
   </build>
 
@@ -61,10 +43,6 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.artifact</groupId>
-      <artifactId>maven-artifact</artifactId>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>

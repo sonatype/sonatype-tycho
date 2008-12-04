@@ -9,13 +9,12 @@ import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.core.runtime.adaptor.EclipseStarter;
 
-/**
- * @plexus.component role="org.codehaus.tycho.p2.P2"
- */
+@Component( role = P2.class )
 public class DefaultP2 extends AbstractLogEnabled implements P2 {
 
 	public String materializeTargetPlatform(String key, List<String> repositories, List<Artifact> rootIUs, Properties props) throws MavenExecutionException {

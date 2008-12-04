@@ -9,6 +9,8 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.License;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Organization;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -16,14 +18,11 @@ import org.eclipse.osgi.service.resolver.ExportPackageDescription;
 import org.eclipse.osgi.service.resolver.ImportPackageSpecification;
 import org.osgi.framework.Constants;
 
-/**
- * @plexus.component role="org.codehaus.tycho.osgitools.PomGenerator"
- *                   role-hint="default"
- */
+@Component( role = PomGenerator.class )
 public class DefaultPomGenerator extends AbstractLogEnabled implements
 		PomGenerator {
 
-	/** @component */
+	@Requirement
 	private OsgiState state;
 
 	/**

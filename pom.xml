@@ -25,6 +25,8 @@
   </modules>
 
   <properties>
+    <plexusVersion>1.0-beta-3.0.1</plexusVersion>
+  
     <!--
       Check out maven 3.0 source and make note of the svn rev.
       Rename the 3.0-SNAPSHOT to something like 3.0-TYCHO-[svnrev] in all the poms,
@@ -35,8 +37,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-TYCHO-698080</maven-version>
-    <maven-artifact-version>3.0-alpha-2-TYCHO-695719</maven-artifact-version>
+    <maven-version>3.0-SNAPSHOT</maven-version>
     <tycho-p2-runtime-version>${project.version}</tycho-p2-runtime-version>
   </properties>
 
@@ -57,12 +58,12 @@
         <artifactId>maven-core</artifactId>
         <version>${maven-version}</version>
       </dependency>
-      <dependency>
-        <groupId>org.apache.maven.artifact</groupId>
-        <artifactId>maven-artifact</artifactId>
-        <version>${maven-artifact-version}</version>
-      </dependency>
 
+	  <dependency>
+		<groupId>org.codehaus.plexus</groupId>
+		<artifactId>plexus-component-annotations</artifactId>
+        <version>${plexusVersion}</version>
+	  </dependency>
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
@@ -174,7 +175,7 @@
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-container-default</artifactId>
-        <version>1.0-alpha-48</version>
+        <version>1.0-beta-3.0.1</version>
       </dependency>
 
       <dependency>
@@ -251,6 +252,18 @@
     -->
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-component-metadata</artifactId>
+          <version>${plexusVersion}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>generate-metadata</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.4.3</version>

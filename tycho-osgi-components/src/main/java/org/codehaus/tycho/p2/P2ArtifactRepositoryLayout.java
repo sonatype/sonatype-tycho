@@ -4,11 +4,9 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.metadata.ArtifactMetadata;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
+import org.codehaus.plexus.component.annotations.Component;
 
-/**
- * @plexus.component role="org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout"
- * 		role-hint="p2"
- */
+@Component( role = ArtifactRepositoryLayout.class, hint = "p2" )
 public class P2ArtifactRepositoryLayout implements ArtifactRepositoryLayout {
 
 	public String pathOf(Artifact artifact) {

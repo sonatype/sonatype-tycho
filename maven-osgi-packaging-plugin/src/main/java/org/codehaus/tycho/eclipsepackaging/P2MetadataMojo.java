@@ -7,6 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
@@ -88,7 +89,7 @@ public class P2MetadataMojo extends AbstractMojo {
 		cli.setExecutable(executable);
 
 		cli.addArguments(new String[] {
-			"-jar", getEclipseLauncher().getAbsolutePath(),
+			"-jar", getEquinoxLauncher().getAbsolutePath(),
 		});
 		
 		cli.addArguments(new String[] {
@@ -128,10 +129,21 @@ public class P2MetadataMojo extends AbstractMojo {
 		return target;
 	}
 
-	private File getEclipseLauncher() throws MojoFailureException {
+	private File getEquinoxLauncher() throws MojoFailureException {
 		// XXX dirty hack
 		try {
-			return new File(p2.getP2RuntimeLocation(), "plugins/org.eclipse.equinox.launcher_1.0.101.R34x_v20080819.jar");
+	        String p2location = p2.getP2RuntimeLocation();
+			DirectoryScanner ds = new DirectoryScanner();
+			ds.setBasedir(p2location);
+	        ds.setIncludes(new String[] {
+                "plugins/org.eclipse.equinox.launcher_*.jar"
+            });
+            ds.scan();
+            String[] includedFiles = ds.getIncludedFiles();
+            if (includedFiles == null || includedFiles.length != 1) {
+    			throw new MojoFailureException("Can't locate org.eclipse.equinox.launcher bundle in " + p2location);
+            }
+			return new File(p2location, includedFiles[0]);
 		} catch (MavenExecutionException e) {
 			throw new MojoFailureException("Can't locate P2 runtime", e);
 		}

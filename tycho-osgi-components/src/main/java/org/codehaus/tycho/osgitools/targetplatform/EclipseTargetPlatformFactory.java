@@ -15,25 +15,25 @@ import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.osgitools.OsgiState;
 
-/**
- * @plexus.component role="org.codehaus.tycho.osgitools.targetplatform.EclipseTargetPlatformFactory"
- */
+@Component( role = EclipseTargetPlatformFactory.class )
 public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 
 	public static final String PACKAGING_ECLIPSE_INSTALLATION = "eclipse-installation";
 	public static final String PACKAGING_ECLIPSE_PLUGIN = "eclipse-plugin";
 	public static final String PACKAGING_ECLIPSE_FEATURE = "eclipse-feature";
 
-	/** @plexus.requirement */
+	@Requirement
 	private ArtifactResolver artifactResolver;
 
-	/** @plexus.requirement */
+	@Requirement
 	private ArtifactFactory artifactFactory;
 
 	public EclipseTargetPlatformFactory() {

@@ -24,7 +24,7 @@ public class DependencyComputerTest extends AbstractTychoMojoTestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		maven = (Maven) lookup(Maven.ROLE);
-		state = (OsgiState) lookup(OsgiState.ROLE);
+		state = (OsgiState) lookup(OsgiState.class);
 		dependencyComputer = (DependencyComputer) lookup(DependencyComputer.class);
 	}
 

@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
@@ -20,7 +21,7 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 
 	protected static final List<Dependency> NO_DEPENDENCIES = new ArrayList<Dependency>();
 
-	/** @plexus.requirement */
+	@Requirement
 	protected OsgiState state;
 
 	

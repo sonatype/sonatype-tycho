@@ -6,21 +6,29 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.DefaultMaven;
+import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.model.Activation;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Profile;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.targetplatform.EclipseTargetPlatformFactory;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.osgi.framework.BundleException;
 
+@Component(role = Maven.class)
 public class EclipseMaven extends DefaultMaven {
 
+    @Requirement
 	private OsgiState state;
+
+    @Requirement
 	private EclipseTargetPlatformFactory factory;
 
 	@Override

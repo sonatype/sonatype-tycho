@@ -16,8 +16,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 public interface OsgiState {
-	static final String ROLE = OsgiState.class.getName();
-	
 	static final String ATTR_GROUP_ID = "MavenArtifact-GroupId";
 	static final String ATTR_ARTIFACT_ID = "MavenArtifact-ArtifactId";
 	static final String ATTR_BASE_VERSION = "MavenArtifact-BaseVersion";

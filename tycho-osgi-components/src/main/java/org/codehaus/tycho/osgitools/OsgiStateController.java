@@ -35,6 +35,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
@@ -62,10 +63,8 @@ import org.osgi.framework.Version;
 
 import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 
-/**
- * @plexus.component role="org.codehaus.tycho.osgitools.OsgiState"
- */
 @SuppressWarnings("unchecked")
+@Component( role = OsgiState.class )
 public class OsgiStateController extends AbstractLogEnabled implements OsgiState {
 	
 	/** maven project bundle user property */

@@ -1,9 +1,9 @@
 package org.codehaus.tycho.osgitools;
 
-/**
- * @plexus.component role="org.codehaus.tycho.maven.DependenciesReader"
- * 		role-hint="eclipse-test-plugin"
- */
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.tycho.maven.DependenciesReader;
+
+@Component( role = DependenciesReader.class, hint = "eclipse-test-plugin" )
 public class OsgiTestBundleDependenciesReader extends OsgiBundleDependenciesReader {
 
 }
