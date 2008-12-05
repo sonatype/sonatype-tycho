@@ -345,8 +345,16 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 					.getPlatformProperty(PlatformPropertiesUtils.OSGI_ARCH);
 
 			copyPlugin("org.eclipse.equinox.launcher", null, false);
-			copyPlugin("org.eclipse.equinox.launcher." + ws + "." + os + "."
-					+ arch, null, false);
+			// for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
+			// only a org.eclipse.equinox.launcher.carbon.macosx folder.
+			// see http://jira.codehaus.org/browse/MNGECLIPSE-1075
+			if (PlatformPropertiesUtils.OS_MACOSX.equals(os)) {
+				copyPlugin("org.eclipse.equinox.launcher." + ws + "." + os, null, false);
+			}
+			else {
+				copyPlugin("org.eclipse.equinox.launcher." + ws + "." + os + "."
+						+ arch, null, false);
+			}
 		}
 	}
 
@@ -428,7 +436,7 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 	}
 
 	private void copyExecutable() throws MojoExecutionException {
-		getLog().debug("Creating launcher.exe");
+		getLog().debug("Creating launcher");
 
 		FeatureDescription feature;
 		// eclipse 3.2
@@ -479,8 +487,6 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 		if (productConfiguration.getLauncher() != null
 				&& productConfiguration.getLauncher().getName() != null) {
 			String launcherName = productConfiguration.getLauncher().getName();
-			getLog().debug("Renaming launcher to " + launcherName);
-
 			String newName = launcherName;
 
 			// win32 has extensions
@@ -489,9 +495,29 @@ public class ProductExportMojo extends AbstractMojo implements Contextualizable 
 						.getAbsolutePath());
 				newName = launcherName + "." + extension;
 			}
-
+			else if (PlatformPropertiesUtils.OS_MACOSX.equals(os)) {
+				// the launcher is renamed to "eclipse", because
+				// this is the value of the CFBundleExecutable
+				// property within the Info.plist file.
+				// see http://jira.codehaus.org/browse/MNGECLIPSE-1087
+				newName = "eclipse";
+			}
+			getLog().debug("Renaming launcher to " + newName);
 			launcher.renameTo(new File(launcher.getParentFile(), newName));
 
+			// macosx: the *.app directory is renamed to the
+			// product configuration launcher name
+			// see http://jira.codehaus.org/browse/MNGECLIPSE-1087
+			if (PlatformPropertiesUtils.OS_MACOSX.equals(os)) {
+				newName = launcherName + ".app";
+				getLog().debug("Renaming Eclipse.app to " + newName);
+				File eclipseApp = new File(target, "Eclipse.app");
+				File renamedEclipseApp = new File(eclipseApp.getParentFile(), newName);
+				eclipseApp.renameTo(renamedEclipseApp);
+				// ToDo: the "Info.plist" file must be patched, so that the
+				// property "CFBundleName" has the value of the
+				// launcherName variable
+			}
 		}
 
 		// eclipse 3.2
