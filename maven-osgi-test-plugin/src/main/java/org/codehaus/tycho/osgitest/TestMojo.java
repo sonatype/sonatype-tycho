@@ -113,7 +113,6 @@ public class TestMojo extends AbstractMojo {
 	 * Enables -debug -consolelog for the test OSGi runtime
 	 * 
 	 * @parameter expression="${tycho.showEclipseLog}" default-value="false"
-	 * @required
 	 */
 	private boolean showEclipseLog;
 
