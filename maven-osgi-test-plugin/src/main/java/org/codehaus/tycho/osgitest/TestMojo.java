@@ -110,6 +110,14 @@ public class TestMojo extends AbstractMojo {
 	private File testClassesDirectory;
 
 	/**
+	 * Enables -debug -consolelog for the test OSGi runtime
+	 * 
+	 * @parameter expression="${tycho.showEclipseLog}" default-value="false"
+	 * @required
+	 */
+	private boolean showEclipseLog;
+
+	/**
 	 * Base directory where all reports are written to.
 	 * 
 	 * @parameter expression="${project.build.directory}/surefire-reports"
@@ -358,7 +366,7 @@ public class TestMojo extends AbstractMojo {
 				"-jar", getEclipseLauncher().getAbsolutePath(),
 			});
 
-			if (getLog().isDebugEnabled()) {
+			if (getLog().isDebugEnabled() || showEclipseLog) {
 				cli.addArguments(new String[] {
 					"-debug", "-consolelog",
 				});
