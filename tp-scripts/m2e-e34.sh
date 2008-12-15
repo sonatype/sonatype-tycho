@@ -3,7 +3,7 @@ TPDIR=$DIR/eclipse-tp-e34
 rm -rf $TPDIR
 mkdir -p $TPDIR
 
-# eclipse 3.4 GA
+# eclipse 3.4.1 GA
 # wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk-x86_64.tar.gz
 # wget -P $TPDIR  -N http://download.eclipse.org/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk.tar.gz
 # eclipse 3.4.1
@@ -33,9 +33,9 @@ wget -P $TPDIR/sites -N http://subclipse.tigris.org/files/documents/906/43326/si
 #wget -P $TPDIR/sites -N http://download.eclipse.org/tools/mylyn/update-archive/2.3.2/v20080402-2100/e3.4/mylyn-2.3.2.v20080402-2100-e3.4.zip
 wget -P $TPDIR/sites -N http://download.eclipse.org/tools/mylyn/update-archive/3.0.1/v20080721-2100/mylyn-3.0.1.v20080721-2100-e3.4.zip
 
-# windows tester 3.5.0
-wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.5.0_200806270350/WindowTesterPro_v3.5.0_for_Eclipse3.4.zip
-
+# windows tester 3.6.0
+#wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.5.0_200806270350/WindowTesterPro_v3.5.0_for_Eclipse3.4.zip
+wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.6.0_200810070725/WindowTesterPro_v3.6.0_for_Eclipse3.4.zip
 
 #############################################################
 #############################################################
