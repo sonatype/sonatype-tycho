@@ -1,6 +1,6 @@
 DIR=/home/j2ee-hudson
 TPDIR=$DIR/eclipse-tp-e33
-rm -rf $TPDIR
+rm -rf $TPDIR/eclipse
 mkdir -p $TPDIR
 
 # eclipse 3.3.2
@@ -29,8 +29,8 @@ wget -P $TPDIR/sites  -N http://subclipse.tigris.org/files/documents/906/43326/s
 wget -P $TPDIR/sites -N http://download.eclipse.org/tools/mylyn/update-archive/3.0.1/v20080721-2100/mylyn-3.0.1.v20080721-2100-e3.3.zip
 
 # windows tester 3.6.0
-#wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.5.0_200806270350/WindowTesterPro_v3.5.0_for_Eclipse3.3.zip
-wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.6.0_200810070725/WindowTesterPro_v3.6.0_for_Eclipse3.3.zip
+wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.5.0_200806270350/WindowTesterPro_v3.5.0_for_Eclipse3.3.zip
+#wget -P $TPDIR/sites  -N http://download.instantiations.com/WindowTesterPro/release/v3.6.0_200810070725/WindowTesterPro_v3.6.0_for_Eclipse3.3.zip
 
 #############################################################
 #############################################################
