@@ -4,7 +4,7 @@ rm -rf $TPDIR/eclipse
 mkdir -p $TPDIR
 
 #MIRROR=http://download.eclipse.org
-MIRROR=http://ftp.ussg.iu.edu
+MIRROR=http://ftp.ussg.iu.edu/eclipse
 
 # eclipse 3.4.1
 # wget -P $TPDIR  -N $MIRROR/eclipse/downloads/drops/R-3.4-200806172000/eclipse-SDK-3.4-linux-gtk-x86_64.tar.gz
