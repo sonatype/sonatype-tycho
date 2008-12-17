@@ -61,12 +61,12 @@ DROPINS=`pwd`/eclipse/dropins
 # install
 tar xfz $FILES/eclipse-SDK-3.4.1-linux-gtk.tar.gz
 tar xfz $FILES/eclipse-SDK-3.4.1-linux-gtk-x86_64.tar.gz
-tar xfz $FILES/eclipse-SDK-3.4.1-macosx-carbon.tar.gz   
+#tar xfz $FILES/eclipse-SDK-3.4.1-macosx-carbon.tar.gz   
 
 # install everything under dropts
 # eclipse does not immediately scan plugins folder for new bundles
 
-for i in $FILES/*.zip
+for i in $FILES/features/*.zip
 do
   DIR=$DROPINS/`basename $i .zip`
   mkdir -p $DIR
