@@ -25,7 +25,7 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		projectBuilder = (MavenProjectBuilder) lookup(MavenProjectBuilder.ROLE);
+		projectBuilder = (MavenProjectBuilder) lookup(MavenProjectBuilder.class);
 	}
 
 	protected File getBasedir(String name) throws IOException {

@@ -93,7 +93,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	private MavenProjectBuilder mavenProjectBuilder;
 
 	/** @component */
-	MavenProjectHelper projectHelper;
+	private MavenProjectHelper projectHelper;
 
 	/** @component */
 	private ArtifactResolver resolver;

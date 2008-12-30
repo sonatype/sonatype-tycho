@@ -477,7 +477,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	
 					String groupId = getManifestAttribute(desc, ATTR_GROUP_ID);
 					if (groupId != null && !groupId.equals(project.getGroupId())) {
-						throw new BundleException("groupId speicified in bundle manifest does not match pom.xml");
+						throw new BundleException("groupId specified in bundle manifest does not match pom.xml");
 					}
 	
 					setUserProperty(desc, PROP_MAVEN_PROJECT, project);
