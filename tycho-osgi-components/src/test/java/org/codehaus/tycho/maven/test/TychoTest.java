@@ -232,4 +232,22 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertEquals(1, bundles.length);
 		assertEquals("org.junit4.nl_ru", bundles[0].getSymbolicName());
 	}
+	
+	public void testAddHocExtensionLocation() throws Exception {
+		File targetPlatform = new File("src/test/resources/targetplatforms/simple");
+		File extensionLocation = new File("src/test/resources/targetplatforms/adhoclocation");
+
+		File pom = new File(getBasedir("projects/adhoclocations"), "pom.xml");
+
+		MavenExecutionRequest request = newMavenExecutionRequest(pom);
+		request.getProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
+		request.getProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
+		MavenExecutionResult result = new DefaultMavenExecutionResult();
+		ReactorManager reactorManager = maven.createReactorManager(request, result);
+
+		BundleDescription[] bundles = state.getBundles();
+
+		assertEquals(1, bundles.length);
+		assertEquals("testjar", bundles[0].getSymbolicName());
+	}
 }

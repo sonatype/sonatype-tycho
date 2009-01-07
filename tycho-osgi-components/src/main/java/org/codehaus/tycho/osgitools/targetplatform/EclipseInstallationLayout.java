@@ -34,6 +34,9 @@ import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
  */
 public class EclipseInstallationLayout extends AbstractLogEnabled {
 	
+	public static final String PLUGINS = "plugins";
+	public static final String FEATURES = "features";
+
 	private final File location;
 	private final File dropinsLocation;
 
@@ -46,7 +49,7 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 	public Set<File> getFeatures(File site) {
 		Set<File> result = new LinkedHashSet<File>();
 
-		File[] plugins = new File(site, "features").listFiles();
+		File[] plugins = new File(site, FEATURES).listFiles();
 		if (plugins != null) {
 			result.addAll(Arrays.asList(plugins));
 		}
@@ -67,7 +70,7 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 	public Set<File> getPlugins(File site) {
 		Set<File> result = new LinkedHashSet<File>();
 		
-		addPlugins(result, new File(site, "plugins").listFiles());
+		addPlugins(result, new File(site, PLUGINS).listFiles());
 		
 		// check for bundles in the root of dropins directory
 		if (dropinsLocation.equals(site)) {
@@ -98,7 +101,7 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 	public Set<File> getSites() {
 		Set<File> result = new LinkedHashSet<File>();
 
-		if (new File(location, "plugins").isDirectory()) {
+		if (new File(location, PLUGINS).isDirectory()) {
 			result.add(location);
 		}
 
@@ -135,7 +138,7 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 		File[] dropinsFiles = dropinsLocation.listFiles();
 		if (dropinsFiles != null) {
 			for (File dropinsFile : dropinsFiles) {
-				File plugins = new File(dropinsFile, "plugins");
+				File plugins = new File(dropinsFile, PLUGINS);
 				if (plugins.isDirectory()) {
 					result.add(plugins.getParentFile());
 					continue;

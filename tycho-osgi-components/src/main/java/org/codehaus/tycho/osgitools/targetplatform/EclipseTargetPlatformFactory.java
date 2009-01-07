@@ -27,6 +27,7 @@ import org.codehaus.tycho.osgitools.OsgiState;
 public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 
 	public static final String PACKAGING_ECLIPSE_INSTALLATION = "eclipse-installation";
+	public static final String PACKAGING_ECLIPSE_EXTENSION_LOCATION = "eclipse-extension-location";
 	public static final String PACKAGING_ECLIPSE_PLUGIN = "eclipse-plugin";
 	public static final String PACKAGING_ECLIPSE_FEATURE = "eclipse-feature";
 
@@ -44,6 +45,12 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 		File installation = getEclipseInstallation(projects);
 		if (installation != null) {
 			createTargetPlatform(state, installation);
+		}
+		
+		Set<File> extensionLocations = getEclipseLocations(projects, PACKAGING_ECLIPSE_EXTENSION_LOCATION, false);
+		for (File extensionLocation : extensionLocations)
+		{
+			addExtensionLocation(state, extensionLocation);
 		}
 
 		Set<File> features = new LinkedHashSet<File>();
@@ -92,6 +99,14 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 		}
 	}
 
+	private void addExtensionLocation(OsgiState state, File location) {
+		EclipseInstallationLayout finder = new EclipseInstallationLayout(getLogger(), location);
+
+		Set<File> features = finder.getFeatures(location);
+		Set<File> bundles = finder.getPlugins(location);
+		state.addSite(location, features, bundles);
+	}
+
 	private void resolveFeature(Artifact artifact, Set<File> features, Set<File> bundles, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository) throws AbstractArtifactResolutionException, IOException, XmlPullParserException {
 		resolveArtifact(artifact, remoteRepositories, localRepository);
 		Feature feature = Feature.readJar(artifact.getFile());
@@ -133,23 +148,28 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 	}
 
 	private File getEclipseInstallation(List<MavenProject> projects) {
-		File installation = null;
+		Set<File> locations = getEclipseLocations(projects, PACKAGING_ECLIPSE_INSTALLATION, true);
+		return (!locations.isEmpty())? locations.iterator().next(): null;
+	}
+
+	private Set<File> getEclipseLocations(List<MavenProject> projects, String packaging, boolean singleton) {
+		LinkedHashSet<File> installations = new LinkedHashSet<File>();
 		for (MavenProject project : projects) {
 			Map<String, Artifact> versionMap = project.getManagedVersionMap();
 			if (versionMap != null) {
 				for (Artifact artifact : versionMap.values()) {
-					if (PACKAGING_ECLIPSE_INSTALLATION.equals(artifact.getType())) {
-						if (installation == null) {
-							installation = artifact.getFile();
+					if (packaging.equals(artifact.getType())) {
+						if (!singleton || installations.size() <= 0) {
+							installations.add(artifact.getFile());
 						} else {
-							if (!installation.equals(artifact.getFile())) {
-								throw new TargetPlatformException("No more than one eclipse-installation and/or eclipse-distriction");
+							if (!installations.contains(artifact.getFile())) {
+								throw new TargetPlatformException("No more than one eclipse-installation and/or eclipse-distributions");
 							}
 						}
 					}
 				}
 			}
 		}
-		return installation;
+		return installations;
 	}
 }
