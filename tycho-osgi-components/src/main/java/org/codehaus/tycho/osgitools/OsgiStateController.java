@@ -457,6 +457,9 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	public BundleDescription getBundleDescription(MavenProject project) {
+		if (project == null) {
+			return null;
+		}
 		String location = project.getFile().getParentFile().getAbsolutePath();
 		return state.getBundleByLocation(location);
 	}
@@ -513,6 +516,9 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	}
 
 	private static Object getUserProperty(BundleDescription desc, String name) {
+		if (desc == null) {
+			return null;
+		}
 		Object userObject = desc.getUserObject();
 		if (userObject instanceof Map) {
 			return ((Map) userObject).get(name);
@@ -526,9 +532,6 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 
 	public EclipsePluginProject getEclipsePluginProject(MavenProject project) {
 		BundleDescription desc = getBundleDescription(project);
-		if (desc == null) {
-			return null;
-		}
 		return (EclipsePluginProject) getUserProperty(desc, PROP_ECLIPSE_PLUGIN_PROJECT);
 	}
 

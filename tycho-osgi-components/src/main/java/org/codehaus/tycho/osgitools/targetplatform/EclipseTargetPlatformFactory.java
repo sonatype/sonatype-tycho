@@ -111,14 +111,23 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 		resolveArtifact(artifact, remoteRepositories, localRepository);
 		Feature feature = Feature.readJar(artifact.getFile());
 //		File featureDir = unpackFeature(artifact, feature, state);
-		features.add(artifact.getFile());
-		for (PluginRef ref : feature.getPlugins()) {
-			Artifact includedArtifact = artifactFactory.createArtifact(ref.getMavenGroupId(), ref.getId(), ref.getMavenVersion(), null, PACKAGING_ECLIPSE_PLUGIN);
-			resolvePlugin(includedArtifact, bundles, remoteRepositories, localRepository);
-		}
-		for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
-			Artifact includedArtifact = artifactFactory.createArtifact(ref.getMavenGroupId(), ref.getId(), ref.getMavenVersion(), null, PACKAGING_ECLIPSE_FEATURE);
-			resolveFeature(includedArtifact, features, bundles, remoteRepositories, localRepository);
+		if (features.add(artifact.getFile())) {
+			for (PluginRef ref : feature.getPlugins()) {
+				try {
+					Artifact includedArtifact = artifactFactory.createArtifact(ref.getMavenGroupId(), ref.getId(), ref.getMavenVersion(), null, PACKAGING_ECLIPSE_PLUGIN);
+					resolvePlugin(includedArtifact, bundles, remoteRepositories, localRepository);
+				} catch (Exception e) {
+					getLogger().warn(e.getMessage());
+				}
+			}
+			for (Feature.FeatureRef ref : feature.getIncludedFeatures()) {
+				try {
+					Artifact includedArtifact = artifactFactory.createArtifact(ref.getMavenGroupId(), ref.getId(), ref.getMavenVersion(), null, PACKAGING_ECLIPSE_FEATURE);
+					resolveFeature(includedArtifact, features, bundles, remoteRepositories, localRepository);
+				} catch (Exception e) {
+					getLogger().warn(e.getMessage());
+				}
+			}
 		}
 	}
 
