@@ -251,8 +251,7 @@
   </dependencyManagement>
 
   <build>
-    <!--
-    Maven 3.0 can't deploy attached artifacts due to MARTIFACT-6
+  
     <plugins>
       <plugin>
         <artifactId>maven-source-plugin</artifactId>
@@ -266,7 +265,7 @@
         </executions>
       </plugin>
     </plugins>
-    -->
+
     <pluginManagement>
       <plugins>
         <plugin>

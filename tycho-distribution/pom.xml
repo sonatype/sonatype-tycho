@@ -99,24 +99,13 @@
       </build>
     </profile>
 
-    <!--
-      It is not possible to deploy attached artifacts using maven 3.0 due to
-      MARTIFACT-6. As a workaround, do not assemble anything when running
-      under tycho. Instead, run this module alone using maven 2.0.9
-      with -Pdeploy profile.
-     -->
     <profile>
-      <id>martifact-6</id>
+      <id>full</id>
       <activation>
         <property>
           <name>tycho-version</name>
         </property>
       </activation>
-    </profile>
-
-
-    <profile>
-      <id>deploy</id>
       <dependencies>
         <dependency>
           <groupId>org.codehaus.tycho</groupId>
@@ -176,5 +165,6 @@
         </plugins>
       </build>
     </profile>
+
   </profiles>
 </project>
