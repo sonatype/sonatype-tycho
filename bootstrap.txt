@@ -1,18 +1,3 @@
-As of 0.2.0, tycho only needs two eclipse artifacts to successfully compile and run.
-To install/deploy these artifacts from local eclipse/pligins directory
+Build instructions
 
-mvn install:install-file -Dfile=org.eclipse.osgi_3.4.0.v20080605-1900.jar -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.4.0.v20080605-1900 -Dpackaging=jar -DgeneratePom=true
-mvn install:install-file -Dfile=org.eclipse.jdt.core_3.4.0.v_874.jar  -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.4.0.v_874 -Dpackaging=jar -DgeneratePom=true
-
-mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.4.0.v20080605-1900.jar -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.4.0.v20080605-1900 -Dpackaging=jar -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org:8081/nexus/content/repositories/eclipse
-mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.4.0.v_874.jar  -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.4.0.v_874 -Dpackaging=jar -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org:8081/nexus/content/repositories/eclipse
-
-Note, versions are from Eclipse 3.4.0.
-
-
-mvn install:install-file -Dfile=tycho-temp-p2-runtime-0.3.0-SNAPSHOT.zip -DgroupId=org.codehaus.tycho -DartifactId=tycho-temp-p2-runtime -Dversion=0.3.0-SNAPSHOT -Dpackaging=zip -DgeneratePom=true
-mvn install:install-file -Dfile=org.codehaus.tycho.p2_1.0.0.jar -DgroupId=org.codehaus.tycho -DartifactId=tycho-temp-p2-app -Dversion=0.3.0-SNAPSHOT -Dpackaging=jar -DgeneratePom=true
-
-
-mvn deploy:deploy-file -Dfile=tycho-temp-p2-runtime-0.3.0-SNAPSHOT.zip -DgroupId=org.codehaus.tycho -DartifactId=tycho-temp-p2-runtime -Dversion=0.3.0-SNAPSHOT -Dpackaging=zip -DgeneratePom=true -DrepositoryId=forge-snapshots -Durl=http://repository.sonatype.org:8081/nexus/content/repositories/eclipse-snapshots
-mvn deploy:deploy-file -Dfile=org.codehaus.tycho.p2_1.0.0.jar -DgroupId=org.codehaus.tycho -DartifactId=tycho-temp-p2-app -Dversion=0.3.0-SNAPSHOT -Dpackaging=jar -DgeneratePom=true -DrepositoryId=forge-snapshots -Durl=http://repository.sonatype.org:8081/nexus/content/repositories/eclipse-snapshots
+http://docs.codehaus.org/display/M2ECLIPSE/Building+tycho
