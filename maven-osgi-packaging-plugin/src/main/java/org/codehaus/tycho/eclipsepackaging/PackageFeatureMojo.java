@@ -105,6 +105,8 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 			throw new MojoExecutionException("Error reading build properties", e);
 		}
 
+		outputDirectory.mkdirs();
+
 		File featureXml = new File(outputDirectory, Feature.FEATURE_XML);
 		try {
 			updateFeatureXml(featureXml);
