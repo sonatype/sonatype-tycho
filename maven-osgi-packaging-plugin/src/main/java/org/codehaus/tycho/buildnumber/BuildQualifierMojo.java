@@ -105,7 +105,7 @@ public class BuildQualifierMojo extends AbstractMojo {
 		return timestamp;
 	}
 
-	// TODO move to a helper, we much have ~100 implementations of this logic
+	// TODO move to a helper, we must have ~100 implementations of this logic
 	private Properties getBuildProperties() {
 		Properties props = new Properties();
 		try {
