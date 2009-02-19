@@ -110,7 +110,6 @@
 						org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
 					</validate>
 					<generate-resources>
-						org.codehaus.tycho:maven-osgi-packaging-plugin:copy-feature-files
 					</generate-resources>
 					<package>
 						org.codehaus.tycho:maven-osgi-packaging-plugin:package-feature
