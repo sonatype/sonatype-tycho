@@ -1,4 +1,4 @@
-package org.codehaus.tycho.eclipsepackaging;
+package org.codehaus.tycho.utils;
 
 public class ArtifactRef {
 	private String groupId;

@@ -21,22 +21,33 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.DefaultProjectBuilderConfiguration;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuilderConfiguration;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
+import org.codehaus.tycho.utils.ArtifactRef;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
@@ -67,11 +78,43 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 */
 	private boolean usePdeSourceRoots;
 
+	/**
+	 * Transitively add specified maven artifacts to compile classpath 
+	 * in addition to elements calculated according to OSGi rules. 
+	 * All packages from additional entries will be accessible at compile time. 
+	 * 
+	 * Useful when OSGi runtime classpath contains elements not defined
+	 * using normal dependency mechanisms. For example, when Eclipse Equinox
+	 * is started from application server with -Dosgi.parentClassloader=fwk
+	 * parameter.
+	 * 
+	 * DO NOT USE. This is a stopgap solution to allow refactoring of tycho-p2 code
+	 * to a separate set of components.
+	 *  
+	 * @parameter 
+	 */
+	private ArtifactRef[] extraClasspathElements;
+
 	/** @component */
 	private OsgiState state;
 
 	/** @component */
 	private DependencyComputer dependencyComputer;
+
+	/** @parameter expression="${session}" */
+	private MavenSession session;
+
+	/** @component */
+	private ArtifactFactory artifactFactory;
+
+	/** @component */
+	private ArtifactResolver resolver;
+
+	/** @component */
+	private MavenProjectBuilder mavenProjectBuilder;
+
+	/** @parameter expression="${project.build.directory}" */
+	private File buildTarget;
 
 	private ClasspathComputer classpathComputer;
 
@@ -120,8 +163,43 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		return outputJar.getOutputDirectory();
 	}
 
-	public List<String> getClasspathElements() {
-		return getClasspathComputer().computeClasspath();
+	public List<String> getClasspathElements() throws MojoExecutionException {
+		List<String> classpath = getClasspathComputer().computeClasspath();
+		
+		if (extraClasspathElements != null) {
+	    	ArtifactRepository localRepository = session.getLocalRepository();
+	    	List remoteRepositories = project.getRemoteArtifactRepositories();
+			for (ArtifactRef a : extraClasspathElements) {
+				try {
+
+					// immediate artifact
+					Artifact artifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "compile", "jar");
+					resolver.resolve(artifact, remoteRepositories, localRepository);
+					classpath.add(artifact.getFile().getAbsolutePath() + "[+**/*]");
+
+					// transitive dependencies
+					Artifact pomArtifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "pom", "pom");
+					resolver.resolve(pomArtifact, remoteRepositories, localRepository);
+
+					FileUtils.copyFileToDirectory(pomArtifact.getFile(), buildTarget);
+
+					ProjectBuilderConfiguration pbc = new DefaultProjectBuilderConfiguration();
+			        pbc.setLocalRepository( localRepository );
+
+					MavenProject pomProject = mavenProjectBuilder.buildProjectWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), pbc).getProject();
+
+	    			for (Iterator j = pomProject.getArtifacts().iterator(); j.hasNext();) {
+	    				Artifact b = (Artifact) j.next();
+						classpath.add(b.getFile().getAbsolutePath() + "[+**/*]");
+					}
+					
+				} catch (Exception e) {
+					throw new MojoExecutionException("Could not resolve extra classpath entry", e);
+				}
+			}
+		}
+		
+		return classpath;
 	}
 
 	private ClasspathComputer getClasspathComputer() {

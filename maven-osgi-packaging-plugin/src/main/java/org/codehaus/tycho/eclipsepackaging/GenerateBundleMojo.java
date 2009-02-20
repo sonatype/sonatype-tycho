@@ -48,6 +48,7 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.utils.ArtifactRef;
 
 import aQute.lib.osgi.Instruction;
 

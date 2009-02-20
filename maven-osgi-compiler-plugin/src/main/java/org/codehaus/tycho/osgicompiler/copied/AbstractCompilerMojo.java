@@ -239,7 +239,7 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 	protected abstract SourceInclusionScanner getSourceInclusionScanner(
 			String inputFileEnding);
 
-	protected abstract List getClasspathElements();
+	protected abstract List getClasspathElements() throws MojoExecutionException;
 
 	protected abstract List getCompileSourceRoots() throws MojoExecutionException;
 

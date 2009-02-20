@@ -19,6 +19,8 @@ package org.codehaus.tycho.osgicompiler;
 import java.io.File;
 import java.util.List;
 
+import org.apache.maven.plugin.MojoExecutionException;
+
 /**
  * @goal testCompile
  * @phase test-compile
@@ -67,7 +69,7 @@ public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 		return testOutputDirectory;
 	}
 
-	public List getClasspathElements() {
+	public List getClasspathElements() throws MojoExecutionException {
 		List result = super.getClasspathElements();
 		result.add(0, outputDirectory.getAbsolutePath() + "[+**/*]");
 		return result;
