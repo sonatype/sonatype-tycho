@@ -6,8 +6,8 @@ import java.util.List;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
-import org.apache.maven.project.builder.ProjectBuilder;
-import org.apache.maven.project.builder.impl.DefaultProjectBuilder;
+import org.apache.maven.project.DefaultProjectBuilder;
+import org.apache.maven.project.ProjectBuilder;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
 
