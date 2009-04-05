@@ -117,7 +117,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		StreamConsumer out = new WriterStreamConsumer(logWriter);
 		StreamConsumer err = new WriterStreamConsumer(logWriter);
 		CommandLineUtils.executeCommandLine(cmd, out, err);
-		Assert.assertTrue("Didn't get a controled exit\n"
+		Assert.assertTrue("Didn't get a controlled exit\n"
 				+ logWriter.toString(), logWriter.toString().startsWith(
 				"Headless application OK!"));
 	}
