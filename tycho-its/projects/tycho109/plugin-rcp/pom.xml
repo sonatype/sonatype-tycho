@@ -12,7 +12,6 @@
                 <groupId>org.codehaus.tycho</groupId>
                 <artifactId>maven-osgi-packaging-plugin
                 </artifactId>
-                <version>0.3.0-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
