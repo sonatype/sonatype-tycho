@@ -8,14 +8,17 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.ProductConfiguration;
+import org.sonatype.tycho.ProjectType;
+import org.sonatype.tycho.TargetPlatformResolver;
 
-@Component( role = DependenciesReader.class, hint = "eclipse-application" )
+@Component( role = DependenciesReader.class, hint = ProjectType.ECLIPSE_APPLICATION )
 public class EclipseApplicationDependenciesReader extends
 		AbstractDependenciesReader {
 
-	public List<Dependency> getDependencies(MavenProject project)
+	public List<Dependency> getDependencies(MavenProject project, TychoSession session)
 			throws MavenExecutionException {
 		// XXX at present time there is no way to get plugin configuration here
 		// http://issues.sonatype.org/browse/TYCHO-190
@@ -43,10 +46,16 @@ public class EclipseApplicationDependenciesReader extends
 
 		ArrayList<Dependency> result = new ArrayList<Dependency>();
 
-		result.addAll(getPluginsDependencies(product.getPlugins()));
-		result.addAll(getFeaturesDependencies(product.getFeatures()));
+		result.addAll(getPluginsDependencies(project, product.getPlugins(), session));
+		result.addAll(getFeaturesDependencies(project, product.getFeatures(), session));
 
 		return new ArrayList<Dependency>(result);
 	}
+
+    public void addProject( TargetPlatformResolver resolver, MavenProject project )
+    {
+        resolver.addMavenProject( project.getBasedir(), ProjectType.ECLIPSE_APPLICATION, project.getGroupId(),
+                                  project.getArtifactId(), project.getVersion() );
+    }
 
 }

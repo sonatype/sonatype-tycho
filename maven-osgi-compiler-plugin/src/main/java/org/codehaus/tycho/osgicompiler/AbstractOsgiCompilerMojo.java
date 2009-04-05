@@ -41,10 +41,11 @@ import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.maven.TychoMavenSession;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.DependencyComputer;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.utils.ArtifactRef;
@@ -95,8 +96,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 */
 	private ArtifactRef[] extraClasspathElements;
 
-	/** @component */
-	private OsgiState state;
+	private TychoSession tychoSession;
 
 	/** @component */
 	private DependencyComputer dependencyComputer;
@@ -138,7 +138,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private BuildOutputJar outputJar;
 
 	public void execute() throws MojoExecutionException, CompilationFailureException {
-		pdeProject = state.getEclipsePluginProject(project);
+        initializeProjectContext();
 
 		if (usePdeSourceRoots) {
 			getLog().info("Using compile source roots from build.properties");
@@ -157,6 +157,21 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			project.getArtifact().setFile(dotOutputJar.getOutputDirectory());
 		}
 	}
+
+	/** public for testing purposes */
+    public void initializeProjectContext()
+    {
+        if ( !( session instanceof TychoMavenSession ) )
+        {
+            throw new IllegalArgumentException( getClass().getSimpleName() + " mojo only works with Tycho distribution" );
+        }
+
+        TychoMavenSession tms = (TychoMavenSession) session;
+
+        tychoSession = tms.getTychoSession();
+
+        pdeProject = tychoSession.getEclipsePluginProject( project);
+    }
 
 	@Override
 	protected File getOutputDirectory() {
@@ -204,7 +219,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
 	private ClasspathComputer getClasspathComputer() {
 		if (classpathComputer == null) {
-			classpathComputer = new ClasspathComputer(state, dependencyComputer, project, storage);
+			classpathComputer = new ClasspathComputer(tychoSession, dependencyComputer, project, storage);
 		}
 		return classpathComputer;
 	}
@@ -265,7 +280,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		CompilerConfiguration compilerConfiguration = super.getCompilerConfiguration(compileSourceRoots);
 		if (usePdeSourceRoots) {
 			Properties props = pdeProject.getBuildProperties();
-			String encoding = props.getProperty("javacDefaultEncoding." + outputJar);
+			String encoding = props.getProperty("javacDefaultEncoding." + outputJar.getName());
 			if (encoding != null) {
 				compilerConfiguration.setSourceEncoding(encoding);
 			}

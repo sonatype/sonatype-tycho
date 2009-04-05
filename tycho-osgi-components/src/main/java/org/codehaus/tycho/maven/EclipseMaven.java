@@ -1,6 +1,7 @@
 package org.codehaus.tycho.maven;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -8,27 +9,31 @@ import java.util.Properties;
 import org.apache.maven.DefaultMaven;
 import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Activation;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Profile;
+import org.apache.maven.monitor.event.EventDispatcher;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.tycho.osgitools.OsgiState;
-import org.codehaus.tycho.osgitools.targetplatform.EclipseTargetPlatformFactory;
+import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.osgitools.MutableTychoSession;
+import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
+import org.codehaus.tycho.osgitools.targetplatform.MavenTargetPlatformResolver;
+import org.codehaus.tycho.osgitools.targetplatform.Tycho03TargetPlatformResolver;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
-import org.osgi.framework.BundleException;
+import org.sonatype.tycho.TargetPlatformResolver;
 
 @Component(role = Maven.class)
 public class EclipseMaven extends DefaultMaven {
 
-    @Requirement
-	private OsgiState state;
+//    @Requirement
+//    private P2Facade p2;
 
-    @Requirement
-	private EclipseTargetPlatformFactory factory;
+    private MutableTychoSession tychoSession;
 
 	@Override
 	protected List getProjects(MavenExecutionRequest request) throws MavenExecutionException {
@@ -40,49 +45,106 @@ public class EclipseMaven extends DefaultMaven {
 		return projects;
 	}
 
+	@Override
+	protected MavenSession createSession( MavenExecutionRequest request, ReactorManager reactorManager,
+	    EventDispatcher dispatcher )
+	{
+        TychoMavenSession session = new TychoMavenSession( container, request, dispatcher, reactorManager, this.tychoSession );
+
+        return session;
+	}
+
+	/** For tests only. This mething will be removed after maven 3.0 alpha-3 */
+	@Deprecated
+	public TychoSession getTychoSession()
+	{
+	    return tychoSession;
+	}
+
 	private void resolveOSGiState(List<MavenProject> projects, MavenExecutionRequest request) throws MavenExecutionException {
+        
+	    try
+        {
+            tychoSession = container.lookup(MutableTychoSession.class);
+        }
+        catch ( ComponentLookupException e )
+        {
+            throw new MavenExecutionException( e.getMessage(), new IOException() );
+        }
 
-		Properties props = getGlobalProperties(request);
+        Properties props = getGlobalProperties(request);
 
-		state.reset(props);
+		TargetPlatformResolver resolver;
 
-		String mode = props.getProperty("tycho.mode");
-		
-		if (!"maven".equals(mode)) {
-			String property = props.getProperty("tycho.targetPlatform");
-			if (property != null) {
-	 			getLogger().info("Build target platform tycho.targetPlatform=" + property 
-	 					+ "\n. This overrides target platform specified in pom.xml files, if any.");
-				factory.createTargetPlatform(state, new File(property));
-	 		} else {
-	 			factory.createTargetPlatform(projects, request.getLocalRepository(), state);
-	 		}
+		String property = props.getProperty("tycho.targetPlatform");
+
+        if ( property != null )
+        {
+            File location = new File( property );
+            if ( !location.exists() || !location.isDirectory() )
+            {
+                throw new RuntimeException( "Invalid target platform location" );
+            }
+
+            try
+            {
+                resolver = container.lookup( TargetPlatformResolver.class, LocalTargetPlatformResolver.ROLE_HINT );
+            }
+            catch ( ComponentLookupException e )
+            {
+                throw new MavenExecutionException( "Could not instantiate required component", new IOException() );
+            }
+
+            resolver.addRepository( new File( property ).toURI() );
+        }
+        else
+        {
+            try
+            {
+                resolver = container.lookup( TargetPlatformResolver.class, Tycho03TargetPlatformResolver.ROLE_HINT );
+            }
+            catch ( ComponentLookupException e )
+            {
+                throw new MavenExecutionException( "Could not instantiate required component", new IOException() );
+            }
+        }
+
+		resolver.setLocalRepositoryLocation( new File( request.getLocalRepository().getBasedir() ) );
+
+		resolver.setProperties( props );
+
+		// collect all projects
+		for (MavenProject project : projects) {
+		    tychoSession.addProject(project);
+            try {
+                DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
+                dr.addProject(resolver, project);
+            } catch (ComponentLookupException e) {
+                // no biggie 
+            }
+        }
+
+		if ( resolver instanceof MavenTargetPlatformResolver )
+		{
+		    MavenTargetPlatformResolver mavenResolver = (MavenTargetPlatformResolver) resolver;
+
+		    mavenResolver.setMavenProjects( projects );
+		    
+		    mavenResolver.setLocalRepository( request.getLocalRepository() );
 		}
 
 		for (MavenProject project : projects) {
-			try {
-				state.addProject(project);
-			} catch (BundleException e) {
-				throw new MavenExecutionException(e.getMessage(), project.getFile());
-			}
-		}
+            try {
+                DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
+                tychoSession.setTargetPlatform( project, resolver.resolvePlatform(project.getBasedir()) );
+                for (Dependency dependency : dr.getDependencies(project, tychoSession)) {
+                    project.getModel().addDependency(dependency);
+                }
+            } catch (ComponentLookupException e) {
+                // no biggie 
+            }
+        }
 
-		if (!"maven".equals(mode)) {
-			state.resolveState();
-	
-			for (MavenProject project : projects) {
-				try {
-					DependenciesReader dr = (DependenciesReader) container.lookup(DependenciesReader.class, project.getPackaging());
-					if (dr != null) {
-						for (Dependency dependency : dr.getDependencies(project)) {
-							project.getModel().addDependency(dependency);
-						}
-					}
-				} catch (ComponentLookupException e) {
-					// no biggie 
-				}
-			}
-		}
 	}
 
 	// XXX there must be an easier way

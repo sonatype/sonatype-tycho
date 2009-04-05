@@ -14,10 +14,12 @@ import java.util.zip.ZipFile;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.osgitools.DependencyComputer;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
@@ -29,8 +31,15 @@ public class ClasspathComputer {
 //	public static final String INCLUDE_ALL_RULE = "**/*";
 	public static final String EXCLUDE_ALL_RULE = "-**/*";
 
-	private final OsgiState state;
+	//@Required
+	private final TychoSession session;
+
+	//@Required
+	private final BundleResolutionState bundleResolutionState;
+
+	//@Required
 	private final DependencyComputer dependencyComputer;
+	
 	private final File storage;
 
 	private final MavenProject project;
@@ -42,13 +51,14 @@ public class ClasspathComputer {
 	 */
 //	private final Map<String, BuildOutputJar> compiledJars = new LinkedHashMap<String, BuildOutputJar>();
 
-	public ClasspathComputer(OsgiState state, DependencyComputer dependencyComputer, MavenProject project, File storage) {
-		this.state = state;
+	public ClasspathComputer(TychoSession session, DependencyComputer dependencyComputer, MavenProject project, File storage) {
+		this.session = session;
+		this.bundleResolutionState = session.getBundleResolutionState( project );
 		this.dependencyComputer = dependencyComputer;
 		this.project = project;
 		this.storage = storage;
-		
-		this.bundle = state.getBundleDescription(project);
+
+		this.bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
 	}
 
 	public void addOutputDirectory(File outputDirectory) {
@@ -63,7 +73,7 @@ public class ClasspathComputer {
 		classpath.addAll(getProjectEntries(bundle, project));
 
 		// dependencies
-		for (DependencyComputer.DependencyEntry entry : dependencyComputer.computeDependencies(bundle)) {
+		for (DependencyComputer.DependencyEntry entry : dependencyComputer.computeDependencies(bundleResolutionState, bundle)) {
 			addBundle(classpath, entry);
 		}
 
@@ -71,7 +81,7 @@ public class ClasspathComputer {
 	}
 
 	private void addBundle(Set<String> classpath, DependencyComputer.DependencyEntry dependency) {
-		MavenProject project = state.getMavenProject(dependency.desc);
+		MavenProject project = session.getMavenProject(dependency.desc.getLocation());
 		List<String> entries;
 		if (project != null) {
 			entries = getProjectEntries(dependency.desc, project);
@@ -153,7 +163,7 @@ public class ClasspathComputer {
 	private List<String> getProjectEntries(BundleDescription bundle, MavenProject project) {
 		ArrayList<String> classpath = new ArrayList<String>(); 
 
-		EclipsePluginProject pdeProject = state.getEclipsePluginProject(project);
+		EclipsePluginProject pdeProject = session.getEclipsePluginProject(project);
 
 		Map<String, BuildOutputJar> outputJars = pdeProject.getOutputJarMap();
 		for (String cp : getBundleClasspath(bundle)) {
@@ -172,7 +182,7 @@ public class ClasspathComputer {
 
 	private String[] getBundleClasspath(BundleDescription bundle) {
 		String[] result = new String[] {"."};
-		String classpath = state.getManifestAttribute(bundle, Constants.BUNDLE_CLASSPATH);
+		String classpath = bundleResolutionState.getManifestAttribute(bundle, Constants.BUNDLE_CLASSPATH);
 		if (classpath != null) {
 			ManifestElement[] classpathEntries;
 			try {

@@ -8,24 +8,24 @@ import java.util.List;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.annotations.Requirement;
+import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.tycho.FeatureResolutionState;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.Feature.FeatureRef;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.BundleException;
 
 public abstract class AbstractDependenciesReader extends AbstractLogEnabled implements DependenciesReader {
 
 	protected static final List<Dependency> NO_DEPENDENCIES = new ArrayList<Dependency>();
 
-	@Requirement
-	protected OsgiState state;
-
-	
-	protected Dependency newExternalDependency(String location, String groupId, String artifactId, String version) {
+	protected Dependency newExternalDependency(String location, String artifactId, String version) {
 		File file = new File(location);
 		if (!file.exists() || !file.isFile() || !file.canRead()) {
 			getLogger().warn("Dependency at location " + location + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins");
@@ -34,7 +34,7 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 
 		Dependency dependency = new Dependency();
 		dependency.setArtifactId(artifactId);
-		dependency.setGroupId(groupId);
+		dependency.setGroupId(DEPENDENCY_GROUP_ID);
 		dependency.setVersion(version);
 		dependency.setScope(Artifact.SCOPE_SYSTEM);
 		dependency.setSystemPath(location);
@@ -55,14 +55,15 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 		return dependency;
 	}
 
-	protected Collection<? extends Dependency> getFeaturesDependencies(List<FeatureRef> features) {
+	protected Collection<? extends Dependency> getFeaturesDependencies(MavenProject project, List<FeatureRef> features, TychoSession session) {
+	    FeatureResolutionState state = session.getFeatureResolutionState( project );
 		Collection<Dependency> result = new ArrayList<Dependency>();
 		for (Feature.FeatureRef featureRef : features) {
-			FeatureDescription otherFeature = state.getFeatureDescription(featureRef.getId(), featureRef.getVersion());
+			FeatureDescription otherFeature = state.getFeature(featureRef.getId(), featureRef.getVersion());
 			if (otherFeature == null) {
 				continue;
 			}
-			Dependency dependency = newProjectDependency(state.getMavenProject(otherFeature));
+			Dependency dependency = newProjectDependency(session.getMavenProject(otherFeature.getLocation()));
 			if (dependency != null) {
 				result.add(dependency);
 			}
@@ -70,16 +71,17 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 		return result;
 	}
 
-	protected Collection<? extends Dependency> getPluginsDependencies(List<PluginRef> plugins) {
+	protected Collection<? extends Dependency> getPluginsDependencies(MavenProject project, List<PluginRef> plugins, TychoSession session) throws MavenExecutionException {
+	    BundleResolutionState state = session.getBundleResolutionState( project );
+	    
 		Collection<Dependency> result = new ArrayList<Dependency>();
 		for (PluginRef pluginRef : plugins) {
-			BundleDescription bundle = state.getBundleDescription(pluginRef
+			BundleDescription bundle = state.getBundle(pluginRef
 					.getId(), getPluginVersion(pluginRef.getVersion()));
 			if (bundle == null) {
 				continue;
 			}
-			Dependency dependency = newProjectDependency(state
-					.getMavenProject(bundle));
+			Dependency dependency = newProjectDependency(session.getMavenProject(bundle.getLocation()));
 			if (dependency != null) {
 				result.add(dependency);
 			}
@@ -90,5 +92,4 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 	private String getPluginVersion(String version) {
 		return version == null || "0.0.0".equals(version) ? OsgiState.HIGHEST_VERSION : version;
 	}
-	
 }

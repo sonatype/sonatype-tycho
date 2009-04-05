@@ -15,8 +15,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
@@ -32,18 +32,19 @@ import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
  * @author igor
  *
  */
+
+@Component(role=EclipseInstallationLayout.class, instantiationStrategy="per-lookup")
 public class EclipseInstallationLayout extends AbstractLogEnabled {
-	
+
 	public static final String PLUGINS = "plugins";
 	public static final String FEATURES = "features";
 
-	private final File location;
-	private final File dropinsLocation;
+	private File location;
+	private File dropinsLocation;
 
-	public EclipseInstallationLayout(Logger logger, File location) {
+	public void setLocation(File location) {
 		this.location = location;
 		this.dropinsLocation = new File(location, "dropins");
-		enableLogging(logger);
 	}
 
 	public Set<File> getFeatures(File site) {
@@ -100,6 +101,10 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 
 	public Set<File> getSites() {
 		Set<File> result = new LinkedHashSet<File>();
+
+		if (location == null) {
+		    return result;
+		}
 
 		if (new File(location, PLUGINS).isDirectory()) {
 			result.add(location);

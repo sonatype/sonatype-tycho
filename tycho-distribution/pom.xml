@@ -108,15 +108,10 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>org.codehaus.tycho</groupId>
+          <groupId>org.sonatype.tycho</groupId>
           <artifactId>tycho-p2-runtime</artifactId>
-          <version>${tycho-p2-runtime-version}</version>
+          <version>${tycho-p2.version}</version>
           <type>zip</type>
-        </dependency>
-        <dependency>
-          <groupId>org.codehaus.tycho</groupId>
-          <artifactId>tycho-p2-app</artifactId>
-          <version>${project.version}</version>
         </dependency>
       </dependencies>
       <build>
@@ -130,9 +125,9 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.codehaus.tycho</groupId>
+                      <groupId>org.sonatype.tycho</groupId>
                       <artifactId>tycho-p2-runtime</artifactId>
-                      <version>${tycho-p2-runtime-version}</version>
+                      <version>${tycho-p2.version}</version>
                       <type>zip</type>
                       <outputDirectory>${project.build.directory}/dependency/tycho-p2-runtime</outputDirectory>
                     </artifactItem>

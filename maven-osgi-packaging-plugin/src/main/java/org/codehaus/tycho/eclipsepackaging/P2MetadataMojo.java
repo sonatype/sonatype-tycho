@@ -6,12 +6,11 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
-import org.codehaus.tycho.p2.P2;
+import org.sonatype.tycho.p2.facade.P2Facade;
 
 /**
  * @goal p2-metadata
@@ -63,7 +62,7 @@ public class P2MetadataMojo extends AbstractMojo {
     private String argLine;
 
 	/** @component */
-	private P2 p2;
+	private P2Facade p2;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
@@ -131,22 +130,18 @@ public class P2MetadataMojo extends AbstractMojo {
 
 	private File getEquinoxLauncher() throws MojoFailureException {
 		// XXX dirty hack
-		try {
-	        String p2location = p2.getP2RuntimeLocation();
-			DirectoryScanner ds = new DirectoryScanner();
-			ds.setBasedir(p2location);
-	        ds.setIncludes(new String[] {
-                "plugins/org.eclipse.equinox.launcher_*.jar"
-            });
-            ds.scan();
-            String[] includedFiles = ds.getIncludedFiles();
-            if (includedFiles == null || includedFiles.length != 1) {
-    			throw new MojoFailureException("Can't locate org.eclipse.equinox.launcher bundle in " + p2location);
-            }
-			return new File(p2location, includedFiles[0]);
-		} catch (MavenExecutionException e) {
-			throw new MojoFailureException("Can't locate P2 runtime", e);
-		}
+        String p2location = p2.getP2RuntimeLocation();
+		DirectoryScanner ds = new DirectoryScanner();
+		ds.setBasedir(p2location);
+        ds.setIncludes(new String[] {
+            "plugins/org.eclipse.equinox.launcher_*.jar"
+        });
+        ds.scan();
+        String[] includedFiles = ds.getIncludedFiles();
+        if (includedFiles == null || includedFiles.length != 1) {
+			throw new MojoFailureException("Can't locate org.eclipse.equinox.launcher bundle in " + p2location);
+        }
+		return new File(p2location, includedFiles[0]);
 	}
 
 }

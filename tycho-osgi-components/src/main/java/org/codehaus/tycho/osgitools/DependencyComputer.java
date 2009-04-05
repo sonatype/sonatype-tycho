@@ -10,6 +10,7 @@ import java.util.TreeMap;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.codehaus.tycho.BundleResolutionState;
 import org.eclipse.osgi.service.resolver.BaseDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -29,11 +30,6 @@ import org.eclipse.osgi.service.resolver.StateHelper;
  */
 @Component( role = DependencyComputer.class )
 public class DependencyComputer {
-
-	static final String ROLE = DependencyComputer.class.getName();
-
-	@Requirement
-	OsgiState state;
 
 	public static class AccessRule {
 		public String path;
@@ -62,13 +58,13 @@ public class DependencyComputer {
 		}
 	}
 
-	public List<DependencyEntry> computeDependencies(BundleDescription desc) {
+	public List<DependencyEntry> computeDependencies(BundleResolutionState bundleResolutionState, BundleDescription desc) {
 		ArrayList<DependencyEntry> entries = new ArrayList<DependencyEntry>();
 
 		if (desc == null)
 			return entries;
 
-		Map<BundleDescription, ArrayList<AccessRule>> map = retrieveVisiblePackagesFromState(desc);
+		Map<BundleDescription, ArrayList<AccessRule>> map = retrieveVisiblePackagesFromState(bundleResolutionState, desc);
 
 		HashSet<BundleDescription> added = new HashSet<BundleDescription>();
 
@@ -107,9 +103,9 @@ public class DependencyComputer {
 		return entries;
 	}
 
-	private Map<BundleDescription, ArrayList<AccessRule>> retrieveVisiblePackagesFromState(BundleDescription desc) {
+	private Map<BundleDescription, ArrayList<AccessRule>> retrieveVisiblePackagesFromState(BundleResolutionState bundleResolutionState, BundleDescription desc) {
 		Map<BundleDescription, ArrayList<AccessRule>> visiblePackages = new HashMap<BundleDescription, ArrayList<AccessRule>>();
-		StateHelper helper = state.getStateHelper();
+		StateHelper helper = bundleResolutionState.getStateHelper();
 		addVisiblePackagesFromState(helper, desc, visiblePackages);
 		if (desc.getHost() != null)
 			addVisiblePackagesFromState(helper, (BundleDescription) desc.getHost().getSupplier(), visiblePackages);

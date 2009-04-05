@@ -10,14 +10,20 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.tycho.FeatureResolutionState;
+import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
+import org.sonatype.tycho.ProjectType;
+import org.sonatype.tycho.TargetPlatformResolver;
 
-@Component( role = DependenciesReader.class, hint = "eclipse-update-site" )
+@Component( role = DependenciesReader.class, hint = ProjectType.ECLIPSE_UPDATE_SITE )
 public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 
-    public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
+    public List<Dependency> getDependencies(MavenProject project, TychoSession session) throws MavenExecutionException {
+        FeatureResolutionState state = session.getFeatureResolutionState( project );
+
 		try {
 			File siteXml = new File(project.getBasedir(), "site.xml");
 			UpdateSite site = UpdateSite.read(siteXml);
@@ -34,12 +40,12 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 					getLogger().warn("Bad site feature id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;
 				}
-				FeatureDescription feature = state.getFeatureDescription(id, version);
+				FeatureDescription feature = state.getFeature(id, version);
 				if (null == feature) {
 					getLogger().warn("No OSGI feature for id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;
 				}
-				MavenProject mavenProject = state.getMavenProject(feature);
+				MavenProject mavenProject = session.getMavenProject(feature.getLocation());
 				if (null == mavenProject) {
 					getLogger().warn("No maven feature project for id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;
@@ -61,5 +67,11 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 			throw me;
 		}
 	}
+
+    public void addProject( TargetPlatformResolver resolver, MavenProject project )
+    {
+        resolver.addMavenProject( project.getBasedir(), ProjectType.ECLIPSE_UPDATE_SITE, project.getGroupId(),
+                                  project.getArtifactId(), project.getVersion() );
+    }
 
 }

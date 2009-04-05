@@ -2,7 +2,6 @@ package org.codehaus.tycho.maven.test;
 
 import java.io.File;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.maven.Maven;
 import org.apache.maven.execution.DefaultMavenExecutionResult;
@@ -13,8 +12,9 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.testing.SilentLog;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.tycho.osgitools.OsgiState;
-import org.codehaus.tycho.osgitools.targetplatform.EclipseTargetPlatformFactory;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.maven.EclipseMaven;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
@@ -22,10 +22,6 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	protected Maven maven;
 
-	protected OsgiState state;
-	
-	protected EclipseTargetPlatformFactory factory;
-	
 	protected Logger logger;
 
 	protected void setUp() throws Exception {
@@ -36,8 +32,6 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 			// default over to the main project builder...
 			maven = (Maven) lookup(Maven.ROLE);
 		}
-		state = (OsgiState) lookup(OsgiState.class);
-		factory = (EclipseTargetPlatformFactory) lookup(EclipseTargetPlatformFactory.class);
 		logger = new SilentLog();
 	}
 
@@ -201,53 +195,62 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testPre30() throws Exception {
-		File targetPlatform = new File("src/test/resources/targetplatforms/pre-3.0");
-		File manifests = new File("target/manifests");
-		Properties props = new Properties(System.getProperties());
-		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
-		props.put("tycho.cacheDir", manifests.getParentFile().getCanonicalPath());
-		resetState(props);
+        File pom = new File(getBasedir("projects/dummy"), "pom.xml");
 
-		assertNotNull(state.getBundleDescription("testjar", "1.0.0"));
-		assertNotNull(state.getBundleDescription("testdir", "1.0.0"));
-		
-		assertTrue(new File(manifests, "testdir_1.0.0/META-INF/MANIFEST.MF").canRead());
-		assertTrue(new File(manifests, "testjar_1.0.0/META-INF/MANIFEST.MF").canRead());
-	}
+	    MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/pre-3.0").getCanonicalPath());
+        MavenExecutionResult result = new DefaultMavenExecutionResult();
+        ReactorManager reactorManager = maven.createReactorManager(request, result);
 
-	private void resetState(Properties props) {
-		state.reset(props);
-		String property = props.getProperty("tycho.targetPlatform");
-		factory.createTargetPlatform(state, new File(property));
+        MavenProject project = (MavenProject) reactorManager.getSortedProjects().get(0);
+
+        TychoSession session = ((EclipseMaven) maven).getTychoSession();
+        BundleResolutionState state = session.getBundleResolutionState( project );
+
+		assertNotNull(state.getBundle("testjar", "1.0.0"));
+		assertNotNull(state.getBundle("testdir", "1.0.0"));
+
+		assertTrue(new File(project.getBuild().getDirectory(), "manifests/testdir_1.0.0/META-INF/MANIFEST.MF").canRead());
+		assertTrue(new File(project.getBuild().getDirectory(), "manifests/testjar_1.0.0/META-INF/MANIFEST.MF").canRead());
 	}
 
 	public void testMNGECLIPSE942() throws Exception {
-		File targetPlatform = new File("src/test/resources/targetplatforms/MNGECLIPSE-942");
-		Properties props = new Properties(System.getProperties());
-		props.put("tycho.targetPlatform", targetPlatform.getCanonicalPath());
-		resetState(props);
+        File pom = new File(getBasedir("projects/dummy"), "pom.xml");
 
-		BundleDescription[] bundles = state.getBundles();
-		
-		assertEquals(1, bundles.length);
-		assertEquals("org.junit4.nl_ru", bundles[0].getSymbolicName());
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/MNGECLIPSE-942").getCanonicalPath());
+        MavenExecutionResult result = new DefaultMavenExecutionResult();
+        ReactorManager reactorManager = maven.createReactorManager(request, result);
+
+        MavenProject project = (MavenProject) reactorManager.getSortedProjects().get(0);
+
+        TychoSession session = ((EclipseMaven) maven).getTychoSession();
+        BundleResolutionState state = session.getBundleResolutionState( project );
+
+		List<BundleDescription> bundles = state.getBundles();
+
+		assertEquals(1, bundles.size());
+		assertEquals("org.junit4.nl_ru", bundles.get(0).getSymbolicName());
 	}
 	
 	public void testAddHocExtensionLocation() throws Exception {
-		File targetPlatform = new File("src/test/resources/targetplatforms/simple");
-		File extensionLocation = new File("src/test/resources/targetplatforms/adhoclocation");
+        File targetPlatform = new File("src/test/resources/targetplatforms/simple");
+        File extensionLocation = new File("src/test/resources/targetplatforms/adhoclocation");
 
-		File pom = new File(getBasedir("projects/adhoclocations"), "pom.xml");
+        File pom = new File(getBasedir("projects/adhoclocations"), "pom.xml");
 
-		MavenExecutionRequest request = newMavenExecutionRequest(pom);
-		request.getProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
-		request.getProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
+        request.getProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
+        MavenExecutionResult result = new DefaultMavenExecutionResult();
+        ReactorManager reactorManager = maven.createReactorManager(request, result);
 
-		BundleDescription[] bundles = state.getBundles();
+        TychoSession session = ((EclipseMaven) maven).getTychoSession();
+        BundleResolutionState state = session.getBundleResolutionState( (MavenProject) reactorManager.getSortedProjects().get(0) );
 
-		assertEquals(1, bundles.length);
-		assertEquals("testjar", bundles[0].getSymbolicName());
+        List<BundleDescription> bundles = state.getBundles();
+
+        assertEquals(1, bundles.size());
+        assertEquals("testjar", bundles.get(0).getSymbolicName());
 	}
 }

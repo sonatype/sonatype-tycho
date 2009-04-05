@@ -14,17 +14,11 @@ import java.util.jar.JarFile;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
@@ -40,14 +34,9 @@ import org.osgi.framework.Version;
  * @requiresDependencyResolution runtime
  * 
  */
-public class PackageFeatureMojo extends AbstractMojo implements Contextualizable {
+public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 
 	private static final int KBYTE = 1024;
-
-	/** @component */
-	private OsgiState state;
-
-	private PlexusContainer plexus;
 
 	private static final String GENERATE_FEATURE = "generate.feature@";
 
@@ -57,12 +46,6 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 	 * @parameter
 	 */
 	private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
-
-	/**
-	 * @parameter expression="${project}"
-	 * @required
-	 */
-	protected MavenProject project;
 
 	/**
 	 * @parameter expression="${project.build.directory}"
@@ -90,9 +73,9 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 	 */
 	protected String qualifier;
 
-	private VersionExpander versionExpander = new VersionExpander();
-
 	public void execute() throws MojoExecutionException, MojoFailureException {
+	    initializeProjectContext();
+
 		Properties props = new Properties();
 		try {
 			FileInputStream is = new FileInputStream(new File(basedir, "build.properties"));
@@ -148,17 +131,17 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 	}
 
 	private void updateFeatureXml(File featureXml) throws MojoExecutionException, IOException {
-		FeatureDescription featureDesc = state.getFeatureDescription(project);
+		FeatureDescription featureDesc = featureResolutionState.getFeatureByLocation( project.getBasedir() );
 		Feature feature = new Feature(featureDesc.getFeature());
 
 		feature.setMavenGroupId(project.getGroupId());
 		feature.setMavenBaseVersion(project.getVersion()); // not expanded yet
 
 		// expand version if necessary
-		if (versionExpander.isSnapshotVersion(featureDesc.getVersion())) {
-			Version version = versionExpander.expandVersion(featureDesc.getVersion(), qualifier);
+		if (VersionExpander.isSnapshotVersion(featureDesc.getVersion())) {
+			Version version = VersionExpander.expandVersion(featureDesc.getVersion(), qualifier);
 			feature.setVersion(version.toString());
-			state.setFinalVersion(featureDesc, version);
+			VersionExpander.setExpandedVersion(tychoSession, featureDesc.getLocation(), version.toString());
 		}
 
 		// update included/referenced plugins
@@ -170,26 +153,33 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 				bundleVersion = OsgiState.HIGHEST_VERSION;
 			}
 
-			BundleDescription bundle = state.getBundleDescription(bundleId, bundleVersion);
+			BundleDescription bundle = bundleResolutionState.getBundle(bundleId, bundleVersion);
 			if (bundle == null) {
 				getLog().warn(project.getId() + " referenced uknown bundle " + bundleId + ":" + bundleVersion);
 				continue;
 			}
 
-			String pluginGroupId = state.getGroupId(bundle);
+            MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
+
+            String pluginGroupId = null;
+            if (bundleProject != null) {
+                pluginGroupId = bundleProject.getGroupId();
+            } else {
+                pluginGroupId = bundleResolutionState.getManifestAttribute( bundle, OsgiState.ATTR_GROUP_ID );
+            }
+
 			if (pluginGroupId != null) {
 				pluginRef.setMavenGroupId(pluginGroupId);
 			}
-			
-			String pluginBaseVersion = state.getMavenBaseVersion(bundle);
+
+			String pluginBaseVersion = VersionExpander.getMavenBaseVersion(tychoSession, bundle);
 			if (pluginBaseVersion != null) {
 				pluginRef.setMavenBaseVersion(pluginBaseVersion);
 			}
 
-			pluginRef.setVersion(state.getFinalVersion(bundle).toString());
+			pluginRef.setVersion(VersionExpander.getExpandedVersion(tychoSession, bundle));
 
 			File file;
-			MavenProject bundleProject = state.getMavenProject(bundle);
 			if (bundleProject != null) {
 				file = bundleProject.getArtifact().getFile();
 			} else {
@@ -226,7 +216,7 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 			String refVersion = ref.getVersion();
 			String refId = ref.getId();
 
-			FeatureDescription refDescription = state.getFeatureDescription(refId, refVersion);
+			FeatureDescription refDescription = featureResolutionState.getFeature(refId, refVersion);
 			if (refDescription == null) {
 				getLog().warn(project.getId() + " referenced uknown feature " + refId + ":" + refVersion);
 				continue;
@@ -279,7 +269,7 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 	}
 
 	private void generateSourceFeature(String baseFeatureId, String sourceFeature) throws MojoExecutionException {
-		FeatureDescription baseFeature = state.getFeatureDescription(baseFeatureId,	OsgiState.HIGHEST_VERSION);
+		FeatureDescription baseFeature = featureResolutionState.getFeature(baseFeatureId,	OsgiState.HIGHEST_VERSION);
 		if (baseFeature == null) {
 			getLog().warn("Base feature not found: " + baseFeatureId);
 			return;
@@ -333,10 +323,6 @@ public class PackageFeatureMojo extends AbstractMojo implements Contextualizable
 			throw new MojoExecutionException("Error packing source feature "
 					+ featureId + "_" + featureVersion, e);
 		}
-	}
-
-	public void contextualize(Context ctx) throws ContextException {
-		plexus = (PlexusContainer) ctx.get(PlexusConstants.PLEXUS_KEY);
 	}
 
 }

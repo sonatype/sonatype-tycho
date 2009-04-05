@@ -19,16 +19,25 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
+import org.codehaus.plexus.PlexusConstants;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.context.Context;
+import org.codehaus.plexus.context.ContextException;
+import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.Arg;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.maven.TychoMavenSession;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.sonatype.tycho.TargetPlatform;
 
 /**
  * @phase integration-test
@@ -36,7 +45,7 @@ import org.osgi.framework.Version;
  * @requiresProject true
  * @requiresDependencyResolution runtime
  */
-public class TestMojo extends AbstractMojo {
+public class TestMojo extends AbstractMojo implements Contextualizable {
 
 	private static final String TEST_JUNIT = "org.junit";
 
@@ -129,18 +138,16 @@ public class TestMojo extends AbstractMojo {
 	/** @parameter expression="${project.build.directory}/dev.properties" */
 	private File devProperties;
 
-	/** @component */
-	private OsgiState state;
+	private TychoSession tychoSession;
 
-	/** @component */
-	protected MavenProjectBuilder projectBuilder;
+	private BundleResolutionState bundleResolutionState;
 
 	/**
 	* @parameter expression="${session}"
 	* @readonly
 	* @required
 	*/
-	MavenSession session;
+	private MavenSession session;
 
 	/** @parameter default-value="false" */
 	private boolean useUIHarness;
@@ -184,6 +191,11 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private String testClass;
 
+    private PlexusContainer plexus;
+
+    /** @component */
+    private Logger logger;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			getLog().info("Skipping tests");
@@ -195,13 +207,24 @@ public class TestMojo extends AbstractMojo {
 			return;
 		}
 
+		if ( !( session instanceof TychoMavenSession ) )
+        {
+            throw new IllegalArgumentException( getClass().getSimpleName() + " mojo only works with Tycho distribution" );
+        }
+
+        TychoMavenSession tms = (TychoMavenSession) session;
+
+        tychoSession = tms.getTychoSession();
+
+        bundleResolutionState = tychoSession.getBundleResolutionState( project );
+
 		if (testSuite != null || testClass != null) {
 			if (testSuite == null || testClass == null) {
 				throw new MojoExecutionException("Both testSuite and testClass must be provided or both should be null");
 			}
 
-			BundleDescription desc = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
-			MavenProject suite = state.getMavenProject(desc);
+			BundleDescription desc = bundleResolutionState.getBundle(testSuite, OsgiState.HIGHEST_VERSION);
+			MavenProject suite = tychoSession.getMavenProject(desc.getLocation());
 
 			if (suite == null) {
 				throw new MojoExecutionException("Cannot find test suite project with Bundle-SymbolicName " + testSuite);
@@ -213,36 +236,43 @@ public class TestMojo extends AbstractMojo {
 			}
 		}
 
-		File targetPlatform = state.getTargetPlaform();
+		TargetPlatform targetPlatform = tychoSession.getTargetPlatform( project );
 
 		if (targetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
 		}
 
-		work.mkdirs();
+        work.mkdirs();
 
-		BundleDescription bundle = state.getBundleDescription(project);
+		TestEclipseRuntime testRuntime = new TestEclipseRuntime();
+		testRuntime.enableLogging( logger );
+		testRuntime.setSourcePlatform( targetPlatform );
+		testRuntime.setLocation( work );
+		testRuntime.setPlexusContainer( plexus );
+		testRuntime.initialize();
+
+		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
 		String testFramework = getTestFramework(bundle);
-		Set<File> surefireBundles = getSurefirePlugins(testFramework);
 
-		try {
-			for (File file : surefireBundles) {
-				state.addBundle(file);
-			}
-		} catch (BundleException e) {
-			throw new MojoExecutionException("Can't configure test runtime", e);
+		Set<File> surefireBundles = getSurefirePlugins(testFramework);
+		for (File file : surefireBundles) {
+		    testRuntime.addBundle(file);
 		}
 
 		Set<File> testBundles = getTestBundles();
-		testBundles.addAll(surefireBundles);
-		new ConfigurationHelper(state).createConfiguration(work, targetPlatform, testBundles);
+        for (File file : testBundles) {
+            testRuntime.addBundle(file);
+        }
+
+        testRuntime.create();
+		
 		createDevProperties();
 		createSurefireProperties(bundle, testFramework);
 
 		reportsDirectory.mkdirs();
 
 		String testBundle = null;
-		boolean succeeded = runTest(targetPlatform, testBundle , test);
+		boolean succeeded = runTest(testRuntime, testBundle , test);
 		
 		if (succeeded) {
 			getLog().info("All tests passed!");
@@ -263,7 +293,7 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private void addBundle(Set<File> testBundles, BundleDescription bundle) {
-		MavenProject project = state.getMavenProject(bundle);
+		MavenProject project = tychoSession.getMavenProject(bundle.getLocation());
 		if ("eclipse-test-plugin".equals(project.getPackaging())) {
 			testBundles.add(project.getBasedir());
 		} else if (project.getArtifact().getFile() != null) {
@@ -308,7 +338,7 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private String getTestFramework(BundleDescription bundle) throws MojoExecutionException {
-		for (BundleDescription dependency : state.getDependencies(bundle)) {
+		for (BundleDescription dependency : bundleResolutionState.getDependencies(bundle)) {
 			if (TEST_JUNIT.equals(dependency.getSymbolicName())) {
 				return TEST_JUNIT;
 			} else if (TEST_JUNIT4.equals(dependency.getSymbolicName())) {
@@ -329,7 +359,7 @@ public class TestMojo extends AbstractMojo {
 		return sb.toString();
 	}
 
-	private boolean runTest(File targetPlatform, String testBundle, String className) throws MojoExecutionException {
+	private boolean runTest(TestEclipseRuntime testRuntime, String testBundle, String className) throws MojoExecutionException {
 		int result;
 
 		try {
@@ -373,7 +403,7 @@ public class TestMojo extends AbstractMojo {
 			cli.addArguments(new String[] {
 				"-data", workspace,
 				"-dev", devProperties.toURI().toURL().toExternalForm(),
-				"-install", targetPlatform.getAbsolutePath(),
+				"-install", testRuntime.getLocation().getAbsolutePath(),
 				"-configuration", new File(work, "configuration").getAbsolutePath(),
 				"-application",	getTestApplication(),
 				"-testproperties", surefireProperties.getAbsolutePath(), 
@@ -402,7 +432,8 @@ public class TestMojo extends AbstractMojo {
 
 	private String getTestApplication() {
 		if (useUIHarness) {
-			Version osgiVersion = state.getPlatformVersion();
+		    BundleDescription systemBundle = bundleResolutionState.getSystemBundle();
+			Version osgiVersion = systemBundle.getVersion();
 			if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
 				return "org.codehaus.tycho.surefire.osgibooter.uitest32";
 			} else {
@@ -414,12 +445,14 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private File getEclipseLauncher() throws IOException {
-		Version osgiVersion = state.getPlatformVersion();
+        BundleDescription systemBundle = bundleResolutionState.getSystemBundle();
+        Version osgiVersion = systemBundle.getVersion();
 		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
-			return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
+		    throw new UnsupportedOperationException();
+			//return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
 			// assume eclipse 3.3 or 3.4
-			BundleDescription launcher = state.getBundleDescription("org.eclipse.equinox.launcher", OsgiState.HIGHEST_VERSION);
+			BundleDescription launcher = bundleResolutionState.getBundle("org.eclipse.equinox.launcher", OsgiState.HIGHEST_VERSION);
 			return new File(launcher.getLocation()).getCanonicalFile();
 		}
 	}
@@ -456,7 +489,7 @@ public class TestMojo extends AbstractMojo {
 		Properties dev = new Properties();
 //		dev.put("@ignoredot@", "true");
 		for (BundleDescription bundle : getReactorBundles()) {
-			MavenProject project = state.getMavenProject(bundle);
+			MavenProject project = tychoSession.getMavenProject(bundle.getLocation());
 			if ("eclipse-test-plugin".equals(project.getPackaging())) {
 				dev.put(bundle.getSymbolicName(), getBuildOutputDirectories(project));
 			} else if ("eclipse-plugin".equals(project.getPackaging())) {
@@ -526,9 +559,9 @@ public class TestMojo extends AbstractMojo {
 
 	private Set<BundleDescription> getReactorBundles() {
 		Set<BundleDescription> reactorBundles = new LinkedHashSet<BundleDescription>();
-		reactorBundles.add(state.getBundleDescription(project));
-		for (BundleDescription desc : state.getBundles()) {
-			MavenProject project = state.getMavenProject(desc);
+		reactorBundles.add(bundleResolutionState.getBundleByLocation(project.getBasedir()));
+		for (BundleDescription desc : bundleResolutionState.getBundles()) {
+			MavenProject project = tychoSession.getMavenProject(desc.getLocation());
 			if (project != null) {
 				reactorBundles.add(desc);
 			}
@@ -536,4 +569,8 @@ public class TestMojo extends AbstractMojo {
 		return reactorBundles;
 	}
 
+    public void contextualize( Context ctx ) throws ContextException {
+        plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
+    }
+	
 }

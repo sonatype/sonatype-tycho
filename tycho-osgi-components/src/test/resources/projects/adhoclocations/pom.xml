@@ -4,9 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>adhoclocations</groupId>
-  <artifactId>parent</artifactId>
+  <artifactId>project</artifactId>
   <version>1.0.0</version>
-  <packaging>pom</packaging>
+  <packaging>eclipse-update-site</packaging>
 
   <dependencyManagement>
     <dependencies>

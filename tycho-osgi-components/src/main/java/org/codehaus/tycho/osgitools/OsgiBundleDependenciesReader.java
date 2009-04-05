@@ -8,53 +8,76 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
-import org.codehaus.tycho.maven.EclipseMavenProjetBuilder;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
+import org.sonatype.tycho.ProjectType;
+import org.sonatype.tycho.TargetPlatformResolver;
 
-@Component( role = DependenciesReader.class, hint = "eclipse-plugin" )
-public class OsgiBundleDependenciesReader extends AbstractDependenciesReader {
+@Component( role = DependenciesReader.class, hint = ProjectType.OSGI_BUNDLE )
+public class OsgiBundleDependenciesReader
+    extends AbstractDependenciesReader
+{
 
-	@Requirement
-	private DependencyComputer dependencyComputer;
+    @Requirement
+    private DependencyComputer dependencyComputer;
 
-    public List<Dependency> getDependencies(MavenProject project) throws MavenExecutionException {
-		BundleDescription bundleDescription = state.getBundleDescription(project);
-		if (bundleDescription == null) {
-			return NO_DEPENDENCIES ;
-		}
+    public List<Dependency> getDependencies( MavenProject project, TychoSession session )
+        throws MavenExecutionException
+    {
+        BundleResolutionState state = session.getBundleResolutionState( project );
 
-		try {
-			state.assertResolved(bundleDescription);
-		} catch (BundleException e) {
-			throw new MavenExecutionException(e.getMessage(), project.getFile());
-		}
+        BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir() );
+        if ( bundleDescription == null )
+        {
+            return NO_DEPENDENCIES;
+        }
 
-		ArrayList<Dependency> result = new ArrayList<Dependency>();
+        try
+        {
+            state.assertResolved( bundleDescription );
+        }
+        catch ( BundleException e )
+        {
+            throw new MavenExecutionException( e.getMessage(), project.getFile() );
+        }
 
-		for (DependencyEntry entry : dependencyComputer.computeDependencies(bundleDescription)) {
-			BundleDescription supplier = entry.desc;
+        ArrayList<Dependency> result = new ArrayList<Dependency>();
 
-			MavenProject otherProject = state.getMavenProject(supplier);
-			
-			Dependency dependency;
-			if (otherProject != null) {
-				dependency = newProjectDependency(otherProject);
-			} else {
-				String groupId = EclipseMavenProjetBuilder.getGroupId(state, supplier);
-				String artifactId = supplier.getSymbolicName();
-				String version = supplier.getVersion().toString();
+        for ( DependencyEntry entry : dependencyComputer.computeDependencies( state, bundleDescription ) )
+        {
+            BundleDescription supplier = entry.desc;
 
-				dependency = newExternalDependency(supplier.getLocation(), groupId, artifactId, version);
-			}
+            MavenProject otherProject = session.getMavenProject( supplier.getLocation() );
 
-			if (dependency != null) {
-				result.add(dependency);
-			}
-		}
-		
-		return result;
-	}
+            Dependency dependency;
+            if ( otherProject != null )
+            {
+                dependency = newProjectDependency( otherProject );
+            }
+            else
+            {
+                String artifactId = supplier.getSymbolicName();
+                String version = supplier.getVersion().toString();
+
+                dependency = newExternalDependency( supplier.getLocation(), artifactId, version );
+            }
+
+            if ( dependency != null )
+            {
+                result.add( dependency );
+            }
+        }
+
+        return result;
+    }
+
+    public void addProject( TargetPlatformResolver resolver, MavenProject project )
+    {
+        resolver.addMavenProject( project.getBasedir(), ProjectType.OSGI_BUNDLE, project.getGroupId(),
+                                  project.getArtifactId(), project.getVersion() );
+    }
 }

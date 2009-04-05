@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.maven.plugin.testing.SilentLog;
 import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.tycho.osgitools.targetplatform.EclipseInstallationLayout;
 
@@ -24,8 +23,10 @@ public class EclipseInstallationLayoutTest extends PlexusTestCase {
 		assertTrue(sites.toString(), sites.contains(new File(targetPlatform, "../subclipse-1.3").getCanonicalFile()));
 	}
 
-	private EclipseInstallationLayout getPluginFinder(File location) {
-		return new EclipseInstallationLayout(new SilentLog(), location);
+	private EclipseInstallationLayout getPluginFinder(File location) throws Exception {
+	    EclipseInstallationLayout layout = lookup( EclipseInstallationLayout.class );
+	    layout.setLocation( location );
+		return layout;
 	}
 
 	public void testPlugins33() throws Exception {

@@ -12,6 +12,8 @@ import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.tycho.maven.EclipseMaven;
+import org.codehaus.tycho.maven.TychoMavenSession;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.ClasspathComputer;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
@@ -51,6 +53,8 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		setVariableValueToObject(mojo, "project", project);
 		setVariableValueToObject(mojo, "storage", storage);
 		setVariableValueToObject(mojo, "outputDirectory", new File(project.getBuild().getOutputDirectory()).getAbsoluteFile());
+        setVariableValueToObject(mojo, "session", new TychoMavenSession(getContainer(), null, null, null, ((EclipseMaven) maven).getTychoSession()));
+		
 		// tycho-compiler-jdt does not support forked compilation
 //		        setVariableValueToObject(mojo, "fork", fork? Boolean.TRUE: Boolean.FALSE);
 		return mojo;
@@ -81,7 +85,9 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		getMojo(projects.get(3)).execute();
 
 		MavenProject project = projects.get(4);
-		List<String> cp = getMojo(project).getClasspathElements();
+		AbstractOsgiCompilerMojo mojo = getMojo(project);
+		mojo.initializeProjectContext();
+        List<String> cp = mojo.getClasspathElements();
 		assertEquals(4, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*:-**/*]"), cp.get(1));
@@ -99,20 +105,26 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		// simple project
 		project = projects.get(1);
-		cp = getMojo(project).getClasspathElements();
+		AbstractOsgiCompilerMojo mojo = getMojo(project);
+		mojo.initializeProjectContext();
+        cp = mojo.getClasspathElements();
 		assertEquals(1, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 
 		// project with nested lib
 		project = projects.get(2);
-		cp = getMojo(project).getClasspathElements();
+		mojo = getMojo(project);
+        mojo.initializeProjectContext();
+		cp = mojo.getClasspathElements();
 		assertEquals(2, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(project.getBasedir(), "lib/lib.jar", ""), cp.get(1));
 
 		// project with external dependency with nested jar
 		project = projects.get(3);
-		cp = getMojo(project).getClasspathElements();
+		mojo = getMojo(project);
+        mojo.initializeProjectContext();
+		cp = mojo.getClasspathElements();
 		assertEquals(3, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "src/test/resources/projects/classpath/platform/plugins/p003_0.0.1.jar", "[-**/*]"), cp.get(1));

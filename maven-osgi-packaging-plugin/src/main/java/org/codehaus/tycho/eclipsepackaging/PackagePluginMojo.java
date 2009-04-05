@@ -12,9 +12,7 @@ import java.util.jar.Manifest;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.osgitools.OsgiState;
@@ -28,19 +26,13 @@ import org.osgi.framework.Version;
  * 
  * @goal package-plugin
  */
-public class PackagePluginMojo extends AbstractMojo {
+public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 
 	/**
 	 * @parameter expression="${project.build.directory}"
 	 * @required
 	 */
 	protected File buildDirectory;
-
-	/**
-	 * @parameter expression="${project}"
-	 * @required
-	 */
-	protected MavenProject project;
 
 	protected EclipsePluginProject pdeProject;
 
@@ -80,13 +72,10 @@ public class PackagePluginMojo extends AbstractMojo {
 	 */
 	protected String qualifier;
 
-	/** @component */
-	protected OsgiState state;
-
-	private VersionExpander versionExpander = new VersionExpander();
-
 	public void execute() throws MojoExecutionException {
-		pdeProject = state.getEclipsePluginProject(project);
+	    initializeProjectContext();
+	    
+		pdeProject = tychoSession.getEclipsePluginProject( project );
 
 		createSubJars();
 
@@ -162,11 +151,9 @@ public class PackagePluginMojo extends AbstractMojo {
 
 	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 
 	{
-		BundleDescription bundle = state.getBundleDescription(project);
+		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
 		Version version = bundle.getVersion();
 
-		versionExpander.validateVersion(project, version);
-		
 		File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
 
 		InputStream is = new FileInputStream(mfile);
@@ -178,11 +165,11 @@ public class PackagePluginMojo extends AbstractMojo {
 		}
 		Attributes attributes = mf.getMainAttributes();
 
-		if (versionExpander.isSnapshotVersion(version)) {
-			Version expandedVersion = versionExpander.expandVersion(version, qualifier);
+		if (VersionExpander.isSnapshotVersion(version)) {
+			String expandedVersion = VersionExpander.expandVersion(version, qualifier).toString();
 
-			attributes.putValue("Bundle-Version", expandedVersion.toString());
-			state.setFinalVersion(bundle, expandedVersion);
+			attributes.putValue("Bundle-Version", expandedVersion);
+			VersionExpander.setExpandedVersion(tychoSession, bundle.getLocation(), expandedVersion);
 		}
 
 		attributes.putValue(OsgiState.ATTR_GROUP_ID, project.getGroupId());

@@ -14,7 +14,6 @@
   <modules>
     <module>maven-tycho-plugin</module>
     <module>maven-osgi-lifecycle-plugin</module>
-    <module>maven-targetplatform-plugin</module>
     <module>maven-osgi-packaging-plugin</module>
     <module>maven-osgi-compiler-plugin</module>
     <module>maven-osgi-source-plugin</module>
@@ -25,7 +24,7 @@
   </modules>
 
   <properties>
-    <tycho-p2-runtime-version>${project.version}</tycho-p2-runtime-version>
+    <tycho-p2.version>0.0.3-SNAPSHOT</tycho-p2.version>
 
     <!-- copy&paste from maven/pom.xml file. I wish import scope worked in 3.0 -->
     <aspectjVersion>1.5.3</aspectjVersion>
@@ -34,7 +33,7 @@
     <doxiaVersion>1.0-alpha-9</doxiaVersion>
     <easyMockVersion>1.2_Java1.3</easyMockVersion>
     <junitVersion>3.8.1</junitVersion>
-    <plexusVersion>1.0-beta-3.0.4</plexusVersion>
+    <plexusVersion>1.0-beta-3.0.6</plexusVersion>
     <plexusInteractivityVersion>1.0-alpha-6</plexusInteractivityVersion>
     <plexusInterpolationVersion>1.1</plexusInterpolationVersion>
     <plexusPluginManagerVersion>1.0-alpha-1</plexusPluginManagerVersion>
@@ -105,7 +104,8 @@
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
-        <version>3.4.0.v20080605-1900</version>
+        <!--  eclipse 3.5M6 -->
+        <version>3.5.0.v20090311-1300</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse</groupId>
@@ -388,12 +388,10 @@
         </property>
       </activation>
       <modules>
-        <module>tycho-p2-app</module>
         <module>maven-osgi-test-plugin</module>
         <module>tycho-surefire-osgi-booter</module>
 	    <module>tycho-surefire-junit</module>
 	    <module>tycho-surefire-junit4</module>
-        <module>tycho-p2-runtime</module>
       </modules>
     </profile>
 
@@ -423,7 +421,7 @@
             <artifactId>maven-version-plugin</artifactId>
             <version>1.0</version>
             <configuration>
-              <newVersion>0.3.0-DEV-${buildNumber}</newVersion>
+              <newVersion>0.4.0-DEV-${buildNumber}</newVersion>
               <artifactId>${project.artifactId}</artifactId>
             </configuration>
           </plugin>

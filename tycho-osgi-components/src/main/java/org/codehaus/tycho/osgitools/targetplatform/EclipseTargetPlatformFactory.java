@@ -88,23 +88,23 @@ public class EclipseTargetPlatformFactory extends AbstractLogEnabled {
 	}
 
 	public void createTargetPlatform(OsgiState state, File installation) {
-		state.setTargetPlatform(installation);
-
-		EclipseInstallationLayout finder = new EclipseInstallationLayout(getLogger(), installation);
-		Set<File> sites = finder.getSites();
-		for (File site : sites) {
-			Set<File> features = finder.getFeatures(site);
-			Set<File> bundles = finder.getPlugins(site);
-			state.addSite(site, features, bundles);
-		}
+//		state.setTargetPlatform(installation);
+//
+//		EclipseInstallationLayout finder = new EclipseInstallationLayout(getLogger(), installation);
+//		Set<File> sites = finder.getSites();
+//		for (File site : sites) {
+//			Set<File> features = finder.getFeatures(site);
+//			Set<File> bundles = finder.getPlugins(site);
+//			state.addSite(site, features, bundles);
+//		}
 	}
 
 	private void addExtensionLocation(OsgiState state, File location) {
-		EclipseInstallationLayout finder = new EclipseInstallationLayout(getLogger(), location);
-
-		Set<File> features = finder.getFeatures(location);
-		Set<File> bundles = finder.getPlugins(location);
-		state.addSite(location, features, bundles);
+//		EclipseInstallationLayout finder = new EclipseInstallationLayout(getLogger(), location);
+//
+//		Set<File> features = finder.getFeatures(location);
+//		Set<File> bundles = finder.getPlugins(location);
+//		state.addSite(location, features, bundles);
 	}
 
 	private void resolveFeature(Artifact artifact, Set<File> features, Set<File> bundles, List<ArtifactRepository> remoteRepositories, ArtifactRepository localRepository) throws AbstractArtifactResolutionException, IOException, XmlPullParserException {

@@ -25,6 +25,12 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.plexus.PlexusConstants;
+import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.context.Context;
+import org.codehaus.plexus.context.ContextException;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -33,6 +39,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -42,13 +49,10 @@ import org.osgi.framework.BundleException;
  * @goal generate-poms
  * @requiresProject false
  */
-public class GeneratePomsMojo extends AbstractMojo {
+public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 
 	/** reference to real pom.xml in aggregator poma.xml */
 	private static final String THIS_MODULE = ".";
-
-	/** @component */
-	private OsgiState state;
 
 	/**
 	 * @parameter expression="${baseDir}" default-value="${basedir}"
@@ -119,6 +123,10 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private Map<File, Model> updateSites = new LinkedHashMap<File, Model>();
 
+    private PlexusContainer plexus;
+
+    private EquinoxBundleResolutionState state;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		List<File> baseDirs = getBaseDirs();
 		if (getLog().isDebugEnabled()) {
@@ -160,23 +168,21 @@ public class GeneratePomsMojo extends AbstractMojo {
 			}
 			getLog().debug(sb.toString());
 		}
-		
-		// add all bundles to osgi state
+
 		for (File dir : candidateDirs) {
 			if (isPluginProject(dir)) {
 				try {
-					state.addBundle(dir);
+				    state.addBundle( dir, false );
 				} catch (BundleException e) {
 					getLog().debug("Exception prescanning OSGi bundles", e);
 				}
 			}
 		}
-		state.resolveState();
 
 		// testSuite
 		File testSuiteLocation = null;
 		if (testSuite != null) {
-			BundleDescription bundle = state.getBundleDescription(testSuite, OsgiState.HIGHEST_VERSION);
+			BundleDescription bundle = state.getBundle(testSuite, OsgiState.HIGHEST_VERSION);
 			if (bundle != null) {
 				try {
 					testSuiteLocation = new File(bundle.getLocation()).getCanonicalFile();
@@ -319,7 +325,6 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private void generateAggregatorPoms(File testSuiteLocation) throws MojoExecutionException {
-		state.resolveState();
 		for (Entry<File, Model> updateSite : updateSites.entrySet()) {
 			File basedir = updateSite.getKey();
 			Model parent = updateSite.getValue();
@@ -488,13 +493,13 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private void addPluginImpl(Set<File> result, File basedir) throws MojoExecutionException {
 		if (result.add(basedir)) {
-			BundleDescription bundle = state.getBundleDescription(basedir);
+			BundleDescription bundle = state.getBundleByLocation(basedir);
 			if (bundle != null) { 
 				try {
 					state.assertResolved(bundle);
-					BundleDescription[] requiredBundles = state.getDependencies(bundle);
-					for (int i = 0; i < requiredBundles.length; i++) {
-						BundleDescription supplier = requiredBundles[i].getSupplier().getSupplier();
+					List<BundleDescription> requiredBundles = state.getDependencies(bundle);
+					for (int i = 0; i < requiredBundles.size(); i++) {
+						BundleDescription supplier = requiredBundles.get(i).getSupplier().getSupplier();
 						File suppliedDir = new File(supplier.getLocation());
 						if (supplier.getHost() == null && isModuleDir(suppliedDir)) {
 							addPlugin(result, suppliedDir.getName());
@@ -583,8 +588,8 @@ public class GeneratePomsMojo extends AbstractMojo {
 
 	private void generatePluginPom(Model parent, File basedir) throws MojoExecutionException {
 		try {
-			BundleDescription bundleDescription = state.addBundle(basedir);
-			String groupId = state.getGroupId(bundleDescription);
+			BundleDescription bundleDescription = state.addBundle(basedir, false);
+			String groupId = state.getManifestAttribute( bundleDescription, OsgiState.ATTR_GROUP_ID );
 
 			Model model;
 			if ( (testSuffix != null && basedir.getName().endsWith(testSuffix)) 
@@ -656,5 +661,17 @@ public class GeneratePomsMojo extends AbstractMojo {
 			throw new MojoExecutionException("Can't read pom.xml template " + name, e);
 		}
 	}
+
+	public void contextualize(Context ctx) throws ContextException {
+        plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
+        try
+        {
+            state = (EquinoxBundleResolutionState) plexus.lookup(BundleResolutionState.class);
+        }
+        catch ( ComponentLookupException e )
+        {
+            throw new ContextException("Could not lookup required component", e);
+        }
+    }
 
 }

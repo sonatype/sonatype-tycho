@@ -44,8 +44,6 @@ import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.features.FeatureDescriptionImpl;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
-import org.codehaus.tycho.osgitools.utils.ExecutionEnvironmentUtils;
-import org.codehaus.tycho.osgitools.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -60,13 +58,15 @@ import org.eclipse.osgi.service.resolver.VersionConstraint;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.sonatype.tycho.ExecutionEnvironmentUtils;
+import org.sonatype.tycho.PlatformPropertiesUtils;
 
 import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 
 @SuppressWarnings("unchecked")
 @Component( role = OsgiState.class )
 public class OsgiStateController extends AbstractLogEnabled implements OsgiState {
-	
+
 	/** maven project bundle user property */
 	private static final String PROP_MAVEN_PROJECT = "MavenProject";
 
@@ -74,7 +74,7 @@ public class OsgiStateController extends AbstractLogEnabled implements OsgiState
 	private static final String PROP_ECLIPSE_PLUGIN_PROJECT = "EclipsePluginProject";
 
 	private static final String PROP_MANIFEST = "BundleManifest";
-	
+
 	private static final String PROP_FINAL_VERSION = "FinalVersion";
 
 	private StateObjectFactory factory = StateObjectFactory.defaultFactory;

@@ -40,6 +40,7 @@
       <includes>
         <include>org.codehaus.tycho:tycho-osgi-components</include>
         <include>org.eclipse:org.eclipse.osgi</include>
+        <include>org.sonatype.tycho:tycho-p2-facade</include>
       </includes>
     </dependencySet>
   </dependencySets>

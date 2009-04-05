@@ -15,22 +15,12 @@
   <fileSets>
     <fileSet>
       <directory>target/dependency/tycho-p2-runtime/plugins</directory>
-      <outputDirectory>/p2/eclipse/plugins</outputDirectory>
+      <outputDirectory>/p2/plugins</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>src/p2</directory>
-      <outputDirectory>/p2/eclipse</outputDirectory>
+      <directory>target/dependency/tycho-p2-runtime/configuration</directory>
+      <outputDirectory>/p2/configuration</outputDirectory>
     </fileSet>
   </fileSets>
-
-  <dependencySets>
-    <dependencySet>
-      <outputDirectory>p2/eclipse/plugins</outputDirectory>
-      <outputFileNameMapping>org.codehaus.tycho.p2_1.0.0.jar</outputFileNameMapping>
-      <includes>
-        <include>org.codehaus.tycho:tycho-p2-app</include>
-      </includes>
-    </dependencySet>
-  </dependencySets>
 
 </assembly>

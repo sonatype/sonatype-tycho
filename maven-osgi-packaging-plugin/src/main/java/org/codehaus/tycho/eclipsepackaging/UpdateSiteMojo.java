@@ -18,21 +18,15 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.jar.JarSignMojo;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
@@ -46,10 +40,7 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 /**
  * @goal update-site
  */
-public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
-
-	/** @component */
-	private OsgiState state;
+public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 
 	/** @component */
 	private org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
@@ -75,16 +66,8 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	/** @parameter expression="${project.basedir}" */
 	private File basedir;
 
-	private PlexusContainer plexus;
-
 	/** @parameter */
 	private boolean inlineArchives;
-
-	/**
-	 * @parameter expression="${project}"
-	 * @required
-	 */
-	protected MavenProject project;
 	
 	/**
 	 * When true you must inform the following parameters too:
@@ -131,6 +114,8 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	
 	
 	public void execute() throws MojoExecutionException, MojoFailureException {
+	    initializeProjectContext();
+	    
 		target.mkdirs();
 
 		try {
@@ -166,21 +151,21 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			featureVersion = OsgiState.HIGHEST_VERSION;
 		}
 
-		FeatureDescription feature = state.getFeatureDescription(featureId, featureVersion);
+		FeatureDescription feature = featureResolutionState.getFeature(featureId, featureVersion);
 
 		if (feature == null) { 
 			throw new ArtifactResolutionException("Feature " + featureId + " not found", "", featureId, featureVersion, "eclipse-feature", null, null)  ;
 		}
 
 		String artifactId = feature.getId();
-		String version = state.getFinalVersion(feature).toString();
+		String version = VersionExpander.getExpandedVersion(tychoSession, feature);
 
 		String url = "features/" + artifactId + "_" + version + ".jar";
 		File outputJar = new File(target, url);
 
 		if (!outputJar.canRead()) {
 
-			MavenProject featureProject = state.getMavenProject(feature);
+			MavenProject featureProject = tychoSession.getMavenProject(feature.getLocation());
 			Properties props = new Properties();
 			if (featureProject != null) {
 				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
@@ -312,11 +297,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 	}
 
 	private Artifact getSourceBundle(String bundleId, String bundleVersion) throws MojoExecutionException, ArtifactResolutionException, ArtifactNotFoundException {
-		BundleDescription bundle = state.getBundleDescription(bundleId, bundleVersion);
+		BundleDescription bundle = bundleResolutionState.getBundle(bundleId, bundleVersion);
 		if (bundle == null) {
 			throw new MojoExecutionException("Can't find bundle " + bundleId);
 		}
-		MavenProject bundleProject = state.getMavenProject(bundle);
+		MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
 
 		//resolve source artifact
 		Artifact bundleSourceArtifact = artifactFactory.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), "jar", "sources");
@@ -331,11 +316,11 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			bundleVersion = OsgiState.HIGHEST_VERSION;
 		}
 		
-		BundleDescription bundle = state.getBundleDescription(pluginRef.getId(), bundleVersion);
+		BundleDescription bundle = bundleResolutionState.getBundle(pluginRef.getId(), bundleVersion);
 		if (bundle == null) {
 			throw new MojoExecutionException("Can't find bundle " + pluginRef.getId());
 		}
-		MavenProject bundleProject = state.getMavenProject(bundle);
+		MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
 		
 		return bundleProject.getVersion();
 	}
@@ -367,13 +352,13 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			version = OsgiState.HIGHEST_VERSION;
 		}
 
-		BundleDescription bundle = state.getBundleDescription(bundleId, version);
+		BundleDescription bundle = bundleResolutionState.getBundle(bundleId, version);
 		if (bundle == null) {
 			throw new MojoExecutionException("Can't find bundle " + bundleId);
 		}
 
 		File file;
-		MavenProject bundleProject = state.getMavenProject(bundle);
+		MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
 		if (bundleProject != null) {
 			file = bundleProject.getArtifact().getFile();
 			if (file.isDirectory()) {
@@ -383,7 +368,7 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 			file = new File(bundle.getLocation());
 		}
 
-		String bundleVersion = state.getFinalVersion(bundle).toString();
+		String bundleVersion = VersionExpander.getExpandedVersion(tychoSession, bundle);
 
 		String url = "plugins/" + bundleId + "_" + bundleVersion + ".jar";
 		File outputJar = new File(target, url);
@@ -454,10 +439,6 @@ public class UpdateSiteMojo extends AbstractMojo implements Contextualizable {
 		sign.setVerbose(false);
 		sign.setVerify(false);
 		sign.execute();
-	}
-
-	public void contextualize(Context ctx) throws ContextException {
-		plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
 	}
 
 }

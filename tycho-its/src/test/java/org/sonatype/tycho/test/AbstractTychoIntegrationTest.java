@@ -48,6 +48,8 @@ public abstract class AbstractTychoIntegrationTest {
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( getLocalRepo() );
         
+        verifier.getCliOptions().add("-Dp2-runtimeLocation=" + getTychoHome() + "/p2");
+        
         String m2eState = System.getProperty("m2eclipse.workspace.state");
         String m2eResolver = System.getProperty("m2eclipse.workspace.resolver");
 
