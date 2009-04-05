@@ -13,7 +13,6 @@ import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.features.FeatureDescriptionImpl;
 import org.osgi.framework.Version;
@@ -105,7 +104,7 @@ public class FeatureResolutionState
             return null;
         }
 
-        if ( version == null || version == OsgiState.HIGHEST_VERSION )
+        if ( version == null || version == TychoConstants.HIGHEST_VERSION )
         {
             return features.get( features.firstKey() ); // latest version
         }

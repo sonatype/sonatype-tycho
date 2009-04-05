@@ -12,6 +12,7 @@ import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.FeatureResolutionState;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
@@ -90,6 +91,6 @@ public abstract class AbstractDependenciesReader extends AbstractLogEnabled impl
 	}
 
 	private String getPluginVersion(String version) {
-		return version == null || "0.0.0".equals(version) ? OsgiState.HIGHEST_VERSION : version;
+		return version == null || "0.0.0".equals(version) ? TychoConstants.HIGHEST_VERSION : version;
 	}
 }

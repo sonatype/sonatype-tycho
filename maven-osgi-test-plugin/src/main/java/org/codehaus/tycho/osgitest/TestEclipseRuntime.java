@@ -17,8 +17,8 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 import org.sonatype.tycho.ProjectType;
@@ -63,12 +63,12 @@ public class TestEclipseRuntime
 
     private boolean shouldUseP2()
     {
-        return resolver.getBundle( "org.eclipse.equinox.simpleconfigurator", OsgiState.HIGHEST_VERSION ) != null;
+        return resolver.getBundle( "org.eclipse.equinox.simpleconfigurator", TychoConstants.HIGHEST_VERSION ) != null;
     }
 
     private boolean shouldUseUpdateManager()
     {
-        return resolver.getBundle( "org.eclipse.update.configurator", OsgiState.HIGHEST_VERSION ) != null;
+        return resolver.getBundle( "org.eclipse.update.configurator", TychoConstants.HIGHEST_VERSION ) != null;
     }
 
     private void createBundlesInfoFile( File target )
@@ -101,7 +101,7 @@ public class TestEclipseRuntime
             }
             sb.append( '\n' );
         }
-        fileWrite( new File( target, OsgiState.BUNDLES_INFO_PATH ), sb.toString() );
+        fileWrite( new File( target, TychoConstants.BUNDLES_INFO_PATH ), sb.toString() );
     }
 
     private void createPlatformXmlFile( File work )
@@ -243,7 +243,7 @@ public class TestEclipseRuntime
             if ( url != null )
             {
                 File file;
-                BundleDescription desc = resolver.getBundle( url, OsgiState.HIGHEST_VERSION );
+                BundleDescription desc = resolver.getBundle( url, TychoConstants.HIGHEST_VERSION );
                 if ( desc != null )
                 {
                     url = "file:" + new File( desc.getLocation() ).getAbsolutePath().replace( '\\', '/' );
@@ -265,7 +265,7 @@ public class TestEclipseRuntime
             }
 
             new File( location, "configuration" ).mkdir();
-            FileOutputStream fos = new FileOutputStream( new File( location, OsgiState.CONFIG_INI_PATH ) );
+            FileOutputStream fos = new FileOutputStream( new File( location, TychoConstants.CONFIG_INI_PATH ) );
             try
             {
                 p.store( fos, null );

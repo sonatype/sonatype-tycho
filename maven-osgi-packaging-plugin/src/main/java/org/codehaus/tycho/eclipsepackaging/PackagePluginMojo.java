@@ -15,7 +15,7 @@ import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.tycho.osgitools.OsgiState;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -172,8 +172,8 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			VersionExpander.setExpandedVersion(tychoSession, bundle.getLocation(), expandedVersion);
 		}
 
-		attributes.putValue(OsgiState.ATTR_GROUP_ID, project.getGroupId());
-		attributes.putValue(OsgiState.ATTR_BASE_VERSION, project.getVersion());
+		attributes.putValue(TychoConstants.ATTR_GROUP_ID, project.getGroupId());
+		attributes.putValue(TychoConstants.ATTR_BASE_VERSION, project.getVersion());
 
 		mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
 		mfile.getParentFile().mkdirs();

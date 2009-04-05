@@ -19,11 +19,11 @@ import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.Feature.FeatureRef;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
@@ -350,7 +350,7 @@ public class ProductExportMojo extends AbstractTychoPackagingMojo {
 		getLog().debug("Copying plugin " + bundleId + "_" + bundleVersion);
 
 		if (bundleVersion == null || "0.0.0".equals(bundleVersion)) {
-			bundleVersion = OsgiState.HIGHEST_VERSION;
+			bundleVersion = TychoConstants.HIGHEST_VERSION;
 		}
 
 		BundleDescription bundle = bundleResolutionState.getBundle(bundleId,

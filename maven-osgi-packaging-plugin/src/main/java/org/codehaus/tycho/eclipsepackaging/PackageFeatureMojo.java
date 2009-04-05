@@ -19,10 +19,10 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
@@ -150,7 +150,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 			String bundleVersion = pluginRef.getVersion();
 
 			if ("0.0.0".equals(bundleVersion)) {
-				bundleVersion = OsgiState.HIGHEST_VERSION;
+				bundleVersion = TychoConstants.HIGHEST_VERSION;
 			}
 
 			BundleDescription bundle = bundleResolutionState.getBundle(bundleId, bundleVersion);
@@ -165,7 +165,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
             if (bundleProject != null) {
                 pluginGroupId = bundleProject.getGroupId();
             } else {
-                pluginGroupId = bundleResolutionState.getManifestAttribute( bundle, OsgiState.ATTR_GROUP_ID );
+                pluginGroupId = bundleResolutionState.getManifestAttribute( bundle, TychoConstants.ATTR_GROUP_ID );
             }
 
 			if (pluginGroupId != null) {
@@ -269,7 +269,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 	}
 
 	private void generateSourceFeature(String baseFeatureId, String sourceFeature) throws MojoExecutionException {
-		FeatureDescription baseFeature = featureResolutionState.getFeature(baseFeatureId,	OsgiState.HIGHEST_VERSION);
+		FeatureDescription baseFeature = featureResolutionState.getFeature(baseFeatureId,	TychoConstants.HIGHEST_VERSION);
 		if (baseFeature == null) {
 			getLog().warn("Base feature not found: " + baseFeatureId);
 			return;

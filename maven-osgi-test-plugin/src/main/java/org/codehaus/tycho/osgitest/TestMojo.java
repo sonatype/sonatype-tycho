@@ -32,9 +32,9 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.TychoMavenSession;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 import org.sonatype.tycho.TargetPlatform;
@@ -223,7 +223,7 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 				throw new MojoExecutionException("Both testSuite and testClass must be provided or both should be null");
 			}
 
-			BundleDescription desc = bundleResolutionState.getBundle(testSuite, OsgiState.HIGHEST_VERSION);
+			BundleDescription desc = bundleResolutionState.getBundle(testSuite, TychoConstants.HIGHEST_VERSION);
 			MavenProject suite = tychoSession.getMavenProject(desc.getLocation());
 
 			if (suite == null) {
@@ -452,7 +452,7 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 			//return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
 			// assume eclipse 3.3 or 3.4
-			BundleDescription launcher = bundleResolutionState.getBundle("org.eclipse.equinox.launcher", OsgiState.HIGHEST_VERSION);
+			BundleDescription launcher = bundleResolutionState.getBundle("org.eclipse.equinox.launcher", TychoConstants.HIGHEST_VERSION);
 			return new File(launcher.getLocation()).getCanonicalFile();
 		}
 	}

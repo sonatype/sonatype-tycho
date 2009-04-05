@@ -29,11 +29,11 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.IFeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
@@ -148,7 +148,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		String featureVersion = featureRef.getVersion();
 
 		if ("0.0.0".equals(featureVersion)) {
-			featureVersion = OsgiState.HIGHEST_VERSION;
+			featureVersion = TychoConstants.HIGHEST_VERSION;
 		}
 
 		FeatureDescription feature = featureResolutionState.getFeature(featureId, featureVersion);
@@ -313,7 +313,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		String bundleVersion = pluginRef.getVersion();
 		
 		if ("0.0.0".equals(bundleVersion)) {
-			bundleVersion = OsgiState.HIGHEST_VERSION;
+			bundleVersion = TychoConstants.HIGHEST_VERSION;
 		}
 		
 		BundleDescription bundle = bundleResolutionState.getBundle(pluginRef.getId(), bundleVersion);
@@ -349,7 +349,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		}
 
 		if ("0.0.0".equals(version)) {
-			version = OsgiState.HIGHEST_VERSION;
+			version = TychoConstants.HIGHEST_VERSION;
 		}
 
 		BundleDescription bundle = bundleResolutionState.getBundle(bundleId, version);

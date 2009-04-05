@@ -7,14 +7,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.Mojo;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
@@ -25,8 +23,6 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		OsgiState state = (OsgiState) lookup(OsgiState.class);
-		state.reset(new Properties());
 	}
 
 	private void generate(File baseDir, Map<String, Object> params) throws Exception {

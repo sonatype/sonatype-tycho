@@ -40,7 +40,6 @@ import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
-import org.codehaus.tycho.osgitools.OsgiState;
 import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
@@ -182,7 +181,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 		// testSuite
 		File testSuiteLocation = null;
 		if (testSuite != null) {
-			BundleDescription bundle = state.getBundle(testSuite, OsgiState.HIGHEST_VERSION);
+			BundleDescription bundle = state.getBundle(testSuite, TychoConstants.HIGHEST_VERSION);
 			if (bundle != null) {
 				try {
 					testSuiteLocation = new File(bundle.getLocation()).getCanonicalFile();
@@ -589,7 +588,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 	private void generatePluginPom(Model parent, File basedir) throws MojoExecutionException {
 		try {
 			BundleDescription bundleDescription = state.addBundle(basedir, false);
-			String groupId = state.getManifestAttribute( bundleDescription, OsgiState.ATTR_GROUP_ID );
+			String groupId = state.getManifestAttribute( bundleDescription, TychoConstants.ATTR_GROUP_ID );
 
 			Model model;
 			if ( (testSuffix != null && basedir.getName().endsWith(testSuffix)) 
