@@ -64,7 +64,7 @@ public class BuildQualifierMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
-     * @parameter default-value="${project.baseDir}/build.properties"
+     * @parameter default-value="${project.basedir}/build.properties"
      */
     private File buildPropertiesFile;
 
@@ -78,8 +78,13 @@ public class BuildQualifierMojo extends AbstractMojo {
     }
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
+	    if (project.getProperties().containsKey(BUILD_QUALIFIER_PROPERTY)) {
+	        // project has explicit buildQualifier property 
+	        return;
+	    }
+
 		String qualifier = forceContextQualifier;
-		
+
 		if (qualifier == null) {
 			qualifier = getBuildProperties().getProperty("forceContextQualifier");
 		}
@@ -87,7 +92,6 @@ public class BuildQualifierMojo extends AbstractMojo {
 		if (qualifier == null) {
 			Date timestamp = getSessionTimestamp();
 			qualifier = format.format(timestamp);
-			
 		}
 
 		project.getProperties().put(BUILD_QUALIFIER_PROPERTY, qualifier);
