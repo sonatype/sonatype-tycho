@@ -54,6 +54,8 @@ public class LocalTargetPlatformResolver
 
         for ( File site : layout.getSites() )
         {
+            platform.addSite( site );
+
             for ( File plugin : layout.getPlugins( site ) )
             {
                 platform.addArtifactFile( ProjectType.OSGI_BUNDLE, plugin );
@@ -65,14 +67,28 @@ public class LocalTargetPlatformResolver
             }
         }
 
+        File parentDir = null;
+
         for ( Map.Entry<File, String> entry : projects.entrySet() )
         {
             platform.addArtifactFile( entry.getValue(), entry.getKey() );
+
+            if ( parentDir == null || isSubdir( entry.getKey(), parentDir ) )
+            {
+                parentDir = entry.getKey();
+            }
         }
+        
+        platform.addSite( parentDir );
 
         platform.setProperties( properties );
 
         return platform;
+    }
+
+    private boolean isSubdir( File parent, File child )
+    {
+        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
     }
 
     public void setLocalRepositoryLocation( File lcoation )

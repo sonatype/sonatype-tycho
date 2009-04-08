@@ -51,7 +51,7 @@ public class Tycho03TargetPlatformResolver
     private List<MavenProject> projects;
 
     private ArtifactRepository localRepository;
-    
+
     private TargetPlatform platform;
 
     private Properties properties;
@@ -83,25 +83,26 @@ public class Tycho03TargetPlatformResolver
 
     private DefaultTargetPlatform resolvePlatform()
     {
+        Set<File> sites = new LinkedHashSet<File>();
         Set<File> features = new LinkedHashSet<File>();
         Set<File> bundles = new LinkedHashSet<File>();
 
         File installation = getEclipseInstallation( projects );
         if ( installation != null )
         {
-            addEclipseInstallation( installation, features, bundles );
+            addEclipseInstallation( installation, sites, features, bundles );
         }
         Set<File> extensionLocations = getEclipseLocations( projects, ProjectType.ECLIPSE_EXTENSION_LOCATION, false );
         for ( File extensionLocation : extensionLocations )
         {
-            addEclipseInstallation( extensionLocation, features, bundles );
+            addEclipseInstallation( extensionLocation, sites, features, bundles );
         }
 
         Map<Artifact, Exception> exceptions = new HashMap<Artifact, Exception>();
 
         for ( MavenProject project : projects )
         {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings( "unchecked" )
             Map<String, Artifact> versionMap = project.getManagedVersionMap();
             if ( versionMap != null )
             {
@@ -130,6 +131,13 @@ public class Tycho03TargetPlatformResolver
 
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
+        for ( File site : sites )
+        {
+            platform.addSite( site );
+        }
+
+        platform.addSite( new File( localRepository.getBasedir() ) );
+
         for ( File feature : features )
         {
             platform.addArtifactFile( ProjectType.ECLIPSE_FEATURE, feature );
@@ -140,17 +148,31 @@ public class Tycho03TargetPlatformResolver
             platform.addArtifactFile( ProjectType.OSGI_BUNDLE, bundle );
         }
 
+        File parentDir = null;
+
         for ( MavenProject project : projects )
         {
             platform.addArtifactFile( project.getPackaging(), project.getBasedir() );
+
+            if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
+            {
+                parentDir = project.getBasedir();
+            }
         }
-        
+
+        platform.addSite( parentDir );
+
         platform.setProperties( properties );
 
         return platform;
     }
 
-    private void addEclipseInstallation( File location, Set<File> features, Set<File> bundles )
+    private boolean isSubdir( File parent, File child )
+    {
+        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
+    }
+
+    private void addEclipseInstallation( File location, Set<File> sites, Set<File> features, Set<File> bundles )
     {
         EclipseInstallationLayout layout;
         try
@@ -166,6 +188,8 @@ public class Tycho03TargetPlatformResolver
 
         for ( File site : layout.getSites() )
         {
+            sites.add( site );
+
             for ( File feature : layout.getFeatures( site ) )
             {
                 features.add( feature );

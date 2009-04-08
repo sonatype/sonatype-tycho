@@ -24,7 +24,7 @@
   </modules>
 
   <properties>
-    <tycho-p2.version>0.0.3-SNAPSHOT</tycho-p2.version>
+    <tycho-p2.version>0.3.0-SNAPSHOT</tycho-p2.version>
 
     <!-- copy&paste from maven/pom.xml file. I wish import scope worked in 3.0 -->
     <aspectjVersion>1.5.3</aspectjVersion>
@@ -285,6 +285,14 @@
           <version>2.4.3</version>
           <configuration>
             <useSystemClassLoader>false</useSystemClassLoader>
+            <!--
+            <systemProperties>
+              <property>
+                <name>p2-runtimeLocation</name>
+                <value>/workspaces/tycho-dev/tycho-p2/tycho-p2-runtime/target/product</value>
+              </property>
+            </systemProperties>
+            -->
           </configuration>
         </plugin>
         <plugin>

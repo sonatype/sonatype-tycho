@@ -5,19 +5,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
@@ -28,6 +31,8 @@ public class TestEclipseRuntime
     extends AbstractLogEnabled
     implements TargetPlatform
 {
+
+    private Set<File> sites = new LinkedHashSet<File>();
 
     private ArrayList<File> bundles;
 
@@ -42,13 +47,30 @@ public class TestEclipseRuntime
     public void initialize()
     {
         this.bundles = new ArrayList<File>();
-        bundles.addAll( sourcePlatform.getArtifactFiles( ProjectType.OSGI_BUNDLE ) );
-        bundles.addAll( sourcePlatform.getArtifactFiles( ProjectType.ECLIPSE_TEST_PLUGIN ) );
+        bundles.addAll( sourcePlatform.getArtifactFiles( ProjectType.OSGI_BUNDLE, ProjectType.ECLIPSE_TEST_PLUGIN ) );
+
+        sites.addAll( sourcePlatform.getSites() );
     }
 
-    public List<File> getArtifactFiles( String type )
+    public List<File> getArtifactFiles( String... types )
     {
-        return bundles;
+        if ( isBundle( types ) )
+        {
+            return bundles;
+        }
+        return sourcePlatform.getArtifactFiles( types );
+    }
+
+    private boolean isBundle( String[] types )
+    {
+        for ( String type : types )
+        {
+            if ( ProjectType.OSGI_BUNDLE.equals( type ) || ProjectType.ECLIPSE_TEST_PLUGIN.equals( type ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Properties getProperties()
@@ -107,7 +129,40 @@ public class TestEclipseRuntime
     private void createPlatformXmlFile( File work )
         throws IOException
     {
-        // throw new UnsupportedOperationException(); // XXX
+        Platform platform = new Platform();
+
+        Map<String, List<String>> sitePlugins = new LinkedHashMap<String, List<String>>();
+        Map<String, List<Platform.Feature>> siteFeatures = new LinkedHashMap<String, List<Platform.Feature>>();
+
+        for ( File bundle : bundles )
+        {
+            String siteUrl = getSiteUrl( bundle );
+            if ( siteUrl == null )
+            {
+                throw new RuntimeException( "Can't determine site for bundle at " + bundle.getAbsolutePath() );
+            }
+            List<String> plugins = sitePlugins.get( siteUrl );
+            if ( plugins == null )
+            {
+                plugins = new ArrayList<String>();
+                sitePlugins.put( siteUrl, plugins );
+            }
+            plugins.add( getRelativeUrl( siteUrl, bundle ) );
+        }
+
+        Set<String> sites = new LinkedHashSet<String>();
+        sites.addAll( sitePlugins.keySet() );
+        sites.addAll( siteFeatures.keySet() );
+        for ( String siteUrl : sites )
+        {
+            Platform.Site site = new Platform.Site( siteUrl );
+            site.setPlugins( sitePlugins.get( siteUrl ) );
+            site.setFeatures( siteFeatures.get( siteUrl ) );
+
+            platform.addSite( site );
+        }
+
+        Platform.write( platform, new File( work, TychoConstants.PLATFORM_XML_PATH ) );
     }
 
     private String toOsgiBundles( List<BundleDescription> bundles )
@@ -147,19 +202,6 @@ public class TestEclipseRuntime
     {
         file.getParentFile().mkdirs();
         FileUtils.fileWrite( file.getAbsolutePath(), data );
-    }
-
-    private static void addRequiredProperties( Properties properties, File targetPlatform )
-    {
-        if ( !properties.containsKey( "osgi.install.area" ) )
-            properties
-                .setProperty( "osgi.install.area", "file:" + targetPlatform.getAbsolutePath().replace( '\\', '/' ) );
-        // if (!properties.containsKey("osgi.configuration.cascaded"))
-        properties.setProperty( "osgi.configuration.cascaded", "false" );
-        if ( !properties.containsKey( "osgi.framework" ) )
-            properties.setProperty( "osgi.framework", "org.eclipse.osgi" );
-        if ( !properties.containsKey( "osgi.bundles.defaultStartLevel" ) )
-            properties.setProperty( "osgi.bundles.defaultStartLevel", "4" );
     }
 
     private static final Map<String, Integer> START_LEVEL = new HashMap<String, Integer>();
@@ -209,18 +251,18 @@ public class TestEclipseRuntime
 
             String newOsgiBundles;
 
-            if ( shouldUseP2() )
-            {
-                createBundlesInfoFile( location );
-                createPlatformXmlFile( location );
-                newOsgiBundles = "org.eclipse.equinox.simpleconfigurator@1:start";
-            }
-            else if ( shouldUseUpdateManager() )
-            {
-                createPlatformXmlFile( location );
-                newOsgiBundles = "org.eclipse.equinox.common@2:start, org.eclipse.update.configurator@3:start, org.eclipse.core.runtime@start";
-            }
-            else
+//            if ( shouldUseP2() )
+//            {
+//                createBundlesInfoFile( location );
+//                createPlatformXmlFile( location );
+//                newOsgiBundles = "org.eclipse.equinox.simpleconfigurator@1:start";
+//            }
+//            else if ( shouldUseUpdateManager() )
+//            {
+//                createPlatformXmlFile( location );
+//                newOsgiBundles = "org.eclipse.equinox.common@2:start, org.eclipse.update.configurator@3:start, org.eclipse.core.runtime@start";
+//            }
+//            else
             /* use plain equinox */{
                 newOsgiBundles = toOsgiBundles( resolver.getBundles() );
             }
@@ -299,6 +341,48 @@ public class TestEclipseRuntime
     public void setPlexusContainer( PlexusContainer plexus )
     {
         this.plexus = plexus;
+    }
+
+    private String getRelativeUrl( String siteUrl, File location )
+    {
+        String locationStr = toUrl( location );
+        if ( !locationStr.startsWith( siteUrl ) )
+        {
+            throw new IllegalArgumentException();
+        }
+        return locationStr.substring( siteUrl.length() );
+    }
+
+    private String toUrl( File file )
+    {
+        try
+        {
+            return file.getCanonicalFile().toURL().toExternalForm();
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( "Unexpected IOException", e );
+        }
+    }
+
+    private String getSiteUrl( File location )
+    {
+        String locationStr = toUrl( location );
+        for ( File site : sites )
+        {
+            String siteUrl = toUrl( site );
+            if ( locationStr.startsWith( siteUrl ) )
+            {
+                return siteUrl;
+            }
+        }
+        return null;
+        // throw new RuntimeException("Can't determine site location for " + locationStr);
+    }
+
+    public List<File> getSites()
+    {
+        return new ArrayList<File>( sites );
     }
 
 }

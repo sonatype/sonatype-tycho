@@ -476,6 +476,12 @@ public class EquinoxBundleResolutionState
                 resolver.addBundle( file, isProject );
             }
 
+            for ( File file : platform.getArtifactFiles( ProjectType.ECLIPSE_TEST_PLUGIN ) )
+            {
+                boolean isProject = session.getMavenProject( file ) != null;
+                resolver.addBundle( file, isProject );
+            }
+
             resolver.setPlatformProperties( platform.getProperties() );
 
             resolver.resolve();
@@ -505,6 +511,21 @@ public class EquinoxBundleResolutionState
     public void resolve()
     {
         state.resolve( true );
+        
+        StringBuilder sb = new StringBuilder("Resolved OSGi state\n");
+        for (BundleDescription bundle : state.getBundles()) {
+            if (!bundle.isResolved()) {
+                sb.append("NOT ");
+            }
+            sb.append("RESOLVED ");
+            sb.append(bundle.toString()).append(" : ").append(bundle.getLocation());
+            sb.append('\n');
+            for (ResolverError error : state.getResolverErrors(bundle)) {
+                sb.append('\t').append(error.toString()).append('\n');
+            }
+        }
+        getLogger().info(sb.toString());
+        
     }
 
     public void setPlatformProperties( Properties properties )
