@@ -6,7 +6,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.tycho.TychoSession;
-import org.sonatype.tycho.TargetPlatformResolver;
 
 public interface DependenciesReader
 {
@@ -18,5 +17,4 @@ public interface DependenciesReader
     List<Dependency> getDependencies( MavenProject project, TychoSession session )
         throws MavenExecutionException;
 
-    void addProject( TargetPlatformResolver platformResolver, MavenProject project );
 }

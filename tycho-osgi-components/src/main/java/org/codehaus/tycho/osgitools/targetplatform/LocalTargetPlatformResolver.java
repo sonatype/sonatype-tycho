@@ -1,18 +1,18 @@
 package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
-import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.sonatype.tycho.DefaultTargetPlatform;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatform;
-import org.sonatype.tycho.TargetPlatformResolver;
+import org.codehaus.tycho.DefaultTargetPlatform;
+import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TargetPlatformResolver;
 
 /**
  * Creates target platform based on local eclipse installation.
@@ -28,28 +28,17 @@ public class LocalTargetPlatformResolver
     @Requirement
     private EclipseInstallationLayout layout;
 
-    private Properties properties = new Properties();
+    private List<MavenProject> projects;
 
-    private Map<File, String> projects = new LinkedHashMap<File, String>();
+    private Properties properties;
 
-    public void addMavenProject( File location, String type, String groupId, String artifactId, String version )
+    private boolean isSubdir( File parent, File child )
     {
-        projects.put( location, type );
+        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
     }
 
-    public void addRepository( URI location )
+    public TargetPlatform resolvePlatform( MavenProject project )
     {
-        File basedir = new File( location );
-        layout.setLocation( basedir );
-    }
-
-    public TargetPlatform resolvePlatform( File projectLocation )
-    {
-        if ( !projects.keySet().contains( projectLocation ) )
-        {
-            return null;
-        }
-
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
         for ( File site : layout.getSites() )
@@ -69,16 +58,18 @@ public class LocalTargetPlatformResolver
 
         File parentDir = null;
 
-        for ( Map.Entry<File, String> entry : projects.entrySet() )
+        for ( MavenProject otherProject : projects )
         {
-            platform.addArtifactFile( entry.getValue(), entry.getKey() );
+            File otherBasedir = otherProject.getBasedir();
 
-            if ( parentDir == null || isSubdir( entry.getKey(), parentDir ) )
+            platform.addArtifactFile( otherProject.getPackaging(), otherBasedir );
+
+            if ( parentDir == null || isSubdir( otherBasedir, parentDir ) )
             {
-                parentDir = entry.getKey();
+                parentDir = otherBasedir;
             }
         }
-        
+
         platform.addSite( parentDir );
 
         platform.setProperties( properties );
@@ -86,20 +77,24 @@ public class LocalTargetPlatformResolver
         return platform;
     }
 
-    private boolean isSubdir( File parent, File child )
-    {
-        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
-    }
-
-    public void setLocalRepositoryLocation( File lcoation )
+    public void setLocalRepository( ArtifactRepository localRepository )
     {
         // ignore, we are not going to copy anything to the local repository
     }
 
-    public void setProperties( Properties properties )
+    public void setMavenProjects( List<MavenProject> projects )
     {
-        this.properties = new Properties();
-        this.properties.putAll( properties );
+        this.projects = projects;
+
     }
 
+    public void setLocation( File location )
+    {
+        layout.setLocation( location );
+    }
+
+    public void setProperties( Properties properties )
+    {
+        this.properties = properties;
+    }
 }

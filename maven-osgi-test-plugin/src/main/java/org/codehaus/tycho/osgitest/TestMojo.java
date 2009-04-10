@@ -32,12 +32,12 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.TychoMavenSession;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
-import org.sonatype.tycho.TargetPlatform;
 
 /**
  * @phase integration-test

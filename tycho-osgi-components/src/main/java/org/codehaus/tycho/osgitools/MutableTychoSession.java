@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.maven.project.MavenProject;
@@ -13,10 +14,10 @@ import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.FeatureResolutionState;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
-import org.sonatype.tycho.TargetPlatform;
 
 @Component( role = MutableTychoSession.class, instantiationStrategy = "per-lookup" )
 public class MutableTychoSession
@@ -103,15 +104,12 @@ public class MutableTychoSession
         platforms.put( basedir, platform );
     }
 
-    public String getGroupId( String location )
+    public void setProjects( List<MavenProject> projects )
     {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void addProject( MavenProject project )
-    {
-        projects.put( project.getBasedir(), project );
+        for ( MavenProject project : projects )
+        {
+            this.projects.put( project.getBasedir(), project );
+        }
     }
 
     public TargetPlatform getTargetPlatform( MavenProject project )

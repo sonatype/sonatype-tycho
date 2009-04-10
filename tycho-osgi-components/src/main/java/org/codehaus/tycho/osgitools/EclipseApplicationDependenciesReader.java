@@ -8,11 +8,10 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.ProductConfiguration;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatformResolver;
 
 @Component( role = DependenciesReader.class, hint = ProjectType.ECLIPSE_APPLICATION )
 public class EclipseApplicationDependenciesReader extends
@@ -51,11 +50,5 @@ public class EclipseApplicationDependenciesReader extends
 
 		return new ArrayList<Dependency>(result);
 	}
-
-    public void addProject( TargetPlatformResolver resolver, MavenProject project )
-    {
-        resolver.addMavenProject( project.getBasedir(), ProjectType.ECLIPSE_APPLICATION, project.getGroupId(),
-                                  project.getArtifactId(), project.getVersion() );
-    }
 
 }

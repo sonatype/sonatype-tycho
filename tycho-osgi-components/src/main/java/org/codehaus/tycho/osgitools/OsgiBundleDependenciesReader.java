@@ -9,13 +9,13 @@ import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatformResolver;
 
 @Component( role = DependenciesReader.class, hint = ProjectType.OSGI_BUNDLE )
 public class OsgiBundleDependenciesReader
@@ -73,11 +73,5 @@ public class OsgiBundleDependenciesReader
         }
 
         return result;
-    }
-
-    public void addProject( TargetPlatformResolver resolver, MavenProject project )
-    {
-        resolver.addMavenProject( project.getBasedir(), ProjectType.OSGI_BUNDLE, project.getGroupId(),
-                                  project.getArtifactId(), project.getVersion() );
     }
 }

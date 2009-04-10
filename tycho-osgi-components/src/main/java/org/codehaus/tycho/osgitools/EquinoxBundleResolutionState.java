@@ -27,6 +27,8 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoSession;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
@@ -43,8 +45,6 @@ import org.eclipse.osgi.service.resolver.VersionConstraint;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatform;
 
 import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 

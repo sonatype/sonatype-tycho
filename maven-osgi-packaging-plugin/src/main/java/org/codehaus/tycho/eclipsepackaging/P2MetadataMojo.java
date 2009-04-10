@@ -10,7 +10,6 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
-import org.sonatype.tycho.p2.facade.P2Facade;
 
 /**
  * @goal p2-metadata
@@ -62,18 +61,16 @@ public class P2MetadataMojo extends AbstractMojo {
     private String argLine;
 
 	/** @component */
-	private P2Facade p2;
+//	private P2Facade p2;
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
-		try {
-			generateMetadata();
-		} catch (MojoFailureException e) {
-			throw e;
-//		} catch (MojoExecutionException e) {
+//		try {
+//			generateMetadata();
+//		} catch (MojoFailureException e) {
 //			throw e;
-		} catch (Exception e) {
-			throw new MojoExecutionException("Cannot generate P2 metadata", e);
-		}
+//		} catch (Exception e) {
+//			throw new MojoExecutionException("Cannot generate P2 metadata", e);
+//		}
 	}
 	
 	private void generateMetadata() throws Exception {
@@ -130,7 +127,7 @@ public class P2MetadataMojo extends AbstractMojo {
 
 	private File getEquinoxLauncher() throws MojoFailureException {
 		// XXX dirty hack
-        String p2location = p2.getP2RuntimeLocation();
+        String p2location = null; // p2.getP2RuntimeLocation();
 		DirectoryScanner ds = new DirectoryScanner();
 		ds.setBasedir(p2location);
         ds.setIncludes(new String[] {

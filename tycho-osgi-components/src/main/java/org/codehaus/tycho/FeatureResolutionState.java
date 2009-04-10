@@ -16,8 +16,6 @@ import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.codehaus.tycho.osgitools.features.FeatureDescriptionImpl;
 import org.osgi.framework.Version;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatform;
 
 @Component( role = FeatureResolutionState.class )
 public class FeatureResolutionState

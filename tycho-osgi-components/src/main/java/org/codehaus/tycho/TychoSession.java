@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
-import org.sonatype.tycho.TargetPlatform;
 
 public interface TychoSession
 {

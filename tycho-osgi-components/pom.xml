@@ -52,12 +52,6 @@
       <groupId>org.eclipse</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
     </dependency>
-    
-    <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-p2-facade</artifactId>
-      <version>${tycho-p2.version}</version>
-    </dependency>
 
     <dependency>
       <groupId>org.codehaus.tycho</groupId>

@@ -19,13 +19,13 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatform;
 
 public class TestEclipseRuntime
     extends AbstractLogEnabled

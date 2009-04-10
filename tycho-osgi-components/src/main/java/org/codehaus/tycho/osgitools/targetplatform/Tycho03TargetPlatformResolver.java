@@ -2,7 +2,6 @@ package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -24,17 +23,20 @@ import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.DefaultTargetPlatform;
+import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
-import org.sonatype.tycho.DefaultTargetPlatform;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatform;
-import org.sonatype.tycho.TargetPlatformResolver;
 
+/**
+ * Maven-based target platform resolution implemented in tycho 0.3.0-DEV builds.
+ */
 @Component( role = TargetPlatformResolver.class, hint = Tycho03TargetPlatformResolver.ROLE_HINT, instantiationStrategy = "per-lookup" )
 public class Tycho03TargetPlatformResolver
     extends AbstractLogEnabled
-    implements MavenTargetPlatformResolver
+    implements TargetPlatformResolver
 {
 
     public static final String ROLE_HINT = "tycho03";
@@ -52,36 +54,14 @@ public class Tycho03TargetPlatformResolver
 
     private ArtifactRepository localRepository;
 
-    private TargetPlatform platform;
-
     private Properties properties;
-
-    public void addMavenProject( File location, String type, String groupId, String artifactId, String version )
-    {
-        // TODO Auto-generated method stub
-    }
-
-    public void addRepository( URI location )
-    {
-        // TODO Auto-generated method stub
-    }
 
     public void setMavenProjects( List<MavenProject> projects )
     {
         this.projects = new ArrayList<MavenProject>( projects );
     }
 
-    public TargetPlatform resolvePlatform( File projectLocation )
-    {
-        if ( platform == null )
-        {
-            platform = resolvePlatform();
-        }
-
-        return platform;
-    }
-
-    private DefaultTargetPlatform resolvePlatform()
+    public TargetPlatform resolvePlatform( MavenProject project )
     {
         Set<File> sites = new LinkedHashSet<File>();
         Set<File> features = new LinkedHashSet<File>();
@@ -100,10 +80,10 @@ public class Tycho03TargetPlatformResolver
 
         Map<Artifact, Exception> exceptions = new HashMap<Artifact, Exception>();
 
-        for ( MavenProject project : projects )
+        for ( MavenProject otherProject : projects )
         {
             @SuppressWarnings( "unchecked" )
-            Map<String, Artifact> versionMap = project.getManagedVersionMap();
+            Map<String, Artifact> versionMap = otherProject.getManagedVersionMap();
             if ( versionMap != null )
             {
                 for ( Artifact artifact : versionMap.values() )
@@ -112,13 +92,13 @@ public class Tycho03TargetPlatformResolver
                     {
                         if ( ProjectType.ECLIPSE_FEATURE.equals( artifact.getType() ) )
                         {
-                            resolveFeature( artifact, features, bundles, project.getRemoteArtifactRepositories(),
+                            resolveFeature( artifact, features, bundles, otherProject.getRemoteArtifactRepositories(),
                                             localRepository );
                         }
                         else if ( ProjectType.OSGI_BUNDLE.equals( artifact.getType() )
                             || ProjectType.ECLIPSE_TEST_PLUGIN.equals( artifact.getType() ) )
                         {
-                            resolvePlugin( artifact, bundles, project.getRemoteArtifactRepositories(), localRepository );
+                            resolvePlugin( artifact, bundles, otherProject.getRemoteArtifactRepositories(), localRepository );
                         }
                     }
                     catch ( Exception e )
@@ -150,13 +130,13 @@ public class Tycho03TargetPlatformResolver
 
         File parentDir = null;
 
-        for ( MavenProject project : projects )
+        for ( MavenProject otherProject : projects )
         {
-            platform.addArtifactFile( project.getPackaging(), project.getBasedir() );
+            platform.addArtifactFile( otherProject.getPackaging(), otherProject.getBasedir() );
 
-            if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
+            if ( parentDir == null || isSubdir( otherProject.getBasedir(), parentDir ) )
             {
-                parentDir = project.getBasedir();
+                parentDir = otherProject.getBasedir();
             }
         }
 
@@ -302,12 +282,6 @@ public class Tycho03TargetPlatformResolver
             }
         }
         return installations;
-    }
-
-    public void setLocalRepositoryLocation( File lcoation )
-    {
-        // TODO Auto-generated method stub
-
     }
 
     public void setLocalRepository( ArtifactRepository localRepository )

@@ -19,6 +19,8 @@ import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.PlatformPropertiesUtils;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
@@ -27,8 +29,6 @@ import org.codehaus.tycho.model.Feature.FeatureRef;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
-import org.sonatype.tycho.PlatformPropertiesUtils;
-import org.sonatype.tycho.TargetPlatform;
 
 /**
  * @goal product-export

@@ -11,12 +11,11 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.FeatureResolutionState;
+import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
-import org.sonatype.tycho.ProjectType;
-import org.sonatype.tycho.TargetPlatformResolver;
 
 @Component( role = DependenciesReader.class, hint = ProjectType.ECLIPSE_UPDATE_SITE )
 public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
@@ -67,11 +66,4 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 			throw me;
 		}
 	}
-
-    public void addProject( TargetPlatformResolver resolver, MavenProject project )
-    {
-        resolver.addMavenProject( project.getBasedir(), ProjectType.ECLIPSE_UPDATE_SITE, project.getGroupId(),
-                                  project.getArtifactId(), project.getVersion() );
-    }
-
 }

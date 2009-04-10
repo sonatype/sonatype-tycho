@@ -285,14 +285,12 @@
           <version>2.4.3</version>
           <configuration>
             <useSystemClassLoader>false</useSystemClassLoader>
-            <!--
             <systemProperties>
               <property>
                 <name>p2-runtimeLocation</name>
                 <value>/workspaces/tycho-dev/tycho-p2/tycho-p2-runtime/target/product</value>
               </property>
             </systemProperties>
-            -->
           </configuration>
         </plugin>
         <plugin>
