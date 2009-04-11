@@ -2,12 +2,10 @@ package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
@@ -21,7 +19,6 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.DefaultTargetPlatform;
 import org.codehaus.tycho.ProjectType;
@@ -35,7 +32,7 @@ import org.codehaus.tycho.model.PluginRef;
  */
 @Component( role = TargetPlatformResolver.class, hint = Tycho03TargetPlatformResolver.ROLE_HINT, instantiationStrategy = "per-lookup" )
 public class Tycho03TargetPlatformResolver
-    extends AbstractLogEnabled
+    extends AbstractTargetPlatformResolver
     implements TargetPlatformResolver
 {
 
@@ -49,17 +46,6 @@ public class Tycho03TargetPlatformResolver
 
     @Requirement
     private PlexusContainer plexus;
-
-    private List<MavenProject> projects;
-
-    private ArtifactRepository localRepository;
-
-    private Properties properties;
-
-    public void setMavenProjects( List<MavenProject> projects )
-    {
-        this.projects = new ArrayList<MavenProject>( projects );
-    }
 
     public TargetPlatform resolvePlatform( MavenProject project )
     {
@@ -98,7 +84,8 @@ public class Tycho03TargetPlatformResolver
                         else if ( ProjectType.OSGI_BUNDLE.equals( artifact.getType() )
                             || ProjectType.ECLIPSE_TEST_PLUGIN.equals( artifact.getType() ) )
                         {
-                            resolvePlugin( artifact, bundles, otherProject.getRemoteArtifactRepositories(), localRepository );
+                            resolvePlugin( artifact, bundles, otherProject.getRemoteArtifactRepositories(),
+                                           localRepository );
                         }
                     }
                     catch ( Exception e )
@@ -109,7 +96,7 @@ public class Tycho03TargetPlatformResolver
             }
         }
 
-        DefaultTargetPlatform platform = new DefaultTargetPlatform();
+        DefaultTargetPlatform platform = createPlatform();
 
         for ( File site : sites )
         {
@@ -128,28 +115,9 @@ public class Tycho03TargetPlatformResolver
             platform.addArtifactFile( ProjectType.OSGI_BUNDLE, bundle );
         }
 
-        File parentDir = null;
-
-        for ( MavenProject otherProject : projects )
-        {
-            platform.addArtifactFile( otherProject.getPackaging(), otherProject.getBasedir() );
-
-            if ( parentDir == null || isSubdir( otherProject.getBasedir(), parentDir ) )
-            {
-                parentDir = otherProject.getBasedir();
-            }
-        }
-
-        platform.addSite( parentDir );
-
-        platform.setProperties( properties );
+        addProjects( platform );
 
         return platform;
-    }
-
-    private boolean isSubdir( File parent, File child )
-    {
-        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
     }
 
     private void addEclipseInstallation( File location, Set<File> sites, Set<File> features, Set<File> bundles )
@@ -282,16 +250,6 @@ public class Tycho03TargetPlatformResolver
             }
         }
         return installations;
-    }
-
-    public void setLocalRepository( ArtifactRepository localRepository )
-    {
-        this.localRepository = localRepository;
-    }
-
-    public void setProperties( Properties properties )
-    {
-        this.properties = properties;
     }
 
 }

@@ -78,7 +78,7 @@ public class EclipseMaven
             resolver.setLocalRepository( request.getLocalRepository() );
 
             resolver.setMavenProjects( projects );
-            
+
             resolver.setProperties( properties );
 
             try
@@ -118,21 +118,22 @@ public class EclipseMaven
             }
             catch ( ComponentLookupException e )
             {
-                throw new MavenExecutionException( "Could not instantiate required component", new IOException() );
+                throw new RuntimeException( "Could not instantiate required component", e );
             }
 
             ( (LocalTargetPlatformResolver) resolver ).setLocation( new File( property ) );
+
+            return resolver;
         }
-        else
+
+        String resolverRole = properties.getProperty( "tycho.resolver", Tycho03TargetPlatformResolver.ROLE_HINT );
+        try
         {
-            try
-            {
-                resolver = container.lookup( TargetPlatformResolver.class, Tycho03TargetPlatformResolver.ROLE_HINT );
-            }
-            catch ( ComponentLookupException e )
-            {
-                throw new MavenExecutionException( "Could not instantiate required component", new IOException() );
-            }
+            resolver = container.lookup( TargetPlatformResolver.class, resolverRole );
+        }
+        catch ( ComponentLookupException e )
+        {
+            throw new RuntimeException( "Could not instantiate required component", e );
         }
 
         return resolver;
@@ -152,7 +153,7 @@ public class EclipseMaven
     }
 
     // XXX there must be an easier way
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private Properties getGlobalProperties( MavenExecutionRequest request )
     {
         List<String> activeProfiles = request.getActiveProfiles();
