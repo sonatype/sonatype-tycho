@@ -17,6 +17,7 @@ import org.apache.maven.model.Profile;
 import org.apache.maven.monitor.event.EventDispatcher;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.reactor.MavenExecutionException;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.TargetPlatformResolver;
@@ -73,7 +74,7 @@ public class EclipseMaven
 
         for ( MavenProject project : projects )
         {
-            TargetPlatformResolver resolver = lookupPlatformResolver( properties );
+            TargetPlatformResolver resolver = lookupPlatformResolver( container, properties );
 
             resolver.setLocalRepository( request.getLocalRepository() );
 
@@ -85,7 +86,7 @@ public class EclipseMaven
             {
                 DependenciesReader dr =
                     (DependenciesReader) container.lookup( DependenciesReader.class, project.getPackaging() );
-                tychoSession.setTargetPlatform( project, resolver.resolvePlatform( project ) );
+                tychoSession.setTargetPlatform( project, resolver.resolvePlatform( project, null ) );
                 for ( Dependency dependency : dr.getDependencies( project, tychoSession ) )
                 {
                     project.getModel().addDependency( dependency );
@@ -99,8 +100,7 @@ public class EclipseMaven
 
     }
 
-    private TargetPlatformResolver lookupPlatformResolver( Properties properties )
-        throws MavenExecutionException
+    public static TargetPlatformResolver lookupPlatformResolver( PlexusContainer container, Properties properties )
     {
         String property = properties.getProperty( "tycho.targetPlatform" );
         TargetPlatformResolver resolver;
@@ -154,7 +154,7 @@ public class EclipseMaven
 
     // XXX there must be an easier way
     @SuppressWarnings( "unchecked" )
-    private Properties getGlobalProperties( MavenExecutionRequest request )
+    private static Properties getGlobalProperties( MavenExecutionRequest request )
     {
         List<String> activeProfiles = request.getActiveProfiles();
         Map<String, Profile> profiles = request.getProfileManager().getProfilesById();

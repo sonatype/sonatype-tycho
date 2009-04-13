@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,26 +17,25 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.Arg;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.maven.EclipseMaven;
 import org.codehaus.tycho.maven.TychoMavenSession;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
@@ -45,7 +46,7 @@ import org.osgi.framework.Version;
  * @requiresProject true
  * @requiresDependencyResolution runtime
  */
-public class TestMojo extends AbstractMojo implements Contextualizable {
+public class TestMojo extends AbstractMojo {
 
 	private static final String TEST_JUNIT = "org.junit";
 
@@ -138,6 +139,13 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 	/** @parameter expression="${project.build.directory}/dev.properties" */
 	private File devProperties;
 
+	/**
+	 * Additional test target platform dependencies.
+	 *  
+	 * @parameter 
+	 */
+	private Dependency[] dependencies;
+
 	private TychoSession tychoSession;
 
 	private BundleResolutionState bundleResolutionState;
@@ -191,6 +199,7 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 	 */
 	private String testClass;
 
+	/** @component */
     private PlexusContainer plexus;
 
     /** @component */
@@ -236,7 +245,22 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 			}
 		}
 
-		TargetPlatform targetPlatform = tychoSession.getTargetPlatform( project );
+		TargetPlatformResolver platformResolver = EclipseMaven.lookupPlatformResolver( plexus, session.getExecutionProperties() );
+
+		platformResolver.setMavenProjects( session.getSortedProjects() );
+		platformResolver.setLocalRepository( session.getLocalRepository() );
+		platformResolver.setProperties( session.getExecutionProperties() );
+		
+		ArrayList<Dependency> dependencies = new ArrayList<Dependency>(); 
+
+		if ( this.dependencies != null )
+		{
+		    dependencies.addAll( Arrays.asList( this.dependencies ) );
+		}
+
+		dependencies.addAll( getTestDependencies() );
+
+		TargetPlatform targetPlatform = platformResolver.resolvePlatform( project, dependencies );
 
 		if (targetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
@@ -265,7 +289,7 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
         }
 
         testRuntime.create();
-		
+
 		createDevProperties();
 		createSurefireProperties(bundle, testFramework);
 
@@ -281,7 +305,27 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 		}
 	}
 
-	private Set<File> getTestBundles() throws MojoExecutionException {
+	private List<Dependency> getTestDependencies()
+    {
+	    ArrayList<Dependency> result = new ArrayList<Dependency>();
+
+	    Dependency launcher = new Dependency();
+	    launcher.setArtifactId( "org.eclipse.equinox.launcher" );
+	    launcher.setType( ProjectType.OSGI_BUNDLE );
+	    result.add( launcher );
+
+	    if ( useUIHarness )
+	    {
+	        Dependency ideapp = new Dependency();
+	        ideapp.setArtifactId( "org.eclipse.ui.ide.application" );
+	        ideapp.setType( ProjectType.OSGI_BUNDLE );
+	        result.add( ideapp );
+	    }
+
+	    return result;
+    }
+
+    private Set<File> getTestBundles() throws MojoExecutionException {
 		Set<File> testBundles = new LinkedHashSet<File>(); 
 		for (BundleDescription bundle : getReactorBundles()) {
 			addBundle(testBundles, bundle);
@@ -392,7 +436,7 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 			}
 
 			cli.addArguments(new String[] {
-				"-jar", getEclipseLauncher().getAbsolutePath(),
+				"-jar", getEclipseLauncher(testRuntime).getAbsolutePath(),
 			});
 
 			if (getLog().isDebugEnabled() || showEclipseLog) {
@@ -405,7 +449,7 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 				"-dev", devProperties.toURI().toURL().toExternalForm(),
 				"-install", testRuntime.getLocation().getAbsolutePath(),
 				"-configuration", new File(work, "configuration").getAbsolutePath(),
-				"-application",	getTestApplication(),
+				"-application",	getTestApplication(testRuntime),
 				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
 
@@ -430,9 +474,9 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 		return result == 0;
 	}
 
-	private String getTestApplication() {
+	private String getTestApplication(TestEclipseRuntime testRuntime) {
 		if (useUIHarness) {
-		    BundleDescription systemBundle = bundleResolutionState.getSystemBundle();
+		    BundleDescription systemBundle = testRuntime.getSystemBundle();
 			Version osgiVersion = systemBundle.getVersion();
 			if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
 				return "org.codehaus.tycho.surefire.osgibooter.uitest32";
@@ -444,15 +488,15 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 		}
 	}
 
-	private File getEclipseLauncher() throws IOException {
-        BundleDescription systemBundle = bundleResolutionState.getSystemBundle();
+	private File getEclipseLauncher(TestEclipseRuntime testRuntime) throws IOException {
+        BundleDescription systemBundle = testRuntime.getSystemBundle();
         Version osgiVersion = systemBundle.getVersion();
 		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
 		    throw new UnsupportedOperationException();
 			//return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
 			// assume eclipse 3.3 or 3.4
-			BundleDescription launcher = bundleResolutionState.getBundle("org.eclipse.equinox.launcher", TychoConstants.HIGHEST_VERSION);
+			BundleDescription launcher = testRuntime.getBundle("org.eclipse.equinox.launcher", TychoConstants.HIGHEST_VERSION);
 			return new File(launcher.getLocation()).getCanonicalFile();
 		}
 	}
@@ -568,9 +612,5 @@ public class TestMojo extends AbstractMojo implements Contextualizable {
 		}
 		return reactorBundles;
 	}
-
-    public void contextualize( Context ctx ) throws ContextException {
-        plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
-    }
 	
 }

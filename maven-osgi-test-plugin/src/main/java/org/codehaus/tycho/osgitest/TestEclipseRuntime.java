@@ -385,4 +385,14 @@ public class TestEclipseRuntime
         return new ArrayList<File>( sites );
     }
 
+    public BundleDescription getBundle( String symbolicName, String highestVersion )
+    {
+        return resolver.getBundle( symbolicName, highestVersion );
+    }
+
+    public BundleDescription getSystemBundle()
+    {
+        return resolver.getSystemBundle();
+    }
+
 }

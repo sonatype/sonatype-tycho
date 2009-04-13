@@ -1,7 +1,9 @@
 package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
+import java.util.List;
 
+import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -24,7 +26,7 @@ public class LocalTargetPlatformResolver
     @Requirement
     private EclipseInstallationLayout layout;
 
-    public TargetPlatform resolvePlatform( MavenProject project )
+    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies )
     {
         DefaultTargetPlatform platform = createPlatform();
 

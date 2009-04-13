@@ -14,6 +14,7 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
@@ -47,7 +48,7 @@ public class Tycho03TargetPlatformResolver
     @Requirement
     private PlexusContainer plexus;
 
-    public TargetPlatform resolvePlatform( MavenProject project )
+    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies )
     {
         Set<File> sites = new LinkedHashSet<File>();
         Set<File> features = new LinkedHashSet<File>();
