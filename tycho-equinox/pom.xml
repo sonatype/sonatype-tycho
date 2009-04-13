@@ -3,12 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.tycho</groupId>
-    <artifactId>tycho-p2</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <groupId>org.codehaus.tycho</groupId>
+    <artifactId>tycho</artifactId>
+    <version>0.4.0-SNAPSHOT</version>
   </parent>
 
+  <groupId>org.sonatype.tycho</groupId>
   <artifactId>tycho-equinox</artifactId>
+  <name>Tycho Equinox Embedder</name>
 
   <dependencies>
     <dependency>

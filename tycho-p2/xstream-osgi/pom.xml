@@ -4,13 +4,18 @@
   <parent>
     <artifactId>tycho-p2</artifactId>
     <groupId>org.sonatype.tycho</groupId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
   </parent>
   
   <artifactId>xstream-osgi</artifactId>
   <version>${xstream-osgi.version}</version>
   <name>XStream Core OSGi Bundle</name>
   <packaging>eclipse-plugin</packaging>
+
+  <properties>
+    <xstream.version>1.3.1</xstream.version>
+    <xstream-osgi.version>${xstream.version}</xstream-osgi.version>
+  </properties>
 
   <!-- 
     /opt/tycho/bin/mvn -Dtycho.mode=maven -Pupdate-dependencies clean org.codehaus.tycho:maven-osgi-packaging-plugin:generate-bundle

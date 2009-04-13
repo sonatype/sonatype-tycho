@@ -5,11 +5,12 @@
   <parent>
     <groupId>org.sonatype.tycho</groupId>
     <artifactId>tycho-p2</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>tycho-p2-facade</artifactId>
   <packaging>eclipse-plugin</packaging>
+  <name>Tycho P2-based target platform resolver facade</name>
 
   <dependencies>
     <dependency>
@@ -29,7 +30,7 @@
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
-      <version>0.4.0-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -77,7 +78,7 @@
             <extraClasspathElement>
               <groupId>org.codehaus.tycho</groupId>
               <artifactId>tycho-osgi-components</artifactId>
-              <version>0.4.0-SNAPSHOT</version>
+              <version>${project.version}</version>
             </extraClasspathElement>
             <extraClasspathElement>
               <groupId>org.sonatype.tycho</groupId>

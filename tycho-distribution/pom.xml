@@ -110,8 +110,13 @@
         <dependency>
           <groupId>org.sonatype.tycho</groupId>
           <artifactId>tycho-p2-runtime</artifactId>
-          <version>${tycho-p2.version}</version>
+          <version>${project.version}</version>
           <type>zip</type>
+        </dependency>
+        <dependency>
+          <groupId>org.sonatype.tycho</groupId>
+          <artifactId>tycho-p2-facade</artifactId>
+          <version>${project.version}</version>
         </dependency>
       </dependencies>
       <build>
@@ -127,7 +132,7 @@
                     <artifactItem>
                       <groupId>org.sonatype.tycho</groupId>
                       <artifactId>tycho-p2-runtime</artifactId>
-                      <version>${tycho-p2.version}</version>
+                      <version>${project.version}</version>
                       <type>zip</type>
                       <outputDirectory>${project.build.directory}/dependency/tycho-p2-runtime</outputDirectory>
                     </artifactItem>

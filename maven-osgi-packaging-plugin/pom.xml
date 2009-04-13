@@ -56,6 +56,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-equinox</artifactId>
+      <version>${project.version}</version>
+    </dependency>     
+    <dependency>
       <groupId>biz.aQute</groupId>
       <artifactId>bndlib</artifactId>
     </dependency>
@@ -77,8 +82,8 @@
       <artifactId>plexus-archiver</artifactId>
     </dependency>    
     <dependency>
-        <groupId>de.schlichtherle.io</groupId>
-        <artifactId>truezip</artifactId>
+      <groupId>de.schlichtherle.io</groupId>
+      <artifactId>truezip</artifactId>
     </dependency>     
   </dependencies>
 

@@ -24,6 +24,8 @@ public class DefaultEquinoxEmbedder
 {
     private static final String SYSPROP_EQUINOX_RUNTIMELOCATION = "equinox-runtimeLocation";
 
+    private static final String SYSPROP_MAVEN_HOME = "maven.home";
+
     @Configuration( value = "${equinox-runtimeLocation}" )
     private File runtimeLocation;
 
@@ -102,15 +104,10 @@ public class DefaultEquinoxEmbedder
     public void initialize()
         throws InitializationException
     {
-        if ( !isValidP2RuntimeLocation( runtimeLocation ) )
+        // first, check system property
+        String locatition = System.getProperty( SYSPROP_EQUINOX_RUNTIMELOCATION );
+        if ( locatition != null )
         {
-            String locatition = System.getProperty( SYSPROP_EQUINOX_RUNTIMELOCATION );
-
-            if ( locatition == null )
-            {
-                throw new InitializationException( "Cannot find P2 runtime at specified location " + runtimeLocation );
-            }
-
             File file;
             try
             {
@@ -123,11 +120,44 @@ public class DefaultEquinoxEmbedder
 
             if ( !isValidP2RuntimeLocation( file ) )
             {
-                throw new InitializationException( "Cannot find P2 runtime at specified location " + locatition );
+                throw new InitializationException( "Cannot find P2 runtime at specified location " + runtimeLocation );
             }
 
             runtimeLocation = file;
+
+            return;
         }
+
+        // second, check explicit component configuration
+        if ( isValidP2RuntimeLocation( runtimeLocation ) )
+        {
+            return;
+        }
+
+        // lastly, try ${maven.home}/p2
+        String mavenHome = System.getProperty( SYSPROP_MAVEN_HOME );
+        if ( mavenHome != null )
+        {
+            File file;
+            try
+            {
+                file = new File( mavenHome, "p2" ).getCanonicalFile();
+            }
+            catch ( IOException e )
+            {
+                throw new InitializationException( "Unexpected IOException", e );
+            }
+
+            if ( isValidP2RuntimeLocation( file ) )
+            {
+                runtimeLocation = file;
+
+                return;
+            }
+
+        }
+
+        throw new InitializationException( "Cannot find P2 runtime at specified location " + runtimeLocation );
     }
 
     private static boolean isValidP2RuntimeLocation( File runtimeLocation )
@@ -150,5 +180,10 @@ public class DefaultEquinoxEmbedder
         ServiceReference serviceReference = frameworkContext.getServiceReference( clazz.getName() );
 
         return clazz.cast( frameworkContext.getService( serviceReference ) );
+    }
+
+    public File getRuntimeLocation()
+    {
+        return runtimeLocation;
     }
 }
