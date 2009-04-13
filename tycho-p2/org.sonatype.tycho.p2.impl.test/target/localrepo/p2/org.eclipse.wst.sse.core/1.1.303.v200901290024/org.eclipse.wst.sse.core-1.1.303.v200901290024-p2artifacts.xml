@@ -1,0 +1,11 @@
+<set>
+  <artifact>
+    <key class="key" id="org.eclipse.wst.sse.core" classifier="osgi.bundle" version="1.1.303.v200901290024"/>
+    <processing/>
+    <properties class="org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties">
+      <property key="artifact.size" value="artifact.size"/>
+      <property key="download.size" value="download.size"/>
+    </properties>
+    <repositoryProperties class="org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties"/>
+  </artifact>
+</set>

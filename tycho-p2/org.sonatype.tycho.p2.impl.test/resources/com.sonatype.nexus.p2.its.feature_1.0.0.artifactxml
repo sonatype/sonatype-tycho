@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?artifactRepository class='org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository' version='1.0.0'?>
+<artifacts size='1'>
+  <artifact classifier='org.eclipse.update.feature' id='com.sonatype.nexus.p2.its.feature' version='1.0.0'>
+    <properties size='3'>
+      <property name='artifact.size' value='2954'/>
+      <property name='download.size' value='2954'/>
+      <property name='download.md5' value='3c8d480b855c152941b934dc750cf4e7'/>
+    </properties>
+  </artifact>
+</artifacts>

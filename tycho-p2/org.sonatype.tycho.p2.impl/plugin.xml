@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         id="org.sonatype.tycho.p2.TemporaryMetadataRepository"
+         point="org.eclipse.equinox.p2.metadata.repository.metadataRepositories">
+      <factory
+            class="org.sonatype.tycho.p2.TemporaryMetadataRepositoryFactory">
+      </factory>
+   </extension>
+
+</plugin>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         id="org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository"
+         point="org.eclipse.equinox.p2.metadata.repository.metadataRepositories">
+      <factory
+            class="org.sonatype.tycho.p2.maven.repository.LocalMetadataRepositoryFactory">
+      </factory>
+      <filter
+            suffix=".p2/metadata.properties">
+      </filter>
+   </extension>
+
+</plugin>

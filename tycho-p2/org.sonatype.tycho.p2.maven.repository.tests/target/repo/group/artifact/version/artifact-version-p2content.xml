@@ -1,0 +1,12 @@
+<set>
+  <unit id="test" singleton="false" version="1.0.0">
+    <artifacts/>
+    <properties>
+      <property key="maven-groupId" value="maven-groupId"/>
+      <property key="maven-artifactId" value="maven-artifactId"/>
+      <property key="maven-version" value="maven-version"/>
+    </properties>
+    <provides/>
+    <requires/>
+  </unit>
+</set>

@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tycho P2 Facade
+Bundle-SymbolicName: org.sonatype.tycho.tycho_p2_facade;singleton:=true
+Bundle-Version: 0.3.0.qualifier
+Fragment-Host: system.bundle
+Bundle-RequiredExecutionEnvironment: J2SE-1.5,
+ JavaSE-1.6
+Export-Package: org.sonatype.tycho, 
+ org.sonatype.tycho.p2.facade,
+ org.sonatype.tycho.p2.facade.internal,
+ org.sonatype.tycho.p2.lockdown,
+ org.sonatype.tycho.p2.lockdown.io.xpp3

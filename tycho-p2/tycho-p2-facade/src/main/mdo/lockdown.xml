@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<model>
+
+  <id>lockdown</id>
+
+  <name>LockdownDescriptor</name>
+
+  <defaults>
+    <default>
+      <key>package</key>
+      <value>org.sonatype.tycho.p2.lockdown</value>
+    </default>
+  </defaults>
+
+  <classes>
+    <class rootElement="true">
+      <name>Configuration</name>
+      <version>1.0.0+</version>
+      <fields>
+        <field>
+          <name>version</name>
+          <version>1.0.0+</version>
+          <description>
+            The version of the persisted model.
+          </description>
+          <type>String</type>
+          <required>true</required>
+        </field>
+        <field>
+          <name>lockdown</name>
+          <version>1.0.0+</version>
+          <association>
+            <type>Lockdown</type>
+          </association>
+          <required>true</required>
+        </field>
+        <field>
+          <name>updateSites</name>
+          <version>1.0.0+</version>
+          <association>
+            <type>UpdateSite</type>
+            <multiplicity>*</multiplicity>
+          </association>
+          <required>true</required>
+        </field>
+        <field>
+          <name>requiredFeatures</name>
+          <version>1.0.0+</version>
+          <association xml.tagName="feature">
+            <type>RequiredFeature</type>
+            <multiplicity>*</multiplicity>
+          </association>
+          <required>true</required>
+        </field>
+        <field>
+          <name>targetPlatforms</name>
+          <version>1.0.0+</version>
+          <association xml.tagName="platform">
+            <type>TargetPlatform</type>
+            <multiplicity>*</multiplicity>
+          </association>
+          <required>true</required>
+        </field>
+      </fields>
+    </class>
+
+    <class>
+      <name>Lockdown</name>
+      <version>1.0.0+</version>
+      <fields>
+        <field xml.attribute="true">
+          <name>name</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>false</required>
+        </field>
+        <field xml.attribute="true">
+          <name>id</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+        <field xml.attribute="true">
+          <name>version</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+      </fields>
+    </class>
+
+    <class>
+      <name>UpdateSite</name>
+      <version>1.0.0+</version>
+      <fields>
+        <field xml.attribute="true">
+          <name>url</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+      </fields>
+    </class>
+
+    <class>
+      <name>RequiredFeature</name>
+      <version>1.0.0+</version>
+      <fields>
+        <field xml.attribute="true">
+          <name>id</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+        <field xml.attribute="true">
+          <name>version</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+      </fields>
+    </class>
+
+    <class>
+      <name>TargetPlatform</name>
+      <version>1.0.0+</version>
+      <fields>
+        <field xml.attribute="true">
+          <name>os</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+        <field xml.attribute="true">
+          <name>ws</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+        <field xml.attribute="true">
+          <name>arch</name>
+          <version>1.0.0+</version>
+          <type>String</type>
+          <required>true</required>
+        </field>
+      </fields>
+    </class>
+
+  </classes>
+
+</model>
