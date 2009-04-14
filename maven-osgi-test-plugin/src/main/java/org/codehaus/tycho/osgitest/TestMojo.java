@@ -309,6 +309,11 @@ public class TestMojo extends AbstractMojo {
     {
 	    ArrayList<Dependency> result = new ArrayList<Dependency>();
 
+        Dependency equinox = new Dependency();
+        equinox.setArtifactId( "org.eclipse.osgi" );
+        equinox.setType( ProjectType.OSGI_BUNDLE );
+        result.add( equinox );
+
 	    Dependency launcher = new Dependency();
 	    launcher.setArtifactId( "org.eclipse.equinox.launcher" );
 	    launcher.setType( ProjectType.OSGI_BUNDLE );

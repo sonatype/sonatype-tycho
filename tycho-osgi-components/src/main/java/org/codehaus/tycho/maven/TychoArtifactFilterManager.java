@@ -7,10 +7,12 @@ import org.codehaus.plexus.component.annotations.Component;
 @Component( role = ArtifactFilterManager.class )
 public class TychoArtifactFilterManager extends DefaultArtifactFilterManager {
 
-	public TychoArtifactFilterManager() {
+	@SuppressWarnings("unchecked")
+    public TychoArtifactFilterManager() {
 		excludedArtifacts.add( "tycho-osgi-components" );
 		excludedArtifacts.add( "org.eclipse.osgi" );
 		excludedArtifacts.add( "tycho-p2-facade" );
+        excludedArtifacts.add( "tycho-equinox" );
     }
 
 }
