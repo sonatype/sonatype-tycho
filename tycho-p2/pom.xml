@@ -42,17 +42,6 @@
     </dependencies>
   </dependencyManagement>
 
-  <distributionManagement>
-    <repository>
-      <id>forge-releases</id>
-      <url>${sonatype.releases}</url>
-    </repository>
-    <snapshotRepository>
-      <id>forge-snapshots</id>
-      <url>${sonatype.snapshots}</url>
-    </snapshotRepository>
-  </distributionManagement>
-
   <build>
     <plugins>
       <plugin>
