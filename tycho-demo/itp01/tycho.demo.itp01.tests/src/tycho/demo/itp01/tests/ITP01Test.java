@@ -15,7 +15,7 @@ public class ITP01Test {
 		SampleAction action = new SampleAction();
 		action.init(workbench.getActiveWorkbenchWindow());
 
-		action.run(null);
+//		action.run(null);
 	}
 
 }
