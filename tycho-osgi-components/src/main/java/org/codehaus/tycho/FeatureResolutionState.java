@@ -3,8 +3,8 @@ package org.codehaus.tycho;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -21,7 +21,7 @@ import org.osgi.framework.Version;
 public class FeatureResolutionState
     extends AbstractLogEnabled
 {
-    private Set<FeatureDescription> features = new LinkedHashSet<FeatureDescription>();
+    private Map<String, FeatureDescription> features = new LinkedHashMap<String, FeatureDescription>();
 
     private static final Version VERSION_0_0_0 = new Version( "0.0.0" );
 
@@ -46,8 +46,10 @@ public class FeatureResolutionState
 
                 FeatureDescription description = new FeatureDescriptionImpl( feature, location );
                 description.setMavenProject( session.getMavenProject( location ) );
+                
+                String key = description.getId() + "_" + description.getVersion().toString();
 
-                features.add( description );
+                features.put( key, description );
             }
             catch ( IOException e )
             {
@@ -62,7 +64,7 @@ public class FeatureResolutionState
 
     public FeatureDescription getFeatureByLocation( File location )
     {
-        for ( FeatureDescription feature : features )
+        for ( FeatureDescription feature : features.values() )
         {
             if ( feature.getLocation().equals( location ) )
             {
@@ -89,7 +91,7 @@ public class FeatureResolutionState
                 };
             } );
 
-        for ( FeatureDescription desc : this.features )
+        for ( FeatureDescription desc : this.features.values() )
         {
             if ( id.equals( desc.getId() ) )
             {

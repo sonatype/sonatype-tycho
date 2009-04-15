@@ -54,8 +54,6 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
-			return false;
 		if (!(obj instanceof FeatureDescription))
 			return false;
 		FeatureDescription other = (FeatureDescription) obj;

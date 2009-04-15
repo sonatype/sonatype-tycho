@@ -1,4 +1,4 @@
-package org.sonatype.tycho.p2.maven.repository;
+package org.sonatype.tycho.p2.facade;
 
 public class GAV
 {

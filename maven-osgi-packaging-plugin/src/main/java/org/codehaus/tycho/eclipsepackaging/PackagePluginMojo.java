@@ -13,7 +13,6 @@ import java.util.jar.Manifest;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
@@ -60,11 +59,6 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 	private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
 	/**
-	 * @parameter expression="${component.org.apache.maven.project.MavenProjectHelper}
-	 */
-	protected MavenProjectHelper projectHelper;
-
-	/**
 	 * Build qualifier. Recommended way to set this parameter is using
 	 * build-qualifier goal. 
 	 * 
@@ -74,7 +68,7 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 
 	public void execute() throws MojoExecutionException {
 	    initializeProjectContext();
-	    
+
 		pdeProject = tychoSession.getEclipsePluginProject( project );
 
 		createSubJars();
@@ -82,6 +76,8 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		File pluginFile = createPluginJar();
 
 		project.getArtifact().setFile(pluginFile);
+		
+		attachP2Metadata();
 	}
 
 	private void createSubJars() throws MojoExecutionException {

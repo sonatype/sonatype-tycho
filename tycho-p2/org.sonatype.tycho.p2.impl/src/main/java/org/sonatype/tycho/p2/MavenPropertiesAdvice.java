@@ -7,7 +7,7 @@ import org.eclipse.equinox.internal.provisional.p2.core.Version;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.internal.provisional.p2.metadata.MetadataFactory.InstallableUnitDescription;
 import org.eclipse.equinox.p2.publisher.actions.IPropertyAdvice;
-import org.sonatype.tycho.p2.maven.repository.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 
 @SuppressWarnings("restriction")
 public class MavenPropertiesAdvice

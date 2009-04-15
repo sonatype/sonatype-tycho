@@ -1,6 +1,7 @@
-package org.sonatype.tycho.p2.maven.repository;
+package org.sonatype.tycho.p2.facade;
 
 import java.util.Map;
+import java.util.StringTokenizer;
 
 public class RepositoryLayoutHelper
 {
@@ -10,9 +11,13 @@ public class RepositoryLayoutHelper
 
     public static final String PROP_VERSION = "maven-version";
 
-    public static final String XXX_CLASSIFIER = "p2meta";
+    public static final String CLASSIFIER_P2_METADATA = "p2metadata";
 
-    public static final String XXX_EXTENSION = "xml";
+    public static final String EXTENSION_P2_METADATA = "xml";
+
+    public static final String CLASSIFIER_P2_ARTIFACTS = "p2artifacts";
+
+    public static final String EXTENSION_P2_ARTIFACTS = "xml";
 
     public static final String DEFAULT_EXTERNSION = "jar";
 
@@ -27,7 +32,12 @@ public class RepositoryLayoutHelper
         StringBuilder sb = new StringBuilder();
 
         // basedir
-        sb.append( groupId ).append( '/' ).append( artifactId ).append( '/' ).append( version ).append( '/' );
+        StringTokenizer st = new StringTokenizer( groupId, "." );
+        while ( st.hasMoreTokens() )
+        {
+            sb.append( st.nextToken() ).append( '/' );
+        }
+        sb.append( artifactId ).append( '/' ).append( version ).append( '/' );
 
         // filename
         sb.append( artifactId ).append( '-' ).append( version );
@@ -40,21 +50,17 @@ public class RepositoryLayoutHelper
         return sb.toString();
     }
 
-    public static String getGAV( String groupId, String artifactId, String version )
-    {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append( groupId ).append( ':' ).append( artifactId ).append( ':' ).append( version );
-
-        return sb.toString();
-    }
-
     public static GAV getGAV( Map properties )
     {
         String groupId = (String) properties.get( PROP_GROUP_ID );
         String artifactId = (String) properties.get( PROP_ARTIFACT_ID );
         String version = (String) properties.get( PROP_VERSION );
 
+        return getGAV( groupId, artifactId, version );
+    }
+
+    public static GAV getGAV( String groupId, String artifactId, String version )
+    {
         if ( groupId != null && artifactId != null && version != null )
         {
             return new GAV( groupId, artifactId, version );

@@ -26,4 +26,21 @@ public class LocalMavenRepositoryTest extends AbstractTychoIntegrationTest {
         Assert.assertEquals(2, new File(site, "features").listFiles().length);
         Assert.assertEquals(3, new File(site, "plugins").listFiles().length);
 	}
+
+	@Test
+	public void testP2LocalMavenRepository() throws Exception {
+        Verifier v01 = getVerifier("tycho0209/build01", false);
+        v01.executeGoal("install");
+        v01.verifyErrorFreeLog();
+
+        Verifier v02 = getVerifier("tycho0209/build02", false);
+        v02.executeGoal("install");
+        v02.verifyErrorFreeLog();
+
+        File site = new File(v02.getBasedir(), "build02.site01/target/site");
+
+        Assert.assertEquals(2, new File(site, "features").listFiles().length);
+        Assert.assertEquals(3, new File(site, "plugins").listFiles().length);
+	    
+	}
 }

@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
 import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepository;
 import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.MetadataRepositoryFactory;
+import org.sonatype.tycho.p2.facade.LocalRepositoryIndex;
 
 @SuppressWarnings( "restriction" )
 public class LocalMetadataRepositoryFactory
@@ -27,7 +28,7 @@ public class LocalMetadataRepositoryFactory
         throws ProvisionException
     {
         File basedir = new File( location );
-        if ( new File( basedir, LocalMetadataRepository.METADATA_FILE ).exists() )
+        if ( new File( basedir, LocalRepositoryIndex.INDEX_RELPATH ).exists() )
         {
             return new LocalMetadataRepository( location );
         }

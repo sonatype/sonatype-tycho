@@ -12,6 +12,7 @@ Require-Bundle: org.eclipse.equinox.p2.metadata.repository;bundle-version="1.0.1
  org.eclipse.equinox.p2.core;bundle-version="1.0.100",
  org.eclipse.equinox.p2.artifact.repository;bundle-version="1.0.100",
  org.sonatype.tycho.xstream.osgi
-Export-Package: org.sonatype.tycho.p2.maven.repository;x-friends:="org.sonatype.tycho.p2.maven.repository.tests",
+Export-Package: org.sonatype.tycho.p2.maven.repository,
  org.sonatype.tycho.p2.maven.repository.xstream;x-friends:="org.sonatype.tycho.p2.maven.repository.tests"
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework,
+ org.sonatype.tycho.p2.facade;resolution:=optional

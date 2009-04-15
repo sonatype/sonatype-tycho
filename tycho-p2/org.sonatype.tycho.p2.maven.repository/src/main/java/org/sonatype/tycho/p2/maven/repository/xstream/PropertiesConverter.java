@@ -24,7 +24,7 @@ public class PropertiesConverter
         {
             writer.startNode( "property" );
             writer.addAttribute( "key", (String) entry.getKey() );
-            writer.addAttribute( "value", (String) entry.getKey() );
+            writer.addAttribute( "value", (String) entry.getValue() );
             writer.endNode();
         }
     }

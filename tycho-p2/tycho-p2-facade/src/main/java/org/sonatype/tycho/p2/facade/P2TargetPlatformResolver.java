@@ -80,6 +80,7 @@ public class P2TargetPlatformResolver
         properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( this.properties ) );
         properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( this.properties ) );
         ExecutionEnvironmentUtils.loadVMProfile( properties );
+        properties.put("org.eclipse.update.install.features", "true" );
         resolver.setProperties( properties );
 
         if ( dependencies != null )

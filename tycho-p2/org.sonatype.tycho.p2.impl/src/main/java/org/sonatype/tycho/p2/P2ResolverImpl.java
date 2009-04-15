@@ -3,7 +3,6 @@ package org.sonatype.tycho.p2;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -45,14 +44,6 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadata
 import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepositoryManager;
 import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.IQueryable;
-import org.eclipse.equinox.internal.provisional.p2.query.Query;
-import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.AbstractMetadataRepository;
-import org.eclipse.equinox.p2.publisher.IPublisherAction;
-import org.eclipse.equinox.p2.publisher.Publisher;
-import org.eclipse.equinox.p2.publisher.PublisherInfo;
-import org.eclipse.equinox.p2.publisher.PublisherResult;
-import org.eclipse.equinox.p2.publisher.eclipse.AdviceFileAdvice;
-import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.osgi.framework.InvalidSyntaxException;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
@@ -71,16 +62,7 @@ public class P2ResolverImpl
 
     private static final IRequiredCapability[] REQUIRED_CAPABILITY_ARRAY = new IRequiredCapability[0];
 
-    /**
-     * 
-     */
-    private static final String[] IMPLICIT_TEST_IUS = {
-        "org.eclipse.equinox.common",
-        "org.eclipse.update.configurator",
-        "org.eclipse.core.runtime",
-        "org.eclipse.ui.ide.application" };
-
-    private IMetadataRepository buildMetadata;
+    private P2GeneratorImpl generator = new P2GeneratorImpl( true );
 
     private List<IMetadataRepository> metadataRepositories = new ArrayList<IMetadataRepository>();
 
@@ -101,49 +83,20 @@ public class P2ResolverImpl
 
     public P2ResolverImpl()
     {
-        buildMetadata = new AbstractMetadataRepository()
-        {
-            private Set<IInstallableUnit> members = new LinkedHashSet<IInstallableUnit>();
-
-            @Override
-            public void initialize( RepositoryState state )
-            {
-            }
-
-            public Collector query( Query query, Collector collector, IProgressMonitor monitor )
-            {
-                return query.perform( members.iterator(), collector );
-            }
-
-            @Override
-            public void addInstallableUnits( IInstallableUnit[] units )
-            {
-                members.addAll( Arrays.asList( units ) );
-            }
-        };
-
-        metadataRepositories.add( buildMetadata );
     }
 
     public void addMavenProject( File location, String type, String groupId, String artifactId, String version )
     {
-        PublisherInfo request = new PublisherInfo();
+        if ( !generator.isSupported( type ) )
+        {
+            return;
+        }
 
-        request.setMetadataRepository( buildMetadata );
-        // request.setArtifactRepository( buildArtifacts );
+        LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
-        request.addAdvice( new MavenPropertiesAdvice( groupId, artifactId, version ) );
-//        request.addAdvice( new AdviceFileAdvice() );
+        generator.generateMetadata( location, type, groupId, artifactId, version, units, null );
 
-        IPublisherAction[] actions = new IPublisherAction[] { new BundlesAction( new File[] { location } ) };
-
-        PublisherResult result = new PublisherResult();
-
-        new Publisher( request, result ).publish( actions, monitor );
-
-        Collector ius = result.query( InstallableUnitQuery.ANY, new Collector(), monitor );
-
-        projectIUs.put( location, new LinkedHashSet<IInstallableUnit>( ius.toCollection() ) );
+        projectIUs.put( location, units );
 
         projects.put( location, type );
     }
@@ -417,10 +370,16 @@ public class P2ResolverImpl
     }
 
     @SuppressWarnings( "unchecked" )
-    public static IInstallableUnit[] gatherAvailableInstallableUnits( List<IMetadataRepository> repositories,
+    public IInstallableUnit[] gatherAvailableInstallableUnits( List<IMetadataRepository> repositories,
         IProgressMonitor monitor )
     {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
+
+        for ( Collection<IInstallableUnit> ius : projectIUs.values() )
+        {
+            result.addAll( ius );
+        }
+
         SubMonitor sub = SubMonitor.convert( monitor, repositories.size() * 200 );
         for ( IMetadataRepository repository : repositories )
         {

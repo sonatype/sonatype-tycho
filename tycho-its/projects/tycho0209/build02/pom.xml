@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.codehaus.tycho.tychoits.tycho0209.build02</groupId>
+  <artifactId>parent</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <!-- <module>build02.bundle01</module>  -->
+    <module>build02.bundle02</module>
+    <module>build02.feature01</module>
+    <module>build02.site01</module>
+  </modules>
+
+  <repositories>
+   <repository>
+     <id>p2</id>
+     <layout>p2</layout>
+     <url>${p2.repo}</url>
+   </repository>
+  </repositories>
+
+
+</project>

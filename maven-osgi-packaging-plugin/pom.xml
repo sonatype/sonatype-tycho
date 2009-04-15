@@ -61,6 +61,11 @@
       <version>${project.version}</version>
     </dependency>     
     <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-facade</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>biz.aQute</groupId>
       <artifactId>bndlib</artifactId>
     </dependency>
@@ -87,20 +92,4 @@
     </dependency>     
   </dependencies>
 
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-plugin-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jxr-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>

@@ -10,7 +10,6 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.ProjectType;
-import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
@@ -51,20 +50,7 @@ public class OsgiBundleDependenciesReader
         {
             BundleDescription supplier = entry.desc;
 
-            MavenProject otherProject = session.getMavenProject( supplier.getLocation() );
-
-            Dependency dependency;
-            if ( otherProject != null )
-            {
-                dependency = newProjectDependency( otherProject );
-            }
-            else
-            {
-                String artifactId = supplier.getSymbolicName();
-                String version = supplier.getVersion().toString();
-
-                dependency = newExternalDependency( supplier.getLocation(), artifactId, version );
-            }
+            Dependency dependency = newBundleDependency( session, supplier );
 
             if ( dependency != null )
             {

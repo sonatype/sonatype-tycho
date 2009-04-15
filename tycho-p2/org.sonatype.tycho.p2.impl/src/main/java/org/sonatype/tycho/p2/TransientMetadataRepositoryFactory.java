@@ -11,7 +11,7 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadata
 import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.MetadataRepositoryFactory;
 
 @SuppressWarnings( "restriction" )
-public class TemporaryMetadataRepositoryFactory
+public class TransientMetadataRepositoryFactory
     extends MetadataRepositoryFactory
 {
 
@@ -19,7 +19,7 @@ public class TemporaryMetadataRepositoryFactory
     public IMetadataRepository create( URI location, String name, String type, Map properties )
         throws ProvisionException
     {
-        return new TemporaryMetadataRepository( location, name, type, properties );
+        return new TransientMetadataRepository( location, name, type, properties );
     }
 
     @Override

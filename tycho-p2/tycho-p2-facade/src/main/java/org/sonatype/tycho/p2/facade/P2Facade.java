@@ -3,9 +3,6 @@ package org.sonatype.tycho.p2.facade;
 import java.io.File;
 import java.util.List;
 
-/**
- * This interface bridges   
- */
 public interface P2Facade
 {
     static final String ENCODING = "UTF8";
@@ -26,5 +23,4 @@ public interface P2Facade
 
     public void getRepositoryArtifacts( String url, File destination );
 
-    public String getP2RuntimeLocation();
 }

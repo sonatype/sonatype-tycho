@@ -506,8 +506,8 @@ public class P2Impl
         }
         while ( manager.contains( location ) );
 
-        TemporaryMetadataRepository composite = (TemporaryMetadataRepository) manager.createRepository( location, Long
-            .toString( timestamp ), TemporaryMetadataRepository.class.getName(), null );
+        TransientMetadataRepository composite = (TransientMetadataRepository) manager.createRepository( location, Long
+            .toString( timestamp ), TransientMetadataRepository.class.getName(), null );
 
         for ( RepositoryContentLocator repo : req.getRepositories() )
         {
@@ -638,11 +638,6 @@ public class P2Impl
                 file.delete();
             }
         }
-    }
-
-    public String getP2RuntimeLocation()
-    {
-        throw new UnsupportedOperationException();
     }
 
 }

@@ -18,21 +18,18 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.equinox.internal.p2.metadata.ArtifactKey;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.ArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRequest;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.processing.ProcessingStepDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.internal.provisional.spi.p2.artifact.repository.AbstractArtifactRepository;
-import org.sonatype.tycho.p2.maven.repository.xstream.PropertiesConverter;
-import org.sonatype.tycho.p2.maven.repository.xstream.VersionConverter;
+import org.sonatype.tycho.p2.facade.GAV;
+import org.sonatype.tycho.p2.facade.LocalRepositoryIndex;
+import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.maven.repository.xstream.ArtifactsIO;
 
-import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
-import com.thoughtworks.xstream.core.util.CompositeClassLoader;
-import com.thoughtworks.xstream.io.xml.XppDriver;
 
 @SuppressWarnings( "restriction" )
 public class LocalArtifactRepository
@@ -67,43 +64,27 @@ public class LocalArtifactRepository
     {
         File location = getBasedir();
 
-        // artifactKey => gav map
-        Properties properties = new Properties();
+        LocalRepositoryIndex index = new LocalRepositoryIndex( location );
 
-        try
-        {
-            InputStream is = new BufferedInputStream( new FileInputStream( new File( location, "p2/artifacts.properties" ) ) );
-            try
-            {
-                properties.load( is );
-            }
-            finally
-            {
-                is.close();
-            }
-        }
-        catch ( IOException e )
-        {
-            // lets assume this is a new repository
-            return;
-        }
+        ArtifactsIO io = new ArtifactsIO();
 
-        XStream xs = getXStream();
-
-        for ( Map.Entry entry : properties.entrySet() )
+        for ( GAV gav : index.getProjectGAVs() )
         {
             try
             {
-                IArtifactKey key = ArtifactKey.parse( (String) entry.getKey() );
-                GAV gav = GAV.parse( (String) entry.getValue() );
-                String relpath = RepositoryLayoutHelper.getRelativePath( gav, "p2artifacts", "xml" );
+                String relpath = getMetadataRelpath( gav );
+
                 InputStream is = new BufferedInputStream( new FileInputStream( new File( location, relpath ) ) );
                 try
                 {
-                    Set<IArtifactDescriptor> gavDescriptors = (Set<IArtifactDescriptor>) xs.fromXML( is );
+                    Set<IArtifactDescriptor> gavDescriptors = (Set<IArtifactDescriptor>) io.readXML( is );
 
-                    descriptorsMap.put( key, gavDescriptors );
-                    descriptors.addAll( gavDescriptors );
+                    if ( !gavDescriptors.isEmpty() )
+                    {
+                        IArtifactKey key = gavDescriptors.iterator().next().getArtifactKey();
+                        descriptorsMap.put( key, gavDescriptors );
+                        descriptors.addAll( gavDescriptors );
+                    }
                 }
                 finally
                 {
@@ -125,9 +106,11 @@ public class LocalArtifactRepository
     {
         File location = getBasedir();
 
+        LocalRepositoryIndex index = new LocalRepositoryIndex( location );
+
         Properties properties = new Properties();
 
-        XStream xs = getXStream();
+        ArtifactsIO io = new ArtifactsIO();
 
         for ( Map.Entry<IArtifactKey, Set<IArtifactDescriptor>> keyEntry : descriptorsMap.entrySet() )
         {
@@ -142,7 +125,9 @@ public class LocalArtifactRepository
                     gav = getP2GAV( random );
                 }
 
-                String relpath = RepositoryLayoutHelper.getRelativePath( gav, "p2artifacts", "xml" );
+                index.addProject( gav );
+
+                String relpath = getMetadataRelpath( gav );
 
                 File file = new File( location, relpath );
                 file.getParentFile().mkdirs();
@@ -152,7 +137,7 @@ public class LocalArtifactRepository
                     OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
                     try
                     {
-                        xs.toXML( keyDescriptors, os );
+                        io.writeXML( keyDescriptors, os );
                     }
                     finally
                     {
@@ -171,57 +156,31 @@ public class LocalArtifactRepository
                 }
             }
         }
-        
+
         try
         {
-            OutputStream os = new BufferedOutputStream( new FileOutputStream( new File( location, "p2/artifacts.properties" ) ) );
-            try
-            {
-                properties.store( os, null );
-            }
-            finally
-            {
-                os.close();
-            }
+            index.save();
         }
         catch ( IOException e )
         {
-            // XXX not good
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        
+
     }
-    
+
+    private String getMetadataRelpath( GAV gav )
+    {
+        String relpath = RepositoryLayoutHelper.getRelativePath(
+            gav,
+            RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
+            RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS );
+        return relpath;
+    }
+
     public void save()
     {
         saveMaven();
-    }
-
-    public static XStream getXStream()
-    {
-        CompositeClassLoader cl = new CompositeClassLoader();
-        cl.add( ArtifactDescriptor.class.getClassLoader() );
-
-        XStream xs = new XStream( null, new XppDriver(), cl );
-        xs.setMode(XStream.NO_REFERENCES);
-
-        xs.registerConverter( new VersionConverter() );
-
-        xs.alias( "artifact", ArtifactDescriptor.class );
-        xs.registerLocalConverter( ArtifactDescriptor.class, "properties", new PropertiesConverter() );
-        xs.registerLocalConverter( ArtifactDescriptor.class, "repositoryProperties", new PropertiesConverter() );
-
-        xs.alias( "key", ArtifactKey.class );
-        xs.useAttributeFor( ArtifactKey.class, "id" );
-        xs.useAttributeFor( ArtifactKey.class, "classifier" );
-        xs.useAttributeFor( ArtifactKey.class, "version" );
-
-        xs.aliasField( "processing", ArtifactDescriptor.class, "processingSteps" );
-        xs.alias( "step", ProcessingStepDescriptor.class );
-        xs.useAttributeFor( ProcessingStepDescriptor.class, "processorId" );
-        xs.aliasAttribute( ProcessingStepDescriptor.class, "processorId", "id" );
-        xs.useAttributeFor( ProcessingStepDescriptor.class, "required" );
-
-        return xs;
     }
 
     @Override
@@ -277,11 +236,11 @@ public class LocalArtifactRepository
         }
 
         // TODO new LocalRepositoryM2("/repo").getWriter().writeArtifacts( ... )
-        
+
         File basedir = getBasedir();
         File file = new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, null, null ) );
         file.getParentFile().mkdirs();
-        
+
         // TODO ideally, repository index should be updated after artifact has been written to the file
 
         ArtifactDescriptor newDescriptor = new ArtifactDescriptor( descriptor );
@@ -324,7 +283,7 @@ public class LocalArtifactRepository
 
     public URI getLocation( IArtifactDescriptor descriptor )
     {
-        GAV gav = RepositoryLayoutHelper.getGAV( descriptor.getProperties() );
+        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getRepositoryProperties() );
 
         if ( gav == null )
         {
