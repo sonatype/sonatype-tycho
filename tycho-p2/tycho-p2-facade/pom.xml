@@ -9,6 +9,7 @@
     <relativePath>../../</relativePath>
   </parent>
 
+  <groupId>org.sonatype.tycho</groupId>
   <artifactId>tycho-p2-facade</artifactId>
   <name>Tycho P2-based target platform resolver facade</name>
 
