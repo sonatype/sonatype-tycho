@@ -435,7 +435,7 @@
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>maven-version-plugin</artifactId>
-            <version>1.0</version>
+            <version>1.1-SNAPSHOT</version>
             <configuration>
               <newVersion>0.4.0-DEV-${buildNumber}</newVersion>
               <artifactId>${project.artifactId}</artifactId>
