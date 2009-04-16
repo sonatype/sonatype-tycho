@@ -29,11 +29,6 @@
     </dependency>
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
-      <artifactId>maven-osgi-lifecycle-plugin</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.tycho</groupId>
       <artifactId>maven-osgi-packaging-plugin</artifactId>
       <version>${project.version}</version>
     </dependency>
