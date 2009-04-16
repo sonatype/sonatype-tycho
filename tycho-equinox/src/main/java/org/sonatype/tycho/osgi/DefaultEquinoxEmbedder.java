@@ -26,6 +26,8 @@ public class DefaultEquinoxEmbedder
 
     private static final String SYSPROP_MAVEN_HOME = "maven.home";
 
+    private static final String SYSPROP_IGNORE_MISSING_RUNTIME = "tycho.equinoxIgnore";
+
     @Configuration( value = "${equinox-runtimeLocation}" )
     private File runtimeLocation;
 
@@ -157,7 +159,10 @@ public class DefaultEquinoxEmbedder
 
         }
 
-        throw new InitializationException( "Cannot find P2 runtime at specified location " + runtimeLocation );
+        if ( !Boolean.getBoolean( SYSPROP_IGNORE_MISSING_RUNTIME ) )
+        {
+            throw new InitializationException( "Cannot find P2 runtime at specified location " + runtimeLocation );
+        }
     }
 
     private static boolean isValidP2RuntimeLocation( File runtimeLocation )

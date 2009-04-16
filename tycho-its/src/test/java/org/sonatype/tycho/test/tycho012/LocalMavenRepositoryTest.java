@@ -30,10 +30,14 @@ public class LocalMavenRepositoryTest extends AbstractTychoIntegrationTest {
 	@Test
 	public void testP2LocalMavenRepository() throws Exception {
         Verifier v01 = getVerifier("tycho0209/build01", false);
+        v01.getCliOptions().add( "-Dtycho.resolver=p2" );
+        v01.getCliOptions().add( "-Dp2.repo=file://" + new File("repositories/e342").getCanonicalPath());
         v01.executeGoal("install");
         v01.verifyErrorFreeLog();
 
         Verifier v02 = getVerifier("tycho0209/build02", false);
+        v02.getCliOptions().add( "-Dtycho.resolver=p2" );
+        v02.getCliOptions().add( "-Dp2.repo=file://" + new File("repositories/e342").getCanonicalPath());
         v02.executeGoal("install");
         v02.verifyErrorFreeLog();
 

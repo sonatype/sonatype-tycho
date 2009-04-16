@@ -64,14 +64,14 @@ public class SiteDependenciesAction
                 String versionString = feature.getFeatureVersion();
 
                 VersionRange range;
-                if ( versionString != null && versionString.length() > 0 )
+                if ( versionString == null || versionString.length() <= 0 || "0.0.0".equals( versionString ) )
                 {
-                    Version version = new Version( versionString );
-                    range = new VersionRange( version, true, version, true );
+                    range = VersionRange.emptyRange;
                 }
                 else
                 {
-                    range = VersionRange.emptyRange;
+                    Version version = new Version( versionString );
+                    range = new VersionRange( version, true, version, true );
                 }
 
                 required.add( MetadataFactory.createRequiredCapability(

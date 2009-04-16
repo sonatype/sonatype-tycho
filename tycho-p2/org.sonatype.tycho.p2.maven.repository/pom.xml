@@ -15,6 +15,19 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.tycho</groupId>
+        <artifactId>maven-osgi-compiler-plugin</artifactId>
+        <configuration>
+          <extraClasspathElements>
+            <extraClasspathElement>
+              <groupId>org.sonatype.tycho</groupId>
+              <artifactId>tycho-p2-facade</artifactId>
+              <version>${project.version}</version>
+            </extraClasspathElement>
+          </extraClasspathElements>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.modello</groupId>
         <artifactId>modello-maven-plugin</artifactId>
         <version>1.0.1</version>

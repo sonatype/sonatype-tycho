@@ -14,7 +14,6 @@
   <name>Tycho P2-based target platform resolver parent</name>
 
   <modules>
-    <module>tycho-p2-facade</module>
     <module>org.sonatype.tycho.p2.impl</module>
     <module>org.sonatype.tycho.p2.maven.repository</module>
     <module>tycho-p2-runtime</module>
@@ -53,6 +52,19 @@
         </configuration>
       </plugin>
     </plugins>
+    
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.tycho</groupId>
+          <artifactId>maven-osgi-packaging-plugin</artifactId>
+          <version>${tycho-version}</version>
+          <configuration>
+            <attachP2Metadata>false</attachP2Metadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
 </project>

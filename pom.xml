@@ -21,6 +21,7 @@
     <module>tycho-distribution</module>
     <module>tycho-testing-harness</module>
     <module>tycho-equinox</module>
+    <module>tycho-p2/tycho-p2-facade</module>
   </modules>
 
   <properties>

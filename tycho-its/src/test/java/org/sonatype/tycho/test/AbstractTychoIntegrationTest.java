@@ -36,19 +36,19 @@ public abstract class AbstractTychoIntegrationTest {
         env.put("MAVEN_OPTS", "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000");
 		 */
 		
-        System.setProperty("maven.home", getTychoHome()); // XXX do I really need this?
+	    // oddly enough, Verifier uses this system property to locate maven install
+        System.setProperty("maven.home", getTychoHome()); 
 
         File testDir = getBasedir(test);
         
         Verifier verifier = new Verifier( testDir.getAbsolutePath() );
+        verifier.getCliOptions().add("-Dmaven.home=" + getTychoHome());
         if (setTargetPlatform) {
         	verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + getTargetPlatforn() );
         }
         verifier.getCliOptions().add("-X");
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( getLocalRepo() );
-        
-        verifier.getCliOptions().add("-Dp2-runtimeLocation=" + getTychoHome() + "/p2");
         
         String m2eState = System.getProperty("m2eclipse.workspace.state");
         String m2eResolver = System.getProperty("m2eclipse.workspace.resolver");

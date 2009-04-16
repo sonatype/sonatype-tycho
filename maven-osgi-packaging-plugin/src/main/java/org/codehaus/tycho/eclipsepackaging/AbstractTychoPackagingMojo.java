@@ -9,8 +9,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.FeatureResolutionState;
 import org.codehaus.tycho.TychoSession;
@@ -21,13 +19,15 @@ import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 
 public abstract class AbstractTychoPackagingMojo
     extends AbstractMojo
-    implements Initializable
 {
     /** @parameter expression="${session}" */
     protected MavenSession session;
 
     /** @parameter expression="${project}" */
     protected MavenProject project;
+
+    /** @parameter default-value="true" */
+    protected boolean attachP2Metadata;
 
     /** @component */
     protected PlexusContainer plexus;
@@ -41,7 +41,7 @@ public abstract class AbstractTychoPackagingMojo
 
     protected BundleResolutionState bundleResolutionState;
 
-    protected P2Generator p2;
+    private P2Generator p2;
 
     /** @component */
     protected MavenProjectHelper projectHelper;
@@ -62,15 +62,28 @@ public abstract class AbstractTychoPackagingMojo
         bundleResolutionState = tychoSession.getBundleResolutionState( project );
     }
 
-    public void initialize()
-        throws InitializationException
+    protected P2Generator getP2Generator()
     {
-        this.p2 = equinox.getService( P2Generator.class );
+        if ( p2 == null )
+        {
+            p2 = equinox.getService( P2Generator.class );
+
+            if ( p2 == null )
+            {
+                throw new IllegalStateException( "Could not acquire P2 metadata service" );
+            }
+        }
+        return p2;
     }
 
     protected void attachP2Metadata()
         throws MojoExecutionException
     {
+        if ( !attachP2Metadata )
+        {
+            return;
+        }
+
         File file = project.getArtifact().getFile();
 
         if ( file == null || !file.canRead() )
@@ -83,8 +96,14 @@ public abstract class AbstractTychoPackagingMojo
 
         try
         {
-            p2.generateMetadata( file, project.getPackaging(), project.getGroupId(), project.getArtifactId(), project
-                .getVersion(), content, artifacts );
+            getP2Generator().generateMetadata(
+                file,
+                project.getPackaging(),
+                project.getGroupId(),
+                project.getArtifactId(),
+                project.getVersion(),
+                content,
+                artifacts );
         }
         catch ( IOException e )
         {
