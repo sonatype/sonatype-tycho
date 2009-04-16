@@ -158,7 +158,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		}
 
 		String artifactId = feature.getId();
-		String version = VersionExpander.getExpandedVersion(tychoSession, feature);
+		String version = VersioningHelper.getExpandedVersion(tychoSession, feature);
 
 		String url = "features/" + artifactId + "_" + version + ".jar";
 		File outputJar = new File(target, url);
@@ -368,7 +368,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 			file = new File(bundle.getLocation());
 		}
 
-		String bundleVersion = VersionExpander.getExpandedVersion(tychoSession, bundle);
+		String bundleVersion = VersioningHelper.getExpandedVersion(tychoSession, bundle);
 
 		String url = "plugins/" + bundleId + "_" + bundleVersion + ".jar";
 		File outputJar = new File(target, url);

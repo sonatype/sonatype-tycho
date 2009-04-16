@@ -10,7 +10,7 @@ import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
-public class VersionExpander
+public class VersioningHelper
 {
 
     private static final String QUALIFIER = "qualifier";

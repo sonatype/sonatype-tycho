@@ -140,10 +140,10 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 		feature.setMavenBaseVersion(project.getVersion()); // not expanded yet
 
 		// expand version if necessary
-		if (VersionExpander.isSnapshotVersion(featureDesc.getVersion())) {
-			Version version = VersionExpander.expandVersion(featureDesc.getVersion(), qualifier);
+		if (VersioningHelper.isSnapshotVersion(featureDesc.getVersion())) {
+			Version version = VersioningHelper.expandVersion(featureDesc.getVersion(), qualifier);
 			feature.setVersion(version.toString());
-			VersionExpander.setExpandedVersion(tychoSession, featureDesc.getLocation(), version.toString());
+			VersioningHelper.setExpandedVersion(tychoSession, featureDesc.getLocation(), version.toString());
 		}
 
 		// update included/referenced plugins
@@ -174,12 +174,12 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 				pluginRef.setMavenGroupId(pluginGroupId);
 			}
 
-			String pluginBaseVersion = VersionExpander.getMavenBaseVersion(tychoSession, bundle);
+			String pluginBaseVersion = VersioningHelper.getMavenBaseVersion(tychoSession, bundle);
 			if (pluginBaseVersion != null) {
 				pluginRef.setMavenBaseVersion(pluginBaseVersion);
 			}
 
-			pluginRef.setVersion(VersionExpander.getExpandedVersion(tychoSession, bundle));
+			pluginRef.setVersion(VersioningHelper.getExpandedVersion(tychoSession, bundle));
 
 			File file;
 			if (bundleProject != null) {

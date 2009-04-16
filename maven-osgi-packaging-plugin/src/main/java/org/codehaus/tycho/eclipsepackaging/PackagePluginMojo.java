@@ -161,11 +161,11 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		}
 		Attributes attributes = mf.getMainAttributes();
 
-		if (VersionExpander.isSnapshotVersion(version)) {
-			String expandedVersion = VersionExpander.expandVersion(version, qualifier).toString();
+		if (VersioningHelper.isSnapshotVersion(version)) {
+			String expandedVersion = VersioningHelper.expandVersion(version, qualifier).toString();
 
 			attributes.putValue("Bundle-Version", expandedVersion);
-			VersionExpander.setExpandedVersion(tychoSession, bundle.getLocation(), expandedVersion);
+			VersioningHelper.setExpandedVersion(tychoSession, bundle.getLocation(), expandedVersion);
 		}
 
 		attributes.putValue(TychoConstants.ATTR_GROUP_ID, project.getGroupId());

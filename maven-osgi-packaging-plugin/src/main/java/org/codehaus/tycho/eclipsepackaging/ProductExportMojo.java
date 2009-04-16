@@ -268,7 +268,7 @@ public class ProductExportMojo extends AbstractTychoPackagingMojo {
 			throw new MojoExecutionException("Unable to resolve feature " + featureId + "_" + featureVersion);
 		}
 
-		featureVersion = VersionExpander.getExpandedVersion(tychoSession, featureDescription);
+		featureVersion = VersioningHelper.getExpandedVersion(tychoSession, featureDescription);
 
 		Feature featureRef = featureDescription.getFeature();
 
@@ -368,7 +368,7 @@ public class ProductExportMojo extends AbstractTychoPackagingMojo {
 			source = new File(bundle.getLocation());
 		}
 
-		bundleVersion = VersionExpander.getExpandedVersion(tychoSession, bundle);
+		bundleVersion = VersioningHelper.getExpandedVersion(tychoSession, bundle);
 
 		File target = new File(pluginsFolder, bundleId + "_" + bundleVersion
 				+ ".jar");
