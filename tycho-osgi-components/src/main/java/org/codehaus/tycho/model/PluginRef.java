@@ -97,4 +97,9 @@ public class PluginRef {
 		return dom.getAttribute("maven-baseVersion");
 	}
 
+	@Override
+	public String toString()
+	{
+	    return getId() + "_" + getVersion();
+	}
 }

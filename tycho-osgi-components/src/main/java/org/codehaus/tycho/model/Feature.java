@@ -96,6 +96,12 @@ public class Feature {
 		public String getMavenVersion() {
 			return dom.getAttribute("maven-baseVersion");
 		}
+		
+		@Override
+		public String toString()
+		{
+            return getId() + "_" + getVersion();
+		}
 	}
 
 	public static class RequiresRef {

@@ -1,8 +1,10 @@
 package org.codehaus.tycho.model;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -80,17 +82,28 @@ public class UpdateSite {
 			dom.setAttribute("version", version);
 		}
 
+		@Override
+		public String toString()
+		{
+		    return getId() + "_" + getVersion();
+		}
 	}
-	
-	@SuppressWarnings("deprecation")
+
 	public static UpdateSite read(File file) throws IOException, XmlPullParserException {
-		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
+	    return read(new FileInputStream(file));
+	}
+
+    @SuppressWarnings("deprecation")
+    public static UpdateSite read(InputStream is)
+        throws IOException, XmlPullParserException
+    {
+        XmlStreamReader reader = ReaderFactory.newXmlReader(is);
 		try {
 			return new UpdateSite(Xpp3DomBuilder.build(reader));
 		} finally {
 			reader.close();
 		}
-	}
+    }
 
 	public static void write(UpdateSite site, File file) throws IOException {
 		Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
