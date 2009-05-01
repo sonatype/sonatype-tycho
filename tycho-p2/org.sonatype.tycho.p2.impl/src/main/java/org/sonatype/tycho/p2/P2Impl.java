@@ -74,8 +74,6 @@ public class P2Impl
 
     private static final IInstallableUnit[] IU_ARRAY = new IInstallableUnit[0];
 
-    private static final IArtifactDescriptor[] IARTIFACT_DESCRIPTOR_ARRAY = new IArtifactDescriptor[0];
-
     private static class InstallableUnitRenderer
         extends MetadataWriter
     {
@@ -525,119 +523,6 @@ public class P2Impl
         }
 
         return composite;
-    }
-
-    public void getRepositoryContent( String uri, File destination )
-    {
-        IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager) ServiceHelper.getService(
-            Activator.getContext(),
-            IMetadataRepositoryManager.class.getName() );
-        if ( metadataRepositoryManager == null )
-        {
-            throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
-        }
-
-        NullProgressMonitor monitor = new NullProgressMonitor();
-
-        try
-        {
-            URI location = new URI( uri );
-            boolean refresh = metadataRepositoryManager.contains( location );
-            if ( refresh )
-            {
-                bugzilla268893( location );
-                metadataRepositoryManager.refreshRepository( location, monitor );
-            }
-            IMetadataRepository metadataRepository = metadataRepositoryManager.loadRepository( location, monitor );
-
-            OutputStream os = new FileOutputStream( destination );
-            try
-            {
-                new MetadataRepositoryIO().write( metadataRepository, os );
-            }
-            finally
-            {
-                os.close();
-            }
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( e );
-        }
-
-    }
-
-    public void getRepositoryArtifacts( String uri, File destination )
-    {
-        IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager) ServiceHelper.getService(
-            Activator.getContext(),
-            IArtifactRepositoryManager.class.getName() );
-        if ( artifactRepositoryManager == null )
-        {
-            throw new IllegalStateException( "No artifact repository manager found" ); //$NON-NLS-1$
-        }
-
-        NullProgressMonitor monitor = new NullProgressMonitor();
-
-        try
-        {
-            URI location = new URI( uri );
-            boolean refresh = artifactRepositoryManager.contains( location );
-            if ( refresh )
-            {
-                bugzilla268893( location );
-                artifactRepositoryManager.refreshRepository( location, monitor );
-            }
-            IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
-
-            OutputStream os = new FileOutputStream( destination );
-            try
-            {
-                SimpleArtifactRepository simple = (SimpleArtifactRepository) artifactRepository
-                    .getAdapter( SimpleArtifactRepository.class );
-                new SimpleArtifactRepositoryIO().write( simple, os );
-            }
-            finally
-            {
-                os.close();
-            }
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( e );
-        }
-
-    }
-
-    private void bugzilla268893( URI location )
-        throws ProvisionException
-    {
-        File localRepository = new File( UpdateSiteMetadataRepositoryFactory.getLocalRepositoryLocation( location ) );
-        if ( localRepository.isDirectory() )
-        {
-            deleteDir( localRepository );
-        }
-        else
-        {
-            localRepository.delete();
-        }
-    }
-
-    private void deleteDir( File dir )
-    {
-        File[] files = dir.listFiles();
-        if ( files != null )
-        {
-            for ( File file : files )
-            {
-                if ( file.isDirectory() )
-                {
-                    deleteDir( file );
-
-                }
-                file.delete();
-            }
-        }
     }
 
 }

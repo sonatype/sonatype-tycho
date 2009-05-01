@@ -9,18 +9,14 @@ public interface P2Facade
 
     static final String PROP_REPOSITORY_ID = "tycho.p2.repositoryId";
 
-    ItemMetadata getBundleMetadata( File file );
+    public ItemMetadata getBundleMetadata( File file );
 
-    ItemMetadata getFeatureMetadata( File file );
+    public ItemMetadata getFeatureMetadata( File file );
 
     void publish( File location, List<File> bundles, List<File> features )
         throws Exception;
 
     void resolve( P2ResolutionRequest request, P2ResolutionResultCollector result )
         throws Exception;
-
-    public void getRepositoryContent( String url, File destination );
-
-    public void getRepositoryArtifacts( String url, File destination );
 
 }
