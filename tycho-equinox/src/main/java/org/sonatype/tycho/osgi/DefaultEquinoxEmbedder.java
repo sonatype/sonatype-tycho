@@ -184,6 +184,11 @@ public class DefaultEquinoxEmbedder
         // TODO technically, we're leaking service references here
         ServiceReference serviceReference = frameworkContext.getServiceReference( clazz.getName() );
 
+        if ( serviceReference == null )
+        {
+            throw new IllegalStateException( "Server is not registered " + clazz );
+        }
+
         return clazz.cast( frameworkContext.getService( serviceReference ) );
     }
 
