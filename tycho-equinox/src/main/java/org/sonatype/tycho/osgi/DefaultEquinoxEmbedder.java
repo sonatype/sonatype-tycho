@@ -186,7 +186,7 @@ public class DefaultEquinoxEmbedder
 
         if ( serviceReference == null )
         {
-            throw new IllegalStateException( "Server is not registered " + clazz );
+            throw new IllegalStateException( "Service is not registered " + clazz );
         }
 
         return clazz.cast( frameworkContext.getService( serviceReference ) );
