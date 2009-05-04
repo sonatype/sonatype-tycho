@@ -1,11 +1,17 @@
 package org.codehaus.tycho.eclipsepackaging;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -103,6 +109,7 @@ public class ProductExportMojo
 
         generateEclipseProduct();
         generateConfigIni();
+        includeRootFiles();
 
         pluginsFolder.mkdirs();
         if ( productConfiguration.getUseFeatures() )
@@ -118,6 +125,166 @@ public class ProductExportMojo
         copyExecutable();
 
         packProduct();
+    }
+
+    /**
+     * Root files are files that must be packaged with an Eclipse install but are not features or plug-ins. These files
+     * are added to the root or to a specified sub folder of the build. 
+     * 
+     * <pre>
+     * root=
+     * root.<confi>=
+     * root.folder.<subfolder>=
+     * root.<config>.folder.<subfolder>=
+     * </pre>
+     * 
+     * Not supported are the properties root.permissions and root.link. 
+     * 
+     * @see http://help.eclipse.org/ganymede/index.jsp?topic=/org.eclipse.pde.doc.user/tasks/pde_rootfiles.htm
+     * 
+     * @throws MojoExecutionException
+     */
+    private void includeRootFiles()
+        throws MojoExecutionException
+    {
+        Properties properties = project.getProperties();
+        String generatedBuildProperties = properties.getProperty( "generatedBuildProperties" );
+        getLog().debug( "includeRootFiles from " + generatedBuildProperties );
+        if ( generatedBuildProperties != null )
+        {
+            Properties rootProperties = new Properties();
+            try
+            {
+                rootProperties.load( new FileInputStream( new File( project.getBasedir(), generatedBuildProperties ) ) );
+                if ( !rootProperties.isEmpty() )
+                {
+                    String config = getConfig();
+                    String root = "root";
+                    String rootConfig = "root." + config;
+                    String rootFolder = "root.folder.";
+                    String rootConfigFolder = "root." + config + ".folder.";
+                    Set<Entry<Object, Object>> entrySet = rootProperties.entrySet();
+                    for ( Iterator iterator = entrySet.iterator(); iterator.hasNext(); )
+                    {
+                        Entry<String, String> entry = (Entry<String, String>) iterator.next();
+                        String key = entry.getKey().trim();
+                        // root=
+                        if ( root.equals( key ) )
+                        {
+                            handleRootEntry( entry.getValue(), null );
+                        }
+                        // root.xxx=
+                        else if ( rootConfig.equals( key ) )
+                        {
+                            handleRootEntry( entry.getValue(), null );
+                        }
+                        // root.folder.yyy=
+                        else if ( key.startsWith( rootFolder ) )
+                        {
+                            String subFolder = entry.getKey().substring( ( rootFolder.length() ) );
+                            handleRootEntry( entry.getValue(), subFolder );
+                        }
+                        // root.xxx.folder.yyy=
+                        else if ( key.startsWith( rootConfigFolder ) )
+                        {
+                            String subFolder = entry.getKey().substring( ( rootConfigFolder.length() ) );
+                            handleRootEntry( entry.getValue(), subFolder );
+                        }
+                        else
+                        {
+                            getLog().debug( "ignoring property " + entry.getKey() + "=" + entry.getValue() );
+                        }
+                    }
+                }
+            }
+            catch ( FileNotFoundException e )
+            {
+                throw new MojoExecutionException( "Error including root files for product", e );
+            }
+            catch ( IOException e )
+            {
+                throw new MojoExecutionException( "Error including root files for product", e );
+            }
+        }
+    }
+
+    /**
+     * @param rootFileEntry files and directories seperated by semicolons, the syntax is:
+     *            <ul>
+     *            <li>for a relative file: file:license.html,...</li>
+     *            <li>for a absolute file: absolute:file:/eclipse/about.html,...</li>
+     *            <li>for a relative folder: rootfiles,...</li>
+     *            <li>for a absolute folder: absolute:/eclipse/rootfiles,...</li>
+     *            </ul>
+     * @param subFolder the sub folder to which the root file entries are copied to
+     */
+    private void handleRootEntry( String rootFileEntries, String subFolder )
+    {
+        StringTokenizer t = new StringTokenizer( rootFileEntries, "," );
+        File destination = target;
+        if ( subFolder != null )
+        {
+            destination = new File( target, subFolder );
+        }
+        while ( t.hasMoreTokens() )
+        {
+            String rootFileEntry = t.nextToken();
+            String fileName = rootFileEntry.trim();
+            boolean isAbsolute = false;
+            if ( fileName.startsWith( "absolute:" ) )
+            {
+                isAbsolute = true;
+                fileName = fileName.substring( "absolute:".length() );
+            }
+            if ( fileName.startsWith( "file" ) )
+            {
+                fileName = fileName.substring( "file:".length() );
+            }
+            File source = null;
+            if ( !isAbsolute )
+            {
+                source = new File( project.getBasedir(), fileName );
+            }
+            else
+            {
+                source = new File( fileName );
+            }
+            if ( source.isFile() )
+            {
+                try
+                {
+                    FileUtils.copyFileToDirectory( source, destination );
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            else if ( source.isDirectory() )
+            {
+                try
+                {
+                    FileUtils.copyDirectoryToDirectory( source, destination );
+                }
+                catch ( IOException e )
+                {
+                    e.printStackTrace();
+                }
+            }
+            else
+            {
+                getLog().warn( "Skipping root entry " + rootFileEntry );
+            }
+        }
+    }
+
+    private String getConfig()
+    {
+        String ws = platform.getProperty( PlatformPropertiesUtils.OSGI_WS );
+        String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
+        String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
+        StringBuffer config = new StringBuffer( ws ).append( "." ).append( os ).append( "." ).append( arch );
+        return config.toString();
     }
 
     private void packProduct()
