@@ -31,13 +31,9 @@ import org.sonatype.tycho.p2.maven.repository.xstream.MetadataIO;
 public class P2GeneratorImpl
     implements P2Generator
 {
-    private static final String[] SUPPORTED_TYPES = {
-        P2Resolver.TYPE_OSGI_BUNDLE,
-        P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN,
-        P2Resolver.TYPE_ECLIPSE_FEATURE,
-        P2Resolver.TYPE_ECLIPSE_UPDATE_SITE,
-        P2Resolver.TYPE_ECLIPSE_APPLICATION
-    };
+    private static final String[] SUPPORTED_TYPES =
+        { P2Resolver.TYPE_OSGI_BUNDLE, P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN, P2Resolver.TYPE_ECLIPSE_FEATURE,
+            P2Resolver.TYPE_ECLIPSE_UPDATE_SITE, P2Resolver.TYPE_ECLIPSE_APPLICATION };
 
     /**
      * Whether we need full p2 metadata (false) or just required capabilities.
@@ -52,7 +48,7 @@ public class P2GeneratorImpl
     }
 
     public void generateMetadata( File location, String packaging, String groupId, String artifactId, String version,
-        File content, File artifacts )
+                                  File content, File artifacts )
         throws IOException
     {
 
@@ -66,7 +62,7 @@ public class P2GeneratorImpl
     }
 
     public void generateMetadata( File location, String packaging, String groupId, String artifactId, String version,
-        Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts )
+                                  Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts )
     {
         if ( !isSupported( packaging ) )
         {

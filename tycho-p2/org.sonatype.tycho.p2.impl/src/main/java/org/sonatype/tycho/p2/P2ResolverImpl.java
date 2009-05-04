@@ -103,17 +103,17 @@ public class P2ResolverImpl
 
     public void addRepository( URI location )
     {
-        IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager) ServiceHelper.getService(
-            Activator.getContext(),
-            IMetadataRepositoryManager.class.getName() );
+        IMetadataRepositoryManager metadataRepositoryManager =
+            (IMetadataRepositoryManager) ServiceHelper.getService( Activator.getContext(),
+                                                                   IMetadataRepositoryManager.class.getName() );
         if ( metadataRepositoryManager == null )
         {
             throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
         }
 
-        IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager) ServiceHelper.getService(
-            Activator.getContext(),
-            IArtifactRepositoryManager.class.getName() );
+        IArtifactRepositoryManager artifactRepositoryManager =
+            (IArtifactRepositoryManager) ServiceHelper.getService( Activator.getContext(),
+                                                                   IArtifactRepositoryManager.class.getName() );
         if ( artifactRepositoryManager == null )
         {
             throw new IllegalStateException( "No artifact repository manager found" ); //$NON-NLS-1$
@@ -150,14 +150,14 @@ public class P2ResolverImpl
         rootWithExtraIUs.addAll( rootIUs );
         rootWithExtraIUs.addAll( extraIUs );
 
-        Slicer slicer = new Slicer( new QueryableArray( availableIUs ), newSelectionContext );
+        Slicer slicer = new Slicer( new QueryableArray( availableIUs ), newSelectionContext, false );
         IQueryable slice = slicer.slice( rootWithExtraIUs.toArray( IU_ARRAY ), monitor );
 
         if ( slice != null )
         {
-            Projector projector = new Projector( slice, newSelectionContext );
-            projector.encode( createMetaIU( rootIUs ), extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */, rootIUs
-                .toArray( IU_ARRAY ) /* newRoots */, monitor );
+            Projector projector = new Projector( slice, newSelectionContext, false );
+            projector.encode( createMetaIU( rootIUs ), extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
+                              rootIUs.toArray( IU_ARRAY ) /* newRoots */, monitor );
             IStatus s = projector.invokeSolver( monitor );
             if ( s.getSeverity() == IStatus.ERROR )
             {
@@ -371,7 +371,7 @@ public class P2ResolverImpl
 
     @SuppressWarnings( "unchecked" )
     public IInstallableUnit[] gatherAvailableInstallableUnits( List<IMetadataRepository> repositories,
-        IProgressMonitor monitor )
+                                                               IProgressMonitor monitor )
     {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
@@ -413,20 +413,14 @@ public class P2ResolverImpl
         for ( IInstallableUnit iu : rootIUs )
         {
             VersionRange range = new VersionRange( iu.getVersion(), true, iu.getVersion(), true );
-            capabilities.add( MetadataFactory.createRequiredCapability(
-                IInstallableUnit.NAMESPACE_IU_ID,
-                iu.getId(),
-                range,
-                iu.getFilter(),
-                false /* optional */,
-                !iu.isSingleton() /* multiple */,
-                true /* greedy */) );
+            capabilities.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, iu.getId(),
+                                                                        range, iu.getFilter(), false /* optional */,
+                                                                        !iu.isSingleton() /* multiple */, true /* greedy */) );
         }
 
         capabilities.addAll( additionalRequirements );
 
-        iud.setRequiredCapabilities( (IRequiredCapability[]) capabilities.toArray( new IRequiredCapability[capabilities
-            .size()] ) );
+        iud.setRequiredCapabilities( (IRequiredCapability[]) capabilities.toArray( new IRequiredCapability[capabilities.size()] ) );
         return MetadataFactory.createInstallableUnit( iud );
     }
 
@@ -448,23 +442,15 @@ public class P2ResolverImpl
     {
         if ( P2Resolver.TYPE_INSTALLABLE_UNIT.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequiredCapability(
-                IInstallableUnit.NAMESPACE_IU_ID,
-                id,
-                new VersionRange( version ),
-                null,
-                false,
-                true ) );
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, id,
+                                                                                  new VersionRange( version ), null,
+                                                                                  false, true ) );
         }
         else if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequiredCapability(
-                IInstallableUnit.NAMESPACE_IU_ID,
-                id,
-                new VersionRange( version ),
-                null,
-                false,
-                true ) );
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, id,
+                                                                                  new VersionRange( version ), null,
+                                                                                  false, true ) );
         }
     }
 }

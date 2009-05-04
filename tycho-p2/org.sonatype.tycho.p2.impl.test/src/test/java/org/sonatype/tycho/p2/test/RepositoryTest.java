@@ -59,7 +59,7 @@ public class RepositoryTest
         newSelectionContext.put( "osgi.os", "linux" );
         newSelectionContext.put( "org.eclipse.update.install.features", "true" );
 
-        Slicer slicer = new Slicer( metadataRepository, newSelectionContext );
+        Slicer slicer = new Slicer( metadataRepository, newSelectionContext, false );
 
         Collector rootIUs = metadataRepository.query(
             new InstallableUnitQuery( "org.eclipse.swt" ),

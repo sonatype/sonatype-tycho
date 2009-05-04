@@ -25,14 +25,8 @@ public class TransientArtifactRepository
 
     public TransientArtifactRepository()
     {
-        super(
-            "TemporaryArtifactRepository",
-            TransientArtifactRepository.class.getName(),
-            "1.0.0",
-            null,
-            null,
-            null,
-            null );
+        super( "TemporaryArtifactRepository", TransientArtifactRepository.class.getName(), "1.0.0", null, null, null,
+               null );
     }
 
     @Override

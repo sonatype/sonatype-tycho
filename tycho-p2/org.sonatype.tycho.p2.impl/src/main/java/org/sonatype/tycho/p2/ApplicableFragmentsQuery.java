@@ -33,7 +33,7 @@ public class ApplicableFragmentsQuery
     public ApplicableFragmentsQuery( Collection<IInstallableUnit> units, Dictionary selectionContext )
     {
         this.selectionContext = selectionContext;
-        
+
         for ( IInstallableUnit unit : units )
         {
             for ( IProvidedCapability provided : unit.getProvidedCapabilities() )

@@ -33,7 +33,6 @@ import org.eclipse.equinox.internal.provisional.p2.artifact.repository.processin
 import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
 import org.eclipse.equinox.internal.provisional.p2.core.Version;
 import org.eclipse.equinox.internal.provisional.p2.core.VersionRange;
-import org.eclipse.equinox.internal.provisional.p2.core.repository.IRepository;
 import org.eclipse.equinox.internal.provisional.p2.director.IPlanner;
 import org.eclipse.equinox.internal.provisional.p2.director.ProfileChangeRequest;
 import org.eclipse.equinox.internal.provisional.p2.director.ProvisioningPlan;
@@ -50,6 +49,7 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.query.InstallableUni
 import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepository;
 import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepositoryManager;
 import org.eclipse.equinox.internal.provisional.p2.query.Collector;
+import org.eclipse.equinox.internal.provisional.p2.repository.IRepository;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherInfo;
 import org.eclipse.equinox.p2.publisher.Publisher;
@@ -114,8 +114,8 @@ public class P2Impl
                     attribute( VERSION_ATTRIBUTE, key.getVersion() );
                     writeProcessingSteps( descriptor.getProcessingSteps() );
                     writeProperties( descriptor.getProperties() );
-                    writeProperties( REPOSITORY_PROPERTIES_ELEMENT, ( (ArtifactDescriptor) descriptor )
-                        .getRepositoryProperties() );
+                    writeProperties( REPOSITORY_PROPERTIES_ELEMENT,
+                                     ( (ArtifactDescriptor) descriptor ).getRepositoryProperties() );
                     end( ARTIFACT_ELEMENT );
                 }
                 end( ARTIFACTS_ELEMENT );
@@ -189,10 +189,8 @@ public class P2Impl
     {
         BundleDescription bd = BundlesAction.createBundleDescription( bundleLocation );
         IPublisherInfo info = new PublisherInfo();
-        info.addAdvice( new BundleShapeAdvice(
-            bd.getSymbolicName(),
-            Version.fromOSGiVersion( bd.getVersion() ),
-            IBundleShapeAdvice.JAR ) );
+        info.addAdvice( new BundleShapeAdvice( bd.getSymbolicName(), Version.fromOSGiVersion( bd.getVersion() ),
+                                               IBundleShapeAdvice.JAR ) );
         IArtifactKey key = BundlesAction.createBundleArtifactKey( bd.getSymbolicName(), bd.getVersion().toString() );
         IInstallableUnit iu = BundlesAction.createBundleIU( bd, key, info );
         IArtifactDescriptor ad = PublisherHelper.createArtifactDescriptor( key, bundleLocation );
@@ -267,26 +265,18 @@ public class P2Impl
     {
         PublisherInfo info = new PublisherInfo();
 
-        info.setArtifactRepository( Publisher.createArtifactRepository(
-            location.toURI(),
-            location.getName(),
-            true /* append */,
-            false /* compress */,
-            true /* reusePackedFiles */) );
+        info.setArtifactRepository( Publisher.createArtifactRepository( location.toURI(), location.getName(),
+                                                                        true /* append */, false /* compress */, true /* reusePackedFiles */) );
 
-        info.setMetadataRepository( Publisher.createMetadataRepository(
-            location.toURI(),
-            location.getName(),
-            true /* append */,
-            false /* compress */) );
+        info.setMetadataRepository( Publisher.createMetadataRepository( location.toURI(), location.getName(),
+                                                                        true /* append */, false /* compress */) );
 
         ArrayList<IPublisherAction> actions = new ArrayList<IPublisherAction>();
         actions.add( new FeaturesAction( features.toArray( new File[features.size()] ) ) );
         actions.add( new BundlesAction( bundles.toArray( new File[bundles.size()] ) ) );
 
-        new Publisher( info ).publish(
-            (IPublisherAction[]) actions.toArray( new IPublisherAction[actions.size()] ),
-            new NullProgressMonitor() );
+        new Publisher( info ).publish( (IPublisherAction[]) actions.toArray( new IPublisherAction[actions.size()] ),
+                                       new NullProgressMonitor() );
     }
 
     public void resolve( P2ResolutionRequest req, P2ResolutionResultCollector result )
@@ -298,16 +288,16 @@ public class P2Impl
             throw new ProvisionException( "No planner service found." );
         }
 
-        IProfileRegistry profileRegistry = (IProfileRegistry) ServiceHelper.getService(
-            Activator.getContext(),
-            IProfileRegistry.class.getName() );
+        IProfileRegistry profileRegistry =
+            (IProfileRegistry) ServiceHelper.getService( Activator.getContext(), IProfileRegistry.class.getName() );
         if ( profileRegistry == null )
         {
             throw new ProvisionException( "No profile registry found." );
         }
 
-        IMetadataRepositoryManager manager = (IMetadataRepositoryManager) ServiceHelper.getService( Activator
-            .getContext(), IMetadataRepositoryManager.class.getName() );
+        IMetadataRepositoryManager manager =
+            (IMetadataRepositoryManager) ServiceHelper.getService( Activator.getContext(),
+                                                                   IMetadataRepositoryManager.class.getName() );
         if ( manager == null )
         {
             throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
@@ -370,10 +360,10 @@ public class P2Impl
                         for ( IArtifactDescriptor adesc : artifactDescriptors )
                         {
                             targetArtifacts.addDescriptor( adesc );
-                            String artifactPath = ( (SimpleArtifactRepository) artifactRepository )
-                                .getLocation( adesc ).getSchemeSpecificPart();
-                            String targetRepositoryId = (String) artifactRepository.getProperties().get(
-                                PROP_REPOSITORY_ID );
+                            String artifactPath =
+                                ( (SimpleArtifactRepository) artifactRepository ).getLocation( adesc ).getSchemeSpecificPart();
+                            String targetRepositoryId =
+                                (String) artifactRepository.getProperties().get( PROP_REPOSITORY_ID );
                             result.createLinkItem( artifactPath, targetRepositoryId, artifactPath );
                         }
                     }
@@ -412,15 +402,14 @@ public class P2Impl
 
         ArrayList reqsConfigurationUnits = new ArrayList();
         VersionRange memberRange = new VersionRange( member.getVersion(), true, member.getVersion(), true );
-        reqsConfigurationUnits.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, member
-            .getId(), memberRange, member.getFilter(), false, false ) );
-        cat.setRequiredCapabilities( (IRequiredCapability[]) reqsConfigurationUnits
-            .toArray( new IRequiredCapability[reqsConfigurationUnits.size()] ) );
+        reqsConfigurationUnits.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID,
+                                                                              member.getId(), memberRange,
+                                                                              member.getFilter(), false, false ) );
+        cat.setRequiredCapabilities( (IRequiredCapability[]) reqsConfigurationUnits.toArray( new IRequiredCapability[reqsConfigurationUnits.size()] ) );
 
         ArrayList providedCapabilities = new ArrayList();
         providedCapabilities.add( PublisherHelper.createSelfCapability( cat.getId(), Version.emptyVersion ) );
-        cat.setCapabilities( (IProvidedCapability[]) providedCapabilities
-            .toArray( new IProvidedCapability[providedCapabilities.size()] ) );
+        cat.setCapabilities( (IProvidedCapability[]) providedCapabilities.toArray( new IProvidedCapability[providedCapabilities.size()] ) );
 
         cat.setArtifacts( new IArtifactKey[0] );
         cat.setProperty( IInstallableUnit.PROP_TYPE_CATEGORY, "true" ); //$NON-NLS-1$
@@ -444,27 +433,19 @@ public class P2Impl
         {
             VersionRange range = new VersionRange( member.getVersion(), true, member.getVersion(), true );
             String requiredId = member.getId();
-            required.add( MetadataFactory.createRequiredCapability(
-                IInstallableUnit.NAMESPACE_IU_ID,
-                requiredId,
-                range,
-                null /* filter */,
-                false /* optional */,
-                false /* multiple */) );
+            required.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, requiredId,
+                                                                    range, null /* filter */, false /* optional */,
+                                                                    false /* multiple */) );
         }
-        iu
-            .setRequiredCapabilities( (IRequiredCapability[]) required
-                .toArray( new IRequiredCapability[required.size()] ) );
+        iu.setRequiredCapabilities( (IRequiredCapability[]) required.toArray( new IRequiredCapability[required.size()] ) );
 
         iu.setTouchpointType( ITouchpointType.NONE );
 
         iu.setProperty( IInstallableUnit.PROP_TYPE_GROUP, Boolean.TRUE.toString() );
 
         ArrayList<IProvidedCapability> providedCapabilities = new ArrayList<IProvidedCapability>();
-        providedCapabilities
-            .add( MetadataFactory.createProvidedCapability( PublisherHelper.IU_NAMESPACE, id, version ) );
-        iu.setCapabilities( (IProvidedCapability[]) providedCapabilities
-            .toArray( new IProvidedCapability[providedCapabilities.size()] ) );
+        providedCapabilities.add( MetadataFactory.createProvidedCapability( PublisherHelper.IU_NAMESPACE, id, version ) );
+        iu.setCapabilities( (IProvidedCapability[]) providedCapabilities.toArray( new IProvidedCapability[providedCapabilities.size()] ) );
 
         return MetadataFactory.createInstallableUnit( iu );
     }
@@ -478,8 +459,9 @@ public class P2Impl
             try
             {
                 URI uri = new URI( "nexus:/" );
-                SimpleArtifactRepository repository = (SimpleArtifactRepository) artifactIO.read( null, repo
-                    .getItemInputStream( "/artifacts.xml" ), new NullProgressMonitor() );
+                SimpleArtifactRepository repository =
+                    (SimpleArtifactRepository) artifactIO.read( null, repo.getItemInputStream( "/artifacts.xml" ),
+                                                                new NullProgressMonitor() );
                 repository.initializeAfterLoad( uri );
                 repositories.add( repository );
             }
@@ -493,8 +475,7 @@ public class P2Impl
     }
 
     public IMetadataRepository createMetadataRepository( IMetadataRepositoryManager manager, P2ResolutionRequest req )
-        throws ProvisionException,
-            URISyntaxException
+        throws ProvisionException, URISyntaxException
     {
         long timestamp = System.currentTimeMillis() * 100;
         URI location;
@@ -504,17 +485,16 @@ public class P2Impl
         }
         while ( manager.contains( location ) );
 
-        TransientMetadataRepository composite = (TransientMetadataRepository) manager.createRepository( location, Long
-            .toString( timestamp ), TransientMetadataRepository.class.getName(), null );
+        TransientMetadataRepository composite =
+            (TransientMetadataRepository) manager.createRepository( location, Long.toString( timestamp ),
+                                                                    TransientMetadataRepository.class.getName(), null );
 
         for ( RepositoryContentLocator repo : req.getRepositories() )
         {
             try
             {
-                composite.add( metadataIO.read(
-                    null,
-                    repo.getItemInputStream( "/content.xml" ),
-                    new NullProgressMonitor() ) );
+                composite.add( metadataIO.read( null, repo.getItemInputStream( "/content.xml" ),
+                                                new NullProgressMonitor() ) );
             }
             catch ( Exception e )
             {

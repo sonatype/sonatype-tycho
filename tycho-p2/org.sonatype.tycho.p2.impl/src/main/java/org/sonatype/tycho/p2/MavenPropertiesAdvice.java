@@ -9,17 +9,17 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.MetadataFactory.Inst
 import org.eclipse.equinox.p2.publisher.actions.IPropertyAdvice;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 
-@SuppressWarnings("restriction")
+@SuppressWarnings( "restriction" )
 public class MavenPropertiesAdvice
     implements IPropertyAdvice
 {
 
     private final Properties properties;
-    
+
     public MavenPropertiesAdvice( String groupId, String artifactId, String version )
     {
         properties = new Properties();
-        
+
         properties.put( RepositoryLayoutHelper.PROP_GROUP_ID, groupId );
         properties.put( RepositoryLayoutHelper.PROP_ARTIFACT_ID, artifactId );
         properties.put( RepositoryLayoutHelper.PROP_VERSION, version );

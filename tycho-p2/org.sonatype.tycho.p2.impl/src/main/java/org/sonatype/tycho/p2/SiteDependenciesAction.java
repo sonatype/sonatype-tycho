@@ -53,8 +53,8 @@ public class SiteDependenciesAction
             iud.setVersion( new Version( version ) );
 
             Set<IProvidedCapability> provided = new LinkedHashSet<IProvidedCapability>();
-            provided.add( MetadataFactory.createProvidedCapability( IInstallableUnit.NAMESPACE_IU_ID, iud.getId(), iud
-                .getVersion() ) );
+            provided.add( MetadataFactory.createProvidedCapability( IInstallableUnit.NAMESPACE_IU_ID, iud.getId(),
+                                                                    iud.getVersion() ) );
             iud.addProvidedCapabilities( provided );
 
             Set<IRequiredCapability> required = new LinkedHashSet<IRequiredCapability>();
@@ -74,13 +74,8 @@ public class SiteDependenciesAction
                     range = new VersionRange( version, true, version, true );
                 }
 
-                required.add( MetadataFactory.createRequiredCapability(
-                    IInstallableUnit.NAMESPACE_IU_ID,
-                    id,
-                    range,
-                    null,
-                    false,
-                    false ) );
+                required.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, id, range,
+                                                                        null, false, false ) );
             }
 
             iud.addRequiredCapabilities( required );

@@ -16,7 +16,9 @@ Require-Bundle: system.bundle,
  org.eclipse.equinox.p2.director;bundle-version="1.0.100",
  org.sat4j.core,
  org.sat4j.pb,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.core.net;bundle-version="1.2.0",
+ org.eclipse.equinox.p2.repository;bundle-version="1.0.0"
 Import-Package: org.sonatype.tycho.p2.facade
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.sonatype.tycho.p2.test.Activator
