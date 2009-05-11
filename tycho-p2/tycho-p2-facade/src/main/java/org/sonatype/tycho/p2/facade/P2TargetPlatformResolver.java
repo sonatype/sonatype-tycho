@@ -7,9 +7,13 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.wagon.Wagon;
+import org.apache.maven.wagon.repository.Repository;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
@@ -23,9 +27,12 @@ import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
+import org.sonatype.tycho.p2.facade.internal.MavenTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
+import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 
 @Component( role = TargetPlatformResolver.class, hint = P2TargetPlatformResolver.ROLE_HINT, instantiationStrategy = "per-lookup" )
 public class P2TargetPlatformResolver
@@ -37,6 +44,12 @@ public class P2TargetPlatformResolver
 
     @Requirement
     private EquinoxEmbedder equinox;
+
+    @Requirement
+    private PlexusContainer plexus;
+
+    @Requirement
+    private WagonManager wagonManager;
 
     private P2ResolverFactory resolverFactory;
 
@@ -60,7 +73,7 @@ public class P2TargetPlatformResolver
             {
                 try
                 {
-                    resolver.addRepository( new URL( repository.getUrl() ).toURI() );
+                    resolver.addP2Repository( new URL( repository.getUrl() ).toURI() );
                 }
                 catch ( MalformedURLException e )
                 {
@@ -69,6 +82,26 @@ public class P2TargetPlatformResolver
                 catch ( URISyntaxException e )
                 {
                     getLogger().warn( "Could not parse repository URL", e );
+                }
+            }
+            else
+            {
+                try
+                {
+                    MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
+                    reader.setArtifactRepository( repository );
+                    reader.setLocalRepository( localRepository );
+
+                    Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
+                    Wagon wagon = wagonManager.getWagon( wagonRepository );
+                    wagon.connect( wagonRepository );
+                    TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
+
+                    resolver.addMavenRepository( index, reader );
+                }
+                catch ( Exception e )
+                {
+                    getLogger().info( "Unable to initialize remote Tycho repository", e );
                 }
             }
         }
@@ -80,7 +113,7 @@ public class P2TargetPlatformResolver
         properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( this.properties ) );
         properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( this.properties ) );
         ExecutionEnvironmentUtils.loadVMProfile( properties );
-        properties.put("org.eclipse.update.install.features", "true" );
+        properties.put( "org.eclipse.update.install.features", "true" );
         resolver.setProperties( properties );
 
         if ( dependencies != null )

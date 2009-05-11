@@ -24,9 +24,9 @@ import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifact
 import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.internal.provisional.spi.p2.artifact.repository.AbstractArtifactRepository;
-import org.sonatype.tycho.p2.facade.GAV;
-import org.sonatype.tycho.p2.facade.LocalRepositoryIndex;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.facade.internal.GAV;
+import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xstream.ArtifactsIO;
 
 import com.thoughtworks.xstream.XStreamException;
@@ -64,7 +64,7 @@ public class LocalArtifactRepository
     {
         File location = getBasedir();
 
-        LocalRepositoryIndex index = new LocalRepositoryIndex( location );
+        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location );
 
         ArtifactsIO io = new ArtifactsIO();
 
@@ -106,7 +106,7 @@ public class LocalArtifactRepository
     {
         File location = getBasedir();
 
-        LocalRepositoryIndex index = new LocalRepositoryIndex( location );
+        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location );
 
         Properties properties = new Properties();
 

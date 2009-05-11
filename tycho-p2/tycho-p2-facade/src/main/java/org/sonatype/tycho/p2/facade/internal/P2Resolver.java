@@ -19,13 +19,15 @@ public interface P2Resolver
     public static final String TYPE_ECLIPSE_UPDATE_SITE = ProjectType.ECLIPSE_UPDATE_SITE;
 
     /**
-     * Pseudo artifact type used to denote P2 installable unit dependencies 
+     * Pseudo artifact type used to denote P2 installable unit dependencies
      */
     public static final String TYPE_INSTALLABLE_UNIT = "p2-installable-unit";
-    
+
     public void addMavenProject( File location, String type, String groupId, String artifactId, String version );
 
-    public void addRepository( URI location );
+    public void addP2Repository( URI location );
+
+    public void addMavenRepository( TychoRepositoryIndex projectIndex, RepositoryReader contentLocator );
 
     public void setLocalRepositoryLocation( File location );
 

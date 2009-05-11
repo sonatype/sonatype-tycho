@@ -48,8 +48,11 @@ import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.osgi.framework.InvalidSyntaxException;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
+import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
+import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.LocalArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository;
+import org.sonatype.tycho.p2.maven.repository.NexusMetadataRepository;
 
 @SuppressWarnings( "restriction" )
 public class P2ResolverImpl
@@ -101,7 +104,7 @@ public class P2ResolverImpl
         projects.put( location, type );
     }
 
-    public void addRepository( URI location )
+    public void addP2Repository( URI location )
     {
         IMetadataRepositoryManager metadataRepositoryManager =
             (IMetadataRepositoryManager) ServiceHelper.getService( Activator.getContext(),
@@ -280,28 +283,9 @@ public class P2ResolverImpl
         }
     }
 
-    private boolean isSubdir( File parent, File child )
-    {
-        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
-    }
-
     private LinkedHashSet<IInstallableUnit> getProjectIUs( File location )
     {
         LinkedHashSet<IInstallableUnit> ius = new LinkedHashSet<IInstallableUnit>( projectIUs.get( location ) );
-
-        // XXX this code does not belong here. Move it to test mojo!!!
-        // if ( ECLIPSE_TEST_PLUGIN.equals( projects.get( location ) ) )
-        // {
-        // LatestIUCollector testIUs = new LatestIUCollector();
-        // InstallableUnitsQuery testIUsQuery = new InstallableUnitsQuery( IMPLICIT_TEST_IUS );
-        //
-        // for ( IMetadataRepository repository : metadataRepositories )
-        // {
-        // repository.query( testIUsQuery, testIUs, monitor );
-        // }
-        //
-        // ius.addAll( testIUs.toCollection() );
-        // }
 
         return ius;
     }
@@ -315,7 +299,7 @@ public class P2ResolverImpl
             InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
             String time = Long.toString( System.currentTimeMillis() );
             iud.setId( "extra-" + time );
-            iud.setVersion( new Version( 0, 0, 0, time ) );
+            iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
             iud.setRequiredCapabilities( additionalRequirements.toArray( REQUIRED_CAPABILITY_ARRAY ) );
 
             result.add( MetadataFactory.createInstallableUnit( iud ) );
@@ -452,5 +436,10 @@ public class P2ResolverImpl
                                                                                   new VersionRange( version ), null,
                                                                                   false, true ) );
         }
+    }
+
+    public void addMavenRepository( TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
+    {
+        metadataRepositories.add( new NexusMetadataRepository( projectIndex, contentLocator ) );
     }
 }

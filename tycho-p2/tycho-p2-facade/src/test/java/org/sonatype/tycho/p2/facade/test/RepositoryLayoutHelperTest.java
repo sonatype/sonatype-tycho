@@ -3,8 +3,8 @@ package org.sonatype.tycho.p2.facade.test;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.GAV;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.facade.internal.GAV;
 
 public class RepositoryLayoutHelperTest
 {

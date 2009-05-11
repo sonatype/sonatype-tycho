@@ -17,9 +17,9 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.Query;
 import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.AbstractMetadataRepository;
-import org.sonatype.tycho.p2.facade.GAV;
-import org.sonatype.tycho.p2.facade.LocalRepositoryIndex;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.facade.internal.GAV;
+import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xstream.MetadataIO;
 
 import com.thoughtworks.xstream.XStreamException;
@@ -78,7 +78,7 @@ public class LocalMetadataRepository
         File basedir = new File( getLocation() );
 
         // XXX lock
-        LocalRepositoryIndex index = new LocalRepositoryIndex( basedir );
+        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( basedir );
 
         MetadataIO io = new MetadataIO();
 
@@ -124,7 +124,7 @@ public class LocalMetadataRepository
     {
         File basedir = new File( getLocation() );
 
-        LocalRepositoryIndex index = new LocalRepositoryIndex( basedir );
+        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( basedir );
 
         MetadataIO io = new MetadataIO();
 

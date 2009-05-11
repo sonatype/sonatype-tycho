@@ -3,6 +3,8 @@ package org.sonatype.tycho.p2.facade;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.sonatype.tycho.p2.facade.internal.GAV;
+
 public class RepositoryLayoutHelper
 {
     public static final String PROP_GROUP_ID = "maven-groupId";

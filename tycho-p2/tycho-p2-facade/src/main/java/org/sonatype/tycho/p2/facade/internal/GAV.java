@@ -1,4 +1,4 @@
-package org.sonatype.tycho.p2.facade;
+package org.sonatype.tycho.p2.facade.internal;
 
 public class GAV
 {
