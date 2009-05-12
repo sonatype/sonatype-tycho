@@ -8,7 +8,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.sonatype.tycho.p2.facade.LocalRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 
 /**
  * @goal update-local-index
@@ -30,7 +30,7 @@ public class UpdateLocalIndexMojo
 
         try
         {
-            LocalRepositoryIndex.addProject( location, project.getGroupId(), project.getArtifactId(), project
+            LocalTychoRepositoryIndex.addProject( location, project.getGroupId(), project.getArtifactId(), project
                 .getVersion() );
         }
         catch ( IOException e )
