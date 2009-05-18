@@ -102,6 +102,11 @@ public class Feature {
 		{
             return getId() + "_" + getVersion();
 		}
+
+        public Xpp3Dom getDom()
+        {
+            return dom;
+        }
 	}
 
 	public static class RequiresRef {

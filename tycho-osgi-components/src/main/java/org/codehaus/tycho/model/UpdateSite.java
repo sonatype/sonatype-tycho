@@ -78,6 +78,11 @@ public class UpdateSite {
 			dom.setAttribute("url", url);
 		}
 
+		public String getUrl()
+		{
+		    return dom.getAttribute("url");
+		}
+
 		public void setVersion(String version) {
 			dom.setAttribute("version", version);
 		}
@@ -87,6 +92,11 @@ public class UpdateSite {
 		{
 		    return getId() + "_" + getVersion();
 		}
+
+        public Xpp3Dom getDom()
+        {
+            return dom;
+        }
 	}
 
 	public static UpdateSite read(File file) throws IOException, XmlPullParserException {
