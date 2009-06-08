@@ -1,7 +1,9 @@
 package org.sonatype.tycho.p2;
 
+import java.util.Map;
 import java.util.Properties;
 
+import org.eclipse.equinox.internal.provisional.p2.artifact.repository.ArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.core.Version;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
@@ -25,9 +27,16 @@ public class MavenPropertiesAdvice
         properties.put( RepositoryLayoutHelper.PROP_VERSION, version );
     }
 
+    @SuppressWarnings("unchecked")
     public Properties getArtifactProperties( IInstallableUnit iu, IArtifactDescriptor descriptor )
     {
-        return properties;
+        for (Map.Entry entry : properties.entrySet())
+        {
+            String key = (String) entry.getKey();
+            String value = (String) entry.getValue();
+            ((ArtifactDescriptor) descriptor).setProperty( key, value );
+        }
+        return null;
     }
 
     public Properties getInstallableUnitProperties( InstallableUnitDescription iu )
