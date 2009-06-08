@@ -36,4 +36,6 @@ public interface P2Resolver
     public P2ResolutionResult resolve( File location );
 
     public void addDependency( String type, String id, String version );
+
+    public void setLogger( P2Logger logger );
 }

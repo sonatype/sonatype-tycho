@@ -11,6 +11,7 @@ import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.repository.Repository;
 import org.codehaus.plexus.PlexusContainer;
@@ -29,6 +30,7 @@ import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.MavenTychoRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.P2Logger;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
@@ -56,6 +58,22 @@ public class P2TargetPlatformResolver
     public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies )
     {
         P2Resolver resolver = resolverFactory.createResolver();
+
+        resolver.setLogger( new P2Logger()
+        {
+            public void debug( String message )
+            {
+                if ( message.length() > 0 )
+                {
+                    getLogger().info( message ); // TODO 
+                }
+            }
+
+            public void info( String message )
+            {
+                getLogger().info( message );
+            }
+        } );
 
         for ( MavenProject otherProject : projects )
         {
@@ -98,6 +116,10 @@ public class P2TargetPlatformResolver
                     TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
 
                     resolver.addMavenRepository( index, reader );
+                }
+                catch ( ResourceDoesNotExistException e )
+                {
+                    // it happens
                 }
                 catch ( Exception e )
                 {
