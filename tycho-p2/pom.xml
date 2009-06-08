@@ -16,8 +16,13 @@
   <modules>
     <module>org.sonatype.tycho.p2.impl</module>
     <module>org.sonatype.tycho.p2.maven.repository</module>
+
+    <!--
+    tycho is not smart enough to add tycho-p2-facade to the test runtime
+
+    <module>org.sonatype.tycho.p2.maven.repository.tests</module>
+     -->
     <module>tycho-p2-runtime</module>
-    <module>xstream-osgi</module>
   </modules>
 
   <dependencyManagement>
