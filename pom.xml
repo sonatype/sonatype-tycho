@@ -58,17 +58,30 @@
     <maven-version>3.0-TYCHO-733848</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.5M7
+      Version corresponds to Eclipse 3.5RC4
       
-      mvn install:install-file -Dfile=org.eclipse.osgi_3.5.0.v20090429-1630.jar \
-        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090429-1630 -Dpackaging=jar
+      mvn install:install-file -Dfile=org.eclipse.osgi_3.5.0.v20090520.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090520 -Dpackaging=jar
 
-      mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.0.v20090429-1630.jar \
-        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090429-1630 -Dpackaging=jar \
+      mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.0.v20090520.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090520 -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/content/repositories/eclipse/
 
      -->
-    <equinoxVersion>3.5.0.v20090429-1630</equinoxVersion>
+    <equinoxVersion>3.5.0.v20090520</equinoxVersion>
+
+    <!-- 
+      Version corresponds to Eclipse 3.5RC4
+      
+      mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.0.v_963.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.0.v_963 -Dpackaging=jar
+
+      mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.0.v_963.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.0.v_963 -Dpackaging=jar \
+        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/content/repositories/eclipse/
+
+     -->
+    <jdtVersion>3.5.0.v_963</jdtVersion>
 
   </properties>
 
@@ -119,13 +132,12 @@
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
-        <!--  eclipse 3.5M6 -->
-        <version>3.5.0.v20090311-1300</version>
+        <version>${equinoxVersion}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse</groupId>
         <artifactId>org.eclipse.jdt.core</artifactId>
-        <version>3.4.0.v_874</version>
+        <version>${jdtVersion}</version>
       </dependency>
 
       <dependency>
