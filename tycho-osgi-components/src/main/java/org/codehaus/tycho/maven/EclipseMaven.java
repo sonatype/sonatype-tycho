@@ -20,6 +20,7 @@ import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.osgitools.MutableTychoSession;
@@ -86,7 +87,9 @@ public class EclipseMaven
             {
                 DependenciesReader dr =
                     (DependenciesReader) container.lookup( DependenciesReader.class, project.getPackaging() );
-                tychoSession.setTargetPlatform( project, resolver.resolvePlatform( project, null ) );
+                getLogger().info( "Resolving target platform for project " + project );
+                TargetPlatform targetPlatform = resolver.resolvePlatform( project, null );
+                tychoSession.setTargetPlatform( project, targetPlatform );
                 for ( Dependency dependency : dr.getDependencies( project, tychoSession ) )
                 {
                     project.getModel().addDependency( dependency );

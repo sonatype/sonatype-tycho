@@ -484,7 +484,7 @@ public class EquinoxBundleResolutionState
 
             resolver.setPlatformProperties( platform.getProperties() );
 
-            resolver.resolve();
+            resolver.resolve( project );
 
             return resolver;
         }
@@ -508,24 +508,31 @@ public class EquinoxBundleResolutionState
         return manifestsDir;
     }
 
-    public void resolve()
+    public void resolve( MavenProject project )
     {
         state.resolve( true );
-        
-        StringBuilder sb = new StringBuilder("Resolved OSGi state\n");
-        for (BundleDescription bundle : state.getBundles()) {
-            if (!bundle.isResolved()) {
-                sb.append("NOT ");
+
+        if ( getLogger().isDebugEnabled() )
+        {
+            StringBuilder sb = new StringBuilder( "Resolved OSGi state\n" );
+            for ( BundleDescription bundle : state.getBundles() )
+            {
+                if ( !bundle.isResolved() )
+                {
+                    sb.append( "NOT " );
+                }
+                sb.append( "RESOLVED " );
+                sb.append( bundle.toString() ).append( " : " ).append( bundle.getLocation() );
+                sb.append( '\n' );
+                for ( ResolverError error : state.getResolverErrors( bundle ) )
+                {
+                    sb.append( '\t' ).append( error.toString() ).append( '\n' );
+                }
             }
-            sb.append("RESOLVED ");
-            sb.append(bundle.toString()).append(" : ").append(bundle.getLocation());
-            sb.append('\n');
-            for (ResolverError error : state.getResolverErrors(bundle)) {
-                sb.append('\t').append(error.toString()).append('\n');
-            }
+
+            getLogger().debug( sb.toString() );
         }
-        getLogger().info(sb.toString());
-        
+
     }
 
     public void setPlatformProperties( Properties properties )
