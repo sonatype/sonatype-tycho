@@ -24,8 +24,8 @@ import org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction;
 import org.eclipse.equinox.p2.publisher.eclipse.ProductAction;
 import org.sonatype.tycho.p2.facade.P2Generator;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
-import org.sonatype.tycho.p2.maven.repository.xstream.ArtifactsIO;
-import org.sonatype.tycho.p2.maven.repository.xstream.MetadataIO;
+import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
+import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
 @SuppressWarnings( "restriction" )
 public class P2GeneratorImpl

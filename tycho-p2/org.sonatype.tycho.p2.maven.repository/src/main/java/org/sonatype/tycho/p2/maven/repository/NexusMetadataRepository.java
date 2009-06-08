@@ -13,11 +13,9 @@ import org.eclipse.equinox.internal.provisional.p2.query.Query;
 import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.AbstractMetadataRepository;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
-import org.sonatype.tycho.p2.maven.repository.xstream.MetadataIO;
-
-import com.thoughtworks.xstream.XStreamException;
+import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
+import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
 @SuppressWarnings( "restriction" )
 public class NexusMetadataRepository
@@ -63,10 +61,6 @@ public class NexusMetadataRepository
                 }
             }
             catch ( IOException e )
-            {
-                // too bad
-            }
-            catch ( XStreamException e )
             {
                 // too bad
             }

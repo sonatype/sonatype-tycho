@@ -20,9 +20,7 @@ import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.Abstr
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
-import org.sonatype.tycho.p2.maven.repository.xstream.MetadataIO;
-
-import com.thoughtworks.xstream.XStreamException;
+import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
 @SuppressWarnings( "restriction" )
 public class LocalMetadataRepository
@@ -104,10 +102,6 @@ public class LocalMetadataRepository
             {
                 // XXX not good
             }
-            catch ( XStreamException e )
-            {
-                // XXX not good
-            }
         }
 
         try
@@ -150,10 +144,6 @@ public class LocalMetadataRepository
                 }
             }
             catch ( IOException e )
-            {
-                // too bad
-            }
-            catch ( XStreamException e )
             {
                 // too bad
             }

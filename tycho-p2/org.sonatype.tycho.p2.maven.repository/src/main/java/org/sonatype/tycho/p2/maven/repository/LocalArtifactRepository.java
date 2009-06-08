@@ -27,9 +27,7 @@ import org.eclipse.equinox.internal.provisional.spi.p2.artifact.repository.Abstr
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
-import org.sonatype.tycho.p2.maven.repository.xstream.ArtifactsIO;
-
-import com.thoughtworks.xstream.XStreamException;
+import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 
 @SuppressWarnings( "restriction" )
 public class LocalArtifactRepository
@@ -95,10 +93,6 @@ public class LocalArtifactRepository
             {
                 // too bad
             }
-            catch ( XStreamException e )
-            {
-                // too bad
-            }
         }
     }
 
@@ -147,10 +141,6 @@ public class LocalArtifactRepository
                     properties.put( keyEntry.getKey().toExternalForm(), gav.toExternalForm() );
                 }
                 catch ( IOException e )
-                {
-                    // XXX not good
-                }
-                catch ( XStreamException e )
                 {
                     // XXX not good
                 }
@@ -283,7 +273,7 @@ public class LocalArtifactRepository
 
     public URI getLocation( IArtifactDescriptor descriptor )
     {
-        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getRepositoryProperties() );
+        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
 
         if ( gav == null )
         {
@@ -292,7 +282,16 @@ public class LocalArtifactRepository
 
         File basedir = getBasedir();
 
-        return new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, null, null ) ).toURI();
+        String classifier = null;
+        String extension = null;
+
+        if ( "packed".equals( descriptor.getProperty( IArtifactDescriptor.FORMAT ) ) )
+        {
+            classifier = "pack200";
+            extension = "jar.pack.gz";
+        }
+
+        return new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, classifier, extension ) ).toURI();
     }
 
     public File getBasedir()
