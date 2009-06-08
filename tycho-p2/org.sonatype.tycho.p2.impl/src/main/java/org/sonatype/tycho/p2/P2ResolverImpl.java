@@ -46,6 +46,7 @@ import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.IQueryable;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.osgi.framework.InvalidSyntaxException;
+import org.sonatype.tycho.p2.facade.internal.P2Logger;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
@@ -76,7 +77,7 @@ public class P2ResolverImpl
 
     private Map<File, Set<IInstallableUnit>> projectIUs = new HashMap<File, Set<IInstallableUnit>>();
 
-    private final NullProgressMonitor monitor = new NullProgressMonitor();
+    private IProgressMonitor monitor = new NullProgressMonitor();
 
     private Properties properties;
 
@@ -441,5 +442,10 @@ public class P2ResolverImpl
     public void addMavenRepository( TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
         metadataRepositories.add( new NexusMetadataRepository( projectIndex, contentLocator ) );
+    }
+
+    public void setLogger( P2Logger logger )
+    {
+        this.monitor = new LoggingProgressMonitor( logger );
     }
 }
