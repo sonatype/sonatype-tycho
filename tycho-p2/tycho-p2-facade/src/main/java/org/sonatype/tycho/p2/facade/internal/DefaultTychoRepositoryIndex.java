@@ -13,11 +13,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.codehaus.plexus.util.IOUtil;
-
 /**
- * Default implementation of TychoRepositoryIndex defines tycho repository
- * index format and provides generic index read/write methods.
+ * Default implementation of TychoRepositoryIndex defines tycho repository index format and provides generic index
+ * read/write methods.
  */
 public class DefaultTychoRepositoryIndex
     implements TychoRepositoryIndex
@@ -47,7 +45,7 @@ public class DefaultTychoRepositoryIndex
         }
         finally
         {
-            IOUtil.close( br );
+            br.close();
         }
 
         return result;
