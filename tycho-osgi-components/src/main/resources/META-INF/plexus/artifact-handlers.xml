@@ -82,13 +82,17 @@
           </test-compile>
           <test></test>
           <package>
+            org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin
           </package>
           <integration-test>
             org.codehaus.tycho:maven-osgi-test-plugin:test
           </integration-test>
           <install>
+            org.apache.maven.plugins:maven-install-plugin:install,
+            org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
           </install>
           <deploy>
+            org.apache.maven.plugins:maven-deploy-plugin:deploy
           </deploy>
         </phases>
       </configuration>
