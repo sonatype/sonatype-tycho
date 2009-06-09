@@ -83,6 +83,8 @@
      -->
     <jdtVersion>3.5.0.v_963</jdtVersion>
 
+    <tycho.releases>http://repository.sonatype.org/content/repositories/tycho-pseudo-releases/</tycho.releases>
+    <tycho.snapshots>http://repository.sonatype.org/content/repositories/eclipse-snapshots/</tycho.snapshots>
   </properties>
 
   <dependencyManagement>
@@ -377,13 +379,13 @@
     <repository>
       <id>sonatype-commercial</id>
       <name>forge-releases</name>
-      <url>http://repository.sonatype.org/content/repositories/tycho-pseudo-releases/</url>
+      <url>${tycho.releases}</url>
     </repository>
     <snapshotRepository>
       <id>sonatype-commercial</id>
       <uniqueVersion>true</uniqueVersion>
       <name>forge-snapshots</name>
-      <url>http://repository.sonatype.org/content/repositories/eclipse-snapshots/</url>
+      <url>${tycho.snapshots}</url>
     </snapshotRepository>
   </distributionManagement>
 
