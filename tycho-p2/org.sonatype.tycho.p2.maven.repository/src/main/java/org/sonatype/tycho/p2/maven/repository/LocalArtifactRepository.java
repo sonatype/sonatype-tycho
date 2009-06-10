@@ -299,4 +299,9 @@ public class LocalArtifactRepository
         return new File( getLocation() );
     }
 
+    @Override
+    public boolean isModifiable()
+    {
+        return true;
+    }
 }

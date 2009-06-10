@@ -48,6 +48,13 @@
         <version>1.0.0</version>
         <type>eclipse-plugin</type>
       </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.tycho.tychoits.tycho12.build01</groupId>
+        <artifactId>org.codehaus.tycho.tychoits.tycho12.build01.bundle03</artifactId>
+        <version>1.0.0</version>
+        <type>eclipse-test-plugin</type>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

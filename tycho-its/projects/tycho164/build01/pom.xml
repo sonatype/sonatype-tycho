@@ -9,6 +9,7 @@
   <modules>
     <module>build01.bundle01</module>
     <module>build01.bundle02</module>
+    <module>build01.bundle03</module>
     <module>build01.feature01</module>
     <module>build01.site01</module>
   </modules>

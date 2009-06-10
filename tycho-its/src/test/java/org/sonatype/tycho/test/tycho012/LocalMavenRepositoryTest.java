@@ -32,6 +32,7 @@ public class LocalMavenRepositoryTest extends AbstractTychoIntegrationTest {
         Verifier v01 = getVerifier("tycho0209/build01", false);
         v01.getCliOptions().add( "-Dtycho.resolver=p2" );
         v01.getCliOptions().add( "-Dp2.repo=file://" + new File("repositories/e342").getCanonicalPath());
+        v01.getCliOptions().add( "-Dmaven.test.skip=true" );
         v01.executeGoal("install");
         v01.verifyErrorFreeLog();
 

@@ -65,8 +65,9 @@
 
       mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.0.v20090520.jar \
         -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090520 -Dpackaging=jar \
-        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/content/repositories/eclipse/
+        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
+      Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/eclipse/
      -->
     <equinoxVersion>3.5.0.v20090520</equinoxVersion>
 
@@ -78,8 +79,9 @@
 
       mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.0.v_963.jar \
         -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.0.v_963 -Dpackaging=jar \
-        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/content/repositories/eclipse/
+        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
+      Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/eclipse/
      -->
     <jdtVersion>3.5.0.v_963</jdtVersion>
 

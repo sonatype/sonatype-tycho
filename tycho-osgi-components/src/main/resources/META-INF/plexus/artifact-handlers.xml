@@ -48,8 +48,8 @@
       <configuration>
         <classifier></classifier>
         <extension>jar</extension>
-        <type>osgi-bundle</type>
-        <packaging>osgi-bundle</packaging>
+        <type>eclipse-plugin</type>
+        <packaging>eclipse-plugin</packaging>
         <language>java</language>
         <addedToClasspath>true</addedToClasspath>
         <includesDependencies>false</includesDependencies>
@@ -95,6 +95,22 @@
             org.apache.maven.plugins:maven-deploy-plugin:deploy
           </deploy>
         </phases>
+      </configuration>
+    </component>
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>eclipse-test-plugin</role-hint>
+      <implementation>
+        org.apache.maven.artifact.handler.DefaultArtifactHandler
+      </implementation>
+      <configuration>
+        <classifier></classifier>
+        <extension>jar</extension>
+        <type>eclipse-test-plugin</type>
+        <packaging>eclipse-test-plugin</packaging>
+        <language>java</language>
+        <addedToClasspath>true</addedToClasspath>
+        <includesDependencies>false</includesDependencies>
       </configuration>
     </component>
 
