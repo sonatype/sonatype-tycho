@@ -43,13 +43,6 @@ public class BuildQualifierMojo extends AbstractMojo {
 	 */
 	private MavenSession session;
 
-	/**
-     * You can rename the buildQualifier property name to another property name if desired.
-     *
-     * @parameter expression="${maven.buildNumber.buildNumberPropertyName}" default-value="buildQualifier"
-     */
-    private String buildNumberPropertyName;
-
     /**
      * Specify a message format as specified by java.text.SimpleDateFormat.
      *
@@ -78,11 +71,6 @@ public class BuildQualifierMojo extends AbstractMojo {
     }
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
-	    if (project.getProperties().containsKey(BUILD_QUALIFIER_PROPERTY)) {
-	        // project has explicit buildQualifier property 
-	        return;
-	    }
-
 		String qualifier = forceContextQualifier;
 
 		if (qualifier == null) {
@@ -99,7 +87,7 @@ public class BuildQualifierMojo extends AbstractMojo {
 
 	private Date getSessionTimestamp() {
 		Date timestamp;
-		String value = session.getExecutionProperties().getProperty(buildNumberPropertyName);
+		String value = session.getExecutionProperties().getProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY);
 		if (value != null) {
 			timestamp = new Date(Long.parseLong(value));
 		} else {

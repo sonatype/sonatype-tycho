@@ -50,6 +50,7 @@
       <groupId>org.eclipse</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
@@ -65,6 +66,13 @@
       <artifactId>tycho-p2-facade</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-testing-harness</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>biz.aQute</groupId>
       <artifactId>bndlib</artifactId>
