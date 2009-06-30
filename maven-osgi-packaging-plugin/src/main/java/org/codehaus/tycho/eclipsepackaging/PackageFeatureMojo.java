@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
@@ -143,7 +144,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 		if (VersioningHelper.isSnapshotVersion(featureDesc.getVersion())) {
 			Version version = VersioningHelper.expandVersion(featureDesc.getVersion(), qualifier);
 			feature.setVersion(version.toString());
-			VersioningHelper.setExpandedVersion(tychoSession, featureDesc.getLocation(), version.toString());
+			VersioningHelper.setExpandedVersion(session, featureDesc.getLocation(), version.toString());
 		}
 
 		// update included/referenced plugins
@@ -161,7 +162,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 				continue;
 			}
 
-            MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
+            MavenProject bundleProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
 
             String pluginGroupId = null;
             if (bundleProject != null) {
@@ -174,12 +175,12 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 				pluginRef.setMavenGroupId(pluginGroupId);
 			}
 
-			String pluginBaseVersion = VersioningHelper.getMavenBaseVersion(tychoSession, bundle);
+			String pluginBaseVersion = VersioningHelper.getMavenBaseVersion(session, bundle);
 			if (pluginBaseVersion != null) {
 				pluginRef.setMavenBaseVersion(pluginBaseVersion);
 			}
 
-			pluginRef.setVersion(VersioningHelper.getExpandedVersion(tychoSession, bundle));
+			pluginRef.setVersion(VersioningHelper.getExpandedVersion(session, bundle));
 
 			File file;
 			if (bundleProject != null) {

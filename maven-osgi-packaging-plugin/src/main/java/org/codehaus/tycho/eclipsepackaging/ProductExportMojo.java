@@ -25,9 +25,11 @@ import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
@@ -61,9 +63,34 @@ public class ProductExportMojo
     private File productConfigurationFile;
 
     /**
+     * @parameter expression="${productConfiguration}/../p2.inf"
+     */
+    private File p2inf;
+
+    /**
+     * Location of generated .product file with all versions replaced with their expanded values.
+     * 
+     * @parameter expression="${project.build.directory}/${project.artifactId}.product"
+     */
+    private File expandedProductFile;
+
+    /**
      * Parsed product configuration file
      */
     private ProductConfiguration productConfiguration;
+
+    /**
+     * Build qualifier. Recommended way to set this parameter is using
+     * build-qualifier goal. 
+     * 
+     * @parameter expression="${buildQualifier}"
+     */
+    protected String qualifier;
+
+    /**
+     * @component roleHint="eclipse-application"
+     */
+    private DependenciesReader rcpDependencyReader;
 
     private TargetPlatform platform;
 
@@ -71,7 +98,7 @@ public class ProductExportMojo
         throws MojoExecutionException, MojoFailureException
     {
         initializeProjectContext();
-        platform = tychoSession.getTargetPlatform( project );
+        platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
 
         if ( productConfigurationFile == null )
         {
@@ -121,10 +148,35 @@ public class ProductExportMojo
         {
             copyPlugins( productConfiguration.getPlugins() );
         }
-
+        
         copyExecutable();
 
         packProduct();
+
+        Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
+        productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
+        productConfiguration.setVersion( productVersion.toString() );
+
+        try
+        {
+            ProductConfiguration.write( productConfiguration, expandedProductFile );
+            
+            if ( p2inf.canRead() )
+            {
+                FileUtils.copyFile( p2inf, new File( expandedProductFile.getParentFile(), p2inf.getName() ) );
+            }
+        }
+        catch ( IOException e )
+        {
+            throw new MojoExecutionException( "Error writing expanded product configuration file", e );
+        }
+    }
+
+    @Override
+    protected void initializeProjectContext()
+    {
+        bundleResolutionState = rcpDependencyReader.getBundleResolutionState( session, project );
+        featureResolutionState = rcpDependencyReader.getFeatureResolutionState( session, project );
     }
 
     /**
@@ -473,11 +525,13 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Unable to resolve feature " + featureId + "_" + featureVersion );
         }
 
-        featureVersion = VersioningHelper.getExpandedVersion( tychoSession, featureDescription );
+        featureVersion = VersioningHelper.getExpandedVersion( session, featureDescription );
+
+        feature.setVersion( featureVersion );
 
         Feature featureRef = featureDescription.getFeature();
 
-        MavenProject project = tychoSession.getMavenProject( featureDescription.getLocation() );
+        MavenProject project = MavenSessionUtils.getMavenProject( session, featureDescription.getLocation() );
 
         de.schlichtherle.io.File source;
         if ( project == null )
@@ -508,7 +562,7 @@ public class ProductExportMojo
         {
             if ( matchCurrentPlataform( pluginRef ) )
             {
-                copyPlugin( pluginRef.getId(), pluginRef.getVersion(), pluginRef.isUnpack() );
+                copyPlugin( pluginRef );
             }
         }
 
@@ -536,7 +590,7 @@ public class ProductExportMojo
 
         for ( PluginRef plugin : plugins )
         {
-            copyPlugin( plugin.getId(), plugin.getVersion(), plugin.isUnpack() );
+            copyPlugin( plugin );
         }
 
         // required plugins, RCP didn't start without both
@@ -546,24 +600,39 @@ public class ProductExportMojo
             String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
             String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
 
-            copyPlugin( "org.eclipse.equinox.launcher", null, false );
+            copyPlugin( newPluginRef( "org.eclipse.equinox.launcher", null, false ) );
             // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
             // only a org.eclipse.equinox.launcher.carbon.macosx folder.
             // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
             if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
             {
-                copyPlugin( "org.eclipse.equinox.launcher." + ws + "." + os, null, false );
+                copyPlugin( newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os, null, false ) );
             }
             else
             {
-                copyPlugin( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, false );
+                copyPlugin( newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, false ) );
             }
         }
     }
 
-    private String copyPlugin( String bundleId, String bundleVersion, boolean unpack )
+    private PluginRef newPluginRef( String id, String version, boolean unpack )
+    {
+        PluginRef plugin = new PluginRef( "plugin" );
+        plugin.setId( id );
+        if ( version != null )
+        {
+            plugin.setVersion( version );
+        }
+        plugin.setUnpack( unpack );
+        return plugin;
+    }
+
+    private String copyPlugin( PluginRef plugin )
         throws MojoExecutionException
     {
+        String bundleId = plugin.getId();
+        String bundleVersion = plugin.getVersion();
+        
         getLog().debug( "Copying plugin " + bundleId + "_" + bundleVersion );
 
         if ( bundleVersion == null || "0.0.0".equals( bundleVersion ) )
@@ -577,7 +646,7 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Plugin '" + bundleId + "_" + bundleVersion + "' not found!" );
         }
 
-        MavenProject bundleProject = tychoSession.getMavenProject( bundle.getLocation() );
+        MavenProject bundleProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
         File source;
         if ( bundleProject != null )
         {
@@ -588,14 +657,15 @@ public class ProductExportMojo
             source = new File( bundle.getLocation() );
         }
 
-        bundleVersion = VersioningHelper.getExpandedVersion( tychoSession, bundle );
+        bundleVersion = VersioningHelper.getExpandedVersion( session, bundle );
+        plugin.setVersion( bundleVersion );
 
         File target = new File( pluginsFolder, bundleId + "_" + bundleVersion + ".jar" );
         if ( source.isDirectory() )
         {
             copyToDirectory( source, pluginsFolder );
         }
-        else if ( unpack )
+        else if ( plugin.isUnpack() )
         {
             // when unpacked doesn't have .jar extension
             String path = target.getAbsolutePath();

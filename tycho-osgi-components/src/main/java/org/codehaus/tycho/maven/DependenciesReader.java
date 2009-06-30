@@ -2,19 +2,22 @@ package org.codehaus.tycho.maven;
 
 import java.util.List;
 
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
-import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.FeatureResolutionState;
 
 public interface DependenciesReader
 {
-
-    static final String ROLE = DependenciesReader.class.getName();
-
     public static final String DEPENDENCY_GROUP_ID = ":tycho:";
 
-    List<Dependency> getDependencies( MavenProject project, TychoSession session )
+    public List<Dependency> getDependencies( MavenSession session, MavenProject project )
         throws MavenExecutionException;
+
+    public FeatureResolutionState getFeatureResolutionState( MavenSession session, MavenProject project );
+
+    public BundleResolutionState getBundleResolutionState( MavenSession session, MavenProject project );
 
 }

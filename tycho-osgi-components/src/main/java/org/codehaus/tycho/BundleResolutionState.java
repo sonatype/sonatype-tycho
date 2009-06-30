@@ -25,7 +25,7 @@ public interface BundleResolutionState
 
     public List<BundleDescription> getBundles();
 
-    Manifest loadManifest( File bundleLocation );
+    public Manifest loadManifest( File bundleLocation );
 
-    String getManifestAttribute( BundleDescription bundle, String name );
+    public String getManifestAttribute( BundleDescription bundle, String name );
 }

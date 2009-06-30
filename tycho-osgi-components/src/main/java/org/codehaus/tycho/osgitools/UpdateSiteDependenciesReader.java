@@ -6,13 +6,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.FeatureResolutionState;
+import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.ProjectType;
-import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
@@ -20,8 +21,11 @@ import org.codehaus.tycho.osgitools.features.FeatureDescription;
 @Component( role = DependenciesReader.class, hint = ProjectType.ECLIPSE_UPDATE_SITE )
 public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 
-    public List<Dependency> getDependencies(MavenProject project, TychoSession session) throws MavenExecutionException {
-        FeatureResolutionState state = session.getFeatureResolutionState( project );
+    public List<Dependency> getDependencies(MavenSession session, MavenProject project) throws MavenExecutionException {
+        FeatureResolutionState state = getFeatureResolutionState( session, project );
+
+        // initialise bundle resolution state for this update site project
+        getBundleResolutionState( session, project );
 
 		try {
 			File siteXml = new File(project.getBasedir(), "site.xml");
@@ -44,7 +48,7 @@ public class UpdateSiteDependenciesReader extends AbstractDependenciesReader {
 					getLogger().warn("No OSGI feature for id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;
 				}
-				MavenProject mavenProject = session.getMavenProject(feature.getLocation());
+				MavenProject mavenProject = MavenSessionUtils.getMavenProject(session, feature.getLocation());
 				if (null == mavenProject) {
 					getLogger().warn("No maven feature project for id=" + id + " version=" + version + " for " + siteXml.getPath());
 					continue;

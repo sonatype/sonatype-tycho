@@ -41,8 +41,7 @@ import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.TychoSession;
-import org.codehaus.tycho.maven.TychoMavenSession;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.DependencyComputer;
@@ -95,8 +94,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * @parameter 
 	 */
 	private ArtifactRef[] extraClasspathElements;
-
-	private TychoSession tychoSession;
 
 	/** @component */
 	private DependencyComputer dependencyComputer;
@@ -161,16 +158,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	/** public for testing purposes */
     public void initializeProjectContext()
     {
-        if ( !( session instanceof TychoMavenSession ) )
-        {
-            throw new IllegalArgumentException( getClass().getSimpleName() + " mojo only works with Tycho distribution" );
-        }
-
-        TychoMavenSession tms = (TychoMavenSession) session;
-
-        tychoSession = tms.getTychoSession();
-
-        pdeProject = tychoSession.getEclipsePluginProject( project);
+        pdeProject = (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
     }
 
 	@Override
@@ -219,7 +207,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
 	private ClasspathComputer getClasspathComputer() {
 		if (classpathComputer == null) {
-			classpathComputer = new ClasspathComputer(tychoSession, dependencyComputer, project, storage);
+			classpathComputer = new ClasspathComputer(session, dependencyComputer, project, storage);
 		}
 		return classpathComputer;
 	}

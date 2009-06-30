@@ -69,7 +69,7 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 	public void execute() throws MojoExecutionException {
 	    initializeProjectContext();
 
-		pdeProject = tychoSession.getEclipsePluginProject( project );
+		pdeProject = (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
 
 		createSubJars();
 
@@ -165,7 +165,7 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			String expandedVersion = VersioningHelper.expandVersion(version, qualifier).toString();
 
 			attributes.putValue("Bundle-Version", expandedVersion);
-			VersioningHelper.setExpandedVersion(tychoSession, bundle.getLocation(), expandedVersion);
+			VersioningHelper.setExpandedVersion(session, bundle.getLocation(), expandedVersion);
 		}
 
 		attributes.putValue(TychoConstants.ATTR_GROUP_ID, project.getGroupId());

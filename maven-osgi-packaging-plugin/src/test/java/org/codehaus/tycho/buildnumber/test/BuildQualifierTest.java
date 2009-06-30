@@ -1,17 +1,13 @@
 package org.codehaus.tycho.buildnumber.test;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import org.apache.maven.Maven;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
-import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.buildnumber.BuildQualifierMojo;
-import org.codehaus.tycho.maven.EclipseMaven;
-import org.codehaus.tycho.maven.TychoMavenSession;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class BuildQualifierTest
@@ -26,7 +22,7 @@ public class BuildQualifierTest
     {
         super.setUp();
         
-        maven = (Maven) lookup(Maven.ROLE);
+        maven = lookup(Maven.class);
     }
     
     @Override
@@ -55,11 +51,15 @@ public class BuildQualifierTest
         File pom = new File( basedir, "p001/pom.xml" );
 
         MavenExecutionRequest request = newMavenExecutionRequest( pom );
+        request.getProjectBuildingRequest().setProcessPlugins( false );
 
         MavenProject project = getProject( request );
         project.getProperties().put( BuildQualifierMojo.BUILD_QUALIFIER_PROPERTY, "garbage" );
+        
+        ArrayList<MavenProject> projects = new ArrayList<MavenProject>();
+        projects.add(project);
 
-        MavenSession session = new TychoMavenSession(getContainer(), request, null, null, ((EclipseMaven) maven).getTychoSession());
+        MavenSession session = new MavenSession(getContainer(), request, null, projects);
 
         BuildQualifierMojo mojo = getMojo( project, session );
 
@@ -78,12 +78,15 @@ public class BuildQualifierTest
         File pom = new File( basedir, "p002/pom.xml" );
 
         MavenExecutionRequest request = newMavenExecutionRequest( pom );
+        request.getProjectBuildingRequest().setProcessPlugins( false );
 
         MavenProject project = getProject( request );
         project.getProperties().put( BuildQualifierMojo.BUILD_QUALIFIER_PROPERTY, "garbage" );
 
-        MavenSession session =
-            new TychoMavenSession( getContainer(), request, null, null, ( (EclipseMaven) maven ).getTychoSession() );
+        ArrayList<MavenProject> projects = new ArrayList<MavenProject>();
+        projects.add(project);
+
+        MavenSession session = new MavenSession(getContainer(), request, null, projects);
 
         BuildQualifierMojo mojo = getMojo( project, session );
 
@@ -100,12 +103,15 @@ public class BuildQualifierTest
         File pom = new File( basedir, "p001/pom.xml" );
 
         MavenExecutionRequest request = newMavenExecutionRequest( pom );
+        request.getProjectBuildingRequest().setProcessPlugins( false );
 
         MavenProject project = getProject( request );
         project.getProperties().put( BuildQualifierMojo.BUILD_QUALIFIER_PROPERTY, "garbage" );
 
-        MavenSession session =
-            new TychoMavenSession( getContainer(), request, null, null, ( (EclipseMaven) maven ).getTychoSession() );
+        ArrayList<MavenProject> projects = new ArrayList<MavenProject>();
+        projects.add(project);
+
+        MavenSession session = new MavenSession(getContainer(), request, null, projects);
 
         BuildQualifierMojo mojo = getMojo( project, session );
 
@@ -127,14 +133,7 @@ public class BuildQualifierTest
     private MavenProject getProject( MavenExecutionRequest request )
         throws Exception
     {
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        ReactorManager reactorManager = maven.createReactorManager(request, result);
-
-        MavenProject project = (MavenProject) reactorManager.getSortedProjects().get(0);
-        
-        assertTrue( result.getExceptions().toString(), result.getExceptions().isEmpty() );
-
-        return project;
+        return maven.execute( request ).getProject();
     }
 
     private BuildQualifierMojo getMojo(MavenProject project, MavenSession session) throws Exception {

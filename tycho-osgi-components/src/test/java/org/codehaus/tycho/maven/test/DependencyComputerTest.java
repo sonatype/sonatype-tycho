@@ -2,16 +2,15 @@ package org.codehaus.tycho.maven.test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.maven.Maven;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
-import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.TychoSession;
-import org.codehaus.tycho.maven.EclipseMaven;
+import org.codehaus.tycho.MavenSessionUtils;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
@@ -23,7 +22,7 @@ public class DependencyComputerTest
     extends AbstractTychoMojoTestCase
 {
 
-    private EclipseMaven maven;
+    private Maven maven;
 
     private DependencyComputer dependencyComputer;
 
@@ -31,7 +30,7 @@ public class DependencyComputerTest
         throws Exception
     {
         super.setUp();
-        maven = (EclipseMaven) lookup( Maven.ROLE );
+        maven = lookup( Maven.class );
         dependencyComputer = (DependencyComputer) lookup( DependencyComputer.class );
     }
 
@@ -42,13 +41,13 @@ public class DependencyComputerTest
         File basedir = getBasedir( "projects/exportpackage" );
         File pom = new File( basedir, "pom.xml" );
         MavenExecutionRequest request = newMavenExecutionRequest( pom );
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        ReactorManager reactorManager = maven.createReactorManager( request, result );
+        request.getProjectBuildingRequest().setProcessPlugins( false );
+        MavenExecutionResult result = maven.execute( request );
+        
+        Map<File, MavenProject> basedirMap = MavenSessionUtils.getBasedirMap( result.getTopologicallySortedProjects() );
 
-        TychoSession tychoSession = maven.getTychoSession();
-
-        MavenProject project = tychoSession.getMavenProject( new File( basedir, "bundle" ) );
-        BundleResolutionState bundleResolutionState = tychoSession.getBundleResolutionState( project );
+        MavenProject project = basedirMap.get( new File( basedir, "bundle" ) );
+        BundleResolutionState bundleResolutionState = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 
         BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
         List<DependencyEntry> dependencies = dependencyComputer.computeDependencies( bundleResolutionState, bundle );

@@ -6,7 +6,7 @@
   <groupId>adhoclocations</groupId>
   <artifactId>project</artifactId>
   <version>1.0.0</version>
-  <packaging>eclipse-update-site</packaging>
+  <packaging>eclipse-plugin</packaging>
 
   <dependencyManagement>
     <dependencies>

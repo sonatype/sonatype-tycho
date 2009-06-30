@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
@@ -30,7 +32,6 @@ import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoSession;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -455,7 +456,7 @@ public class EquinoxBundleResolutionState
         return null;
     }
 
-    public static EquinoxBundleResolutionState newInstance( PlexusContainer plexus, TychoSession session,
+    public static EquinoxBundleResolutionState newInstance( PlexusContainer plexus, MavenSession session,
                                                             MavenProject project )
     {
         try
@@ -463,7 +464,13 @@ public class EquinoxBundleResolutionState
             EquinoxBundleResolutionState resolver =
                 (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
 
-            TargetPlatform platform = session.getTargetPlatform( project );
+            Set<File> basedirs = new HashSet<File>();
+            for ( MavenProject sessionProject : session.getProjects() )
+            {
+                basedirs.add( sessionProject.getBasedir() );
+            }
+
+            TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
 
             File manifestsDir = new File( project.getBuild().getDirectory(), "manifests" );
             manifestsDir.mkdirs();
@@ -472,13 +479,13 @@ public class EquinoxBundleResolutionState
 
             for ( File file : platform.getArtifactFiles( ProjectType.OSGI_BUNDLE ) )
             {
-                boolean isProject = session.getMavenProject( file ) != null;
+                boolean isProject = basedirs.contains( file );
                 resolver.addBundle( file, isProject );
             }
 
             for ( File file : platform.getArtifactFiles( ProjectType.ECLIPSE_TEST_PLUGIN ) )
             {
-                boolean isProject = session.getMavenProject( file ) != null;
+                boolean isProject = basedirs.contains( file );
                 resolver.addBundle( file, isProject );
             }
 

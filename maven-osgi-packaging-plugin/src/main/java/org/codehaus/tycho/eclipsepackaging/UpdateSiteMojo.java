@@ -29,6 +29,7 @@ import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.IFeatureRef;
@@ -158,14 +159,14 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		}
 
 		String artifactId = feature.getId();
-		String version = VersioningHelper.getExpandedVersion(tychoSession, feature);
+		String version = VersioningHelper.getExpandedVersion(session, feature);
 
 		String url = "features/" + artifactId + "_" + version + ".jar";
 		File outputJar = new File(target, url);
 
 		if (!outputJar.canRead()) {
 
-			MavenProject featureProject = tychoSession.getMavenProject(feature.getLocation());
+			MavenProject featureProject = MavenSessionUtils.getMavenProject(session, feature.getLocation());
 			Properties props = new Properties();
 			if (featureProject != null) {
 				props.load(new FileInputStream(new File(featureProject.getBasedir(), "build.properties")));
@@ -301,7 +302,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		if (bundle == null) {
 			throw new MojoExecutionException("Can't find bundle " + bundleId);
 		}
-		MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
+		MavenProject bundleProject = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
 
 		//resolve source artifact
 		Artifact bundleSourceArtifact = artifactFactory.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), "jar", "sources");
@@ -320,7 +321,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		if (bundle == null) {
 			throw new MojoExecutionException("Can't find bundle " + pluginRef.getId());
 		}
-		MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
+		MavenProject bundleProject = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
 		
 		return bundleProject.getVersion();
 	}
@@ -358,7 +359,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		}
 
 		File file;
-		MavenProject bundleProject = tychoSession.getMavenProject(bundle.getLocation());
+		MavenProject bundleProject = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
 		if (bundleProject != null) {
 			file = bundleProject.getArtifact().getFile();
 			if (file.isDirectory()) {
@@ -368,7 +369,7 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 			file = new File(bundle.getLocation());
 		}
 
-		String bundleVersion = VersioningHelper.getExpandedVersion(tychoSession, bundle);
+		String bundleVersion = VersioningHelper.getExpandedVersion(session, bundle);
 
 		String url = "plugins/" + bundleId + "_" + bundleVersion + ".jar";
 		File outputJar = new File(target, url);

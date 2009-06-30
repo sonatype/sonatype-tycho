@@ -11,8 +11,7 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.FeatureResolutionState;
-import org.codehaus.tycho.TychoSession;
-import org.codehaus.tycho.maven.TychoMavenSession;
+import org.codehaus.tycho.TychoConstants;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.P2Generator;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
@@ -35,8 +34,6 @@ public abstract class AbstractTychoPackagingMojo
     /** @component */
     private EquinoxEmbedder equinox;
 
-    protected TychoSession tychoSession;
-
     protected FeatureResolutionState featureResolutionState;
 
     protected BundleResolutionState bundleResolutionState;
@@ -48,18 +45,9 @@ public abstract class AbstractTychoPackagingMojo
 
     protected void initializeProjectContext()
     {
-        if ( !( session instanceof TychoMavenSession ) )
-        {
-            throw new IllegalArgumentException( getClass().getSimpleName() + " mojo only works with Tycho distribution" );
-        }
+        featureResolutionState = (FeatureResolutionState) project.getContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE );
 
-        TychoMavenSession tms = (TychoMavenSession) session;
-
-        tychoSession = tms.getTychoSession();
-
-        featureResolutionState = tychoSession.getFeatureResolutionState( project );
-
-        bundleResolutionState = tychoSession.getBundleResolutionState( project );
+        bundleResolutionState = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
     }
 
     protected P2Generator getP2Generator()

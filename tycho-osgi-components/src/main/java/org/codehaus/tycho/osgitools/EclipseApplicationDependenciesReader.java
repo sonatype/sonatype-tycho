@@ -4,12 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ProjectType;
-import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.ProductConfiguration;
 
@@ -17,7 +17,7 @@ import org.codehaus.tycho.model.ProductConfiguration;
 public class EclipseApplicationDependenciesReader extends
 		AbstractDependenciesReader {
 
-	public List<Dependency> getDependencies(MavenProject project, TychoSession session)
+	public List<Dependency> getDependencies(MavenSession session, MavenProject project)
 			throws MavenExecutionException {
 		// XXX at present time there is no way to get plugin configuration here
 		// http://issues.sonatype.org/browse/TYCHO-190

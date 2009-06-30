@@ -33,8 +33,8 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.DefaultProjectBuilderConfiguration;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuilderConfiguration;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.shared.osgi.DefaultMaven2OsgiConverter;
@@ -91,7 +91,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	private ArtifactFactory artifactFactory;
 
 	/** @component */
-	private MavenProjectBuilder mavenProjectBuilder;
+	private ProjectBuilder projectBuilder;
 
 	/** @component */
 	private MavenProjectHelper projectHelper;
@@ -484,7 +484,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 					ProjectBuilderConfiguration pbc = new DefaultProjectBuilderConfiguration();
 			        pbc.setLocalRepository( localRepository );
 
-					MavenProject pomProject = mavenProjectBuilder.buildProjectWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), pbc).getProject();
+					MavenProject pomProject = projectBuilder.buildProjectWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), pbc).getProject();
 
 	    			for (Iterator j = pomProject.getArtifacts().iterator(); j.hasNext();) {
 	    				Artifact b = (Artifact) j.next();

@@ -8,35 +8,40 @@
         org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
       </implementation>
       <configuration>
-        <phases>
-          <validate>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
-          </validate>
-          <process-resources>
-            org.apache.maven.plugins:maven-resources-plugin:resources
-          </process-resources>
-          <compile>
-            org.codehaus.tycho:maven-osgi-compiler-plugin:compile
-          </compile>
-          <process-test-resources>
-            org.apache.maven.plugins:maven-resources-plugin:testResources
-          </process-test-resources>
-          <test-compile><!-- tests are always in a separate plugin -->
-          </test-compile>
-          <test><!-- tests are always in a separate plugin -->
-          </test>
-          <package>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin
-          </package>
-          <integration-test></integration-test>
-          <install>
-            org.apache.maven.plugins:maven-install-plugin:install,
-            org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
-          </install>
-          <deploy>
-            org.apache.maven.plugins:maven-deploy-plugin:deploy
-          </deploy>
-        </phases>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <validate>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
+              </validate>
+              <process-resources>
+                org.apache.maven.plugins:maven-resources-plugin:resources
+              </process-resources>
+              <compile>
+                org.codehaus.tycho:maven-osgi-compiler-plugin:compile
+              </compile>
+              <process-test-resources>
+                org.apache.maven.plugins:maven-resources-plugin:testResources
+              </process-test-resources>
+              <test-compile><!-- tests are always in a separate plugin -->
+              </test-compile>
+              <test><!-- tests are always in a separate plugin -->
+              </test>
+              <package>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin
+              </package>
+              <integration-test></integration-test>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:install,
+                org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
+              </deploy>
+            </phases>
+          </lifecycle>
+        </lifecycles>
       </configuration>
     </component>
     <component>
@@ -64,37 +69,42 @@
         org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
       </implementation>
       <configuration>
-        <phases>
-          <validate>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
-          </validate>
-          <process-resources>
-            org.apache.maven.plugins:maven-resources-plugin:resources
-          </process-resources>
-          <compile>
-            org.codehaus.tycho:maven-osgi-compiler-plugin:compile
-          </compile>
-          <process-test-resources>
-            org.apache.maven.plugins:maven-resources-plugin:testResources
-          </process-test-resources>
-          <test-compile>
-            org.codehaus.tycho:maven-osgi-compiler-plugin:testCompile
-          </test-compile>
-          <test></test>
-          <package>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin
-          </package>
-          <integration-test>
-            org.codehaus.tycho:maven-osgi-test-plugin:test
-          </integration-test>
-          <install>
-            org.apache.maven.plugins:maven-install-plugin:install,
-            org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
-          </install>
-          <deploy>
-            org.apache.maven.plugins:maven-deploy-plugin:deploy
-          </deploy>
-        </phases>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <validate>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
+              </validate>
+              <process-resources>
+                org.apache.maven.plugins:maven-resources-plugin:resources
+              </process-resources>
+              <compile>
+                org.codehaus.tycho:maven-osgi-compiler-plugin:compile
+              </compile>
+              <process-test-resources>
+                org.apache.maven.plugins:maven-resources-plugin:testResources
+              </process-test-resources>
+              <test-compile>
+                org.codehaus.tycho:maven-osgi-compiler-plugin:testCompile
+              </test-compile>
+              <test></test>
+              <package>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:package-plugin
+              </package>
+              <integration-test>
+                org.codehaus.tycho:maven-osgi-test-plugin:test
+              </integration-test>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:install,
+                org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
+              </deploy>
+            </phases>
+          </lifecycle>
+        </lifecycles>
       </configuration>
     </component>
     <component>
@@ -122,23 +132,28 @@
         org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
       </implementation>
       <configuration>
-        <phases>
-          <validate>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
-          </validate>
-          <generate-resources>
-          </generate-resources>
-          <package>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:package-feature
-          </package>
-          <install>
-            org.apache.maven.plugins:maven-install-plugin:install,
-            org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
-          </install>
-          <deploy>
-            org.apache.maven.plugins:maven-deploy-plugin:deploy
-          </deploy>
-        </phases>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <validate>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:build-qualifier
+              </validate>
+              <generate-resources>
+              </generate-resources>
+              <package>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:package-feature
+              </package>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:install,
+                org.codehaus.tycho:maven-osgi-packaging-plugin:update-local-index
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
+              </deploy>
+            </phases>
+          </lifecycle>
+        </lifecycles>
       </configuration>
     </component>
     <component>
@@ -166,18 +181,23 @@
         org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
       </implementation>
       <configuration>
-        <phases>
-          <package>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:update-site,
-            org.codehaus.tycho:maven-osgi-packaging-plugin:p2-metadata
-          </package>
-          <install>
-            org.apache.maven.plugins:maven-install-plugin:install
-          </install>
-          <deploy>
-            org.apache.maven.plugins:maven-deploy-plugin:deploy
-          </deploy>
-        </phases>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <package>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:update-site,
+                org.codehaus.tycho:maven-osgi-packaging-plugin:p2-metadata
+              </package>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:install
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
+              </deploy>
+            </phases>
+          </lifecycle>
+        </lifecycles>
       </configuration>
     </component>
     <component>
@@ -205,17 +225,22 @@
         org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping
       </implementation>
       <configuration>
-        <phases>
-          <package>
-            org.codehaus.tycho:maven-osgi-packaging-plugin:product-export
-          </package>
-          <install>
-            org.apache.maven.plugins:maven-install-plugin:install
-          </install>
-          <deploy>
-            org.apache.maven.plugins:maven-deploy-plugin:deploy
-          </deploy>
-        </phases>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+            <phases>
+              <package>
+                org.codehaus.tycho:maven-osgi-packaging-plugin:product-export
+              </package>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:install
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:deploy
+              </deploy>
+            </phases>
+          </lifecycle>
+        </lifecycles>
       </configuration>
     </component>
     <component>

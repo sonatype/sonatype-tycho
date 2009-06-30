@@ -1,11 +1,11 @@
 package org.codehaus.tycho.eclipsepackaging;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.MavenSessionUtils;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
@@ -14,8 +14,6 @@ public class VersioningHelper
 {
 
     private static final String QUALIFIER = "qualifier";
-
-    private static final String CTX_VERSIONS = null;
 
     /**
      * Returns true is version is a snapshot version, i.e. qualifier is ".qualifier"
@@ -35,19 +33,24 @@ public class VersioningHelper
         return version;
     }
 
-    public static void setExpandedVersion( TychoSession session, File location, String version )
+    public static void setExpandedVersion( MavenSession session, File location, String version )
     {
-        getVersions( session ).put( location, version );
+        MavenProject project = MavenSessionUtils.getMavenProject( session, location );
+        if ( project == null )
+        {
+            throw new IllegalArgumentException( location.getAbsolutePath() + " does not correspond to a reactor project basedir." );
+        }
+        project.setContextValue( TychoConstants.CTX_EXPANDED_VERSION, version );
     }
 
-    public static void setExpandedVersion( TychoSession session, String location, String version )
+    public static void setExpandedVersion( MavenSession session, String location, String version )
     {
         setExpandedVersion( session, new File( location ), version );
     }
 
-    public static String getMavenBaseVersion( TychoSession session, BundleDescription bundle )
+    public static String getMavenBaseVersion( MavenSession session, BundleDescription bundle )
     {
-        MavenProject mavenProject = session.getMavenProject( bundle.getLocation() );
+        MavenProject mavenProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
         if ( mavenProject != null )
         {
             return mavenProject.getVersion(); // not expanded yet
@@ -55,38 +58,34 @@ public class VersioningHelper
         return null;
     }
 
-    public static String getExpandedVersion( TychoSession session, BundleDescription bundle )
+    public static String getExpandedVersion( MavenSession session, BundleDescription bundle )
     {
-        String version = getVersions( session ).get( new File( bundle.getLocation() ) );
-        if ( version != null )
+        MavenProject project = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
+        if ( project != null )
         {
-            return version;
+            String version = (String) project.getContextValue( TychoConstants.CTX_EXPANDED_VERSION );
+            if ( version != null )
+            {
+                return version;
+            }
         }
-        
+
         return bundle.getVersion().toString();
     }
 
-    public static String getExpandedVersion( TychoSession session, FeatureDescription feature )
+    public static String getExpandedVersion( MavenSession session, FeatureDescription feature )
     {
-        String version = getVersions( session ).get( feature.getLocation() );
-        if ( version != null )
+        MavenProject project = MavenSessionUtils.getMavenProject( session, feature.getLocation() );
+        if ( project != null )
         {
-            return version;
+            String version = (String) project.getContextValue( TychoConstants.CTX_EXPANDED_VERSION );
+            if ( version != null )
+            {
+                return version;
+            }
         }
         
         return feature.getVersion().toString();
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private static Map<File, String> getVersions( TychoSession session )
-    {
-        Map<File, String> versions = (Map<File, String>) session.getSessionContext().get( CTX_VERSIONS );
-        if ( versions == null )
-        {
-            versions = new HashMap<File, String>();
-            session.getSessionContext().put( CTX_VERSIONS, versions );
-        }
-        return versions;
     }
 
 }

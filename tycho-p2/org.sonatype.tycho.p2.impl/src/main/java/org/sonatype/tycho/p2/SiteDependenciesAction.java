@@ -50,7 +50,7 @@ public class SiteDependenciesAction
 
             InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
             iud.setId( id );
-            iud.setVersion( new Version( version ) );
+            iud.setVersion( Version.create( "format(n[.n=0;[.n=0;[-S=[a-zA-Z0-9_-];]]]):" + version ) );
 
             Set<IProvidedCapability> provided = new LinkedHashSet<IProvidedCapability>();
             provided.add( MetadataFactory.createProvidedCapability( IInstallableUnit.NAMESPACE_IU_ID, iud.getId(),

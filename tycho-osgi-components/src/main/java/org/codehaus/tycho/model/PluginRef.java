@@ -45,13 +45,25 @@ public class PluginRef {
 		this.dom = dom;
 	}
 
+	public PluginRef(String name) {
+        this.dom = new Xpp3Dom(name);
+    }
+
 	public String getId() {
 		return dom.getAttribute("id");
+	}
+	
+	public void setId(String id) {
+        dom.setAttribute("id", id);
 	}
 
 	public String getVersion() {
 		return dom.getAttribute("version");
 	}
+
+    public void setVersion(String version) {
+        dom.setAttribute("version", version);
+    }
 
 	public String getOs() {
 		return dom.getAttribute("os");
@@ -69,8 +81,8 @@ public class PluginRef {
 		return Boolean.parseBoolean(dom.getAttribute("unpack"));
 	}
 
-	public void setVersion(String version) {
-		dom.setAttribute("version", version);
+	public void setUnpack(boolean unpack) {
+	    dom.setAttribute( "unpack", Boolean.toString( unpack ) );
 	}
 
 	public void setDownloadSide(long size) {

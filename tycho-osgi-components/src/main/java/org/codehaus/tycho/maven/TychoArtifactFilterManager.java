@@ -1,18 +1,26 @@
 package org.codehaus.tycho.maven;
 
-import org.apache.maven.ArtifactFilterManager;
-import org.apache.maven.DefaultArtifactFilterManager;
+import java.util.Set;
+
+import org.apache.maven.ArtifactFilterManagerDelegate;
 import org.codehaus.plexus.component.annotations.Component;
 
-@Component( role = ArtifactFilterManager.class )
-public class TychoArtifactFilterManager extends DefaultArtifactFilterManager {
+@Component( role = ArtifactFilterManagerDelegate.class )
+public class TychoArtifactFilterManager
+    implements ArtifactFilterManagerDelegate
+{
 
-	@SuppressWarnings("unchecked")
-    public TychoArtifactFilterManager() {
-		excludedArtifacts.add( "tycho-osgi-components" );
-		excludedArtifacts.add( "org.eclipse.osgi" );
-		excludedArtifacts.add( "tycho-p2-facade" );
-        excludedArtifacts.add( "tycho-equinox" );
+    public void addCoreExcludes( Set<String> excludes )
+    {
+        excludes.add( "tycho-osgi-components" );
+        excludes.add( "org.eclipse.osgi" );
+        excludes.add( "tycho-p2-facade" );
+        excludes.add( "tycho-equinox" );
+    }
+
+    public void addExcludes( Set<String> excludes )
+    {
+        // nothing
     }
 
 }

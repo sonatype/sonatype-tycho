@@ -4,18 +4,21 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.maven.Maven;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.DuplicateProjectException;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
-import org.apache.maven.execution.ReactorManager;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.testing.SilentLog;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.TychoSession;
-import org.codehaus.tycho.maven.EclipseMaven;
+import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.codehaus.tycho.testing.CompoundRuntimeException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public class TychoTest extends AbstractTychoMojoTestCase {
@@ -26,25 +29,14 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	protected void setUp() throws Exception {
 		super.setUp();
-		if (getContainer().hasComponent(Maven.ROLE, "test")) {
-			maven = (Maven) lookup(Maven.ROLE, "test");
-		} else {
-			// default over to the main project builder...
-			maven = (Maven) lookup(Maven.ROLE);
-		}
+		maven = lookup(Maven.class);
 		logger = new SilentLog();
 	}
 
 	public void testModuleOrder() throws Exception {
 		File pom = new File(getBasedir("projects/moduleorder"), "pom.xml");
 
-        MavenExecutionRequest request = newMavenExecutionRequest(pom);
-
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
-
-		List projects = reactorManager.getSortedProjects();
+		List<MavenProject> projects = getSortedProjects(pom);
 		assertEquals(5, projects.size());
 
 		MavenProject p002 = (MavenProject) projects.get(1);
@@ -58,18 +50,38 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertEquals("moduleorder.p004", p004.getArtifactId());
 	}
 
+	protected List<MavenProject> getSortedProjects( File pom ) throws Exception
+	{
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        return getSortedProjects( request );
+	}
+
+    private List<MavenProject> getSortedProjects( MavenExecutionRequest request )
+    {
+        request.getProjectBuildingRequest().setProcessPlugins( false ); // really dirty hack
+	    MavenExecutionResult result = maven.execute( request );
+	    if ( result.hasExceptions() )
+	    {
+	        throw new CompoundRuntimeException( result.getExceptions() );
+	    }
+        return result.getTopologicallySortedProjects();
+    }
+
 	public void testResolutionError() throws Exception {
 		File pom = new File(getBasedir("projects/resolutionerror/p001"), "pom.xml");
 
-        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+		try 
+		{
+		    getSortedProjects(pom);
+		    fail();
+		} 
+		catch ( Exception e )
+		{
+//	        List<Exception> exceptions = result.getExceptions();
+//	        assertEquals(1, exceptions.size());
+	        assertTrue(e.getMessage().contains("Missing Constraint: Import-Package: moduleorder.p002"));
+		}
 
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-
-		maven.createReactorManager(request, result);
-
-		List<Exception> exceptions = result.getExceptions();
-		assertEquals(1, exceptions.size());
-		assertTrue(exceptions.get(0).getMessage().contains("Missing Constraint: Import-Package: moduleorder.p002"));
 	}
 
 	public void testResolutionError_t001_errorInTargetPlatform() throws Exception {
@@ -79,14 +91,18 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
 		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
 
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-
-		maven.createReactorManager(request, result);
-
-		List<Exception> exceptions = result.getExceptions();
-		assertEquals(1, exceptions.size());
-		assertTrue(exceptions.get(0).getMessage().contains("Missing Constraint: Require-Bundle: moduleorder.p004"));
-		assertTrue(exceptions.get(0).getMessage().contains("Platform filter did not match"));
+		try
+		{
+		    getSortedProjects( request );
+		    fail();
+		}
+		catch ( Exception e )
+		{
+//    		List<Exception> exceptions = result.getExceptions();
+//    		assertEquals(1, exceptions.size());
+    		assertTrue(e.getMessage().contains("Missing Constraint: Require-Bundle: moduleorder.p004"));
+    		assertTrue(e.getMessage().contains("Platform filter did not match"));
+		}
 	}
 
 	public void testProjectPriority() throws Exception {
@@ -95,12 +111,8 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 		MavenExecutionRequest request = newMavenExecutionRequest(pom);
 		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
 
-		assertEquals(0, result.getExceptions().size());
-
-		List projects = reactorManager.getSortedProjects();
+		List<MavenProject> projects = getSortedProjects( request );
 
 		MavenProject p002 = (MavenProject) projects.get(2);
 
@@ -112,13 +124,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 	public void _testRemoteTargetPlatform() throws Exception {
 		File pom = new File(getBasedir("projects/remoterepo/p001"), "pom.xml");
 
-		MavenExecutionRequest request = newMavenExecutionRequest(pom);
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
-
-		assertEquals(0, result.getExceptions().size());
-
-		List projects = reactorManager.getSortedProjects();
+		List<MavenProject> projects = getSortedProjects(pom);
 
 		MavenProject p001 = (MavenProject) projects.get(0);
 
@@ -131,19 +137,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 	public void _testPomless() throws Exception {
 		File pom = new File(getBasedir("projects/pomless/p001"), "pom.xml");
 
-        MavenExecutionRequest request = newMavenExecutionRequest(pom);
-
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
-		
-		if (result.getExceptions().size() > 0) {
-			for (Exception e : (List<Exception>) result.getExceptions()) {
-				e.printStackTrace();
-			}
-		}
-
-		List projects = reactorManager.getSortedProjects();
+		List<MavenProject> projects = getSortedProjects(pom);
 
 		MavenProject p001 = (MavenProject) projects.get(0);
 		
@@ -153,13 +147,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 	public void testFragment() throws Exception {
 		File pom = new File(getBasedir("projects/fragment"), "pom.xml");
 
-        MavenExecutionRequest request = newMavenExecutionRequest(pom);
-
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
-
-		List<MavenProject> projects = reactorManager.getSortedProjects();
+		List<MavenProject> projects = getSortedProjects(pom);
 
 		MavenProject host = projects.get(1);
 		MavenProject dep = projects.get(2);
@@ -199,13 +187,10 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
 	    MavenExecutionRequest request = newMavenExecutionRequest(pom);
         request.getProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/pre-3.0").getCanonicalPath());
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        ReactorManager reactorManager = maven.createReactorManager(request, result);
 
-        MavenProject project = (MavenProject) reactorManager.getSortedProjects().get(0);
+        MavenProject project = getSortedProjects(request).get(0);
 
-        TychoSession session = ((EclipseMaven) maven).getTychoSession();
-        BundleResolutionState state = session.getBundleResolutionState( project );
+        BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 
 		assertNotNull(state.getBundle("testjar", "1.0.0"));
 		assertNotNull(state.getBundle("testdir", "1.0.0"));
@@ -219,18 +204,15 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
         request.getProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/MNGECLIPSE-942").getCanonicalPath());
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        ReactorManager reactorManager = maven.createReactorManager(request, result);
 
-        MavenProject project = (MavenProject) reactorManager.getSortedProjects().get(0);
+        MavenProject project = getSortedProjects(request).get(0);
 
-        TychoSession session = ((EclipseMaven) maven).getTychoSession();
-        BundleResolutionState state = session.getBundleResolutionState( project );
+        BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 
 		List<BundleDescription> bundles = state.getBundles();
 
-		assertEquals(1, bundles.size());
-		assertEquals("org.junit4.nl_ru", bundles.get(0).getSymbolicName());
+		assertEquals(2, bundles.size());
+		assertNotNull(state.getBundle( "org.junit4.nl_ru", TychoConstants.HIGHEST_VERSION));
 	}
 	
 	public void testAddHocExtensionLocation() throws Exception {
@@ -242,15 +224,13 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
         request.getProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
         request.getProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        ReactorManager reactorManager = maven.createReactorManager(request, result);
 
-        TychoSession session = ((EclipseMaven) maven).getTychoSession();
-        BundleResolutionState state = session.getBundleResolutionState( (MavenProject) reactorManager.getSortedProjects().get(0) );
+        MavenProject project = getSortedProjects(request).get(0);
+        BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 
         List<BundleDescription> bundles = state.getBundles();
 
-        assertEquals(1, bundles.size());
-        assertEquals("testjar", bundles.get(0).getSymbolicName());
+        assertEquals(2, bundles.size());
+        assertNotNull(state.getBundle( "testjar", TychoConstants.HIGHEST_VERSION));
 	}
 }

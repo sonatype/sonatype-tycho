@@ -7,10 +7,11 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.legacy.DefaultWagonManager;
+import org.apache.maven.repository.legacy.WagonManager;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.repository.Repository;
@@ -111,7 +112,7 @@ public class P2TargetPlatformResolver
                     reader.setLocalRepository( localRepository );
 
                     Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
-                    Wagon wagon = wagonManager.getWagon( wagonRepository );
+                    Wagon wagon = ((DefaultWagonManager) wagonManager).getWagon( wagonRepository.getProtocol() );
                     wagon.connect( wagonRepository );
                     TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
 

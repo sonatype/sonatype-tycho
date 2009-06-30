@@ -5,15 +5,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.FeatureResolutionState;
+import org.codehaus.tycho.MavenSessionUtils;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
@@ -65,10 +67,10 @@ public abstract class AbstractDependenciesReader
         return dependency;
     }
 
-    protected Collection<? extends Dependency> getFeaturesDependencies( MavenProject project,
-                                                                        List<FeatureRef> features, TychoSession session )
+    protected Collection<Dependency> getFeaturesDependencies( MavenProject project,
+                                                                        List<FeatureRef> features, MavenSession session )
     {
-        FeatureResolutionState state = session.getFeatureResolutionState( project );
+        FeatureResolutionState state = getFeatureResolutionState( session, project );
         Collection<Dependency> result = new ArrayList<Dependency>();
         for ( Feature.FeatureRef featureRef : features )
         {
@@ -77,7 +79,7 @@ public abstract class AbstractDependenciesReader
             {
                 continue;
             }
-            MavenProject mavenProject = session.getMavenProject( otherFeature.getLocation() );
+            MavenProject mavenProject = MavenSessionUtils.getMavenProject( session, otherFeature.getLocation() );
             Dependency dependency;
             if ( mavenProject != null )
             {
@@ -97,11 +99,11 @@ public abstract class AbstractDependenciesReader
         return result;
     }
 
-    protected Collection<? extends Dependency> getPluginsDependencies( MavenProject project, List<PluginRef> plugins,
-                                                                       TychoSession session )
+    protected Collection<Dependency> getPluginsDependencies( MavenProject project, List<PluginRef> plugins,
+                                                                       MavenSession session )
         throws MavenExecutionException
     {
-        BundleResolutionState state = session.getBundleResolutionState( project );
+        BundleResolutionState state = getBundleResolutionState( session, project );
 
         Collection<Dependency> result = new ArrayList<Dependency>();
         for ( PluginRef pluginRef : plugins )
@@ -125,9 +127,9 @@ public abstract class AbstractDependenciesReader
         return version == null || "0.0.0".equals( version ) ? TychoConstants.HIGHEST_VERSION : version;
     }
 
-    protected Dependency newBundleDependency( TychoSession session, BundleDescription supplier )
+    protected Dependency newBundleDependency( MavenSession session, BundleDescription supplier )
     {
-        MavenProject otherProject = session.getMavenProject( supplier.getLocation() );
+        MavenProject otherProject = MavenSessionUtils.getMavenProject( session, supplier.getLocation() );
 
         Dependency dependency;
         if ( otherProject != null )
@@ -143,4 +145,43 @@ public abstract class AbstractDependenciesReader
         }
         return dependency;
     }
+
+    public FeatureResolutionState getFeatureResolutionState( MavenSession session, MavenProject project )
+    {
+        FeatureResolutionState resolver = (FeatureResolutionState) project.getContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE );
+        
+        if ( resolver == null )
+        {
+            TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
+
+            if ( platform != null )
+            {
+                resolver = new FeatureResolutionState( getLogger(), session, platform );
+                
+                project.setContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE, resolver );
+            }
+            
+        }
+
+        return resolver;
+    }
+
+    public BundleResolutionState getBundleResolutionState( MavenSession session, MavenProject project )
+    {
+        BundleResolutionState resolver = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
+
+        if( resolver == null )
+        {
+            TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
+
+            if ( platform != null )
+            {
+                resolver = EquinoxBundleResolutionState.newInstance( session.getContainer(), session, project );
+            }
+
+            project.setContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE, resolver );
+        }
+        return resolver;
+    }
+
 }

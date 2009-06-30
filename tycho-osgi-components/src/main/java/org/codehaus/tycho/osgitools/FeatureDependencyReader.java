@@ -3,13 +3,13 @@ package org.codehaus.tycho.osgitools;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.FeatureResolutionState;
 import org.codehaus.tycho.ProjectType;
-import org.codehaus.tycho.TychoSession;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
@@ -19,10 +19,10 @@ public class FeatureDependencyReader
     extends AbstractDependenciesReader
 {
 
-    public List<Dependency> getDependencies( MavenProject project, TychoSession session )
+    public List<Dependency> getDependencies( MavenSession session, MavenProject project )
         throws MavenExecutionException
     {
-        FeatureResolutionState state = session.getFeatureResolutionState( project );
+        FeatureResolutionState state = getFeatureResolutionState( session, project );
 
         FeatureDescription description = state.getFeatureByLocation( project.getBasedir() );
 

@@ -5,18 +5,16 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.Maven;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
-import org.apache.maven.execution.ReactorManager;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.maven.EclipseMaven;
-import org.codehaus.tycho.maven.TychoMavenSession;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.ClasspathComputer;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.codehaus.tycho.testing.CompoundRuntimeException;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
@@ -26,7 +24,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		maven = (Maven) lookup(Maven.ROLE);
+		maven = lookup(Maven.class);
 		storage = new File(getBasedir(), "target/storage");
 		FileUtils.deleteDirectory(storage);
 	}
@@ -34,26 +32,24 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 	private List<MavenProject> getSortedProjects(File basedir, File platform) throws Exception {
 		File pom = new File(basedir, "pom.xml");
 		MavenExecutionRequest request = newMavenExecutionRequest(pom);
+		request.getProjectBuildingRequest().setProcessPlugins(false);
         request.setLocalRepository(getLocalRepository());
         if (platform != null) {
-        	request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
+            request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
         }
-		MavenExecutionResult result = new DefaultMavenExecutionResult();
-		ReactorManager reactorManager = maven.createReactorManager(request, result);
-		if (result.getExceptions().size() > 0) {
-			throw new RuntimeException(result.getExceptions().toString());
+		MavenExecutionResult result = maven.execute( request );
+		if (result.hasExceptions()) {
+		    throw new CompoundRuntimeException(result.getExceptions());
 		}
-		@SuppressWarnings("unchecked")
-		List<MavenProject> projects = reactorManager.getSortedProjects();
-		return projects;
+        return result.getTopologicallySortedProjects();
 	}
 
-	private AbstractOsgiCompilerMojo getMojo(MavenProject project) throws Exception {
+	private AbstractOsgiCompilerMojo getMojo(List<MavenProject> projects, MavenProject project) throws Exception {
 		AbstractOsgiCompilerMojo mojo = (AbstractOsgiCompilerMojo) lookupMojo("compile", project.getFile());
 		setVariableValueToObject(mojo, "project", project);
 		setVariableValueToObject(mojo, "storage", storage);
 		setVariableValueToObject(mojo, "outputDirectory", new File(project.getBuild().getOutputDirectory()).getAbsoluteFile());
-        setVariableValueToObject(mojo, "session", new TychoMavenSession(getContainer(), null, null, null, ((EclipseMaven) maven).getTychoSession()));
+        setVariableValueToObject(mojo, "session", new MavenSession(getContainer(), null, null, projects));
 		
 		// tycho-compiler-jdt does not support forked compilation
 //		        setVariableValueToObject(mojo, "fork", fork? Boolean.TRUE: Boolean.FALSE);
@@ -67,7 +63,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		try {
 			for (MavenProject project : projects) {
 				if (!"pom".equals(project.getPackaging())) {
-					getMojo(project).execute();
+					getMojo(projects, project).execute();
 				}
 			}
 			fail("Restricted package access");
@@ -80,12 +76,12 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		File basedir = getBasedir("projects/accessrules");
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 
-		getMojo(projects.get(1)).execute();
-		getMojo(projects.get(2)).execute();
-		getMojo(projects.get(3)).execute();
+		getMojo(projects, projects.get(1)).execute();
+		getMojo(projects, projects.get(2)).execute();
+		getMojo(projects, projects.get(3)).execute();
 
 		MavenProject project = projects.get(4);
-		AbstractOsgiCompilerMojo mojo = getMojo(project);
+		AbstractOsgiCompilerMojo mojo = getMojo(projects, project);
 		mojo.initializeProjectContext();
         List<String> cp = mojo.getClasspathElements();
 		assertEquals(4, cp.size());
@@ -105,7 +101,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		// simple project
 		project = projects.get(1);
-		AbstractOsgiCompilerMojo mojo = getMojo(project);
+		AbstractOsgiCompilerMojo mojo = getMojo(projects, project);
 		mojo.initializeProjectContext();
         cp = mojo.getClasspathElements();
 		assertEquals(1, cp.size());
@@ -113,7 +109,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		// project with nested lib
 		project = projects.get(2);
-		mojo = getMojo(project);
+		mojo = getMojo(projects, project);
         mojo.initializeProjectContext();
 		cp = mojo.getClasspathElements();
 		assertEquals(2, cp.size());
@@ -122,7 +118,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		// project with external dependency with nested jar
 		project = projects.get(3);
-		mojo = getMojo(project);
+		mojo = getMojo(projects, project);
         mojo.initializeProjectContext();
 		cp = mojo.getClasspathElements();
 		assertEquals(3, cp.size());
@@ -141,7 +137,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 
 		MavenProject project = projects.get(0);
-		getMojo(project).execute();
+		getMojo(projects, project).execute();
 		
 		assertTrue(new File(project.getBasedir(), "target/classes/p001/p1/P1.class").canRead());
 		assertTrue(new File(project.getBasedir(), "target/classes/p001/p2/P2.class").canRead());
@@ -152,7 +148,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 
 		MavenProject project = projects.get(0);
-		getMojo(project).execute();
+		getMojo(projects, project).execute();
 		
 		assertTrue(new File(project.getBasedir(), "target/classes/p002/p1/P1.class").canRead());
 		assertTrue(new File(project.getBasedir(), "target/classes/p002/p2/P2.class").canRead());
@@ -163,7 +159,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 
 		MavenProject project = projects.get(0);
-		getMojo(project).execute();
+		getMojo(projects, project).execute();
 
 		assertTrue(new File(project.getBasedir(), "target/classes/src/Src.class").canRead());
 		assertTrue(new File(project.getBasedir(), "target/library.jar-classes/src2/Src2.class").canRead());

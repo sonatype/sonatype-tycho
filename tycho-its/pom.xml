@@ -22,7 +22,6 @@
     <!-- tested artifacts -->
     <tycho-osgi-components>${tycho-dir}/tycho/tycho-osgi-components-${pom.version}.jar</tycho-osgi-components>
     <maven-osgi-compiler-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-compiler-plugin/${pom.version}/maven-osgi-compiler-plugin-${pom.version}.jar</maven-osgi-compiler-plugin>
-    <maven-osgi-lifecycle-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-lifecycle-plugin/${pom.version}/maven-osgi-lifecycle-plugin-${pom.version}.jar</maven-osgi-lifecycle-plugin>
     <maven-osgi-packaging-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-packaging-plugin/${pom.version}/maven-osgi-packaging-plugin-${pom.version}.jar</maven-osgi-packaging-plugin>
     <maven-osgi-test-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-test-plugin/${pom.version}/maven-tycho-plugin-${pom.version}.jar</maven-osgi-test-plugin>
     <maven-tycho-plugin>${offline-repo}/org/codehaus/tycho/maven-tycho-plugin/${pom.version}/maven-tycho-plugin-${pom.version}.jar</maven-tycho-plugin>
@@ -43,7 +42,7 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>maven-properties-plugin</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.2-SNAPSHOT</version>
         <executions>
           <execution>
             <phase>process-test-resources</phase>
@@ -167,7 +166,6 @@
           <jarFiles>
             <jarFile>${tycho-osgi-components}</jarFile>
             <jarFile>${maven-osgi-compiler-plugin}</jarFile>
-            <jarFile>${maven-osgi-lifecycle-plugin}</jarFile>
             <jarFile>${maven-osgi-packaging-plugin}</jarFile>
             <jarFile>${maven-osgi-test-plugin}</jarFile>
             <jarFile>${maven-tycho-plugin}</jarFile>
@@ -197,7 +195,6 @@
           <jarFiles>
             <jarFile>${tycho-osgi-components}</jarFile>
             <jarFile>${maven-osgi-compiler-plugin}</jarFile>
-            <jarFile>${maven-osgi-lifecycle-plugin}</jarFile>
             <jarFile>${maven-osgi-packaging-plugin}</jarFile>
             <jarFile>${maven-osgi-test-plugin}</jarFile>
             <jarFile>${maven-tycho-plugin}</jarFile>
@@ -257,12 +254,6 @@
     </dependency>
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
-      <artifactId>maven-osgi-lifecycle-plugin</artifactId>
-      <version>${pom.version}</version>
-      <type>maven-plugin</type>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.tycho</groupId>
       <artifactId>maven-osgi-packaging-plugin</artifactId>
       <version>${pom.version}</version>
       <type>maven-plugin</type>
@@ -273,12 +264,14 @@
       <version>${pom.version}</version>
       <type>maven-plugin</type>
     </dependency>
+<!--
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>maven-osgi-source-plugin</artifactId>
       <version>${pom.version}</version>
       <type>maven-plugin</type>
     </dependency>
+ -->
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho</artifactId>

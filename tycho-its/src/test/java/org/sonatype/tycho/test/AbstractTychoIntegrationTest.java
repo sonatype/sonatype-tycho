@@ -47,6 +47,7 @@ public abstract class AbstractTychoIntegrationTest {
         	verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + getTargetPlatforn() );
         }
         verifier.getCliOptions().add("-X");
+        verifier.getCliOptions().add("-s " + new File("settings.xml").getCanonicalPath());
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( getLocalRepo() );
         

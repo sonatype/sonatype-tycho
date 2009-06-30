@@ -1,18 +1,21 @@
 package org.codehaus.tycho.osgitools;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.reactor.MavenExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.ProjectType;
-import org.codehaus.tycho.TychoSession;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 
@@ -24,10 +27,10 @@ public class OsgiBundleDependenciesReader
     @Requirement
     private DependencyComputer dependencyComputer;
 
-    public List<Dependency> getDependencies( MavenProject project, TychoSession session )
+    public List<Dependency> getDependencies( MavenSession session, MavenProject project )
         throws MavenExecutionException
     {
-        BundleResolutionState state = session.getBundleResolutionState( project );
+        BundleResolutionState state = getBundleResolutionState( session, project );
 
         BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir() );
         if ( bundleDescription == null )
@@ -58,6 +61,16 @@ public class OsgiBundleDependenciesReader
             }
         }
 
+        // TODO not the best place for this code...
+        try
+        {
+            project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT, new EclipsePluginProjectImpl( project, bundleDescription ) );
+        }
+        catch ( IOException e )
+        {
+            throw new MavenExecutionException( "Could not read build.properties", e );
+        }
+        
         return result;
     }
 }

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -30,13 +31,12 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoSession;
-import org.codehaus.tycho.maven.EclipseMaven;
-import org.codehaus.tycho.maven.TychoMavenSession;
+import org.codehaus.tycho.maven.TychoMavenLifecycleParticipant;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
@@ -146,8 +146,6 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private Dependency[] dependencies;
 
-	private TychoSession tychoSession;
-
 	private BundleResolutionState bundleResolutionState;
 
 	/**
@@ -216,16 +214,7 @@ public class TestMojo extends AbstractMojo {
 			return;
 		}
 
-		if ( !( session instanceof TychoMavenSession ) )
-        {
-            throw new IllegalArgumentException( getClass().getSimpleName() + " mojo only works with Tycho distribution" );
-        }
-
-        TychoMavenSession tms = (TychoMavenSession) session;
-
-        tychoSession = tms.getTychoSession();
-
-        bundleResolutionState = tychoSession.getBundleResolutionState( project );
+        bundleResolutionState = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 
 		if (testSuite != null || testClass != null) {
 			if (testSuite == null || testClass == null) {
@@ -233,7 +222,7 @@ public class TestMojo extends AbstractMojo {
 			}
 
 			BundleDescription desc = bundleResolutionState.getBundle(testSuite, TychoConstants.HIGHEST_VERSION);
-			MavenProject suite = tychoSession.getMavenProject(desc.getLocation());
+			MavenProject suite = MavenSessionUtils.getMavenProject(session, desc.getLocation());
 
 			if (suite == null) {
 				throw new MojoExecutionException("Cannot find test suite project with Bundle-SymbolicName " + testSuite);
@@ -245,9 +234,9 @@ public class TestMojo extends AbstractMojo {
 			}
 		}
 
-		TargetPlatformResolver platformResolver = EclipseMaven.lookupPlatformResolver( plexus, session.getExecutionProperties() );
+		TargetPlatformResolver platformResolver = TychoMavenLifecycleParticipant.lookupPlatformResolver( plexus, session.getExecutionProperties() );
 
-		platformResolver.setMavenProjects( session.getSortedProjects() );
+		platformResolver.setMavenProjects( session.getProjects() );
 		platformResolver.setLocalRepository( session.getLocalRepository() );
 		platformResolver.setProperties( session.getExecutionProperties() );
 		
@@ -342,7 +331,7 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private void addBundle(Set<File> testBundles, BundleDescription bundle) {
-		MavenProject project = tychoSession.getMavenProject(bundle.getLocation());
+		MavenProject project = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
 		if ("eclipse-test-plugin".equals(project.getPackaging())) {
 			testBundles.add(project.getBasedir());
 		} else if (project.getArtifact().getFile() != null) {
@@ -538,7 +527,7 @@ public class TestMojo extends AbstractMojo {
 		Properties dev = new Properties();
 //		dev.put("@ignoredot@", "true");
 		for (BundleDescription bundle : getReactorBundles()) {
-			MavenProject project = tychoSession.getMavenProject(bundle.getLocation());
+			MavenProject project = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
 			if ("eclipse-test-plugin".equals(project.getPackaging())) {
 				dev.put(bundle.getSymbolicName(), getBuildOutputDirectories(project));
 			} else if ("eclipse-plugin".equals(project.getPackaging())) {
@@ -609,8 +598,9 @@ public class TestMojo extends AbstractMojo {
 	private Set<BundleDescription> getReactorBundles() {
 		Set<BundleDescription> reactorBundles = new LinkedHashSet<BundleDescription>();
 		reactorBundles.add(bundleResolutionState.getBundleByLocation(project.getBasedir()));
+		Map<File, MavenProject> basedirMap = MavenSessionUtils.getBasedirMap( session );
 		for (BundleDescription desc : bundleResolutionState.getBundles()) {
-			MavenProject project = tychoSession.getMavenProject(desc.getLocation());
+			MavenProject project = basedirMap.get(new File(desc.getLocation()));
 			if (project != null) {
 				reactorBundles.add(desc);
 			}

@@ -1,4 +1,4 @@
-#Wed Apr 01 16:18:59 EDT 2009
+#Wed May 13 11:07:48 EDT 2009
 eclipse.preferences.version=1
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.5
 org.eclipse.jdt.core.compiler.compliance=1.5
@@ -7,14 +7,14 @@ org.eclipse.jdt.core.formatter.align_type_members_on_columns=false
 org.eclipse.jdt.core.formatter.alignment_for_arguments_in_allocation_expression=18
 org.eclipse.jdt.core.formatter.alignment_for_arguments_in_enum_constant=20
 org.eclipse.jdt.core.formatter.alignment_for_arguments_in_explicit_constructor_call=18
-org.eclipse.jdt.core.formatter.alignment_for_arguments_in_method_invocation=18
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_method_invocation=82
 org.eclipse.jdt.core.formatter.alignment_for_arguments_in_qualified_allocation_expression=18
 org.eclipse.jdt.core.formatter.alignment_for_assignment=20
 org.eclipse.jdt.core.formatter.alignment_for_binary_expression=20
 org.eclipse.jdt.core.formatter.alignment_for_compact_if=16
 org.eclipse.jdt.core.formatter.alignment_for_conditional_expression=80
 org.eclipse.jdt.core.formatter.alignment_for_enum_constants=48
-org.eclipse.jdt.core.formatter.alignment_for_expressions_in_array_initializer=20
+org.eclipse.jdt.core.formatter.alignment_for_expressions_in_array_initializer=82
 org.eclipse.jdt.core.formatter.alignment_for_multiple_fields=16
 org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration=18
 org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration=18

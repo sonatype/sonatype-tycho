@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.Logger;
@@ -25,7 +26,7 @@ public class FeatureResolutionState
 
     private static final Version VERSION_0_0_0 = new Version( "0.0.0" );
 
-    public FeatureResolutionState( Logger logger, TychoSession session, TargetPlatform platform )
+    public FeatureResolutionState( Logger logger, MavenSession session, TargetPlatform platform )
     {
         enableLogging( logger );
 
@@ -45,8 +46,8 @@ public class FeatureResolutionState
                 }
 
                 FeatureDescription description = new FeatureDescriptionImpl( feature, location );
-                description.setMavenProject( session.getMavenProject( location ) );
-                
+                description.setMavenProject( MavenSessionUtils.getMavenProject( session, location ) );
+
                 String key = description.getId() + "_" + description.getVersion().toString();
 
                 features.put( key, description );

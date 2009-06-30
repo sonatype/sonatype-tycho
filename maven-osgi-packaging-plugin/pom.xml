@@ -15,16 +15,34 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-osgi-components</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-equinox</artifactId>
+      <version>${project.version}</version>
+    </dependency>     
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-facade</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-testing-harness</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
-      <artifactId>maven-project</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-archiver</artifactId>
+      <artifactId>maven-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -52,38 +70,12 @@
     </dependency>
 
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-osgi-components</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-equinox</artifactId>
-      <version>${project.version}</version>
-    </dependency>     
-    <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-p2-facade</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>tycho-testing-harness</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>biz.aQute</groupId>
       <artifactId>bndlib</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>maven-osgi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.plugins</groupId>

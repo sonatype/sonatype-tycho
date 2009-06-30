@@ -9,24 +9,10 @@ import org.apache.maven.artifact.repository.DefaultArtifactRepository;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionRequest;
-import org.apache.maven.plugin.MavenPluginCollector;
-import org.apache.maven.plugin.MavenPluginDiscoverer;
-import org.apache.maven.profiles.DefaultProfileManager;
-import org.apache.maven.profiles.activation.DefaultProfileActivationContext;
-import org.apache.maven.profiles.activation.ProfileActivationContext;
-import org.apache.maven.project.MavenProjectBuilder;
-import org.codehaus.plexus.ContainerConfiguration;
+import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.codehaus.plexus.util.FileUtils;
 
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
-
-	protected MavenProjectBuilder projectBuilder;
-
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-		projectBuilder = (MavenProjectBuilder) lookup(MavenProjectBuilder.class);
-	}
 
 	protected File getBasedir(String name) throws IOException {
 		File src = new File( getBasedir(), "src/test/resources/" + name );
@@ -45,11 +31,18 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		return dst;
 	}
 
-	protected void customizeContainerConfiguration(ContainerConfiguration containerConfiguration) {
-		super.customizeContainerConfiguration(containerConfiguration);
-		containerConfiguration.addComponentDiscoverer( new MavenPluginDiscoverer() );
-		containerConfiguration.addComponentDiscoveryListener( new MavenPluginCollector() );
-	}
+//	protected void customizeContainerConfiguration(ContainerConfiguration containerConfiguration) {
+//		super.customizeContainerConfiguration(containerConfiguration);
+//		containerConfiguration.addComponentDiscoverer( new MavenPluginDiscoverer() );
+//		containerConfiguration.addComponentDiscoveryListener( new MavenPluginCollector() );
+//	}
+
+	@Override
+    protected String getCustomConfigurationName()
+    {
+        String name = AbstractTychoMojoTestCase.class.getName().replace( '.', '/' ) + ".xml";
+        return name;
+    }
 
 	protected ArtifactRepository getLocalRepository() throws Exception {
 		ArtifactRepositoryLayout repoLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, "legacy");
@@ -62,15 +55,13 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 	}
 
 	protected MavenExecutionRequest newMavenExecutionRequest(File pom) throws Exception {
-		Properties props = new Properties(System.getProperties());
-        ProfileActivationContext ctx = new DefaultProfileActivationContext( props, false );
+		Properties props = new Properties();
+		props.putAll(System.getProperties());
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
 		request.setBaseDirectory(pom.getParentFile());
 		request.setPom(pom);
-		request.setProfileManager(new DefaultProfileManager( getContainer(), ctx ));
 		request.setProperties(props);
-		request.setUserProperties(props);
 		request.setLocalRepository(getLocalRepository());
 		return request;
 	}
