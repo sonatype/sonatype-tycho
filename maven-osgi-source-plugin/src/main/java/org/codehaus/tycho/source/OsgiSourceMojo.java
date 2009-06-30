@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.source.AbstractSourceJarMojo;
 import org.apache.maven.project.MavenProject;
 
 /**

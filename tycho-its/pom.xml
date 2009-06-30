@@ -264,14 +264,12 @@
       <version>${pom.version}</version>
       <type>maven-plugin</type>
     </dependency>
-<!--
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>maven-osgi-source-plugin</artifactId>
       <version>${pom.version}</version>
       <type>maven-plugin</type>
     </dependency>
- -->
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho</artifactId>
