@@ -517,7 +517,7 @@ public class EquinoxBundleResolutionState
 
     public void resolve( MavenProject project )
     {
-        state.resolve( true );
+        state.resolve( false );
 
         if ( getLogger().isDebugEnabled() )
         {
@@ -544,7 +544,13 @@ public class EquinoxBundleResolutionState
 
     public void setPlatformProperties( Properties properties )
     {
-        state.setPlatformProperties( properties );
+        Properties effective = new Properties();
+        effective.putAll( properties );
+        // Put Equinox OSGi resolver into development mode.
+        // See http://www.nabble.com/Re:-resolving-partially-p18449054.html
+        effective.put( org.eclipse.osgi.framework.internal.core.Constants.OSGI_RESOLVER_MODE,
+                       org.eclipse.osgi.framework.internal.core.Constants.DEVELOPMENT_MODE );
+        state.setPlatformProperties( effective );
     }
 
     private static void setUserProperty( BundleDescription desc, String name, Object value )
