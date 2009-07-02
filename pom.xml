@@ -55,8 +55,8 @@
     <maven-version>3.0-SNAPSHOT</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.5RC4
-      
+      Version corresponds to Eclipse 3.5.0
+
       mvn install:install-file -Dfile=org.eclipse.osgi_3.5.0.v20090520.jar \
         -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090520 -Dpackaging=jar
 
@@ -69,7 +69,7 @@
     <equinoxVersion>3.5.0.v20090520</equinoxVersion>
 
     <!-- 
-      Version corresponds to Eclipse 3.5RC4
+      Version corresponds to Eclipse 3.5.0
       
       mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.0.v_963.jar \
         -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.0.v_963 -Dpackaging=jar
