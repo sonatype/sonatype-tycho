@@ -20,7 +20,7 @@ public class ProductConfigurationParseTest {
 		Assert.assertEquals("My First RCP", config.getName());
 		Assert.assertEquals("MyFirstRCP.product1", config.getId());
 		Assert.assertEquals("MyFirstRCP.application", config.getApplication());
-		Assert.assertEquals(false, config.getUseFeatures().booleanValue());
+		Assert.assertEquals(false, config.useFeatures());
 
 /*
 		ConfigIni configIni = config.getConfigIni();

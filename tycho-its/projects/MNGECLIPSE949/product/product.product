@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?pde version="3.4"?>
+<?pde version="3.5"?>
 
-<product name="product" id="HeadlessProduct.product" version="1.0.0" useFeatures="false">
+<product name="product" id="HeadlessProduct.product" version="1.0.0" useFeatures="false" includeLaunchers="false">
 
    <configIni use="default">
    </configIni>
@@ -25,5 +25,6 @@
    <plugins>
       <plugin id="org.eclipse.platform"/>
    </plugins>
+
 
 </product>

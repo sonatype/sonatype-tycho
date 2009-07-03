@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<units size='1'>
+  <unit id='tycho.demo.application' version='1.0.0'>
+    <update id='tycho.demo.application' range='[0.0.0,1.0.0)' severity='0'/>
+    <properties size='4'>
+      <property name='org.eclipse.equinox.p2.name' value='Unnamed - tycho.demo.workbench:tycho.demo.application:eclipse-plugin:1.0.0'/>
+      <property name='maven-artifactId' value='tycho.demo.application'/>
+      <property name='maven-groupId' value='tycho.demo'/>
+      <property name='maven-version' value='1.0.0'/>
+    </properties>
+    <provides size='3'>
+      <provided namespace='org.eclipse.equinox.p2.iu' name='tycho.demo.application' version='1.0.0'/>
+      <provided namespace='osgi.bundle' name='tycho.demo.application' version='1.0.0'/>
+      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>
+    </provides>
+    <requires size='1'>
+      <required namespace='osgi.bundle' name='org.eclipse.core.runtime' range='0.0.0'/>
+    </requires>
+    <artifacts size='1'>
+      <artifact classifier='osgi.bundle' id='tycho.demo.application' version='1.0.0'/>
+    </artifacts>
+    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>
+    <touchpointData size='1'>
+      <instructions size='1'>
+        <instruction key='manifest'>
+          Bundle-ManifestVersion: 2&#xA;Created-By: Apache Maven&#xA;Archiver-Version: Plexus Archiver&#xA;Manifest-Version: 1.0&#xA;MavenArtifact-BaseVersion: 1.0.0&#xA;Bundle-Name: Unnamed - tycho.demo.workbench:tycho.demo.application:eclipse-plugin:1.0.0&#xA;Bundle-ActivationPolicy: lazy&#xA;Bundle-ClassPath: .&#xA;Build-Jdk: 1.6.0_13&#xA;Bundle-Version: 1.0.0&#xA;Require-Bundle: org.eclipse.core.runtime&#xA;MavenArtifact-GroupId: tycho.demo&#xA;Bundle-Activator: tycho.demo.application.Activator&#xA;Bundle-SymbolicName: tycho.demo.application;singleton:=true&#xA;Built-By: igor&#xA;Bundle-RequiredExecutionEnvironment: J2SE-1.5,JavaSE-1.6&#xA;
+        </instruction>
+      </instructions>
+    </touchpointData>
+  </unit>
+</units>

@@ -3,7 +3,6 @@ package org.codehaus.tycho.osgitools.targetplatform;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.project.MavenProject;
@@ -20,8 +19,6 @@ public abstract class AbstractTargetPlatformResolver
 
     protected ArtifactRepository localRepository;
 
-    protected Properties properties;
-
     public void setMavenProjects( List<MavenProject> projects )
     {
         this.projects = new ArrayList<MavenProject>( projects );
@@ -37,16 +34,9 @@ public abstract class AbstractTargetPlatformResolver
         this.localRepository = localRepository;
     }
 
-    public void setProperties( Properties properties )
-    {
-        this.properties = properties;
-    }
-
     protected DefaultTargetPlatform createPlatform()
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
-
-        platform.setProperties( properties );
 
         return platform;
     }

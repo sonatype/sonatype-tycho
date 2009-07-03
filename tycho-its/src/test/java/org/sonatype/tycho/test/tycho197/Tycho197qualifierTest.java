@@ -19,7 +19,7 @@ public class Tycho197qualifierTest extends AbstractTychoIntegrationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void checkProduct() throws Exception {
-		Verifier verifier = getVerifier("/tycho197/product-test");
+		Verifier verifier = getVerifier("/TYCHO197buildqualifier/product-test");
 
 		final String timestamp = "20022002-2002";
 		verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
@@ -67,7 +67,7 @@ public class Tycho197qualifierTest extends AbstractTychoIntegrationTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void checkSite() throws Exception{
-		Verifier verifier = getVerifier("/tycho197/site-test");
+		Verifier verifier = getVerifier("/TYCHO197buildqualifier/site-test");
 
 		final String timestamp = "20022002-2002";
 		verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);

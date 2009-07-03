@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>tycho.demo</groupId>
+  <artifactId>tychodemo</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <modules>
+    <module>tycho.demo.application</module>
+    <module>tycho.demo.feature</module>
+    <module>tycho.demo.rcp</module>
+  </modules>
+</project>

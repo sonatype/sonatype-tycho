@@ -103,8 +103,13 @@ public class ProductConfiguration {
 		return Collections.unmodifiableList(plugins);
 	}
 
-	public Boolean getUseFeatures() {
+	public boolean useFeatures() {
 		return Boolean.parseBoolean(dom.getAttribute("useFeatures"));
+	}
+
+	public boolean includeLaunchers() {
+        String attribute = dom.getAttribute("includeLaunchers");
+        return attribute == null? true: Boolean.parseBoolean(attribute);
 	}
 
 	public String getVersion() {

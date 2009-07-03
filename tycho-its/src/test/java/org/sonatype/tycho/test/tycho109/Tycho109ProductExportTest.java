@@ -24,16 +24,16 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 	public void exportPluginProduct() throws Exception {
 		Verifier verifier;
 		if (isEclipse32Platform()) {
-			verifier = getVerifier("/tycho109/eclipse32/plugin-rcp");
+			verifier = getVerifier("/TYCHO109product/eclipse32/plugin-rcp");
 		} else {
-			verifier = getVerifier("/tycho109/plugin-rcp");
+			verifier = getVerifier("/TYCHO109product/plugin-rcp");
 		}
 
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "target/product");
+		File output = new File(basedir, "target/linux.gtk.x86_64");
 
 		Assert.assertTrue("Exported product folder not found", output
 				.isDirectory());
@@ -71,16 +71,16 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 	public void exportFeatureProduct() throws Exception {
 		Verifier verifier;
 		if (isEclipse32Platform()) {
-			verifier = getVerifier("/tycho109/eclipse32/feature-rcp");
+			verifier = getVerifier("/TYCHO109product/eclipse32/feature-rcp");
 		} else {
-			verifier = getVerifier("/tycho109/feature-rcp");
+			verifier = getVerifier("/TYCHO109product/feature-rcp");
 		}
 
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "HeadlessProduct/target/product");
+		File output = new File(basedir, "HeadlessProduct/target/linux.gtk.x86_64");
 
 		Assert.assertTrue("Exported product folder not found\n"
 				+ output.getAbsolutePath(), output.isDirectory());
@@ -146,7 +146,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 			return;
 		}
 
-		Verifier verifier = getVerifier("/tycho109/plugin-rcp-app");
+		Verifier verifier = getVerifier("/TYCHO109product/plugin-rcp-app");
 
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();

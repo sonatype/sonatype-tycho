@@ -1,7 +1,6 @@
 package org.codehaus.tycho;
 
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
@@ -22,12 +21,4 @@ public interface TargetPlatformResolver
 
     public void setLocalRepository( ArtifactRepository localRepository );
 
-    /**
-     * Set MavenExecutionRequest execution properties.
-     *  
-     * This is a workaround for questionable Maven design decision (i.e. project
-     * properties have everything from inherited and interpolated but without
-     * session properties)
-     */
-    public void setProperties( Properties properties );
 }

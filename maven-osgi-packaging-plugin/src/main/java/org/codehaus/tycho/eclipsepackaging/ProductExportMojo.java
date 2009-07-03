@@ -27,6 +27,7 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.PlatformPropertiesUtils;
+import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.maven.DependenciesReader;
@@ -44,16 +45,6 @@ import org.osgi.framework.Version;
 public class ProductExportMojo
     extends AbstractTychoPackagingMojo
 {
-
-    /** @parameter expression="${project.build.directory}/product" */
-    private File target;
-
-    /** @parameter expression="${project.build.directory}/product/plugins" */
-    private File pluginsFolder;
-
-    /** @parameter expression="${project.build.directory}/product/features" */
-    private File featuresFolder;
-
     /**
      * The product configuration, a .product file. This file manages all aspects of a product definition from its
      * constituent plug-ins to configuration files to branding.
@@ -86,6 +77,11 @@ public class ProductExportMojo
      * @parameter expression="${buildQualifier}"
      */
     protected String qualifier;
+
+    /**
+     * @parameter
+     */
+    private TargetEnvironment[] environments;
 
     /**
      * @component roleHint="eclipse-application"
@@ -134,42 +130,96 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Error parsing product configuration file", e );
         }
 
-        generateEclipseProduct();
-        generateConfigIni();
-        includeRootFiles();
-
-        pluginsFolder.mkdirs();
-        if ( productConfiguration.getUseFeatures() )
+        // TODO this is controversial, but purist inside insists...
+        if ( productConfiguration.includeLaunchers() && environments == null )
         {
-            featuresFolder.mkdirs();
-            copyFeatures( productConfiguration.getFeatures() );
+            throw new MojoFailureException( "Product includes native launcher but no target environment was specified" );
+        }
+
+        for ( TargetEnvironment environment : getEnvironments() )
+        {
+            File target = getTarget( environment );
+
+            generateDotEclipseProduct( target );
+            generateConfigIni( environment, target );
+            includeRootFiles( environment, target );
+
+            if ( productConfiguration.useFeatures() )
+            {
+                copyFeatures( environment, target, productConfiguration.getFeatures() );
+            }
+            else
+            {
+                copyPlugins( environment, target, productConfiguration.getPlugins() );
+            }
+
+            if ( productConfiguration.includeLaunchers() )
+            {
+                copyExecutable( environment, target );
+            }
+
+            packProduct( environment, target );
+
+            Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
+            productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
+            productConfiguration.setVersion( productVersion.toString() );
+
+            try
+            {
+                ProductConfiguration.write( productConfiguration, expandedProductFile );
+                
+                if ( p2inf.canRead() )
+                {
+                    FileUtils.copyFile( p2inf, new File( expandedProductFile.getParentFile(), p2inf.getName() ) );
+                }
+            }
+            catch ( IOException e )
+            {
+                throw new MojoExecutionException( "Error writing expanded product configuration file", e );
+            }
+        }
+    }
+
+    private TargetEnvironment[] getEnvironments()
+    {
+        if ( environments != null )
+        {
+            return environments;
+        }
+
+        Properties properties = (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES );
+        return new TargetEnvironment[] { new TargetEnvironment( properties ) };
+    }
+
+    private File getTarget( TargetEnvironment environment )
+    {
+        File target;
+
+        if ( environments == null )
+        {
+            target = new File( project.getBuild().getDirectory(), "product" );
         }
         else
         {
-            copyPlugins( productConfiguration.getPlugins() );
+            target = new File( project.getBuild().getDirectory(),  toString( environment ) );
         }
+
+        target.mkdirs();
         
-        copyExecutable();
+        return target;
+    }
 
-        packProduct();
-
-        Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
-        productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
-        productConfiguration.setVersion( productVersion.toString() );
-
-        try
+    private String toString( TargetEnvironment environment )
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( environment.getOs() ).append( '.' )
+          .append( environment.getWs() ).append( '.' )
+          .append( environment.getArch() );
+        if ( environment.getNl() != null )
         {
-            ProductConfiguration.write( productConfiguration, expandedProductFile );
-            
-            if ( p2inf.canRead() )
-            {
-                FileUtils.copyFile( p2inf, new File( expandedProductFile.getParentFile(), p2inf.getName() ) );
-            }
+            sb.append( '.' ).append( environment.getNl() );
         }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Error writing expanded product configuration file", e );
-        }
+        return sb.toString();
     }
 
     @Override
@@ -196,7 +246,7 @@ public class ProductExportMojo
      * 
      * @throws MojoExecutionException
      */
-    private void includeRootFiles()
+    private void includeRootFiles( TargetEnvironment environment, File target )
         throws MojoExecutionException
     {
         Properties properties = project.getProperties();
@@ -210,7 +260,7 @@ public class ProductExportMojo
                 rootProperties.load( new FileInputStream( new File( project.getBasedir(), generatedBuildProperties ) ) );
                 if ( !rootProperties.isEmpty() )
                 {
-                    String config = getConfig();
+                    String config = getConfig( environment );
                     String root = "root";
                     String rootConfig = "root." + config;
                     String rootFolder = "root.folder.";
@@ -223,24 +273,24 @@ public class ProductExportMojo
                         // root=
                         if ( root.equals( key ) )
                         {
-                            handleRootEntry( entry.getValue(), null );
+                            handleRootEntry( target, entry.getValue(), null );
                         }
                         // root.xxx=
                         else if ( rootConfig.equals( key ) )
                         {
-                            handleRootEntry( entry.getValue(), null );
+                            handleRootEntry( target, entry.getValue(), null );
                         }
                         // root.folder.yyy=
                         else if ( key.startsWith( rootFolder ) )
                         {
                             String subFolder = entry.getKey().substring( ( rootFolder.length() ) );
-                            handleRootEntry( entry.getValue(), subFolder );
+                            handleRootEntry( target, entry.getValue(), subFolder );
                         }
                         // root.xxx.folder.yyy=
                         else if ( key.startsWith( rootConfigFolder ) )
                         {
                             String subFolder = entry.getKey().substring( ( rootConfigFolder.length() ) );
-                            handleRootEntry( entry.getValue(), subFolder );
+                            handleRootEntry( target, entry.getValue(), subFolder );
                         }
                         else
                         {
@@ -270,7 +320,7 @@ public class ProductExportMojo
      *            </ul>
      * @param subFolder the sub folder to which the root file entries are copied to
      */
-    private void handleRootEntry( String rootFileEntries, String subFolder )
+    private void handleRootEntry( File target, String rootFileEntries, String subFolder )
     {
         StringTokenizer t = new StringTokenizer( rootFileEntries, "," );
         File destination = target;
@@ -330,16 +380,16 @@ public class ProductExportMojo
         }
     }
 
-    private String getConfig()
+    private String getConfig( TargetEnvironment environment )
     {
-        String ws = platform.getProperty( PlatformPropertiesUtils.OSGI_WS );
-        String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
-        String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
+        String os = environment.getOs();
+        String ws = environment.getWs();
+        String arch = environment.getArch();
         StringBuffer config = new StringBuffer( ws ).append( "." ).append( os ).append( "." ).append( arch );
         return config.toString();
     }
 
-    private void packProduct()
+    private void packProduct( TargetEnvironment environment, File target )
         throws MojoExecutionException
     {
         ZipArchiver zipper;
@@ -352,7 +402,14 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Unable to resolve ZipArchiver", e );
         }
 
-        File destFile = new File( project.getBuild().getDirectory(), project.getBuild().getFinalName() + ".zip" );
+        StringBuilder filename = new StringBuilder( project.getBuild().getFinalName() );
+        if ( environments != null )
+        {
+            filename.append( '-' ).append( toString( environment ) );
+        }
+        filename.append( ".zip" );
+
+        File destFile = new File( project.getBuild().getDirectory(), filename.toString() );
 
         try
         {
@@ -382,7 +439,7 @@ public class ProductExportMojo
         return osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2;
     }
 
-    private void generateEclipseProduct()
+    private void generateDotEclipseProduct( File target )
         throws MojoExecutionException
     {
         getLog().debug( "Generating .eclipseproduct" );
@@ -390,8 +447,6 @@ public class ProductExportMojo
         setPropertyIfNotNull( props, "version", productConfiguration.getVersion() );
         setPropertyIfNotNull( props, "name", productConfiguration.getName() );
         setPropertyIfNotNull( props, "id", productConfiguration.getId() );
-
-        target.mkdirs();
 
         File eclipseproduct = new File( target, ".eclipseproduct" );
         try
@@ -406,7 +461,7 @@ public class ProductExportMojo
         }
     }
 
-    private void generateConfigIni()
+    private void generateConfigIni( TargetEnvironment environment, File target )
         throws MojoExecutionException, MojoFailureException
     {
         getLog().debug( "Generating config.ini" );
@@ -418,13 +473,13 @@ public class ProductExportMojo
         // TODO check if there are any other levels
         setPropertyIfNotNull( props, "osgi.bundles.defaultStartLevel", "4" );
 
-        if ( productConfiguration.getUseFeatures() )
+        if ( productConfiguration.useFeatures() )
         {
             setPropertyIfNotNull( props, "osgi.bundles", getFeaturesOsgiBundles() );
         }
         else
         {
-            setPropertyIfNotNull( props, "osgi.bundles", getPluginsOsgiBundles() );
+            setPropertyIfNotNull( props, "osgi.bundles", getPluginsOsgiBundles( environment ) );
         }
 
         File configsFolder = new File( target, "configuration" );
@@ -449,7 +504,7 @@ public class ProductExportMojo
         return "org.eclipse.equinox.common@2:start,org.eclipse.update.configurator@3:start,org.eclipse.core.runtime@start";
     }
 
-    private String getPluginsOsgiBundles()
+    private String getPluginsOsgiBundles( TargetEnvironment environment )
         throws MojoFailureException
     {
         List<PluginRef> plugins = productConfiguration.getPlugins();
@@ -491,9 +546,9 @@ public class ProductExportMojo
             {
                 buf.append( ',' );
             }
-            String ws = platform.getProperty( PlatformPropertiesUtils.OSGI_WS );
-            String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
-            String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
+            String os = environment.getOs();
+            String ws = environment.getWs();
+            String arch = environment.getArch();
 
             buf.append( "org.eclipse.equinox.launcher," );
             buf.append( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch );
@@ -502,18 +557,18 @@ public class ProductExportMojo
         return buf.toString();
     }
 
-    private void copyFeatures( List<FeatureRef> features )
+    private void copyFeatures( TargetEnvironment environment, File target, List<FeatureRef> features )
         throws MojoExecutionException
     {
         getLog().debug( "copying " + features.size() + " features " );
 
         for ( FeatureRef feature : features )
         {
-            copyFeature( feature );
+            copyFeature( environment, target, feature );
         }
     }
 
-    private void copyFeature( FeatureRef feature )
+    private void copyFeature( TargetEnvironment environment, File target, FeatureRef feature )
         throws MojoExecutionException
     {
         String featureId = feature.getId();
@@ -545,7 +600,7 @@ public class ProductExportMojo
             source = new de.schlichtherle.io.File( project.getArtifact().getFile() );
         }
 
-        File targetFolder = new File( featuresFolder, featureRef.getId() + "_" + featureVersion );
+        File targetFolder = new File( target, "features/" + featureRef.getId() + "_" + featureVersion );
         targetFolder.mkdirs();
 
         source.copyAllTo( targetFolder );
@@ -553,64 +608,71 @@ public class ProductExportMojo
         List<FeatureRef> featureRefs = featureRef.getIncludedFeatures();
         for ( FeatureRef fRef : featureRefs )
         {
-            copyFeature( fRef );
+            copyFeature( environment, target, fRef );
         }
 
         // copy all plugins from all features
         List<PluginRef> pluginRefs = featureRef.getPlugins();
         for ( PluginRef pluginRef : pluginRefs )
         {
-            if ( matchCurrentPlataform( pluginRef ) )
+            if ( matchTargetEnvironment( environment, pluginRef ) )
             {
-                copyPlugin( pluginRef );
+                copyPlugin( target, pluginRef );
             }
         }
 
     }
 
-    private boolean matchCurrentPlataform( PluginRef pluginRef )
+    private boolean matchTargetEnvironment( TargetEnvironment environment, PluginRef pluginRef )
     {
-        String ws = platform.getProperty( PlatformPropertiesUtils.OSGI_WS );
-        String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
-        String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
-
-        String pluginWs = pluginRef.getWs();
         String pluginOs = pluginRef.getOs();
+        String pluginWs = pluginRef.getWs();
         String pluginArch = pluginRef.getArch();
 
-        return ( pluginWs == null || ws.equals( pluginWs ) ) && //
-            ( pluginOs == null || os.equals( pluginOs ) ) && //
+        if ( environments == null )
+        {
+            // no target environment, only include environment independent plugins
+            return pluginOs == null && pluginWs == null && pluginArch == null;
+        }
+
+        String os = environment.getOs();
+        String ws = environment.getWs();
+        String arch = environment.getArch();
+
+        return ( pluginOs == null || os.equals( pluginOs ) ) && //
+            ( pluginWs == null || ws.equals( pluginWs ) ) && //
             ( pluginArch == null || arch.equals( pluginArch ) );
     }
 
-    private void copyPlugins( Collection<PluginRef> plugins )
+    private void copyPlugins( TargetEnvironment environment, File pluginsFolder, Collection<PluginRef> plugins )
         throws MojoExecutionException, MojoFailureException
     {
         getLog().debug( "copying " + plugins.size() + " plugins " );
 
         for ( PluginRef plugin : plugins )
         {
-            copyPlugin( plugin );
+            copyPlugin( pluginsFolder, plugin );
         }
 
         // required plugins, RCP didn't start without both
         if ( !isEclipse32Platform() )
         {
-            String ws = platform.getProperty( PlatformPropertiesUtils.OSGI_WS );
-            String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
-            String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
+            copyPlugin( pluginsFolder, newPluginRef( "org.eclipse.equinox.launcher", null, false ) );
 
-            copyPlugin( newPluginRef( "org.eclipse.equinox.launcher", null, false ) );
+            String os = environment.getOs();
+            String ws = environment.getWs();
+            String arch = environment.getArch();
+
             // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
             // only a org.eclipse.equinox.launcher.carbon.macosx folder.
             // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
             if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
             {
-                copyPlugin( newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os, null, false ) );
+                copyPlugin( pluginsFolder, newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os, null, false ) );
             }
             else
             {
-                copyPlugin( newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, false ) );
+                copyPlugin( pluginsFolder, newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, false ) );
             }
         }
     }
@@ -627,7 +689,7 @@ public class ProductExportMojo
         return plugin;
     }
 
-    private String copyPlugin( PluginRef plugin )
+    private String copyPlugin( File target, PluginRef plugin )
         throws MojoExecutionException
     {
         String bundleId = plugin.getId();
@@ -660,7 +722,8 @@ public class ProductExportMojo
         bundleVersion = VersioningHelper.getExpandedVersion( session, bundle );
         plugin.setVersion( bundleVersion );
 
-        File target = new File( pluginsFolder, bundleId + "_" + bundleVersion + ".jar" );
+        File pluginsFolder = new File( target, "plugins" );
+        File targetFolder = new File( pluginsFolder, bundleId + "_" + bundleVersion + ".jar" );
         if ( source.isDirectory() )
         {
             copyToDirectory( source, pluginsFolder );
@@ -668,15 +731,16 @@ public class ProductExportMojo
         else if ( plugin.isUnpack() )
         {
             // when unpacked doesn't have .jar extension
-            String path = target.getAbsolutePath();
+            String path = targetFolder.getAbsolutePath();
             path = path.substring( 0, path.length() - 4 );
-            target = new File( path );
-            new de.schlichtherle.io.File( source ).copyAllTo( target );
+            targetFolder = new File( path );
+            targetFolder.mkdirs();
+            new de.schlichtherle.io.File( source ).copyAllTo( targetFolder );
             // unpackToDirectory(source, target);
         }
         else
         {
-            copyToFile( source, target );
+            copyToFile( source, targetFolder );
         }
 
         return bundleVersion;
@@ -732,7 +796,7 @@ public class ProductExportMojo
         }
     }
 
-    private void copyExecutable()
+    private void copyExecutable( TargetEnvironment environment, File target )
         throws MojoExecutionException, MojoFailureException
     {
         getLog().debug( "Creating launcher" );
@@ -755,9 +819,9 @@ public class ProductExportMojo
 
         File location = feature.getLocation();
 
-        String ws = platform.getProperty( PlatformPropertiesUtils.OSGI_WS );
-        String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
-        String arch = platform.getProperty( PlatformPropertiesUtils.OSGI_ARCH );
+        String os = environment.getOs();
+        String ws = environment.getWs();
+        String arch = environment.getArch();
 
         File osLauncher = new File( location, "bin/" + ws + "/" + os + "/" + arch );
 
@@ -773,7 +837,7 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Unable to copy launcher executable", e );
         }
 
-        File launcher = getLauncher();
+        File launcher = getLauncher( environment, target );
 
         // make launcher executable
         try
@@ -841,10 +905,10 @@ public class ProductExportMojo
 
     }
 
-    private File getLauncher()
+    private File getLauncher( TargetEnvironment environment, File target )
         throws MojoExecutionException
     {
-        String os = platform.getProperty( PlatformPropertiesUtils.OSGI_OS );
+        String os = environment.getOs();
 
         if ( PlatformPropertiesUtils.OS_WIN32.equals( os ) )
         {

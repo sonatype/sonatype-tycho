@@ -29,6 +29,8 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.ExecutionEnvironmentUtils;
+import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
@@ -489,8 +491,6 @@ public class EquinoxBundleResolutionState
                 resolver.addBundle( file, isProject );
             }
 
-            resolver.setPlatformProperties( platform.getProperties() );
-
             resolver.resolve( project );
 
             return resolver;
@@ -517,6 +517,23 @@ public class EquinoxBundleResolutionState
 
     public void resolve( MavenProject project )
     {
+        Properties properties = new Properties();
+        properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
+
+        // make sure os/ws/arch are present
+        properties.put( PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS( properties ) );
+        properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( properties ) );
+        properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( properties ) );
+
+        ExecutionEnvironmentUtils.loadVMProfile( properties );
+
+        // Put Equinox OSGi resolver into development mode.
+        // See http://www.nabble.com/Re:-resolving-partially-p18449054.html
+        properties.put( org.eclipse.osgi.framework.internal.core.Constants.OSGI_RESOLVER_MODE,
+                        org.eclipse.osgi.framework.internal.core.Constants.DEVELOPMENT_MODE );
+
+        state.setPlatformProperties( properties );
+        
         state.resolve( false );
 
         if ( getLogger().isDebugEnabled() )
@@ -540,17 +557,6 @@ public class EquinoxBundleResolutionState
             getLogger().debug( sb.toString() );
         }
 
-    }
-
-    public void setPlatformProperties( Properties properties )
-    {
-        Properties effective = new Properties();
-        effective.putAll( properties );
-        // Put Equinox OSGi resolver into development mode.
-        // See http://www.nabble.com/Re:-resolving-partially-p18449054.html
-        effective.put( org.eclipse.osgi.framework.internal.core.Constants.OSGI_RESOLVER_MODE,
-                       org.eclipse.osgi.framework.internal.core.Constants.DEVELOPMENT_MODE );
-        state.setPlatformProperties( effective );
     }
 
     private static void setUserProperty( BundleDescription desc, String name, Object value )

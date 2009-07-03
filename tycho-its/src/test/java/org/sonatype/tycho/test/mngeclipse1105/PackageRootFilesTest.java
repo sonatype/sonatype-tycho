@@ -14,7 +14,7 @@ public class PackageRootFilesTest
     public void test()
         throws Exception
     {
-        Verifier verifier = getVerifier( "MNGECLIPSE1105" );
+        Verifier verifier = getVerifier( "MNGECLIPSE1105rootfiles" );
 
         verifier.executeGoal( "integration-test" );
         verifier.verifyErrorFreeLog();

@@ -39,17 +39,21 @@ public class TychoMavenLifecycleParticipant
     {
         List<MavenProject> projects = session.getProjects();
         MavenExecutionRequest request = session.getRequest();
-        Properties properties = session.getExecutionProperties();
 
         for ( MavenProject project : projects )
         {
+            // TODO Do I need to interpolate anything? 
+            Properties properties = new Properties();
+            properties.putAll( project.getProperties() );
+            properties.putAll( session.getExecutionProperties() ); // session wins
+
+            project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
+
             TargetPlatformResolver resolver = lookupPlatformResolver( container, properties );
 
             resolver.setLocalRepository( request.getLocalRepository() );
 
             resolver.setMavenProjects( new ArrayList<MavenProject>( projects ) );
-
-            resolver.setProperties( properties );
 
             try
             {
@@ -80,7 +84,7 @@ public class TychoMavenLifecycleParticipant
             File location = new File( property );
             if ( !location.exists() || !location.isDirectory() )
             {
-                throw new RuntimeException( "Invalid target platform location" );
+                throw new RuntimeException( "Invalid target platform location: " + property );
             }
 
             try
