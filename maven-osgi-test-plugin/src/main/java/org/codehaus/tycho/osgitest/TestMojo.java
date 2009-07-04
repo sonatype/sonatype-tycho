@@ -238,8 +238,7 @@ public class TestMojo extends AbstractMojo {
 
 		platformResolver.setMavenProjects( session.getProjects() );
 		platformResolver.setLocalRepository( session.getLocalRepository() );
-		platformResolver.setProperties( session.getExecutionProperties() );
-		
+
 		ArrayList<Dependency> dependencies = new ArrayList<Dependency>(); 
 
 		if ( this.dependencies != null )
