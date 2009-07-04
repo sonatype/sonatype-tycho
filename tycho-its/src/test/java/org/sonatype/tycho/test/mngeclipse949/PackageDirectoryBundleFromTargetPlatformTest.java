@@ -26,7 +26,7 @@ public class PackageDirectoryBundleFromTargetPlatformTest extends AbstractTychoI
         });
         Assert.assertEquals(1, sitePlugins.length);
 
-        File[] productPlugins = new File(verifier.getBasedir(), "product/target/product/plugins").listFiles(new FileFilter() {
+        File[] productPlugins = new File(verifier.getBasedir(), "product/target/product/eclipse/plugins").listFiles(new FileFilter() {
 			public boolean accept(File pathname) {
 				return pathname.isDirectory() 
 						&& pathname.getName().startsWith("org.eclipse.platform");

@@ -139,23 +139,25 @@ public class ProductExportMojo
         for ( TargetEnvironment environment : getEnvironments() )
         {
             File target = getTarget( environment );
+            File targetEclipse = new File( target, "eclipse" );
+            targetEclipse.mkdirs();
 
-            generateDotEclipseProduct( target );
-            generateConfigIni( environment, target );
-            includeRootFiles( environment, target );
+            generateDotEclipseProduct( targetEclipse );
+            generateConfigIni( environment, targetEclipse );
+            includeRootFiles( environment, targetEclipse );
 
             if ( productConfiguration.useFeatures() )
             {
-                copyFeatures( environment, target, productConfiguration.getFeatures() );
+                copyFeatures( environment, targetEclipse, productConfiguration.getFeatures() );
             }
             else
             {
-                copyPlugins( environment, target, productConfiguration.getPlugins() );
+                copyPlugins( environment, targetEclipse, productConfiguration.getPlugins() );
             }
 
             if ( productConfiguration.includeLaunchers() )
             {
-                copyExecutable( environment, target );
+                copyExecutable( environment, targetEclipse );
             }
 
             packProduct( environment, target );
@@ -205,7 +207,7 @@ public class ProductExportMojo
         }
 
         target.mkdirs();
-        
+
         return target;
     }
 

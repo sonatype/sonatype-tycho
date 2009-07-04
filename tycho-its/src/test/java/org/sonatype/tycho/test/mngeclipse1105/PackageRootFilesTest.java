@@ -19,7 +19,7 @@ public class PackageRootFilesTest
         verifier.executeGoal( "integration-test" );
         verifier.verifyErrorFreeLog();
 
-        File licenseFile = new File( verifier.getBasedir(), "target/product/license.txt" );
+        File licenseFile = new File( verifier.getBasedir(), "target/product/eclipse/license.txt" );
         Assert.assertTrue( licenseFile.exists() );
     }
 

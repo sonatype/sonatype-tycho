@@ -14,12 +14,8 @@
 
   <fileSets>
     <fileSet>
-      <directory>target/dependency/tycho-p2-runtime/plugins</directory>
-      <outputDirectory>/p2/plugins</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>target/dependency/tycho-p2-runtime/configuration</directory>
-      <outputDirectory>/p2/configuration</outputDirectory>
+      <directory>target/dependency/tycho-p2-runtime/eclipse</directory>
+      <outputDirectory>/p2</outputDirectory>
     </fileSet>
   </fileSets>
 

@@ -22,9 +22,15 @@ public class MultiplatformProductTest
         File targetdir = new File( verifier.getBasedir(), "tycho.demo.rcp/target" );
 
         // assert expanded product folders have proper swt fragments
-        assertFileExists( targetdir, "linux.gtk.x86_64/plugins/org.eclipse.swt.gtk.linux.x86_64_*.jar" );
-        assertFileExists( targetdir, "macosx.carbon.x86/plugins/org.eclipse.swt.carbon.macosx_*.jar" );
-        assertFileExists( targetdir, "win32.win32.x86/plugins/org.eclipse.swt.win32.win32.x86_*.jar" );
+        assertFileExists( targetdir, "linux.gtk.x86_64/eclipse/plugins/org.eclipse.swt.gtk.linux.x86_64_*.jar" );
+        assertFileExists( targetdir, "macosx.carbon.x86/eclipse/plugins/org.eclipse.swt.carbon.macosx_*.jar" );
+        assertFileExists( targetdir, "win32.win32.x86/eclipse/plugins/org.eclipse.swt.win32.win32.x86_*.jar" );
+
+        // assert native launchers
+        Assert.assertTrue( new File( targetdir, "linux.gtk.x86_64/eclipse/libcairo-swt.so" ).canRead() );
+        Assert.assertTrue( new File( targetdir, "linux.gtk.x86_64/eclipse/tychodemo" ).canRead() );
+        // TODO osx
+        Assert.assertTrue( new File( targetdir, "win32.win32.x86/eclipse/tychodemo.exe" ).canRead() );
 
         // assert product zip was created for each target environment
         Assert.assertTrue( new File( targetdir, "tycho.demo.rcp-1.0.0-linux.gtk.x86_64.zip" ).canRead() );

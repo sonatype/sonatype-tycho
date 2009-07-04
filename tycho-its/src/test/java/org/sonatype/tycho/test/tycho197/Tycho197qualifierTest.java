@@ -32,7 +32,7 @@ public class Tycho197qualifierTest extends AbstractTychoIntegrationTest {
 		String featureLabel = "features/Feature_" + version;
 		String pluginLabel = "plugins/Plugin_" + version + ".jar";
 
-		File product = new File(basedir, "Product/target/product");
+		File product = new File(basedir, "Product/target/product/eclipse");
 		Assert
 				.assertTrue("Product folder should exists", product
 						.isDirectory());

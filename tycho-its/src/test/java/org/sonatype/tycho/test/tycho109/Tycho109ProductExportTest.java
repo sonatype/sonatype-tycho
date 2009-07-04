@@ -33,7 +33,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "target/linux.gtk.x86_64");
+		File output = new File(basedir, "target/linux.gtk.x86_64/eclipse");
 
 		Assert.assertTrue("Exported product folder not found", output
 				.isDirectory());
@@ -80,7 +80,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "HeadlessProduct/target/linux.gtk.x86_64");
+		File output = new File(basedir, "HeadlessProduct/target/linux.gtk.x86_64/eclipse");
 
 		Assert.assertTrue("Exported product folder not found\n"
 				+ output.getAbsolutePath(), output.isDirectory());
