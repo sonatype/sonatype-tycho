@@ -1,8 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-SymbolicName: moduleorder.p003
-Bundle-Version: 0.0.1
-Bundle-ClassPath: .
-Bundle-Name: moduleorder.p003
-Require-Bundle: moduleorder.p004
-MavenArtifact-GroupId: resolutionerror

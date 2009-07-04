@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: P004 Plug-in
-Bundle-SymbolicName:  moduleorder.p004
-Bundle-Version: 1.0.0
-Eclipse-PlatformFilter: (& (osgi.ws=xxx) (osgi.os=xxx) (osgi.arch=xxx))

@@ -4,19 +4,14 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.maven.Maven;
-import org.apache.maven.MavenExecutionException;
-import org.apache.maven.execution.DuplicateProjectException;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.testing.SilentLog;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.util.dag.CycleDetectedException;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.codehaus.tycho.testing.CompoundRuntimeException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -82,27 +77,6 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 	        assertTrue(e.getMessage().contains("Missing Constraint: Import-Package: moduleorder.p002"));
 		}
 
-	}
-
-	public void testResolutionError_t001_errorInTargetPlatform() throws Exception {
-		File platform = new File(getBasedir(), "src/test/resources/projects/resolutionerror/t001/platform");
-		File pom = new File(getBasedir("projects/resolutionerror/t001/p003"), "pom.xml");
-
-        MavenExecutionRequest request = newMavenExecutionRequest(pom);
-		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
-
-		try
-		{
-		    getSortedProjects( request );
-		    fail();
-		}
-		catch ( Exception e )
-		{
-//    		List<Exception> exceptions = result.getExceptions();
-//    		assertEquals(1, exceptions.size());
-    		assertTrue(e.getMessage().contains("Missing Constraint: Require-Bundle: moduleorder.p004"));
-    		assertTrue(e.getMessage().contains("Platform filter did not match"));
-		}
 	}
 
 	public void testProjectPriority() throws Exception {
