@@ -28,7 +28,6 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
@@ -88,13 +87,15 @@ public class ProductExportMojo
      */
     private DependenciesReader rcpDependencyReader;
 
-    private TargetPlatform platform;
+    /**
+     * @parameter expression="${tycho.product.createArchive}" default-value="true"
+     */
+    private boolean createProductArchive;
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
         initializeProjectContext();
-        platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
 
         if ( productConfigurationFile == null )
         {
@@ -160,7 +161,10 @@ public class ProductExportMojo
                 copyExecutable( environment, targetEclipse );
             }
 
-            packProduct( environment, target );
+            if ( createProductArchive )
+            {
+                createProductArchive( environment, target );
+            }
 
             Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
             productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
@@ -179,6 +183,11 @@ public class ProductExportMojo
             {
                 throw new MojoExecutionException( "Error writing expanded product configuration file", e );
             }
+        }
+
+        if ( !createProductArchive || environments != null )
+        {
+            project.getArtifact().setFile( expandedProductFile );
         }
     }
 
@@ -391,7 +400,7 @@ public class ProductExportMojo
         return config.toString();
     }
 
-    private void packProduct( TargetEnvironment environment, File target )
+    private void createProductArchive( TargetEnvironment environment, File target )
         throws MojoExecutionException
     {
         ZipArchiver zipper;
@@ -404,10 +413,12 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Unable to resolve ZipArchiver", e );
         }
 
+        String classifier = toString( environment );
+
         StringBuilder filename = new StringBuilder( project.getBuild().getFinalName() );
         if ( environments != null )
         {
-            filename.append( '-' ).append( toString( environment ) );
+            filename.append( '-' ).append( classifier );
         }
         filename.append( ".zip" );
 
@@ -424,7 +435,15 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Error packing product", e );
         }
 
-        project.getArtifact().setFile( destFile );
+        if ( environments == null )
+        {
+            // main artifact
+            project.getArtifact().setFile( destFile );
+        }
+        else
+        {
+            projectHelper.attachArtifact( project, destFile, classifier );
+        }
     }
 
     private boolean isEclipse32Platform()

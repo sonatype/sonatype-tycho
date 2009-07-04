@@ -1,4 +1,4 @@
-package org.sonatype.tycho.test.tycho109;
+package org.sonatype.tycho.test.TYCHO109product;
 
 import static org.sonatype.tycho.test.util.EnvironmentUtil.isEclipse32Platform;
 import static org.sonatype.tycho.test.util.EnvironmentUtil.isLinux;
@@ -150,5 +150,24 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
+	}
+
+	@Test
+	public void productNoZip() 
+	    throws Exception
+	{
+        if (isEclipse32Platform()) {
+            // regression test for TYCHO-199, no need to verify on e32 
+            return;
+        }
+
+        Verifier verifier = getVerifier("/TYCHO109product/product-nozip/product");
+        verifier.getCliOptions().add("-Dtycho.product.createArchive=false");
+
+        verifier.executeGoal("package");
+        verifier.verifyErrorFreeLog();
+
+        File basedir = new File(verifier.getBasedir());
+        Assert.assertFalse( new File(basedir, "product/target/product-1.0.0.zip").canRead() );
 	}
 }
