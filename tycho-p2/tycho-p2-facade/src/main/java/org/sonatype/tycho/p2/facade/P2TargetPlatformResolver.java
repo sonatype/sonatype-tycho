@@ -10,7 +10,6 @@ import java.util.Properties;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.legacy.DefaultWagonManager;
 import org.apache.maven.repository.legacy.WagonManager;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.Wagon;
@@ -26,6 +25,7 @@ import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
+import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
@@ -112,7 +112,7 @@ public class P2TargetPlatformResolver
                     reader.setLocalRepository( localRepository );
 
                     Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
-                    Wagon wagon = ((DefaultWagonManager) wagonManager).getWagon( wagonRepository.getProtocol() );
+                    Wagon wagon = wagonManager.getWagon( wagonRepository.getProtocol() );
                     wagon.connect( wagonRepository );
                     TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
 
@@ -131,11 +131,13 @@ public class P2TargetPlatformResolver
 
         resolver.setLocalRepositoryLocation( new File( localRepository.getBasedir() ) );
 
-        Properties properties = new Properties( this.properties );
-        properties.put( PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS( this.properties ) );
-        properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( this.properties ) );
-        properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( this.properties ) );
+        Properties properties = new Properties();
+        properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
+        properties.put( PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS( properties ) );
+        properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( properties ) );
+        properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( properties ) );
         ExecutionEnvironmentUtils.loadVMProfile( properties );
+
         properties.put( "org.eclipse.update.install.features", "true" );
         resolver.setProperties( properties );
 
