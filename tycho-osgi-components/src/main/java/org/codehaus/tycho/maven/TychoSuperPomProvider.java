@@ -25,6 +25,7 @@ public class TychoSuperPomProvider implements SuperPomProvider {
         "maven-osgi-source-plugin",
 		"maven-osgi-test-plugin",
 		"maven-tycho-plugin",
+		"target-platform-configuration",
 	};
 
 	private List<Plugin> getTychoPlugins() {

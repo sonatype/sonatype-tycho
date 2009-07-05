@@ -23,6 +23,7 @@ import org.codehaus.tycho.DefaultTargetPlatform;
 import org.codehaus.tycho.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
@@ -132,10 +133,10 @@ public class P2TargetPlatformResolver
         resolver.setLocalRepositoryLocation( new File( localRepository.getBasedir() ) );
 
         Properties properties = new Properties();
-        properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
-        properties.put( PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS( properties ) );
-        properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( properties ) );
-        properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( properties ) );
+        TargetEnvironment environment = (TargetEnvironment) project.getContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT );
+        properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
+        properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
+        properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
         ExecutionEnvironmentUtils.loadVMProfile( properties );
 
         properties.put( "org.eclipse.update.install.features", "true" );

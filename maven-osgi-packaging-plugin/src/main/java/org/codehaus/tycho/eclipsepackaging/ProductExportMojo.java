@@ -165,24 +165,24 @@ public class ProductExportMojo
             {
                 createProductArchive( environment, target );
             }
+        }
 
-            Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
-            productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
-            productConfiguration.setVersion( productVersion.toString() );
+        Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
+        productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
+        productConfiguration.setVersion( productVersion.toString() );
 
-            try
+        try
+        {
+            ProductConfiguration.write( productConfiguration, expandedProductFile );
+            
+            if ( p2inf.canRead() )
             {
-                ProductConfiguration.write( productConfiguration, expandedProductFile );
-                
-                if ( p2inf.canRead() )
-                {
-                    FileUtils.copyFile( p2inf, new File( expandedProductFile.getParentFile(), p2inf.getName() ) );
-                }
+                FileUtils.copyFile( p2inf, new File( expandedProductFile.getParentFile(), p2inf.getName() ) );
             }
-            catch ( IOException e )
-            {
-                throw new MojoExecutionException( "Error writing expanded product configuration file", e );
-            }
+        }
+        catch ( IOException e )
+        {
+            throw new MojoExecutionException( "Error writing expanded product configuration file", e );
         }
 
         if ( !createProductArchive || environments != null )
@@ -198,8 +198,8 @@ public class ProductExportMojo
             return environments;
         }
 
-        Properties properties = (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES );
-        return new TargetEnvironment[] { new TargetEnvironment( properties ) };
+        TargetEnvironment environment = (TargetEnvironment) project.getContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT );
+        return new TargetEnvironment[] { environment };
     }
 
     private File getTarget( TargetEnvironment environment )
@@ -487,10 +487,14 @@ public class ProductExportMojo
     {
         getLog().debug( "Generating config.ini" );
         Properties props = new Properties();
-        String splash = productConfiguration.getId().split( "\\." )[0];
-        setPropertyIfNotNull( props, "osgi.splashPath", "platform:/base/plugins/" + splash );
+        String id = productConfiguration.getId();
+        if ( id != null )
+        {
+            String splash = id.split( "\\." )[0];
+            setPropertyIfNotNull( props, "osgi.splashPath", "platform:/base/plugins/" + splash );
+        }
 
-        setPropertyIfNotNull( props, "eclipse.product", productConfiguration.getId() );
+        setPropertyIfNotNull( props, "eclipse.product", id );
         // TODO check if there are any other levels
         setPropertyIfNotNull( props, "osgi.bundles.defaultStartLevel", "4" );
 
@@ -602,8 +606,6 @@ public class ProductExportMojo
         }
 
         featureVersion = VersioningHelper.getExpandedVersion( session, featureDescription );
-
-        feature.setVersion( featureVersion );
 
         Feature featureRef = featureDescription.getFeature();
 
@@ -741,7 +743,6 @@ public class ProductExportMojo
         }
 
         bundleVersion = VersioningHelper.getExpandedVersion( session, bundle );
-        plugin.setVersion( bundleVersion );
 
         File pluginsFolder = new File( target, "plugins" );
         File targetFolder = new File( pluginsFolder, bundleId + "_" + bundleVersion + ".jar" );

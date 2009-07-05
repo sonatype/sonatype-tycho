@@ -32,6 +32,7 @@ import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
@@ -520,10 +521,11 @@ public class EquinoxBundleResolutionState
         Properties properties = new Properties();
         properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
 
-        // make sure os/ws/arch are present
-        properties.put( PlatformPropertiesUtils.OSGI_OS, PlatformPropertiesUtils.getOS( properties ) );
-        properties.put( PlatformPropertiesUtils.OSGI_WS, PlatformPropertiesUtils.getWS( properties ) );
-        properties.put( PlatformPropertiesUtils.OSGI_ARCH, PlatformPropertiesUtils.getArch( properties ) );
+        // target environment
+        TargetEnvironment environment = (TargetEnvironment) project.getContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT );
+        properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
+        properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
+        properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
 
         ExecutionEnvironmentUtils.loadVMProfile( properties );
 

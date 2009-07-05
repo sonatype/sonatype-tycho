@@ -10,12 +10,16 @@ import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.tycho.PlatformPropertiesUtils;
+import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
@@ -42,12 +46,13 @@ public class TychoMavenLifecycleParticipant
 
         for ( MavenProject project : projects )
         {
-            // TODO Do I need to interpolate anything? 
             Properties properties = new Properties();
             properties.putAll( project.getProperties() );
             properties.putAll( session.getExecutionProperties() ); // session wins
-
             project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
+
+            TargetEnvironment environment = getTargetEnvironment( project );
+            project.setContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT, environment );
 
             TargetPlatformResolver resolver = lookupPlatformResolver( container, properties );
 
@@ -72,6 +77,70 @@ public class TychoMavenLifecycleParticipant
                 // no biggie
             }
         }
+    }
+
+    private TargetEnvironment getTargetEnvironment( MavenProject project ) 
+        throws MavenExecutionException
+    {
+        TargetEnvironment environment = null;
+
+        // Use org.codehaus.tycho:target-platform-configuration/configuration/environment, if provided
+        Plugin plugin = project.getPlugin( "org.codehaus.tycho:target-platform-configuration" );
+        if ( plugin != null )
+        {
+            Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
+
+            environment = getTargetEnvironment( configuration );
+        }
+        
+        if ( environment == null )
+        {
+            // Otherwise, use project or execution properties, if provided 
+            Properties properties = (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES );
+
+            // Otherwise, use current system os/ws/nl/arch
+            String os = PlatformPropertiesUtils.getOS( properties );
+            String ws = PlatformPropertiesUtils.getWS( properties );
+            String arch = PlatformPropertiesUtils.getArch( properties );
+
+            environment = new TargetEnvironment( os, ws, arch, null /*nl*/ );
+        }
+
+        return environment;
+    }
+
+    private TargetEnvironment getTargetEnvironment( Xpp3Dom configuration )
+    {
+        if ( configuration == null )
+        {
+            return null;
+        }
+        
+        Xpp3Dom environmentDom = configuration.getChild( "environment" );
+        if ( environmentDom == null )
+        {
+            return null;
+        }
+
+        Xpp3Dom osDom = environmentDom.getChild( "os" );
+        if ( osDom == null )
+        {
+            return null;
+        }
+
+        Xpp3Dom wsDom = environmentDom.getChild( "ws" );
+        if ( wsDom == null )
+        {
+            return null;
+        }
+
+        Xpp3Dom archDom = environmentDom.getChild( "arch" );
+        if ( archDom == null )
+        {
+            return null;
+        }
+
+        return new TargetEnvironment( osDom.getValue(), wsDom.getValue(), archDom.getValue(), null /*nl*/ );
     }
 
     // TODO does not belong here

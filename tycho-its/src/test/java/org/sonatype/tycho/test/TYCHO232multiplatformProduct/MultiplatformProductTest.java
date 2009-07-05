@@ -3,7 +3,6 @@ package org.sonatype.tycho.test.TYCHO232multiplatformProduct;
 import java.io.File;
 
 import org.apache.maven.it.Verifier;
-import org.apache.maven.it.util.DirectoryScanner;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
@@ -36,16 +35,6 @@ public class MultiplatformProductTest
         Assert.assertTrue( new File( targetdir, "tycho.demo.rcp-1.0.0-linux.gtk.x86_64.zip" ).canRead() );
         Assert.assertTrue( new File( targetdir, "tycho.demo.rcp-1.0.0-macosx.carbon.x86.zip" ).canRead() );
         Assert.assertTrue( new File( targetdir, "tycho.demo.rcp-1.0.0-win32.win32.x86.zip" ).canRead() );
-    }
-
-    private void assertFileExists( File targetdir, String pattern )
-    {
-        DirectoryScanner ds = new DirectoryScanner();
-        ds.setBasedir( targetdir );
-        ds.setIncludes( new String[] { pattern } );
-        ds.scan();
-        Assert.assertEquals( 1, ds.getIncludedFiles().length );
-        Assert.assertTrue( new File( targetdir, ds.getIncludedFiles()[0] ).canRead() );
     }
 
 }

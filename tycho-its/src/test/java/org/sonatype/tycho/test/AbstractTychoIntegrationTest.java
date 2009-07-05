@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.it.Verifier;
+import org.apache.maven.it.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.junit.Assert;
 import org.sonatype.tycho.test.util.EnvironmentUtil;
 
 public abstract class AbstractTychoIntegrationTest {
@@ -77,4 +79,14 @@ public abstract class AbstractTychoIntegrationTest {
 	protected String getTychoHome() {
 		return EnvironmentUtil.getTychoHome();
 	}
+
+    protected void assertFileExists( File targetdir, String pattern )
+    {
+        DirectoryScanner ds = new DirectoryScanner();
+        ds.setBasedir( targetdir );
+        ds.setIncludes( new String[] { pattern } );
+        ds.scan();
+        Assert.assertEquals( 1, ds.getIncludedFiles().length );
+        Assert.assertTrue( new File( targetdir, ds.getIncludedFiles()[0] ).canRead() );
+    }
 }

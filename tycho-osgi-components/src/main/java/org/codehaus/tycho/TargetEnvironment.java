@@ -17,13 +17,6 @@ public class TargetEnvironment
         // do I really need no-arg constructor for mojo parameter injection?
     }
 
-    public TargetEnvironment( Properties properties )
-    {
-        this.os = PlatformPropertiesUtils.getOS( properties );
-        this.ws = PlatformPropertiesUtils.getWS( properties );
-        this.arch = PlatformPropertiesUtils.getArch( properties );
-    }
-
     public TargetEnvironment( String os, String ws, String arch, String nl )
     {
         this.os = os;
