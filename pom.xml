@@ -3,6 +3,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.sonatype.forge</groupId>
+    <artifactId>forge-parent</artifactId>
+    <version>5</version>
+  </parent>
+
   <groupId>org.codehaus.tycho</groupId>
   <artifactId>tycho</artifactId>
   <!--
@@ -44,15 +50,20 @@
 
     <!--
       Check out maven 3.0 source and make note of the svn rev.
+      
       Rename the 3.0-SNAPSHOT to something like 3.0-TYCHO-[svnrev] in all the poms,
       including cross dependencies.
-      Override deployment repository with source:jar -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/content/repositories/tycho-pseudo-releases/
+      
+      Override deployment repository with source:jar -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/service/local/staging/deploy/maven2/
       DO NOT FORGET TO DEPLOY SOURCES (add source:jar goal)
+      
+      Promote build to tycho-pseudo-releases repository from nexus GUI
+      http://repository.sonatype.org/
 
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-SNAPSHOT</maven-version>
+    <maven-version>3.0-TYCHO-790714</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0
@@ -353,20 +364,6 @@
       </releases>
     </repository>
   </repositories>
-
-  <distributionManagement>
-    <repository>
-      <id>sonatype-commercial</id>
-      <name>forge-releases</name>
-      <url>${tycho.releases}</url>
-    </repository>
-    <snapshotRepository>
-      <id>sonatype-commercial</id>
-      <uniqueVersion>true</uniqueVersion>
-      <name>forge-snapshots</name>
-      <url>${tycho.snapshots}</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <profiles>
     <profile>
