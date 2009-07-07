@@ -41,6 +41,11 @@ public class TychoMavenLifecycleParticipant
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
     {
+        if ( "maven".equals( session.getExecutionProperties().get( "tycho.mode")  ) )
+        {
+            return;
+        }
+
         List<MavenProject> projects = session.getProjects();
         MavenExecutionRequest request = session.getRequest();
 
