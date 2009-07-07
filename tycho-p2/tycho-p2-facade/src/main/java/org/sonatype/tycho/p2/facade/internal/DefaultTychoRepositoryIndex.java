@@ -25,7 +25,7 @@ public class DefaultTychoRepositoryIndex
     protected static final String EOL = "\n";
 
     // must match extension point filter in plugin.xml
-    public static final String INDEX_RELPATH = ".p2/metadata.properties";
+    public static final String INDEX_RELPATH = ".meta/p2-metadata.properties";
 
     protected Set<GAV> gavs = new LinkedHashSet<GAV>();
 
