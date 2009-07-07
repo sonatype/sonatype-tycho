@@ -67,6 +67,8 @@ public class EquinoxBundleResolutionState
 
     private File manifestsDir;
 
+    private static final Map<File, Manifest> manifestCache = new HashMap<File, Manifest>();
+
     public BundleDescription addBundle( File bundleLocation, boolean override )
         throws BundleException
     {
@@ -295,6 +297,17 @@ public class EquinoxBundleResolutionState
     }
 
     public Manifest loadManifest( File bundleLocation )
+    {
+        Manifest manifest = manifestCache.get( bundleLocation );
+        if ( manifest == null ) 
+        {
+            manifest = doLoadManifest( bundleLocation );
+            manifestCache.put( bundleLocation, manifest );
+        }
+        return manifest;
+    }
+
+    private Manifest doLoadManifest( File bundleLocation )
     {
         try
         {
