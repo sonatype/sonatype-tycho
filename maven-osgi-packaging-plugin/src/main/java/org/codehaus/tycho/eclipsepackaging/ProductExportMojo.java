@@ -92,6 +92,11 @@ public class ProductExportMojo
      */
     private boolean createProductArchive;
 
+    /**
+     * @parameter default-value="false"
+     */
+    private boolean includeSources;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -729,6 +734,13 @@ public class ProductExportMojo
         if ( bundle == null )
         {
             throw new MojoExecutionException( "Plugin '" + bundleId + "_" + bundleVersion + "' not found!" );
+        }
+
+        String sourceBundle = bundleResolutionState.getManifestAttribute( bundle, "Eclipse-SourceBundle" );
+        if ( !includeSources && sourceBundle != null && sourceBundle.trim().length() > 0 )
+        {
+            getLog().debug( "Ignoring source bundle " + bundleId + "_" + bundleVersion );
+            return null;
         }
 
         MavenProject bundleProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );

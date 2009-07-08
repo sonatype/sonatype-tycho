@@ -1,16 +1,16 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <?artifactRepository version='1.1.0'?>
-<repository name='e342/' type='org.eclipse.equinox.p2.artifact.repository.simpleRepository' version='1'>
+<repository name='e342/' type='org.eclipse.equinox.p2.artifact.repository.simpleRepository' version='1.0.0'>
   <properties size='2'>
     <property name='p2.compressed' value='false'/>
-    <property name='p2.timestamp' value='1244604792686'/>
+    <property name='p2.timestamp' value='1246999662388'/>
   </properties>
   <mappings size='3'>
     <rule filter='(&amp; (classifier=osgi.bundle))' output='${repoUrl}/plugins/${id}_${version}.jar'/>
     <rule filter='(&amp; (classifier=binary))' output='${repoUrl}/binary/${id}_${version}'/>
     <rule filter='(&amp; (classifier=org.eclipse.update.feature))' output='${repoUrl}/features/${id}_${version}.jar'/>
   </mappings>
-  <artifacts size='2'>
+  <artifacts size='3'>
     <artifact classifier='osgi.bundle' id='org.eclipse.osgi' version='3.4.3.R34x_v20081215-1030'>
       <properties size='4'>
         <property name='artifact.size' value='997240'/>
@@ -24,6 +24,14 @@
         <property name='artifact.size' value='127524'/>
         <property name='download.size' value='127524'/>
         <property name='download.md5' value='d9ce547acabd98ff99250902679812a1'/>
+        <property name='download.contentType' value='application/zip'/>
+      </properties>
+    </artifact>
+    <artifact classifier='osgi.bundle' id='org.eclipse.osgi.source' version='3.4.3.R34x_v20081215-1030'>
+      <properties size='4'>
+        <property name='artifact.size' value='855165'/>
+        <property name='download.size' value='855165'/>
+        <property name='download.md5' value='de87d1e2840371d5a84e4ffaacafdcaf'/>
         <property name='download.contentType' value='application/zip'/>
       </properties>
     </artifact>

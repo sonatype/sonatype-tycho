@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?pde version="3.5"?>
+
+<product useFeatures="true" includeLaunchers="false">
+
+   <plugins>
+   </plugins>
+
+   <features>
+      <feature id="feature" version="1.0.0.qualifier"/>
+   </features>
+
+
+</product>

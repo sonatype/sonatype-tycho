@@ -89,4 +89,13 @@ public abstract class AbstractTychoIntegrationTest {
         Assert.assertEquals( 1, ds.getIncludedFiles().length );
         Assert.assertTrue( new File( targetdir, ds.getIncludedFiles()[0] ).canRead() );
     }
+
+    protected void assertFileDoesNotExist( File targetdir, String pattern )
+    {
+        DirectoryScanner ds = new DirectoryScanner();
+        ds.setBasedir( targetdir );
+        ds.setIncludes( new String[] { pattern } );
+        ds.scan();
+        Assert.assertEquals( 0, ds.getIncludedFiles().length );
+    }
 }
