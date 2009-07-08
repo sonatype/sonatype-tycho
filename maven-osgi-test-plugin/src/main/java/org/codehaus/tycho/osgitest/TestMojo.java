@@ -16,7 +16,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -290,9 +289,7 @@ public class TestMojo extends AbstractMojo {
 		if (succeeded) {
 			getLog().info("All tests passed!");
 		} else {
-		    if (!MavenExecutionRequest.REACTOR_FAIL_NEVER.equals(session.getRequest().getReactorFailureBehavior())) {
-		        throw new MojoFailureException("There are test failures.\n\nPlease refer to " + reportsDirectory + " for the individual test results.");
-		    }
+	        throw new MojoFailureException("There are test failures.\n\nPlease refer to " + reportsDirectory + " for the individual test results.");
 		}
 	}
 
