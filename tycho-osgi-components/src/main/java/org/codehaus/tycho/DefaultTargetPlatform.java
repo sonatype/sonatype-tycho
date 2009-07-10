@@ -47,4 +47,12 @@ public class DefaultTargetPlatform
     {
         return new ArrayList<File>( sites );
     }
+
+    public void dump()
+    {
+        for ( Map.Entry<File, String> entry : artifacts.entrySet() )
+        {
+            System.out.println( entry.getValue() + "\t" + entry.getKey() );
+        }
+    }
 }

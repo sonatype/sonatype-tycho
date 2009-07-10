@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.5"?>
+
+<target name="m2e-e35">
+<locations>
+<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
+<unit id="org.eclipse.sdk.ide" version="3.5.0.I20090611-1540"/>
+<repository location="http://download.eclipse.org/eclipse/updates/3.5"/>
+</location>
+<location includeAllPlatforms="false" includeMode="planner" type="InstallableUnit">
+<unit id="org.tmatesoft.svnkit.feature.group" version="1.3.0.5847"/>
+<unit id="org.tigris.subversion.subclipse.feature.group" version="1.6.2"/>
+<unit id="org.tigris.subversion.clientadapter.feature.feature.group" version="1.6.0.2"/>
+<unit id="org.tigris.subversion.clientadapter.javahl.feature.feature.group" version="1.6.2"/>
+<repository location="http://subclipse.tigris.org/update_1.6.x"/>
+</location>
+</locations>
+</target>

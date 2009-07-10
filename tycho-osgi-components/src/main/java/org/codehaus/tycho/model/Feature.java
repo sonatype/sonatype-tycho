@@ -1,6 +1,7 @@
 package org.codehaus.tycho.model;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,14 +146,9 @@ public class Feature {
 
 	}
 
-	@SuppressWarnings("deprecation")
 	public static Feature read(File file) throws IOException, XmlPullParserException {
-		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
-		try {
-			return new Feature(Xpp3DomBuilder.build(reader));
-		} finally {
-			reader.close();
-		}
+	    FileInputStream is = new FileInputStream(file);
+        return read(is); // closes the stream
 	}
 
 	@SuppressWarnings("deprecation")
@@ -186,8 +182,12 @@ public class Feature {
 		JarFile jar = new JarFile(file);
 		try {
 			ZipEntry ze = jar.getEntry(FEATURE_XML);
-			InputStream is = jar.getInputStream(ze);
-			return read(is);
+			if ( ze != null )
+			{
+    			InputStream is = jar.getInputStream(ze);
+    			return read(is);
+			}
+			throw new IOException( file.getAbsolutePath() + " does not have " + FEATURE_XML + " entry." );
 		} finally {
 			jar.close();
 		}

@@ -24,7 +24,7 @@ public class DefaultTychoRepositoryIndex
 
     protected static final String EOL = "\n";
 
-    // must match extension point filter in plugin.xml
+    // must match extension point filter in org.sonatype.tycho.p2.maven.repository/plugin.xml
     public static final String INDEX_RELPATH = ".meta/p2-metadata.properties";
 
     protected Set<GAV> gavs = new LinkedHashSet<GAV>();

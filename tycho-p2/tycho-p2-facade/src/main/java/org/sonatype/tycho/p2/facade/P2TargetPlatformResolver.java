@@ -1,11 +1,12 @@
 package org.sonatype.tycho.p2.facade;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
@@ -25,10 +26,11 @@ import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
-import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.MavenTychoRepositoryIndex;
@@ -59,6 +61,9 @@ public class P2TargetPlatformResolver
 
     public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies )
     {
+        TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project
+            .getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+
         P2Resolver resolver = resolverFactory.createResolver();
 
         resolver.setLogger( new P2Logger()
@@ -67,7 +72,7 @@ public class P2TargetPlatformResolver
             {
                 if ( message.length() > 0 )
                 {
-                    getLogger().info( message ); // TODO 
+                    getLogger().info( message ); // TODO
                 }
             }
 
@@ -87,53 +92,10 @@ public class P2TargetPlatformResolver
                 otherProject.getVersion() );
         }
 
-        for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
-        {
-            if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
-            {
-                try
-                {
-                    resolver.addP2Repository( new URL( repository.getUrl() ).toURI() );
-                }
-                catch ( MalformedURLException e )
-                {
-                    getLogger().warn( "Could not parse repository URL", e );
-                }
-                catch ( URISyntaxException e )
-                {
-                    getLogger().warn( "Could not parse repository URL", e );
-                }
-            }
-            else
-            {
-                try
-                {
-                    MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
-                    reader.setArtifactRepository( repository );
-                    reader.setLocalRepository( localRepository );
-
-                    Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
-                    Wagon wagon = wagonManager.getWagon( wagonRepository.getProtocol() );
-                    wagon.connect( wagonRepository );
-                    TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
-
-                    resolver.addMavenRepository( index, reader );
-                }
-                catch ( ResourceDoesNotExistException e )
-                {
-                    // it happens
-                }
-                catch ( Exception e )
-                {
-                    getLogger().info( "Unable to initialize remote Tycho repository", e );
-                }
-            }
-        }
-
         resolver.setLocalRepositoryLocation( new File( localRepository.getBasedir() ) );
 
         Properties properties = new Properties();
-        TargetEnvironment environment = (TargetEnvironment) project.getContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT );
+        TargetEnvironment environment = configuration.getEnvironment();
         properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
         properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
         properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
@@ -150,7 +112,74 @@ public class P2TargetPlatformResolver
             }
         }
 
-        P2ResolutionResult result = resolver.resolve( project.getBasedir() );
+        P2ResolutionResult result;
+
+        for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
+        {
+            try
+            {
+                MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
+                reader.setArtifactRepository( repository );
+                reader.setLocalRepository( localRepository );
+
+                Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
+                Wagon wagon = wagonManager.getWagon( wagonRepository.getProtocol() );
+                wagon.connect( wagonRepository );
+                TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
+
+                resolver.addMavenRepository( index, reader );
+            }
+            catch ( ResourceDoesNotExistException e )
+            {
+                // it happens
+            }
+            catch ( Exception e )
+            {
+                getLogger().debug( "Unable to initialize remote Tycho repository", e );
+            }
+        }
+
+        for ( String url : configuration.getRepositories() )
+        {
+            try
+            {
+                resolver.addP2Repository( new URI( url ) );
+            }
+            catch ( URISyntaxException e )
+            {
+                getLogger().debug( "Could not parse repository URL", e );
+            }
+        }
+
+        Target target = configuration.getTarget();
+
+        if ( target != null )
+        {
+            Set<URI> uris = new HashSet<URI>();
+    
+            for ( Target.Location location : target.getLocations() )
+            {
+                try
+                {
+                    URI uri = new URI( location.getRepositoryLocation() );
+                    if ( uris.add( uri ) )
+                    {
+                        resolver.addP2Repository( uri );
+                    }
+                }
+                catch ( URISyntaxException e )
+                {
+                    getLogger().debug( "Could not parse repository URL", e );
+                }
+    
+                for ( Target.Unit unit : location.getUnits() )
+                {
+                    resolver.addDependency( P2Resolver.TYPE_INSTALLABLE_UNIT, unit.getId(), unit.getVersion() );
+                }
+            }
+        }
+
+        result = resolver.resolveProject( project.getBasedir() );
 
         DefaultTargetPlatform platform = createPlatform();
 

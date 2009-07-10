@@ -138,7 +138,7 @@ public class P2ResolverImpl
         }
     }
 
-    public P2ResolutionResult resolve( File projectLocation )
+    public P2ResolutionResult resolveProject( File projectLocation )
     {
         P2ResolutionResult result = new P2ResolutionResult();
 
@@ -433,7 +433,8 @@ public class P2ResolverImpl
         }
         else if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, id,
+            // BundlesAction#CAPABILITY_NS_OSGI_BUNDLE
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( "osgi.bundle", id, 
                                                                                   new VersionRange( version ), null,
                                                                                   false, true ) );
         }

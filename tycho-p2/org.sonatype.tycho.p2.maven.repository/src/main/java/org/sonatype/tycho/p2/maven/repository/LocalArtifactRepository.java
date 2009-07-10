@@ -262,7 +262,7 @@ public class LocalArtifactRepository
         IArtifactKey key = descriptor.getArtifactKey();
         StringBuffer version = new StringBuffer();
         key.getVersion().toString( version );
-        gav = new GAV( "p2", key.getId(), version.toString() );
+        gav = new GAV( "p2." + key.getClassifier(), key.getId(), version.toString() );
         return gav;
     }
 

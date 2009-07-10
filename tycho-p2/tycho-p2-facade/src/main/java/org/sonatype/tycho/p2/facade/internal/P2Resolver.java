@@ -33,7 +33,7 @@ public interface P2Resolver
 
     public void setProperties( Properties properties );
 
-    public P2ResolutionResult resolve( File location );
+    public P2ResolutionResult resolveProject( File location );
 
     public void addDependency( String type, String id, String version );
 

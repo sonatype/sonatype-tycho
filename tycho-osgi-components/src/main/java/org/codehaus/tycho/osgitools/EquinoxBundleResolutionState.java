@@ -34,6 +34,7 @@ import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -535,7 +536,8 @@ public class EquinoxBundleResolutionState
         properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
 
         // target environment
-        TargetEnvironment environment = (TargetEnvironment) project.getContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT );
+        TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        TargetEnvironment environment = configuration.getEnvironment();
         properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
         properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
         properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );

@@ -19,5 +19,5 @@ public interface TychoConstants {
     static final String CTX_ECLIPSE_PLUGIN_PROJECT = CTX_BASENAME + "/eclipsePluginProject";
     static final String CTX_EXPANDED_VERSION = CTX_BASENAME + "/expandedVersion";
     static final String CTX_MERGED_PROPERTIES = CTX_BASENAME + "/mergedProperties";
-    static final String CTX_TARGET_ENVIRONMENT = CTX_BASENAME + "/targetEnvironment";
+    static final String CTX_TARGET_PLATFORM_CONFIGURATION = CTX_BASENAME + "/targetPlatformConfiguration";
 }

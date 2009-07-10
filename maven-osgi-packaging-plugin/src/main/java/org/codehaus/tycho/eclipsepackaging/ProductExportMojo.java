@@ -28,6 +28,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
@@ -203,8 +204,8 @@ public class ProductExportMojo
             return environments;
         }
 
-        TargetEnvironment environment = (TargetEnvironment) project.getContextValue( TychoConstants.CTX_TARGET_ENVIRONMENT );
-        return new TargetEnvironment[] { environment };
+        TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        return new TargetEnvironment[] { configuration.getEnvironment() };
     }
 
     private File getTarget( TargetEnvironment environment )

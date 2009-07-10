@@ -29,7 +29,6 @@ import org.osgi.framework.BundleException;
 
 public class TestEclipseRuntime
     extends AbstractLogEnabled
-    implements TargetPlatform
 {
 
     private Set<File> sites = new LinkedHashSet<File>();

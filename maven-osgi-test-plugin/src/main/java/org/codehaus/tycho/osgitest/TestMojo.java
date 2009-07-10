@@ -31,6 +31,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.DefaultTargetPlatform;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
@@ -234,7 +235,7 @@ public class TestMojo extends AbstractMojo {
 			}
 		}
 
-		TargetPlatformResolver platformResolver = TychoMavenLifecycleParticipant.lookupPlatformResolver( plexus, session.getExecutionProperties() );
+		TargetPlatformResolver platformResolver = TychoMavenLifecycleParticipant.lookupPlatformResolver( plexus, project );
 
 		platformResolver.setMavenProjects( session.getProjects() );
 		platformResolver.setLocalRepository( session.getLocalRepository() );
@@ -254,7 +255,7 @@ public class TestMojo extends AbstractMojo {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
 		}
 
-        work.mkdirs();
+		work.mkdirs();
 
 		TestEclipseRuntime testRuntime = new TestEclipseRuntime();
 		testRuntime.enableLogging( logger );
