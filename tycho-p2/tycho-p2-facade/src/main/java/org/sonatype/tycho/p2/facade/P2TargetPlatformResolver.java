@@ -1,8 +1,10 @@
 package org.sonatype.tycho.p2.facade;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -31,6 +33,7 @@ import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
+import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.MavenTychoRepositoryIndex;
@@ -116,38 +119,44 @@ public class P2TargetPlatformResolver
 
         for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
         {
-            try
+            if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
             {
-                MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
-                reader.setArtifactRepository( repository );
-                reader.setLocalRepository( localRepository );
-
-                Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
-                Wagon wagon = wagonManager.getWagon( wagonRepository.getProtocol() );
-                wagon.connect( wagonRepository );
-                TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
-
-                resolver.addMavenRepository( index, reader );
+                try
+                {
+                    resolver.addP2Repository( new URL( repository.getUrl() ).toURI() );
+                }
+                catch ( MalformedURLException e )
+                {
+                    getLogger().warn( "Could not parse repository URL", e );
+                }
+                catch ( URISyntaxException e )
+                {
+                    getLogger().warn( "Could not parse repository URL", e );
+                }
             }
-            catch ( ResourceDoesNotExistException e )
+            else
             {
-                // it happens
-            }
-            catch ( Exception e )
-            {
-                getLogger().debug( "Unable to initialize remote Tycho repository", e );
-            }
-        }
-
-        for ( String url : configuration.getRepositories() )
-        {
-            try
-            {
-                resolver.addP2Repository( new URI( url ) );
-            }
-            catch ( URISyntaxException e )
-            {
-                getLogger().debug( "Could not parse repository URL", e );
+                try
+                {
+                    MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
+                    reader.setArtifactRepository( repository );
+                    reader.setLocalRepository( localRepository );
+    
+                    Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
+                    Wagon wagon = wagonManager.getWagon( wagonRepository.getProtocol() );
+                    wagon.connect( wagonRepository );
+                    TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
+    
+                    resolver.addMavenRepository( index, reader );
+                }
+                catch ( ResourceDoesNotExistException e )
+                {
+                    // it happens
+                }
+                catch ( Exception e )
+                {
+                    getLogger().debug( "Unable to initialize remote Tycho repository", e );
+                }
             }
         }
 

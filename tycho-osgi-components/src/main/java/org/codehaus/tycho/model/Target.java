@@ -1,7 +1,10 @@
 package org.codehaus.tycho.model;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +13,7 @@ import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 public class Target
@@ -44,6 +48,15 @@ public class Target
             }
 
             return repositoryDom.getAttribute( "location" );
+        }
+
+        public void setRepositoryLocation( String locationURI )
+        {
+            Xpp3Dom repositoryDom = dom.getChild( "repository" );
+            if ( repositoryDom != null )
+            {
+                repositoryDom.setAttribute( "location", locationURI );
+            }
         }
     }
 
@@ -98,6 +111,20 @@ public class Target
         finally
         {
             reader.close();
+        }
+    }
+
+    public static void write( Target target, File file )
+        throws IOException
+    {
+        Writer writer = new OutputStreamWriter( new FileOutputStream( file ), "UTF-8" );
+        try
+        {
+            Xpp3DomWriter.write( writer, target.dom );
+        }
+        finally
+        {
+            writer.close();
         }
     }
 

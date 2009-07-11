@@ -111,8 +111,6 @@ public class TychoMavenLifecycleParticipant
 
                 result.setResolver( getTargetPlatformResolver( configuration ) );
 
-                result.setRepositories( getRepositories( configuration ) );
-
                 result.setTarget( getTarget( session, project, configuration ) );
             }
         }
@@ -210,31 +208,6 @@ public class TychoMavenLifecycleParticipant
         }
 
         return resolverDom.getValue();
-    }
-
-    private List<String> getRepositories( Xpp3Dom configuration )
-    {
-        ArrayList<String> result = new ArrayList<String>();
-
-        Xpp3Dom repositoriesDom = configuration.getChild( "repositories" );
-        if ( repositoriesDom == null )
-        {
-            return result;
-        }
-
-        for ( Xpp3Dom repositoryDom : repositoriesDom.getChildren( "repository" ) )
-        {
-            Xpp3Dom urlDom = repositoryDom.getChild( "url" );
-
-            if ( urlDom == null )
-            {
-                continue;
-            }
-
-            result.add( urlDom.getValue() );
-        }
-
-        return result;
     }
 
     private TargetEnvironment getTargetEnvironment( Xpp3Dom configuration )
