@@ -12,7 +12,7 @@
   <groupId>org.codehaus.tycho</groupId>
   <artifactId>tycho</artifactId>
   <!--
-    Do not forget to update newVersion property of maven-version-plugin
+    Do not forget to update newVersion property of maven-version-plugin below
   -->
   <version>0.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -63,7 +63,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-TYCHO-790714</maven-version>
+    <maven-version>3.0-TYCHO-795913</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0
@@ -342,6 +342,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <version>2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.4-SNAPSHOT</version>
         </plugin>
       </plugins>
     </pluginManagement>
