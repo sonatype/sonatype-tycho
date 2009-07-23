@@ -84,7 +84,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		File pom = new File(getBasedir("projects/projectpriority"), "pom.xml");
 
 		MavenExecutionRequest request = newMavenExecutionRequest(pom);
-		request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
+		request.getUserProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
 
 		List<MavenProject> projects = getSortedProjects( request );
 
@@ -160,7 +160,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         File pom = new File(getBasedir("projects/dummy"), "pom.xml");
 
 	    MavenExecutionRequest request = newMavenExecutionRequest(pom);
-        request.getProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/pre-3.0").getCanonicalPath());
+        request.getUserProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/pre-3.0").getCanonicalPath());
 
         MavenProject project = getSortedProjects(request).get(0);
 
@@ -177,7 +177,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         File pom = new File(getBasedir("projects/dummy"), "pom.xml");
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
-        request.getProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/MNGECLIPSE-942").getCanonicalPath());
+        request.getUserProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/MNGECLIPSE-942").getCanonicalPath());
 
         MavenProject project = getSortedProjects(request).get(0);
 
@@ -196,8 +196,8 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         File pom = new File(getBasedir("projects/adhoclocations"), "pom.xml");
 
         MavenExecutionRequest request = newMavenExecutionRequest(pom);
-        request.getProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
-        request.getProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
+        request.getUserProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
+        request.getUserProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
 
         MavenProject project = getSortedProjects(request).get(0);
         BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );

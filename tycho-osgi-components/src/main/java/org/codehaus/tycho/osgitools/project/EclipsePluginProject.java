@@ -13,6 +13,9 @@ public interface EclipsePluginProject {
 
 	public BundleDescription getBundleDescription();
 
+	/**
+	 * http://help.eclipse.org/ganymede/index.jsp?topic=/org.eclipse.pde.doc.user/reference/pde_feature_generating_build.htm 
+	 */
 	public Properties getBuildProperties();
 
 	public List<BuildOutputJar> getOutputJars();

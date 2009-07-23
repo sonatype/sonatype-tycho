@@ -6,17 +6,21 @@ BASDIR=$(pwd)
 # Location of Eclipse 3.4.1 with RCP Delta pack
 TYCHO_TARGET_PLATFORM=/opt/eclipse-3.5/eclipse
 
-
 # location of maven used to build bootstrap tycho distribution
-M2_HOME=/opt/maven
+TYCHO_M2_HOME=/opt/maven
 
 # Tycho bootstrap distribution location
 TYCHO_BOOTSTRAP=$BASDIR/tycho-bootstrap
 
 
+# Stage 0, update versions
+#$TYCHO_M2_HOME/bin/mvn -e -U -up -Ppseudo-release,full \
+#  org.codehaus.mojo:buildnumber-maven-plugin:create org.sonatype.plugins:maven-version-plugin:set-version \
+#  -Dmaven.repo.local=$M2_LOCAL_REPO
+
 
 # Stage 1, build bootstrap tycho distribution
-$M2_HOME/bin/mvn clean install -e
+$TYCHO_M2_HOME/bin/mvn clean install -e
 rm -rf $TYCHO_BOOTSTRAP; mkdir -p `dirname $TYCHO_BOOTSTRAP`
 cp -R $BASDIR/tycho-distribution/target/tycho-distribution-*-bin.dir/tycho-distribution-* $TYCHO_BOOTSTRAP
 chmod +x $TYCHO_BOOTSTRAP/bin/mvn

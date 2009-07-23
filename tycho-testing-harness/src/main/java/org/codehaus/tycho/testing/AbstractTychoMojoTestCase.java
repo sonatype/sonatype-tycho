@@ -61,7 +61,7 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
 		request.setBaseDirectory(pom.getParentFile());
 		request.setPom(pom);
-		request.setProperties(props);
+		request.setSystemProperties(props);
 		request.setLocalRepository(getLocalRepository());
 		return request;
 	}

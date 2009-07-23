@@ -100,8 +100,9 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 
 		File outputJar = new File(outputDirectory, finalName + ".jar");
 		outputJar.getParentFile().mkdirs();
-		String[] binIncludes = props.getProperty("bin.includes").split(",");
-		String files[] = Util.getIncludedFiles(basedir, binIncludes);
+		List<String> binIncludes = toFilePattern(props.getProperty("bin.includes"));
+		List<String> binExcludes = toFilePattern(props.getProperty("bin.excludes"));
+		binExcludes.add(Feature.FEATURE_XML); // we'll include updated feature.xml
 
 		MavenArchiver archiver = new MavenArchiver();
 		JarArchiver jarArchiver = getJarArchiver();
@@ -110,13 +111,8 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 		jarArchiver.setDestFile(outputJar);
 
 		try {
-			for (int i = 0; i < files.length; i++) {
-				String fileName = files[i];
-				File f = Feature.FEATURE_XML.equals(fileName)? featureXml: new File(basedir, fileName);
-				if (!f.isDirectory()) {
-					jarArchiver.addFile(f, fileName);
-				}
-			}
+		    archiver.getArchiver().addFileSet( getFileSet( basedir, binIncludes, binExcludes ) );
+            archiver.getArchiver().addFile( featureXml, Feature.FEATURE_XML );
 			archiver.createArchive(project, archive);
 		} catch (Exception e) {
 			throw new MojoExecutionException("Error creating feature package",

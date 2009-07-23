@@ -35,7 +35,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		request.getProjectBuildingRequest().setProcessPlugins(false);
         request.setLocalRepository(getLocalRepository());
         if (platform != null) {
-            request.getProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
+            request.getUserProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
         }
 		MavenExecutionResult result = maven.execute( request );
 		if (result.hasExceptions()) {

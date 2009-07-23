@@ -119,7 +119,7 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			String binIncludes = pdeProject.getBuildProperties().getProperty("bin.includes");
 			String binExcludes = pdeProject.getBuildProperties().getProperty("bin.excludes");
 			if (binIncludes != null) {
-				archiver.getArchiver().addDirectory(project.getBasedir(), toFilePattern(binIncludes), toFilePattern(binExcludes));
+				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), toFilePattern(binIncludes), toFilePattern(binExcludes)));
 			}
 
 			File manifest = updateManifest();
@@ -135,14 +135,6 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		} catch (Exception e) {
 			throw new MojoExecutionException("Error assembling JAR", e);
 		}
-	}
-
-	private String[] toFilePattern(String pattern) {
-		if (pattern == null) {
-			return null;
-		}
-		
-		return pattern.split(",");
 	}
 
 	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 

@@ -20,7 +20,6 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.jar.JarSignMojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
@@ -428,18 +427,18 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 			return;
 		}
 		
-		JarSignMojo sign = new JarSignMojo();
-		sign.setKeystore(keystore.getAbsolutePath());
-		sign.setStorepass(storepass);
-		sign.setAlias(alias);
-		sign.setKeypass(keypass);
-		sign.setJarPath(outputJar);
-		sign.setBasedir(basedir);
-		sign.setWorkingDir(basedir);
-		sign.setLog(getLog());
-		sign.setVerbose(false);
-		sign.setVerify(false);
-		sign.execute();
+//		JarSignMojo sign = new JarSignMojo();
+//		sign.setKeystore(keystore.getAbsolutePath());
+//		sign.setStorepass(storepass);
+//		sign.setAlias(alias);
+//		sign.setKeypass(keypass);
+//		sign.setJarPath(outputJar);
+//		sign.setBasedir(basedir);
+//		sign.setWorkingDir(basedir);
+//		sign.setLog(getLog());
+//		sign.setVerbose(false);
+//		sign.setVerify(false);
+//		sign.execute();
 	}
 
 }

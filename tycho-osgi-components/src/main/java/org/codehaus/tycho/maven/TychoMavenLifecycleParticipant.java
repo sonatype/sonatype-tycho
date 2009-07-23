@@ -304,7 +304,7 @@ public class TychoMavenLifecycleParticipant
 
     public void afterSessionStart( MavenSession session )
     {
-        session.getExecutionProperties().setProperty( "tycho-version", TychoVersion.getTychoVersion() );
+        session.getUserProperties().setProperty( "tycho-version", TychoVersion.getTychoVersion() );
     }
 
 }
