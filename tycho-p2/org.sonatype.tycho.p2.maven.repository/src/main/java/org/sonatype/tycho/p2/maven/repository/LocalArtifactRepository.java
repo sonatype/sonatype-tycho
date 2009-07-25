@@ -258,12 +258,10 @@ public class LocalArtifactRepository
 
     private GAV getP2GAV( IArtifactDescriptor descriptor )
     {
-        GAV gav;
         IArtifactKey key = descriptor.getArtifactKey();
         StringBuffer version = new StringBuffer();
         key.getVersion().toString( version );
-        gav = new GAV( "p2." + key.getClassifier(), key.getId(), version.toString() );
-        return gav;
+        return RepositoryLayoutHelper.getP2Gav( key.getClassifier(), key.getId(), version.toString() );
     }
 
     public IStatus getRawArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
