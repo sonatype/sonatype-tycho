@@ -65,7 +65,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-TYCHO-796914</maven-version>
+    <maven-version>3.0-TYCHO-797695</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0
