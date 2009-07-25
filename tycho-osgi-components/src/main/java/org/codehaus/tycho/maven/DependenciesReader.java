@@ -11,8 +11,6 @@ import org.codehaus.tycho.FeatureResolutionState;
 
 public interface DependenciesReader
 {
-    public static final String DEPENDENCY_GROUP_ID = ":tycho:";
-
     public List<Dependency> getDependencies( MavenSession session, MavenProject project )
         throws MavenExecutionException;
 

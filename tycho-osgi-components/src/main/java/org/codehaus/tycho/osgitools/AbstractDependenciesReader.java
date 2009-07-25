@@ -28,23 +28,25 @@ public abstract class AbstractDependenciesReader
     implements DependenciesReader
 {
 
+    public static final String P2_CLASSIFIER_BUNDLE = "osgi.bundle";
+
+    public static final String P2_CLASSIFIER_FEATURE = "org.eclipse.update.feature";
+
     protected static final List<Dependency> NO_DEPENDENCIES = new ArrayList<Dependency>();
 
-    protected Dependency newExternalDependency( String location, String artifactId, String version )
+    protected Dependency newExternalDependency( String location, String p2Classifier, String artifactId, String version )
     {
         File file = new File( location );
         if ( !file.exists() || !file.isFile() || !file.canRead() )
         {
-            getLogger().warn(
-                              "Dependency at location "
-                                  + location
-                                  + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins" );
+            getLogger().warn( "Dependency at location " + location
+                + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins" );
             return null;
         }
 
         Dependency dependency = new Dependency();
         dependency.setArtifactId( artifactId );
-        dependency.setGroupId( DEPENDENCY_GROUP_ID );
+        dependency.setGroupId( "p2." + p2Classifier ); // See also RepositoryLayoutHelper#getP2Gav
         dependency.setVersion( version );
         dependency.setScope( Artifact.SCOPE_SYSTEM );
         dependency.setSystemPath( location );
@@ -67,8 +69,8 @@ public abstract class AbstractDependenciesReader
         return dependency;
     }
 
-    protected Collection<Dependency> getFeaturesDependencies( MavenProject project,
-                                                                        List<FeatureRef> features, MavenSession session )
+    protected Collection<Dependency> getFeaturesDependencies( MavenProject project, List<FeatureRef> features,
+                                                              MavenSession session )
     {
         FeatureResolutionState state = getFeatureResolutionState( session, project );
         Collection<Dependency> result = new ArrayList<Dependency>();
@@ -88,7 +90,9 @@ public abstract class AbstractDependenciesReader
             else
             {
                 dependency =
-                    newExternalDependency( otherFeature.getLocation().getAbsolutePath(), otherFeature.getId(),
+                    newExternalDependency( otherFeature.getLocation().getAbsolutePath(),
+                                           P2_CLASSIFIER_FEATURE,
+                                           otherFeature.getId(),
                                            otherFeature.getVersion().toString() );
             }
             if ( dependency != null )
@@ -100,7 +104,7 @@ public abstract class AbstractDependenciesReader
     }
 
     protected Collection<Dependency> getPluginsDependencies( MavenProject project, List<PluginRef> plugins,
-                                                                       MavenSession session )
+                                                             MavenSession session )
         throws MavenExecutionException
     {
         BundleResolutionState state = getBundleResolutionState( session, project );
@@ -141,15 +145,16 @@ public abstract class AbstractDependenciesReader
             String artifactId = supplier.getSymbolicName();
             String version = supplier.getVersion().toString();
 
-            dependency = newExternalDependency( supplier.getLocation(), artifactId, version );
+            dependency = newExternalDependency( supplier.getLocation(), P2_CLASSIFIER_BUNDLE, artifactId, version );
         }
         return dependency;
     }
 
     public FeatureResolutionState getFeatureResolutionState( MavenSession session, MavenProject project )
     {
-        FeatureResolutionState resolver = (FeatureResolutionState) project.getContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE );
-        
+        FeatureResolutionState resolver =
+            (FeatureResolutionState) project.getContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE );
+
         if ( resolver == null )
         {
             TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
@@ -157,10 +162,10 @@ public abstract class AbstractDependenciesReader
             if ( platform != null )
             {
                 resolver = new FeatureResolutionState( getLogger(), session, platform );
-                
+
                 project.setContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE, resolver );
             }
-            
+
         }
 
         return resolver;
@@ -168,9 +173,10 @@ public abstract class AbstractDependenciesReader
 
     public BundleResolutionState getBundleResolutionState( MavenSession session, MavenProject project )
     {
-        BundleResolutionState resolver = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
+        BundleResolutionState resolver =
+            (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 
-        if( resolver == null )
+        if ( resolver == null )
         {
             TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
 
