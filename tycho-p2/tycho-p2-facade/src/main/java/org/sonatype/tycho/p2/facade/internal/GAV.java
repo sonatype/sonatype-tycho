@@ -109,4 +109,9 @@ public class GAV
         return idx;
     }
 
+    @Override
+    public String toString()
+    {
+        return toExternalForm();
+    }
 }

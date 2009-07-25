@@ -71,4 +71,9 @@ public class RepositoryLayoutHelper
         return null;
     }
 
+    public static GAV getP2Gav( String classifier, String id, String version )
+    {
+        // Should match AbstractDependenciesReader#newExternalDependency
+        return new GAV( "p2." + classifier, id, version );
+    }
 }

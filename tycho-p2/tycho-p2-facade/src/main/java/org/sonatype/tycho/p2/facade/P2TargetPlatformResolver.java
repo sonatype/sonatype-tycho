@@ -13,10 +13,8 @@ import java.util.Set;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.legacy.WagonManager;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
-import org.apache.maven.wagon.Wagon;
-import org.apache.maven.wagon.repository.Repository;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -58,7 +56,7 @@ public class P2TargetPlatformResolver
     private PlexusContainer plexus;
 
     @Requirement
-    private WagonManager wagonManager;
+    private RepositorySystem repositorySystem;
 
     private P2ResolverFactory resolverFactory;
 
@@ -141,12 +139,9 @@ public class P2TargetPlatformResolver
                     MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
                     reader.setArtifactRepository( repository );
                     reader.setLocalRepository( localRepository );
-    
-                    Repository wagonRepository = new Repository( repository.getId(), repository.getUrl() );
-                    Wagon wagon = wagonManager.getWagon( wagonRepository.getProtocol() );
-                    wagon.connect( wagonRepository );
-                    TychoRepositoryIndex index = new MavenTychoRepositoryIndex( wagon );
-    
+
+                    TychoRepositoryIndex index = new MavenTychoRepositoryIndex( repositorySystem, repository );
+
                     resolver.addMavenRepository( index, reader );
                 }
                 catch ( ResourceDoesNotExistException e )
@@ -165,7 +160,7 @@ public class P2TargetPlatformResolver
         if ( target != null )
         {
             Set<URI> uris = new HashSet<URI>();
-    
+
             for ( Target.Location location : target.getLocations() )
             {
                 try
@@ -180,7 +175,7 @@ public class P2TargetPlatformResolver
                 {
                     getLogger().debug( "Could not parse repository URL", e );
                 }
-    
+
                 for ( Target.Unit unit : location.getUnits() )
                 {
                     resolver.addDependency( P2Resolver.TYPE_INSTALLABLE_UNIT, unit.getId(), unit.getVersion() );
