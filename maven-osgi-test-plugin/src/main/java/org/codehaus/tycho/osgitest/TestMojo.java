@@ -31,7 +31,6 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.DefaultTargetPlatform;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
