@@ -2,8 +2,10 @@ package org.sonatype.tycho.p2.maven.repository;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -18,31 +20,39 @@ import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
 @SuppressWarnings( "restriction" )
-public class NexusMetadataRepository
+public abstract class AbstractMavenMetadataRepository
     extends AbstractMetadataRepository
 {
+    private static final String REPOSITORY_TYPE = AbstractMavenMetadataRepository.class.getName();
 
-    private final TychoRepositoryIndex projectIndex;
+    private static final String REPOSITORY_VERSION = "1.0.0";
 
-    private final RepositoryReader contentLocator;
+    protected final TychoRepositoryIndex projectIndex;
 
-    private final Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
+    protected final RepositoryReader contentLocator;
 
-    public NexusMetadataRepository( TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
+    protected Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
+
+    protected Map<GAV, Set<IInstallableUnit>> unitsMap = new HashMap<GAV, Set<IInstallableUnit>>();
+
+    public AbstractMavenMetadataRepository( URI location, Map properties, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
+        super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, properties );
+
         this.projectIndex = projectIndex;
         this.contentLocator = contentLocator;
 
-        load();
+        if ( projectIndex != null && contentLocator != null)
+        {
+            load();
+        }
     }
 
-    private void load()
+    protected void load()
     {
-        List<GAV> gavs = projectIndex.getProjectGAVs();
-
         MetadataIO io = new MetadataIO();
 
-        for ( GAV gav : gavs )
+        for ( GAV gav : projectIndex.getProjectGAVs() )
         {
             try
             {
@@ -53,6 +63,8 @@ public class NexusMetadataRepository
                 try
                 {
                     Set<IInstallableUnit> gavUnits = io.readXML( is );
+
+                    unitsMap.put( gav, gavUnits );
                     units.addAll( gavUnits );
                 }
                 finally
@@ -64,6 +76,7 @@ public class NexusMetadataRepository
             {
                 // too bad
             }
+
         }
     }
 
@@ -76,5 +89,6 @@ public class NexusMetadataRepository
     {
         return query.perform( units.iterator(), collector );
     }
+
 
 }

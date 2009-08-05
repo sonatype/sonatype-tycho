@@ -28,6 +28,16 @@ public class DefaultTychoRepositoryIndex
     public static final String INDEX_RELPATH = ".meta/p2-metadata.properties";
 
     protected Set<GAV> gavs = new LinkedHashSet<GAV>();
+    
+    protected DefaultTychoRepositoryIndex()
+    {
+    }
+
+    public DefaultTychoRepositoryIndex( RepositoryReader repositoryReader )
+        throws IOException
+    {
+        gavs = read( repositoryReader.getContents( INDEX_RELPATH ) );
+    }
 
     protected static Set<GAV> read( InputStream is )
         throws IOException

@@ -1,6 +1,7 @@
 package org.sonatype.tycho.p2.facade;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -14,7 +15,6 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
-import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -33,8 +33,8 @@ import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.MavenTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
@@ -117,41 +117,43 @@ public class P2TargetPlatformResolver
 
         for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
         {
-            if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
+            try
             {
-                try
+                URI uri = new URL( repository.getUrl() ).toURI();
+
+                if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
                 {
-                    resolver.addP2Repository( new URL( repository.getUrl() ).toURI() );
+                    resolver.addP2Repository( uri );
                 }
-                catch ( MalformedURLException e )
+                else
                 {
-                    getLogger().warn( "Could not parse repository URL", e );
-                }
-                catch ( URISyntaxException e )
-                {
-                    getLogger().warn( "Could not parse repository URL", e );
+                    try
+                    {
+                        MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
+                        reader.setArtifactRepository( repository );
+                        reader.setLocalRepository( localRepository );
+    
+                        TychoRepositoryIndex index = new DefaultTychoRepositoryIndex( reader );
+    
+                        resolver.addMavenRepository( uri, index, reader );
+                    }
+                    catch ( FileNotFoundException e )
+                    {
+                        // it happens
+                    }
+                    catch ( Exception e )
+                    {
+                        getLogger().debug( "Unable to initialize remote Tycho repository", e );
+                    }
                 }
             }
-            else
+            catch ( MalformedURLException e )
             {
-                try
-                {
-                    MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
-                    reader.setArtifactRepository( repository );
-                    reader.setLocalRepository( localRepository );
-
-                    TychoRepositoryIndex index = new MavenTychoRepositoryIndex( repositorySystem, repository );
-
-                    resolver.addMavenRepository( index, reader );
-                }
-                catch ( ResourceDoesNotExistException e )
-                {
-                    // it happens
-                }
-                catch ( Exception e )
-                {
-                    getLogger().debug( "Unable to initialize remote Tycho repository", e );
-                }
+                getLogger().warn( "Could not parse repository URL", e );
+            }
+            catch ( URISyntaxException e )
+            {
+                getLogger().warn( "Could not parse repository URL", e );
             }
         }
 

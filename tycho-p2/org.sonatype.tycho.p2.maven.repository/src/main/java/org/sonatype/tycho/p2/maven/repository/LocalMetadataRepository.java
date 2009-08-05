@@ -1,46 +1,31 @@
 package org.sonatype.tycho.p2.maven.repository;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
-import org.eclipse.equinox.internal.provisional.p2.query.Collector;
-import org.eclipse.equinox.internal.provisional.p2.query.Query;
-import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.AbstractMetadataRepository;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
+import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
 @SuppressWarnings( "restriction" )
 public class LocalMetadataRepository
-    extends AbstractMetadataRepository
+    extends AbstractMavenMetadataRepository
 {
-
-    private static final String REPOSITORY_TYPE = LocalMetadataRepository.class.getName();
-
-    private static final String REPOSITORY_VERSION = "1.0.0";
-
-    private Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-
-    private Map<GAV, Set<IInstallableUnit>> unitsMap = new HashMap<GAV, Set<IInstallableUnit>>();
 
     /**
      * Create new repository
      */
     public LocalMetadataRepository( URI location, String name, Map properties )
     {
-        super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, properties );
+        super( location, properties, null, null );
         if ( !location.getScheme().equals( "file" ) )
         {
             throw new IllegalArgumentException( "Invalid local repository location: " + location ); //$NON-NLS-1$
@@ -48,6 +33,14 @@ public class LocalMetadataRepository
 
         // when creating a repository, we must ensure it exists on disk so a subsequent load will succeed
         save();
+    }
+
+    /**
+     * Local existing repository
+     */
+    public LocalMetadataRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
+    {
+        super( location, null, projectIndex, contentLocator );
     }
 
     @Override
@@ -112,63 +105,6 @@ public class LocalMetadataRepository
         {
             // XXX not good
         }
-    }
-
-    private void load()
-    {
-        File basedir = new File( getLocation() );
-
-        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( basedir );
-
-        MetadataIO io = new MetadataIO();
-
-        for ( GAV gav : index.getProjectGAVs() )
-        {
-            String relpath = RepositoryLayoutHelper.getRelativePath(
-                gav,
-                RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                RepositoryLayoutHelper.EXTENSION_P2_METADATA );
-            try
-            {
-                InputStream is = new BufferedInputStream( new FileInputStream( new File( basedir, relpath ) ) );
-                try
-                {
-                    Set<IInstallableUnit> gavUnits = io.readXML( is );
-
-                    unitsMap.put( gav, gavUnits );
-                    units.addAll( gavUnits );
-                }
-                finally
-                {
-                    is.close();
-                }
-            }
-            catch ( IOException e )
-            {
-                // too bad
-            }
-
-        }
-    }
-
-    /**
-     * Local existing repository
-     */
-    public LocalMetadataRepository( URI location )
-    {
-        super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, null );
-
-        load();
-    }
-
-    @Override
-    public void initialize( RepositoryState state )
-    {
-    }
-
-    public Collector query( Query query, Collector collector, IProgressMonitor monitor )
-    {
-        return query.perform( units.iterator(), collector );
     }
 
     @Override

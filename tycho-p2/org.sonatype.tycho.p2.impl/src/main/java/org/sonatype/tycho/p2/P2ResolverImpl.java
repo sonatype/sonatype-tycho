@@ -46,14 +46,19 @@ import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.IQueryable;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.osgi.framework.InvalidSyntaxException;
+import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
+import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
+import org.sonatype.tycho.p2.maven.repository.AbstractMavenArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.LocalArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository;
-import org.sonatype.tycho.p2.maven.repository.NexusMetadataRepository;
+import org.sonatype.tycho.p2.maven.repository.MavenArtifactRepository;
+import org.sonatype.tycho.p2.maven.repository.MavenMetadataRepository;
+import org.sonatype.tycho.p2.maven.repository.MavenMirrorRequest;
 
 @SuppressWarnings( "restriction" )
 public class P2ResolverImpl
@@ -138,6 +143,7 @@ public class P2ResolverImpl
         }
     }
 
+    @SuppressWarnings( "unchecked" )
     public P2ResolutionResult resolveProject( File projectLocation )
     {
         P2ResolutionResult result = new P2ResolutionResult();
@@ -178,19 +184,9 @@ public class P2ResolverImpl
             List<IArtifactRequest> requests = new ArrayList<IArtifactRequest>();
             for ( IInstallableUnit iu : newState )
             {
-                keys: for ( IArtifactKey key : iu.getArtifacts() )
+                for ( IArtifactKey key : iu.getArtifacts() )
                 {
-                    if ( !localRepository.contains( key ) )
-                    {
-                        for ( IArtifactRepository artifactRepository : artifactRepositories )
-                        {
-                            if ( artifactRepository.contains( key ) )
-                            {
-                                requests.add( new MirrorRequest( key, localRepository, null, null ) );
-                                continue keys;
-                            }
-                        }
-                    }
+                    requests.add( new MavenMirrorRequest( key, localRepository ) );
                 }
             }
 
@@ -411,10 +407,13 @@ public class P2ResolverImpl
 
     public void setLocalRepositoryLocation( File location )
     {
-        localRepository = new LocalArtifactRepository( location );
+        TychoRepositoryIndex projectIndex = new LocalTychoRepositoryIndex( location );
+        RepositoryReader contentLocator = new LocalRepositoryReader( location );
+
+        localRepository = new LocalArtifactRepository( location, projectIndex, contentLocator );
 
         // XXX remove old
-        metadataRepositories.add( new LocalMetadataRepository( location.toURI() ) );
+        metadataRepositories.add( new LocalMetadataRepository( location.toURI(), projectIndex, contentLocator ) );
     }
 
     public void setProperties( Properties properties )
@@ -440,9 +439,10 @@ public class P2ResolverImpl
         }
     }
 
-    public void addMavenRepository( TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
+    public void addMavenRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
-        metadataRepositories.add( new NexusMetadataRepository( projectIndex, contentLocator ) );
+        metadataRepositories.add( new MavenMetadataRepository( location, projectIndex, contentLocator ) );
+        artifactRepositories.add( new MavenArtifactRepository( location, projectIndex, contentLocator ) );
     }
 
     public void setLogger( P2Logger logger )

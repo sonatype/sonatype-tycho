@@ -1,6 +1,8 @@
 package org.sonatype.tycho.p2.facade.internal;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.wagon.ResourceDoesNotExistException;
+import org.apache.maven.wagon.TransferFailedException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 
@@ -70,6 +74,47 @@ public class MavenRepositoryReader
         }
 
         return new FileInputStream( a.getFile() );
+    }
+    
+    public InputStream getContents( String remoteRelpath )
+        throws IOException
+    {
+        if ( repositories.size() != 1 )
+        {
+            throw new IllegalStateException( "Ambiguous repository request" );
+        }
+
+        ArtifactRepository repository = repositories.get( 0 );
+
+        final File file = File.createTempFile( repository.getId(), ".tmp" );
+
+        try
+        {
+            repositorySystem.retrieve( repository, file, remoteRelpath, null );
+        }
+        catch ( TransferFailedException cause )
+        {
+            IOException e = new IOException();
+            e.initCause( cause );
+            throw e;
+        }
+        catch ( ResourceDoesNotExistException cause )
+        {
+            IOException e = new FileNotFoundException();
+            e.initCause( cause );
+            throw e;
+        }
+
+        return new FileInputStream( file )
+        {
+            @Override
+            public void close()
+                throws IOException
+            {
+                super.close();
+                file.delete();
+            }
+        };
     }
 
     private boolean isNotFound( String key )

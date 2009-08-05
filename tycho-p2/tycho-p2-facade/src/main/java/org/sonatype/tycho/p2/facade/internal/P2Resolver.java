@@ -27,7 +27,7 @@ public interface P2Resolver
 
     public void addP2Repository( URI location );
 
-    public void addMavenRepository( TychoRepositoryIndex projectIndex, RepositoryReader contentLocator );
+    public void addMavenRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator );
 
     public void setLocalRepositoryLocation( File location );
 

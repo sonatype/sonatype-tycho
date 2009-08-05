@@ -1,16 +1,12 @@
 package org.sonatype.tycho.p2.maven.repository;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -23,77 +19,27 @@ import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifact
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRequest;
 import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
-import org.eclipse.equinox.internal.provisional.spi.p2.artifact.repository.AbstractArtifactRepository;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
+import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
+import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 
 @SuppressWarnings( "restriction" )
 public class LocalArtifactRepository
-    extends AbstractArtifactRepository
+    extends AbstractMavenArtifactRepository
 {
-
-    public static final String VERSION = "1.0.0";
-
-    private static final IArtifactDescriptor[] ARTIFACT_DESCRIPTOR_ARRAY = new IArtifactDescriptor[0];
-
-    private static final IArtifactKey[] ARTIFACT_KEY_ARRAY = new IArtifactKey[0];
-
-    private Map<IArtifactKey, Set<IArtifactDescriptor>> descriptorsMap = new HashMap<IArtifactKey, Set<IArtifactDescriptor>>();
-
-    private Set<IArtifactDescriptor> descriptors = new HashSet<IArtifactDescriptor>();
 
     public LocalArtifactRepository( File location )
     {
-        super(
-            "Maven Local Repository",
-            LocalArtifactRepository.class.getName(),
-            VERSION,
-            location.toURI(),
-            null,
-            null,
-            null );
-
-        loadMaven();
+        this( location, new LocalTychoRepositoryIndex( location ), new LocalRepositoryReader( location ) );
     }
 
-    private void loadMaven()
+    public LocalArtifactRepository( File location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
-        File location = getBasedir();
-
-        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location );
-
-        ArtifactsIO io = new ArtifactsIO();
-
-        for ( GAV gav : index.getProjectGAVs() )
-        {
-            try
-            {
-                String relpath = getMetadataRelpath( gav );
-
-                InputStream is = new BufferedInputStream( new FileInputStream( new File( location, relpath ) ) );
-                try
-                {
-                    Set<IArtifactDescriptor> gavDescriptors = (Set<IArtifactDescriptor>) io.readXML( is );
-
-                    if ( !gavDescriptors.isEmpty() )
-                    {
-                        IArtifactKey key = gavDescriptors.iterator().next().getArtifactKey();
-                        descriptorsMap.put( key, gavDescriptors );
-                        descriptors.addAll( gavDescriptors );
-                    }
-                }
-                finally
-                {
-                    is.close();
-                }
-            }
-            catch ( IOException e )
-            {
-                // too bad
-            }
-        }
+        super( location.toURI(), projectIndex, contentLocator );
     }
 
     private void saveMaven()
@@ -174,38 +120,9 @@ public class LocalArtifactRepository
     }
 
     @Override
-    public boolean contains( IArtifactDescriptor descriptor )
-    {
-        return descriptors.contains( descriptor );
-    }
-
-    @Override
-    public boolean contains( IArtifactKey key )
-    {
-        return descriptorsMap.containsKey( key );
-    }
-
-    @Override
     public IStatus getArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
     {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public IArtifactDescriptor[] getArtifactDescriptors( IArtifactKey key )
-    {
-        Set<IArtifactDescriptor> descriptors = descriptorsMap.get( key );
-        if ( descriptors == null )
-        {
-            return ARTIFACT_DESCRIPTOR_ARRAY;
-        }
-        return descriptors.toArray( ARTIFACT_DESCRIPTOR_ARRAY );
-    }
-
-    @Override
-    public IArtifactKey[] getArtifactKeys()
-    {
-        return descriptorsMap.keySet().toArray( ARTIFACT_KEY_ARRAY );
     }
 
     @Override
@@ -256,27 +173,30 @@ public class LocalArtifactRepository
         }
     }
 
-    private GAV getP2GAV( IArtifactDescriptor descriptor )
-    {
-        IArtifactKey key = descriptor.getArtifactKey();
-        StringBuffer version = new StringBuffer();
-        key.getVersion().toString( version );
-        return RepositoryLayoutHelper.getP2Gav( key.getClassifier(), key.getId(), version.toString() );
-    }
-
     public IStatus getRawArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
     {
         throw new UnsupportedOperationException();
     }
 
+    public File getBasedir()
+    {
+        return new File( getLocation() );
+    }
+
+    @Override
+    public boolean isModifiable()
+    {
+        return true;
+    }
+
     public URI getLocation( IArtifactDescriptor descriptor )
     {
-        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
+        return getLocationFile( descriptor ).toURI();
+    }
 
-        if ( gav == null )
-        {
-            gav = getP2GAV( descriptor );
-        }
+    private File getLocationFile( IArtifactDescriptor descriptor )
+    {
+        GAV gav = getGAV( descriptor );
 
         File basedir = getBasedir();
 
@@ -289,17 +209,30 @@ public class LocalArtifactRepository
             extension = "jar.pack.gz";
         }
 
-        return new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, classifier, extension ) ).toURI();
+        return new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, classifier, extension ) );
     }
 
-    public File getBasedir()
+    private GAV getGAV( IArtifactDescriptor descriptor )
     {
-        return new File( getLocation() );
+        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
+
+        if ( gav == null )
+        {
+            gav = getP2GAV( descriptor );
+        }
+
+        return gav;
     }
 
     @Override
-    public boolean isModifiable()
+    public IStatus resolve( IArtifactDescriptor descriptor )
     {
-        return true;
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean contains( IArtifactDescriptor descriptor )
+    {
+        return super.contains( descriptor ) && getLocationFile( descriptor ).canRead();
     }
 }
