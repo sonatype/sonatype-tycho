@@ -457,6 +457,11 @@ public class ProductExportMojo
     {
         BundleDescription runtime = bundleResolutionState.getSystemBundle();
 
+        if ( runtime == null )
+        {
+            throw new MojoFailureException( "Could not obtain system bundle" );
+        }
+
         if ( !"org.eclipse.osgi".equals( runtime.getSymbolicName() ) )
         {
             throw new MojoFailureException( "Unsupported OSGi platform " + runtime.getSymbolicName() );
