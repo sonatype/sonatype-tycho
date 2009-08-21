@@ -18,7 +18,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.equinox.internal.p2.artifact.repository.MirrorRequest;
 import org.eclipse.equinox.internal.p2.core.helpers.ServiceHelper;
 import org.eclipse.equinox.internal.p2.director.DirectorActivator;
 import org.eclipse.equinox.internal.p2.director.Explanation;
@@ -53,7 +52,6 @@ import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
-import org.sonatype.tycho.p2.maven.repository.AbstractMavenArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.LocalArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenArtifactRepository;
@@ -166,8 +164,10 @@ public class P2ResolverImpl
         if ( slice != null )
         {
             Projector projector = new Projector( slice, newSelectionContext, false );
-            projector.encode( createMetaIU( rootIUs ), extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
-                              rootIUs.toArray( IU_ARRAY ) /* newRoots */, monitor );
+            projector.encode( createMetaIU( rootIUs ),
+                              extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
+                              rootIUs.toArray( IU_ARRAY ) /* newRoots */,
+                              monitor );
             IStatus s = projector.invokeSolver( monitor );
             if ( s.getSeverity() == IStatus.ERROR )
             {
@@ -184,9 +184,12 @@ public class P2ResolverImpl
             List<IArtifactRequest> requests = new ArrayList<IArtifactRequest>();
             for ( IInstallableUnit iu : newState )
             {
-                for ( IArtifactKey key : iu.getArtifacts() )
+                if ( getReactorProjectBasedir( iu ) == null )
                 {
-                    requests.add( new MavenMirrorRequest( key, localRepository ) );
+                    for ( IArtifactKey key : iu.getArtifacts() )
+                    {
+                        requests.add( new MavenMirrorRequest( key, localRepository ) );
+                    }
                 }
             }
 
@@ -206,14 +209,34 @@ public class P2ResolverImpl
 
             for ( IInstallableUnit iu : newState )
             {
-                for ( IArtifactKey key : iu.getArtifacts() )
+                File basedir = getReactorProjectBasedir( iu );
+                if ( basedir != null )
                 {
-                    addArtifactFile( result, key );
+                    addReactorProject( result, basedir );
+                }
+                else
+                {
+                    for ( IArtifactKey key : iu.getArtifacts() )
+                    {
+                        addArtifactFile( result, key );
+                    }
                 }
             }
         }
 
         return result;
+    }
+
+    private File getReactorProjectBasedir( IInstallableUnit iu )
+    {
+        for ( Map.Entry<File, Set<IInstallableUnit>> entry : projectIUs.entrySet() )
+        {
+            if ( entry.getValue().contains( iu ) )
+            {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     private void fixSWT( Collection<IInstallableUnit> ius, IInstallableUnit[] availableIUs, Dictionary selectionContext )
@@ -323,6 +346,20 @@ public class P2ResolverImpl
         }
     }
 
+    private void addReactorProject( P2ResolutionResult platform, File basedir )
+    {
+        String type = projects.get( basedir );
+
+        if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( type ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( type ) )
+        {
+            platform.addBundle( basedir );
+        }
+        else if ( P2Resolver.TYPE_ECLIPSE_FEATURE.equals( type ) )
+        {
+            platform.addFeature( basedir );
+        }
+    }
+
     private File getLocalArtifactFile( IArtifactKey key )
     {
         for ( IArtifactDescriptor descriptor : localRepository.getArtifactDescriptors( key ) )
@@ -394,9 +431,13 @@ public class P2ResolverImpl
         for ( IInstallableUnit iu : rootIUs )
         {
             VersionRange range = new VersionRange( iu.getVersion(), true, iu.getVersion(), true );
-            capabilities.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, iu.getId(),
-                                                                        range, iu.getFilter(), false /* optional */,
-                                                                        !iu.isSingleton() /* multiple */, true /* greedy */) );
+            capabilities.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID,
+                                                                        iu.getId(),
+                                                                        range,
+                                                                        iu.getFilter(),
+                                                                        false /* optional */,
+                                                                        !iu.isSingleton() /* multiple */,
+                                                                        true /* greedy */) );
         }
 
         capabilities.addAll( additionalRequirements );
@@ -426,16 +467,22 @@ public class P2ResolverImpl
     {
         if ( P2Resolver.TYPE_INSTALLABLE_UNIT.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, id,
-                                                                                  new VersionRange( version ), null,
-                                                                                  false, true ) );
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID,
+                                                                                  id,
+                                                                                  new VersionRange( version ),
+                                                                                  null,
+                                                                                  false,
+                                                                                  true ) );
         }
         else if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( type ) )
         {
             // BundlesAction#CAPABILITY_NS_OSGI_BUNDLE
-            additionalRequirements.add( MetadataFactory.createRequiredCapability( "osgi.bundle", id, 
-                                                                                  new VersionRange( version ), null,
-                                                                                  false, true ) );
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( "osgi.bundle",
+                                                                                  id,
+                                                                                  new VersionRange( version ),
+                                                                                  null,
+                                                                                  false,
+                                                                                  true ) );
         }
     }
 

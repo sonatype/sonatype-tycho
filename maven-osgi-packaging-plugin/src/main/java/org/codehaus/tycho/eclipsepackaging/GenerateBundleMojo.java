@@ -24,19 +24,14 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.DefaultProjectBuilderConfiguration;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.project.ProjectBuilder;
-import org.apache.maven.project.ProjectBuilderConfiguration;
-import org.apache.maven.project.ProjectBuildingException;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.shared.osgi.DefaultMaven2OsgiConverter;
 import org.apache.maven.shared.osgi.Maven2OsgiConverter;
 import org.codehaus.plexus.PlexusConstants;
@@ -88,17 +83,8 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	private ArrayList<Artifact> inlcudedArtifacts;
 
 	/** @component */
-	private ArtifactFactory artifactFactory;
+	private RepositorySystem repositorySystem;
 
-	/** @component */
-	private ProjectBuilder projectBuilder;
-
-	/** @component */
-	private MavenProjectHelper projectHelper;
-
-	/** @component */
-	private ArtifactResolver resolver;
-	
 	private PlexusContainer plexus;
 	
 	/** @parameter */
@@ -466,41 +452,35 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
      * artifacts provided by bundles this project depends on 
      */
     private Set<String> getImportedArtifactKeys() throws MojoExecutionException  {
-    	HashSet<String> result = new HashSet<String>();
+    	HashSet<String> keys = new HashSet<String>();
 
     	ArtifactRepository localRepository = session.getLocalRepository();
-    	List remoteRepositories = project.getRemoteArtifactRepositories();
+    	List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
 
     	if (requireBundles != null) {
 	    	for (int i = 0; i < requireBundles.length; i++) {
 	    		ArtifactRef a = requireBundles[i];
-				result.add(getArtifactKey(a.getGroupId(), a.getArtifactId()));
-				try {
-					Artifact pomArtifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "pom", "pom");
-					resolver.resolve(pomArtifact, remoteRepositories, localRepository);
 
-					FileUtils.copyFileToDirectory(pomArtifact.getFile(), buildTarget);
+	    		Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "pom");
 
-					ProjectBuilderConfiguration pbc = new DefaultProjectBuilderConfiguration();
-			        pbc.setLocalRepository( localRepository );
+                ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+                request.setArtifact( artifact );
+                request.setLocalRepository( localRepository );
+                request.setRemoteRepositories( remoteRepositories );
+                request.setResolveRoot( true );
+                request.setResolveTransitively( true );
+                ArtifactResolutionResult result = repositorySystem.resolve( request );
+                
+                if (result.hasExceptions()) {
+                    throw new MojoExecutionException("Could not resolve extra classpath entry", result.getExceptions().get(0));
+                }
 
-					MavenProject pomProject = projectBuilder.buildProjectWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), pbc).getProject();
-
-	    			for (Iterator j = pomProject.getArtifacts().iterator(); j.hasNext();) {
-	    				Artifact b = (Artifact) j.next();
-						result.add(getArtifactKey(b.getGroupId(), b.getArtifactId()));
-					}
-	
-				} catch (AbstractArtifactResolutionException e) {
-					throw new MojoExecutionException(e.getMessage(), e);
-				} catch (IOException e) {
-					throw new MojoExecutionException(e.getMessage(), e);
-				} catch (ProjectBuildingException e) {
-					throw new MojoExecutionException(e.getMessage(), e);
+    			for (Artifact b : result.getArtifacts()) {
+					keys.add(getArtifactKey(b.getGroupId(), b.getArtifactId()));
 				}
 	    	}
     	}
-    	return result;
+    	return keys;
     }
 
 	private String getArtifactKey(String groupId, String artifactId) {

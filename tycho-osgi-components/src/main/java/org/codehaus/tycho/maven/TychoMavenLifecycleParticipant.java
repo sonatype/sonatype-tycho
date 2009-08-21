@@ -177,7 +177,7 @@ public class TychoMavenLifecycleParticipant
             ArtifactResolutionRequest request = new ArtifactResolutionRequest();
             request.setArtifact( artifact );
             request.setLocalRepository( session.getLocalRepository() );
-            request.setRemoteRepostories( project.getRemoteArtifactRepositories() );
+            request.setRemoteRepositories( project.getRemoteArtifactRepositories() );
             ArtifactResolutionResult result = repositorySystem.resolve( request );
 
             if ( ! artifact.isResolved() )

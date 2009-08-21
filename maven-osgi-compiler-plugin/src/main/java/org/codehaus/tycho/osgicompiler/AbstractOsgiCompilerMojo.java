@@ -21,26 +21,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.DefaultProjectBuilderConfiguration;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
-import org.apache.maven.project.ProjectBuilderConfiguration;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
@@ -102,16 +98,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private MavenSession session;
 
 	/** @component */
-	private ArtifactFactory artifactFactory;
-
-	/** @component */
-	private ArtifactResolver resolver;
-
-	/** @component */
-	private MavenProjectBuilder mavenProjectBuilder;
-
-	/** @parameter expression="${project.build.directory}" */
-	private File buildTarget;
+	private RepositorySystem repositorySystem;
 
 	private ClasspathComputer classpathComputer;
 
@@ -171,33 +158,24 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		
 		if (extraClasspathElements != null) {
 	    	ArtifactRepository localRepository = session.getLocalRepository();
-	    	List remoteRepositories = project.getRemoteArtifactRepositories();
+	    	List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
 			for (ArtifactRef a : extraClasspathElements) {
-				try {
+				Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar");
 
-					// immediate artifact
-					Artifact artifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "compile", "jar");
-					resolver.resolve(artifact, remoteRepositories, localRepository);
-					classpath.add(artifact.getFile().getAbsolutePath() + "[+**/*]");
+				ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+				request.setArtifact( artifact );
+				request.setLocalRepository( localRepository );
+				request.setRemoteRepositories( remoteRepositories );
+				request.setResolveRoot( true );
+				request.setResolveTransitively( true );
+                ArtifactResolutionResult result = repositorySystem.resolve( request );
+                
+                if (result.hasExceptions()) {
+                    throw new MojoExecutionException("Could not resolve extra classpath entry", result.getExceptions().get(0));
+                }
 
-					// transitive dependencies
-					Artifact pomArtifact = artifactFactory.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "pom", "pom");
-					resolver.resolve(pomArtifact, remoteRepositories, localRepository);
-
-					FileUtils.copyFileToDirectory(pomArtifact.getFile(), buildTarget);
-
-					ProjectBuilderConfiguration pbc = new DefaultProjectBuilderConfiguration();
-			        pbc.setLocalRepository( localRepository );
-
-					MavenProject pomProject = mavenProjectBuilder.buildProjectWithDependencies(new File(buildTarget, pomArtifact.getFile().getName()), pbc).getProject();
-
-	    			for (Iterator j = pomProject.getArtifacts().iterator(); j.hasNext();) {
-	    				Artifact b = (Artifact) j.next();
-						classpath.add(b.getFile().getAbsolutePath() + "[+**/*]");
-					}
-					
-				} catch (Exception e) {
-					throw new MojoExecutionException("Could not resolve extra classpath entry", e);
+    			for (Artifact b : result.getArtifacts()) {
+					classpath.add(b.getFile().getAbsolutePath() + "[+**/*]");
 				}
 			}
 		}

@@ -58,7 +58,7 @@ public class MavenRepositoryReader
         ArtifactResolutionRequest request = new ArtifactResolutionRequest();
         request.setArtifact( a );
         request.setLocalRepository( localRepository );
-        request.setRemoteRepostories( repositories );
+        request.setRemoteRepositories( repositories );
         ArtifactResolutionResult result = repositorySystem.resolve( request );
 
         if ( !a.isResolved() )
