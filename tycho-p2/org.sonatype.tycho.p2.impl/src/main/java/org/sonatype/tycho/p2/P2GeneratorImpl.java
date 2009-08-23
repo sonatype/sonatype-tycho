@@ -108,7 +108,7 @@ public class P2GeneratorImpl
         }
         else if ( P2Resolver.TYPE_ECLIPSE_APPLICATION.equals( packaging ) )
         {
-            String product = new File( location, id + ".target" ).getAbsolutePath();
+            String product = new File( location, id + ".product" ).getAbsolutePath();
             try
             {
                 IProductDescriptor productDescriptor = new ProductFile( product );
