@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.maven.ide.eclipse.lifecycleMappings">
+      <lifecycleMapping
+            class="org.sonatype.tycho.m2e.internal.TychoLifecycleMapping"
+            id="org.sonatype.tycho.m2e.tychoLifecycleMapping"
+            name="Tycho Build Lifecycle Mapping">
+      </lifecycleMapping>
+   </extension>
+   <extension
+         point="org.maven.ide.eclipse.defaultLifecycleMappings">
+      <defaultLifecycleMapping
+            id="org.sonatype.tycho.m2e.eclipse-plugin"
+            lifecycleMappingId="org.sonatype.tycho.m2e.tychoLifecycleMapping"
+            packaging="eclipse-plugin"/>
+      <defaultLifecycleMapping
+            id="org.sonatype.tycho.m2e.eclipse-test-plugin"
+            lifecycleMappingId="org.sonatype.tycho.m2e.tychoLifecycleMapping"
+            packaging="eclipse-test-plugin"/>
+      <defaultLifecycleMapping
+            id="org.sonatype.tycho.m2e.eclipse-feature"
+            lifecycleMappingId="org.sonatype.tycho.m2e.tychoLifecycleMapping"
+            packaging="eclipse-feature"/>
+      <defaultLifecycleMapping
+            id="org.sonatype.tycho.m2e.eclipse-update-site"
+            lifecycleMappingId="org.sonatype.tycho.m2e.tychoLifecycleMapping"
+            packaging="eclipse-update-site"/>
+      <defaultLifecycleMapping
+            id="org.sonatype.tycho.m2e.eclipse-application"
+            lifecycleMappingId="org.sonatype.tycho.m2e.tychoLifecycleMapping"
+            packaging="eclipse-application"/>
+   </extension>
+
+</plugin>

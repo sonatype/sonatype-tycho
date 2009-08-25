@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tycho Plexus Components
+Bundle-SymbolicName: org.sonatype.tycho.components
+Bundle-Version: 0.4.0.qualifier
+Fragment-Host: org.maven.ide.components.maven_embedder;bundle-version="3.0.0"
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Export-Package: META-INF.plexus
