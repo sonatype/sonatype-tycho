@@ -18,7 +18,6 @@
   </parent>
 
   <artifactId>org.codehaus.tycho.tychoits.tycho0209.build02.feature01</artifactId>
-  <version>1.0.0</version>
   <packaging>eclipse-feature</packaging>
 
 </project>

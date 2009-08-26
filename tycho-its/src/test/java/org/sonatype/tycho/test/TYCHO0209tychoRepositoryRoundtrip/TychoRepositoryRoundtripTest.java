@@ -63,7 +63,7 @@ public class TychoRepositoryRoundtripTest
         // build02
         Verifier v02 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build02", false );
         v02.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
-        v02.getCliOptions().add( "-Dremote.repo=" +  toURI( remoteBasedir ) );
+        v02.getCliOptions().add( "-Drepo.snapshots=" +  toURI( remoteBasedir ) );
         v02.executeGoal( "install" );
         v02.verifyErrorFreeLog();
 

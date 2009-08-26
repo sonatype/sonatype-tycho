@@ -18,7 +18,6 @@
   </parent>
 
   <artifactId>org.codehaus.tycho.tychoits.tycho0209.build01.bundle03</artifactId>
-  <version>1.0.0</version>
   <packaging>eclipse-test-plugin</packaging>
 
 </project>

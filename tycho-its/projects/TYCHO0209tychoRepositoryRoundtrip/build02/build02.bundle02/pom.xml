@@ -18,7 +18,6 @@
   </parent>
 
   <artifactId>org.codehaus.tycho.tychoits.tycho0209.build02.bundle02</artifactId>
-  <version>1.0.0</version>
   <packaging>eclipse-plugin</packaging>
 
 </project>

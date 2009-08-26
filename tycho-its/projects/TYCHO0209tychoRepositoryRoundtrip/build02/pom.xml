@@ -7,22 +7,25 @@
   <packaging>pom</packaging>
 
   <modules>
-    <!-- <module>build02.bundle01</module>  -->
     <module>build02.bundle02</module>
     <module>build02.feature01</module>
     <module>build02.site01</module>
   </modules>
 
+  <properties>
+    <p2.repo>http://download.eclipse.org/releases/galileo</p2.repo>
+  </properties>
+
   <repositories>
-   <repository>
-     <id>p2</id>
-     <layout>p2</layout>
-     <url>${p2.repo}</url>
-   </repository>
-   <repository>
-     <id>remote</id>
-     <url>${remote.repo}</url>
-   </repository>
+    <repository>
+      <id>p2</id>
+      <layout>p2</layout>
+      <url>${p2.repo}</url>
+    </repository>
+    <repository>
+      <id>remote</id>
+      <url>${repo.snapshots}</url>
+    </repository>
   </repositories>
 
   <build>
@@ -36,5 +39,16 @@
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>local</id>
+      <url>${repo.releases}</url>
+    </repository>
+    <snapshotRepository>
+      <id>local</id>
+      <url>${repo.snapshots}</url>
+    </snapshotRepository>
+  </distributionManagement>
 
 </project>
