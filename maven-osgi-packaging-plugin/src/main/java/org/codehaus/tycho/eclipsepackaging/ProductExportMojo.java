@@ -137,7 +137,7 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Error parsing product configuration file", e );
         }
 
-        // TODO this is controversial, but purist inside insists...
+        // build results will vary from system to system without explicit target environment configuration
         if ( productConfiguration.includeLaunchers() && environments == null )
         {
             throw new MojoFailureException( "Product includes native launcher but no target environment was specified" );

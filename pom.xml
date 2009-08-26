@@ -30,6 +30,7 @@
     <module>tycho-testing-harness</module>
     <module>tycho-equinox</module>
     <module>tycho-p2/tycho-p2-facade</module>
+    <module>target-platform-configuration</module>
   </modules>
 
   <properties>
@@ -64,7 +65,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-TYCHO-806336</maven-version>
+    <maven-version>3.0-TYCHO-807761</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0

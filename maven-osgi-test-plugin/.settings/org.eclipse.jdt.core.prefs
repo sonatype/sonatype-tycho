@@ -1,6 +1,6 @@
-#Tue May 27 15:06:14 EDT 2008
-eclipse.preferences.version=1
-org.eclipse.jdt.core.builder.cleanOutputFolder=ignore
+#Tue Aug 25 13:59:03 EDT 2009
+org.eclipse.jdt.core.compiler.problem.forbiddenReference=warning
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.5
-org.eclipse.jdt.core.compiler.compliance=1.5
+eclipse.preferences.version=1
 org.eclipse.jdt.core.compiler.source=1.5
+org.eclipse.jdt.core.compiler.compliance=1.5

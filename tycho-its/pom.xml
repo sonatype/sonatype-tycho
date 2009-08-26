@@ -25,6 +25,7 @@
     <maven-osgi-packaging-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-packaging-plugin/${pom.version}/maven-osgi-packaging-plugin-${pom.version}.jar</maven-osgi-packaging-plugin>
     <maven-osgi-test-plugin>${offline-repo}/org/codehaus/tycho/maven-osgi-test-plugin/${pom.version}/maven-tycho-plugin-${pom.version}.jar</maven-osgi-test-plugin>
     <maven-tycho-plugin>${offline-repo}/org/codehaus/tycho/maven-tycho-plugin/${pom.version}/maven-tycho-plugin-${pom.version}.jar</maven-tycho-plugin>
+    <target-platform-configuration>${offline-repo}/org/codehaus/tycho/target-platform-configuration/${pom.version}/target-platform-configuration-${pom.version}.jar</target-platform-configuration>
   </properties>
 
   <build>
@@ -267,6 +268,12 @@
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>maven-osgi-source-plugin</artifactId>
+      <version>${pom.version}</version>
+      <type>maven-plugin</type>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>target-platform-configuration</artifactId>
       <version>${pom.version}</version>
       <type>maven-plugin</type>
     </dependency>

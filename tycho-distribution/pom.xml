@@ -21,15 +21,14 @@
       <groupId>org.eclipse</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>maven-osgi-compiler-plugin</artifactId>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-equinox</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency>     
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
-      <artifactId>maven-osgi-packaging-plugin</artifactId>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-facade</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
@@ -107,11 +106,6 @@
           <artifactId>tycho-p2-runtime</artifactId>
           <version>${project.version}</version>
           <type>zip</type>
-        </dependency>
-        <dependency>
-          <groupId>org.sonatype.tycho</groupId>
-          <artifactId>tycho-p2-facade</artifactId>
-          <version>${project.version}</version>
         </dependency>
       </dependencies>
       <build>
