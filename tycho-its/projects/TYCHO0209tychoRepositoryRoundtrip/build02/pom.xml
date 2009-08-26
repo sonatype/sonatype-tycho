@@ -19,6 +19,10 @@
      <layout>p2</layout>
      <url>${p2.repo}</url>
    </repository>
+   <repository>
+     <id>remote</id>
+     <url>${remote.repo}</url>
+   </repository>
   </repositories>
 
   <build>
