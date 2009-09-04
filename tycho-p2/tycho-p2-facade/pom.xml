@@ -60,33 +60,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.modello</groupId>
-        <artifactId>modello-maven-plugin</artifactId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <id>epp.xml</id>
-            <goals>
-              <goal>java</goal>
-              <goal>xpp3-reader</goal>
-              <goal>xpp3-writer</goal>
-            </goals>
-            <configuration>
-              <version>1.0.0</version>
-              <models>
-                <model>src/main/mdo/lockdown.xml</model>
-              </models>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <packageWithVersion>false</packageWithVersion>
-          <useJava5>true</useJava5>
-        </configuration>
-      </plugin>
-
     </plugins>
   </build>
 </project>
