@@ -84,9 +84,8 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	private PlexusContainer plexus;
 
     /**
-     * Specific list of artifacts to include in this bundle. If specified,
-     * projects dependencies and excludes parameter must not be specified.
-     * Not resolved transitively.
+     * If specified, generated bundle will only include artifacts specified 
+     * in this parameter. 
      *  
      * @parameter 
      */
