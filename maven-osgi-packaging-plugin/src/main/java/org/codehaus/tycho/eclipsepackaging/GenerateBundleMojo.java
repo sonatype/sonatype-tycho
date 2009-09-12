@@ -27,7 +27,6 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -63,9 +62,6 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	/** @parameter expression="${project}" */
 	private MavenProject project;
 
-	/** @parameter expression="${session}" */
-	private MavenSession session;
-
 	/** @parameter */
 	private String exportPackages;
 	
@@ -84,12 +80,21 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 
 	/** @component */
 	private RepositorySystem repositorySystem;
-
+	
 	private PlexusContainer plexus;
-	
-	/** @parameter */
+
+    /**
+     * Specific list of artifacts to include in this bundle. If specified,
+     * projects dependencies and excludes parameter must not be specified.
+     * Not resolved transitively.
+     *  
+     * @parameter 
+     */
+    private ArtifactRef[] includes;
+
+    /** @parameter */
 	private ArtifactRef[] exclusions;
-	
+
 	/** @parameter */
 	private ArtifactRef[] requireBundles;
 
@@ -105,6 +110,16 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	/** @parameter expression="${project.organization.name}" */
 	private String organization;
 	
+	/**
+     * @parameter expression="${localRepository}"
+	 */
+	private ArtifactRepository localRepository;
+	
+	/**
+     * @parameter expression="${project.remoteArtifactRepositories}"
+	 */
+	private List<ArtifactRepository> remoteRepositories;
+
 	private static final Maven2OsgiConverter mavenOsgi = new DefaultMaven2OsgiConverter();
 
     public void execute() throws MojoExecutionException {
@@ -454,26 +469,11 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
     private Set<String> getImportedArtifactKeys() throws MojoExecutionException  {
     	HashSet<String> keys = new HashSet<String>();
 
-    	ArtifactRepository localRepository = session.getLocalRepository();
-    	List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
-
     	if (requireBundles != null) {
 	    	for (int i = 0; i < requireBundles.length; i++) {
 	    		ArtifactRef a = requireBundles[i];
 
-	    		Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "pom");
-
-                ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-                request.setArtifact( artifact );
-                request.setLocalRepository( localRepository );
-                request.setRemoteRepositories( remoteRepositories );
-                request.setResolveRoot( true );
-                request.setResolveTransitively( true );
-                ArtifactResolutionResult result = repositorySystem.resolve( request );
-                
-                if (result.hasExceptions()) {
-                    throw new MojoExecutionException("Could not resolve extra classpath entry", result.getExceptions().get(0));
-                }
+	    		ArtifactResolutionResult result = resolve( a, true );
 
     			for (Artifact b : result.getArtifacts()) {
 					keys.add(getArtifactKey(b.getGroupId(), b.getArtifactId()));
@@ -481,6 +481,28 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	    	}
     	}
     	return keys;
+    }
+
+    private ArtifactResolutionResult resolve( ArtifactRef a, boolean resolveTransitively )
+        throws MojoExecutionException
+    {
+        Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar");
+
+        ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+        request.setArtifact( artifact );
+        request.setLocalRepository( localRepository );
+        request.setRemoteRepositories( remoteRepositories );
+        request.setResolveRoot( true );
+        request.setResolveTransitively( resolveTransitively );
+        ArtifactResolutionResult result = repositorySystem.resolve( request );
+        
+        if (!result.isSuccess()) {
+            throw new MojoExecutionException("Could not resolve extra classpath entry");
+        }
+
+        result.setOriginatingArtifact( artifact );
+        
+        return result;
     }
 
 	private String getArtifactKey(String groupId, String artifactId) {
@@ -492,20 +514,28 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
     	if (inlcudedArtifacts == null) {
 	    	inlcudedArtifacts = new ArrayList<Artifact>();
 
-	    	Set<String> exclusionKeys = new HashSet<String>();
-	    	if (exclusions != null) {
-		    	for (int i = 0; i < exclusions.length; i++) {
-		    		exclusionKeys.add(getArtifactKey(exclusions[i].getGroupId(), exclusions[i].getArtifactId()));
-		    	}
+            Set<Artifact> artifacts = project.getArtifacts();
+	    	
+	    	if (includes != null) {
+	    	    if (exclusions != null) {
+	    	        throw new MojoExecutionException( "Both inlcudes and exclusions are specified" );
+	    	    }
+	    	    Set<String> inclusionKeys = getArtifactKeys( includes );
+
+	    	    for (Artifact a : artifacts) {
+	    	        if (inclusionKeys.contains( getArtifactKey( a.getGroupId(), a.getArtifactId() ) ) ) {
+	    	            inlcudedArtifacts.add( a );
+	    	        }
+	    	    }
+	    	} else {
+    	    	Set<String> exclusionKeys = new HashSet<String>(getArtifactKeys(  exclusions ) );
+    	    	exclusionKeys.addAll(getImportedArtifactKeys());
+                for (Artifact a : artifacts) {
+    	        	if (!exclusionKeys.contains(getArtifactKey(a.getGroupId(), a.getArtifactId()))) {
+    	        		inlcudedArtifacts.add(a);
+    	        	}
+    	        }
 	    	}
-	    	exclusionKeys.addAll(getImportedArtifactKeys());
-	
-	        for (Iterator<Artifact> i = project.getArtifacts().iterator(); i.hasNext(); ) {
-	        	Artifact a = (Artifact) i.next();
-	        	if (!exclusionKeys.contains(getArtifactKey(a.getGroupId(), a.getArtifactId()))) {
-	        		inlcudedArtifacts.add(a);
-	        	}
-	        }
     	}
 
         return inlcudedArtifacts;
@@ -515,4 +545,13 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 		plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
 	}
 
+	private Set<String> getArtifactKeys(ArtifactRef[] refs) {
+        Set<String> keys = new HashSet<String>();
+        if (refs != null) {
+            for (int i = 0; i < refs.length; i++) {
+                keys.add(getArtifactKey(refs[i].getGroupId(), refs[i].getArtifactId()));
+            }
+        }
+	    return keys;
+	}
 }
