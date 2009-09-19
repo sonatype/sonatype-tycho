@@ -20,7 +20,7 @@ public class TychoRepositoryRoundtripTest
     {
         Verifier v01 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build01", false );
         v01.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
-        v01.getCliOptions().add( "-Dmaven.test.skip=true" );
+        v01.getCliOptions().add( "-Dmaven.test.skip=true" ); // see https://issues.sonatype.org/browse/TYCHO-282
         v01.executeGoal( "install" );
         v01.verifyErrorFreeLog();
 

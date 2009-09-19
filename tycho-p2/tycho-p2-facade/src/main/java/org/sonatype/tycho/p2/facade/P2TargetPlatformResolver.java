@@ -124,6 +124,7 @@ public class P2TargetPlatformResolver
                 if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
                 {
                     resolver.addP2Repository( uri );
+                    getLogger().debug("Added p2 repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                 }
                 else
                 {
@@ -136,6 +137,7 @@ public class P2TargetPlatformResolver
                         TychoRepositoryIndex index = new DefaultTychoRepositoryIndex( reader );
     
                         resolver.addMavenRepository( uri, index, reader );
+                        getLogger().debug("Added Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                     }
                     catch ( FileNotFoundException e )
                     {

@@ -181,7 +181,7 @@ public class P2ResolverImpl
 
             fixSWT( newState, availableIUs, newSelectionContext );
 
-            List<IArtifactRequest> requests = new ArrayList<IArtifactRequest>();
+            List<MavenMirrorRequest> requests = new ArrayList<MavenMirrorRequest>();
             for ( IInstallableUnit iu : newState )
             {
                 if ( getReactorProjectBasedir( iu ) == null )
@@ -202,9 +202,25 @@ public class P2ResolverImpl
 
             localRepository.save();
 
+            // check for locally installed artifacts, which are not available from any remote repo
+            for ( Iterator<MavenMirrorRequest> iter = requests.iterator(); iter.hasNext(); )
+            {
+                MavenMirrorRequest request = iter.next();
+                if ( localRepository.contains( request.getArtifactKey() ) )
+                {
+                    iter.remove();
+                }
+            }
+
             if ( !requests.isEmpty() )
             {
-                throw new RuntimeException( "Could not download artifacts from any repository" );
+                StringBuilder msg = new StringBuilder( "Could not download artifacts from any repository\n" );
+                for ( MavenMirrorRequest request : requests )
+                {
+                    msg.append("   ").append( request.getArtifactKey().toExternalForm() ).append( '\n' );
+                }
+
+                throw new RuntimeException( msg.toString() );
             }
 
             for ( IInstallableUnit iu : newState )
@@ -374,10 +390,10 @@ public class P2ResolverImpl
         return null;
     }
 
-    private List<IArtifactRequest> filterCompletedRequests( List<IArtifactRequest> requests )
+    private List<MavenMirrorRequest> filterCompletedRequests( List<MavenMirrorRequest> requests )
     {
-        ArrayList<IArtifactRequest> filteredRequests = new ArrayList<IArtifactRequest>();
-        for ( IArtifactRequest request : requests )
+        ArrayList<MavenMirrorRequest> filteredRequests = new ArrayList<MavenMirrorRequest>();
+        for ( MavenMirrorRequest request : requests )
         {
             if ( request.getResult() == null || !request.getResult().isOK() )
             {
