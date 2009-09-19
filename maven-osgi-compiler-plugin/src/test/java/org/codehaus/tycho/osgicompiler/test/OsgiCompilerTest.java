@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.Maven;
+import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
@@ -49,14 +50,24 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		setVariableValueToObject(mojo, "project", project);
 		setVariableValueToObject(mojo, "storage", storage);
 		setVariableValueToObject(mojo, "outputDirectory", new File(project.getBuild().getOutputDirectory()).getAbsoluteFile());
-        setVariableValueToObject(mojo, "session", new MavenSession(getContainer(), null, null, projects));
+        setVariableValueToObject(mojo, "session", newMavenSession(project, projects));
 		
 		// tycho-compiler-jdt does not support forked compilation
 //		        setVariableValueToObject(mojo, "fork", fork? Boolean.TRUE: Boolean.FALSE);
 		return mojo;
 	}
 
-	public void testAccessRestrictionCompilationError() throws Exception {
+	private MavenSession newMavenSession( MavenProject project, List<MavenProject> projects ) throws Exception
+    {
+        MavenExecutionRequest request = newMavenExecutionRequest( new File( project.getBasedir(), "pom.xml" ) );
+        MavenExecutionResult result = new DefaultMavenExecutionResult();
+        MavenSession session = new MavenSession(getContainer(), request, result);
+        session.setCurrentProject( project );
+        session.setProjects( projects );
+        return session;
+    }
+
+    public void testAccessRestrictionCompilationError() throws Exception {
 		File basedir = getBasedir("projects/accessrules");
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 
