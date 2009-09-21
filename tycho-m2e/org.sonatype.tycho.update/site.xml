@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description url="http://tycho.sonatype.org/update">
+      Tycho
+   </description>
+   <feature url="features/org.sonatype.tycho.m2e.feature_0.4.0.qualifier.jar" id="org.sonatype.tycho.m2e.feature" version="0.4.0.qualifier">
+      <category name="Tycho Project Configurators"/>
+   </feature>
+   <category-def name="Tycho Project Configurators" label="Tycho Project Configurators"/>
+</site>
