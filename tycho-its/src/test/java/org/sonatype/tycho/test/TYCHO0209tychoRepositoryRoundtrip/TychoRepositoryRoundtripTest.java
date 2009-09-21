@@ -18,21 +18,26 @@ public class TychoRepositoryRoundtripTest
     public void testLocalMavenRepository()
         throws Exception
     {
+        // build01
         Verifier v01 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build01", false );
         v01.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
         v01.getCliOptions().add( "-Dmaven.test.skip=true" ); // see https://issues.sonatype.org/browse/TYCHO-282
         v01.executeGoal( "install" );
         v01.verifyErrorFreeLog();
 
+        // build02, some dependencies come from loca, some from remote repositories
         Verifier v02 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build02", false );
         v02.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
         v02.executeGoal( "install" );
         v02.verifyErrorFreeLog();
-
         File site = new File( v02.getBasedir(), "build02.site01/target/site" );
-
         Assert.assertEquals( 2, new File( site, "features" ).listFiles().length );
         Assert.assertEquals( 3, new File( site, "plugins" ).listFiles().length );
+
+        // build03, all dependencies come from local repository
+        Verifier v03 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build03", false );
+        v03.executeGoal( "install" );
+        v03.verifyErrorFreeLog();
     }
 
     @Test
