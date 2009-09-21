@@ -14,3 +14,4 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
 Bundle-ActivationPolicy: lazy
+Export-Package: org.sonatype.tycho.m2e.internal;x-friends:="org.sonatype.tycho.m2e.tests"

@@ -73,7 +73,12 @@ public class TychoLifecycleMapping
 
         // see org.eclipse.pde.internal.ui.wizards.tools.UpdateClasspathJob
         IPluginModelBase model = PluginRegistry.findModel( project );
-        ClasspathComputer.setClasspath( project, model );
+        if ( model != null )
+        {
+            // PDE populates the model cache lazily from WorkspacePluginModelManager.visit() ResourceChangeListenter
+            // Avoid NPE for now, but users may have to invoke PDE->UpdateClasspath manually  
+            ClasspathComputer.setClasspath( project, model );
+        }
     }
 
 }
