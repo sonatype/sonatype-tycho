@@ -265,6 +265,8 @@ public abstract class AbstractSourceJarMojo
             archive.setManifestFile( defaultManifestFile );
         }
 
+        updateSourceManifest(archive);
+
         File outputFile = new File( outputDirectory, finalName + "-" + getClassifier() + getExtension() );
         
         try
@@ -303,6 +305,11 @@ public abstract class AbstractSourceJarMojo
         }
     }
 
+    protected void updateSourceManifest(MavenArchiveConfiguration mavenArchiveConfiguration)
+    {
+        // Implemented optionally in sub classes
+    }
+    
     protected void archiveProjectContent( MavenProject p, Archiver archiver )
         throws MojoExecutionException
     {

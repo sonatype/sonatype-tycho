@@ -9,8 +9,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TychoConstants;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.osgi.framework.Version;
 
 /**
  * Goal to create a JAR-package containing all the source files of a osgi
@@ -22,6 +27,13 @@ import org.apache.maven.project.MavenProject;
  * @phase package
  */
 public class OsgiSourceMojo extends AbstractSourceJarMojo {
+    
+    private static final String BUNDLE_SYMBOLIC_NAME_SUFFIX = ".source";
+    private static final String MANIFEST_HEADER_BUNDLE_MANIFEST_VERSION = "Bundle-ManifestVersion";
+    private static final String MANIFEST_HEADER_BUNDLE_SYMBOLIC_NAME = "Bundle-SymbolicName";
+    private static final String MANIFEST_HEADER_BUNDLE_VERSION = "Bundle-Version";
+    private static final String MANIFEST_HEADER_ECLIPSE_SOURCE_BUNDLE = "Eclipse-SourceBundle";
+    private static final String VERSION_QUALIFIER = "qualifier";
 
 	/**
 	 * If set to true, compiler will use source folders defined in
@@ -34,6 +46,22 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 	 * @parameter default-value="true"
 	 */
 	private boolean usePdeSourceRoots;
+
+    /**
+     * Whether the source jar should be an Eclipse source bundle.
+     * 
+     * @parameter default-value="true"
+     */
+    private boolean sourceBundle;
+
+    /**
+     * Build qualifier. Recommended way to set this parameter is using
+     * build-qualifier goal. Only used when creating a source bundle. 
+     * 
+     * @parameter expression="${buildQualifier}"
+     */
+    private String qualifier;
+
 
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
@@ -98,5 +126,63 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 		}
 		return buildProperties;
 	}
+
+    @Override
+    protected void updateSourceManifest(MavenArchiveConfiguration mavenArchiveConfiguration) {
+        super.updateSourceManifest(mavenArchiveConfiguration);
+
+        if (sourceBundle)
+        {
+            addSourceBundleManifestEntries(mavenArchiveConfiguration);
+        }
+    }
+
+    private void addSourceBundleManifestEntries(MavenArchiveConfiguration mavenArchiveConfiguration)
+    {
+        BundleDescription bundleDescription = getProjectBundleManifest();
+
+        if ( bundleDescription != null
+        	    && bundleDescription.getSymbolicName() != null
+        	    && bundleDescription.getVersion() != null )
+        {
+            mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_MANIFEST_VERSION, "2" );
+
+            mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_SYMBOLIC_NAME,
+            	    bundleDescription.getSymbolicName() + BUNDLE_SYMBOLIC_NAME_SUFFIX );
+
+            Version expandedVersion = getExpandedVersion(bundleDescription.getVersion());
+
+            mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_VERSION, expandedVersion.toString() );
+
+            mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_ECLIPSE_SOURCE_BUNDLE, bundleDescription.getSymbolicName()
+            	    + ";version=\"" + expandedVersion + '"' );
+        }
+        else
+        {
+            getLog().info("NOT adding source bundle manifest entries. Incomplete or no bundle information available.");
+        }
+    }
+
+    private Version getExpandedVersion(Version version)
+    {
+        if ( VERSION_QUALIFIER.equals(version.getQualifier()) )
+        {
+            return new Version(version.getMajor(), version.getMinor(), version.getMicro(), qualifier);
+        }
+        return version;
+    }
+
+    private BundleDescription getProjectBundleManifest()
+    {
+        BundleResolutionState bundleResolutionState =
+            (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
+
+        if ( bundleResolutionState != null )
+        {
+            return bundleResolutionState.getBundleByLocation( project.getBasedir() );
+        }
+
+        return null;
+    }
 
 }
