@@ -212,7 +212,7 @@ public class LocalArtifactRepository
         return new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, classifier, extension ) );
     }
 
-    private GAV getGAV( IArtifactDescriptor descriptor )
+    public GAV getGAV( IArtifactDescriptor descriptor )
     {
         GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
 

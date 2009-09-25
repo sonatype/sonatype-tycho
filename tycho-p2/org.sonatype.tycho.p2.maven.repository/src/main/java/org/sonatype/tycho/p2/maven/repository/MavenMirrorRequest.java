@@ -6,6 +6,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.artifact.repository.MirrorRequest;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
+import org.sonatype.tycho.p2.facade.internal.GAV;
 
 @SuppressWarnings( "restriction" )
 public class MavenMirrorRequest
@@ -13,10 +15,14 @@ public class MavenMirrorRequest
 {
 
     private final LocalArtifactRepository localRepository;
+    private final IInstallableUnit iu;
+    private final LocalMetadataRepository localMetadataRepository;
 
-    public MavenMirrorRequest( IArtifactKey key, LocalArtifactRepository localRepository )
+    public MavenMirrorRequest( IInstallableUnit iu, IArtifactKey key, LocalMetadataRepository localMetadataRepository, LocalArtifactRepository localRepository )
     {
         super( key, localRepository, null, null );
+        this.iu = iu;
+        this.localMetadataRepository = localMetadataRepository;
 
         this.localRepository = localRepository;
     }
@@ -64,6 +70,14 @@ public class MavenMirrorRequest
         // not a maven repo and not in maven local repo, delegate to p2 implementation
 
         super.perform( monitor );
+
+        if ( getResult().isOK() )
+        {
+            // If we got here, we just copied artifact from p2 to local maven repo
+            // Now need to create matching p2 metadata to describe installable unit
+            GAV gav = localRepository.getP2GAV( descriptor );
+            localMetadataRepository.addInstallableUnit( iu, gav );
+        }
     }
 
     private IArtifactDescriptor getArtifactDescriptor()

@@ -25,7 +25,7 @@ public class TychoRepositoryRoundtripTest
         v01.executeGoal( "install" );
         v01.verifyErrorFreeLog();
 
-        // build02, some dependencies come from loca, some from remote repositories
+        // build02, some dependencies come from local, some from remote repositories
         Verifier v02 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build02", false );
         v02.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
         v02.executeGoal( "install" );

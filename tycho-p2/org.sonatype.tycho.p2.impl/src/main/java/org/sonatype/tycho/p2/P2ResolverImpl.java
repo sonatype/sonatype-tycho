@@ -71,12 +71,21 @@ public class P2ResolverImpl
 
     private P2GeneratorImpl generator = new P2GeneratorImpl( true );
 
+    /**
+     * All known P2 metadata repositories, including maven local repository 
+     */
     private List<IMetadataRepository> metadataRepositories = new ArrayList<IMetadataRepository>();
 
+    /**
+     * All known P2 artifact repositories, NOT including maven local repository.
+     */
     private List<IArtifactRepository> artifactRepositories = new ArrayList<IArtifactRepository>();
 
-    /** maven local repository */
+    /** maven local repository as P2 IArtifactRepository */
     private LocalArtifactRepository localRepository;
+
+    /** maven local repository as P2 IMetadataRepository */
+    private LocalMetadataRepository localMetadataRepository;
 
     private Map<File, Set<IInstallableUnit>> projectIUs = new HashMap<File, Set<IInstallableUnit>>();
 
@@ -148,7 +157,7 @@ public class P2ResolverImpl
 
         Dictionary newSelectionContext = SimplePlanner.createSelectionContext( properties );
 
-        IInstallableUnit[] availableIUs = gatherAvailableInstallableUnits( metadataRepositories, monitor );
+        IInstallableUnit[] availableIUs = gatherAvailableInstallableUnits( monitor );
 
         Set<IInstallableUnit> rootIUs = getProjectIUs( projectLocation );
 
@@ -188,7 +197,7 @@ public class P2ResolverImpl
                 {
                     for ( IArtifactKey key : iu.getArtifacts() )
                     {
-                        requests.add( new MavenMirrorRequest( key, localRepository ) );
+                        requests.add( new MavenMirrorRequest( iu, key, localMetadataRepository, localRepository ) );
                     }
                 }
             }
@@ -201,6 +210,7 @@ public class P2ResolverImpl
             }
 
             localRepository.save();
+            localMetadataRepository.save();
 
             // check for locally installed artifacts, which are not available from any remote repo
             for ( Iterator<MavenMirrorRequest> iter = requests.iterator(); iter.hasNext(); )
@@ -404,8 +414,7 @@ public class P2ResolverImpl
     }
 
     @SuppressWarnings( "unchecked" )
-    public IInstallableUnit[] gatherAvailableInstallableUnits( List<IMetadataRepository> repositories,
-                                                               IProgressMonitor monitor )
+    public IInstallableUnit[] gatherAvailableInstallableUnits( IProgressMonitor monitor )
     {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
@@ -413,9 +422,9 @@ public class P2ResolverImpl
         {
             result.addAll( ius );
         }
-
-        SubMonitor sub = SubMonitor.convert( monitor, repositories.size() * 200 );
-        for ( IMetadataRepository repository : repositories )
+        
+        SubMonitor sub = SubMonitor.convert( monitor, metadataRepositories.size() * 200 );
+        for ( IMetadataRepository repository : metadataRepositories )
         {
             Collector matches = repository.query( InstallableUnitQuery.ANY, new Collector(), sub.newChild( 100 ) );
             for ( Iterator<IInstallableUnit> it = matches.iterator(); it.hasNext(); )
@@ -428,7 +437,7 @@ public class P2ResolverImpl
                 }
                 else
                 {
-                    System.out.println( "PARTIAL: " + iu );
+                    System.out.println( "PARTIAL IU: " + iu );
                 }
             }
         }
@@ -469,8 +478,10 @@ public class P2ResolverImpl
 
         localRepository = new LocalArtifactRepository( location, projectIndex, contentLocator );
 
+        localMetadataRepository = new LocalMetadataRepository( location.toURI(), projectIndex, contentLocator );
+
         // XXX remove old
-        metadataRepositories.add( new LocalMetadataRepository( location.toURI(), projectIndex, contentLocator ) );
+        metadataRepositories.add( localMetadataRepository );
     }
 
     public void setProperties( Properties properties )

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Mirror;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.DefaultTargetPlatform;
@@ -26,7 +27,7 @@ public class LocalTargetPlatformResolver
     @Requirement
     private EclipseInstallationLayout layout;
 
-    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies )
+    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies, List<Mirror> mirrors )
     {
         DefaultTargetPlatform platform = createPlatform();
 

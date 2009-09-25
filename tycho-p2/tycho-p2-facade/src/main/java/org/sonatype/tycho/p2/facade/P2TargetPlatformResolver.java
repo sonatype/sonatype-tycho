@@ -12,9 +12,12 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
+import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.settings.Mirror;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -30,6 +33,7 @@ import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
+import org.codehaus.tycho.model.Target.Location;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
@@ -60,7 +64,14 @@ public class P2TargetPlatformResolver
 
     private P2ResolverFactory resolverFactory;
 
-    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies )
+    @Requirement( hint = "p2" )
+    private ArtifactRepositoryLayout p2layout;
+
+    private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
+        new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
+                                      ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
+
+    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies, List<Mirror> mirrors )
     {
         TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project
             .getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
@@ -169,7 +180,7 @@ public class P2TargetPlatformResolver
             {
                 try
                 {
-                    URI uri = new URI( location.getRepositoryLocation() );
+                    URI uri = new URI( getMirror( location, mirrors ) );
                     if ( uris.add( uri ) )
                     {
                         resolver.addP2Repository( uri );
@@ -208,7 +219,23 @@ public class P2TargetPlatformResolver
         return platform;
     }
 
-    public void initialize()
+    private String getMirror( Location location, List<Mirror> mirrors )
+    {
+        String url = location.getRepositoryLocation();
+        String id = location.getRepositoryId();
+        if ( id == null )
+        {
+            id = url;
+        }
+
+        ArtifactRepository repository = repositorySystem.createArtifactRepository( id, url, p2layout, P2_REPOSITORY_POLICY, P2_REPOSITORY_POLICY );
+
+        Mirror mirror = repositorySystem.getMirror( repository, mirrors );
+        
+        return mirror != null ? mirror.getUrl() : url;
+    }
+
+	public void initialize()
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );

@@ -50,21 +50,26 @@ public class LocalMetadataRepository
         {
             GAV gav = RepositoryLayoutHelper.getGAV( unit.getProperties() );
 
-            this.units.add( unit );
-
-            Set<IInstallableUnit> gavUnits = unitsMap.get( gav );
-            if ( gavUnits == null )
-            {
-                gavUnits = new HashSet<IInstallableUnit>();
-                unitsMap.put( gav, gavUnits );
-            }
-            gavUnits.add( unit );
+            addInstallableUnit( unit, gav );
         }
 
         save();
     }
 
-    private void save()
+    public void addInstallableUnit( IInstallableUnit unit, GAV gav )
+    {
+        this.units.add( unit );
+
+        Set<IInstallableUnit> gavUnits = unitsMap.get( gav );
+        if ( gavUnits == null )
+        {
+            gavUnits = new HashSet<IInstallableUnit>();
+            unitsMap.put( gav, gavUnits );
+        }
+        gavUnits.add( unit );
+    }
+
+    public void save()
     {
         File basedir = new File( getLocation() );
 

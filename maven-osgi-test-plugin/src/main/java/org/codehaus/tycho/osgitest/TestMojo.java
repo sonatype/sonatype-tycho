@@ -248,7 +248,7 @@ public class TestMojo extends AbstractMojo {
 
 		dependencies.addAll( getTestDependencies() );
 
-		TargetPlatform targetPlatform = platformResolver.resolvePlatform( project, dependencies );
+		TargetPlatform targetPlatform = platformResolver.resolvePlatform( project, dependencies, session.getRequest().getMirrors() );
 
 		if (targetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");

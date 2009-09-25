@@ -80,7 +80,7 @@ public class TychoMavenLifecycleParticipant
                 DependenciesReader dr =
                     (DependenciesReader) container.lookup( DependenciesReader.class, project.getPackaging() );
                 logger.info( "Resolving target platform for project " + project );
-                TargetPlatform targetPlatform = resolver.resolvePlatform( project, null );
+                TargetPlatform targetPlatform = resolver.resolvePlatform( project, null, request.getMirrors() );
                 project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM, targetPlatform );
                 for ( Dependency dependency : dr.getDependencies( session, project ) )
                 {

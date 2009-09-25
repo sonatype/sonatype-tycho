@@ -58,6 +58,18 @@ public class Target
                 repositoryDom.setAttribute( "location", locationURI );
             }
         }
+
+        public String getRepositoryId()
+        {
+            Xpp3Dom repositoryDom = dom.getChild( "repository" );
+            if ( repositoryDom == null )
+            {
+                return null;
+            }
+
+            // this is Maven specific, used to match credentials and mirrors
+            return repositoryDom.getAttribute( "id" );
+        }
     }
 
     public static class Unit

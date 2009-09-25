@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Mirror;
 
 
 /**
@@ -15,7 +16,7 @@ import org.apache.maven.project.MavenProject;
  */
 public interface TargetPlatformResolver
 {
-    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies );
+    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies, List<Mirror> mirrors );
 
     public void setMavenProjects( List<MavenProject> projects );
 

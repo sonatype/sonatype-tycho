@@ -35,28 +35,29 @@
 
   <properties>
     <!-- copy&paste from maven/pom.xml file. I wish import scope worked in 3.0 -->
-    <classWorldsVersion>2.1.0-SNAPSHOT</classWorldsVersion>
+    <classWorldsVersion>2.1.0</classWorldsVersion>
     <commonsCliVersion>1.2</commonsCliVersion>
     <easyMockVersion>1.2_Java1.3</easyMockVersion>
     <junitVersion>3.8.2</junitVersion>
-    <plexusVersion>1.2.1-SNAPSHOT</plexusVersion>
+    <plexusVersion>1.2.1</plexusVersion>
     <plexusInterpolationVersion>1.11</plexusInterpolationVersion>
     <plexusPluginManagerVersion>1.0-alpha-1</plexusPluginManagerVersion>
+    <plexusUtilsVersion>2.0.0</plexusUtilsVersion>
     <wagonVersion>1.0-beta-6</wagonVersion>
     <securityDispatcherVersion>1.3</securityDispatcherVersion>
     <modelloVersion>1.1</modelloVersion>
     <jxpathVersion>1.3</jxpathVersion>
-
-    <!-- PLXUTILS-114 (DirectoryScanner includes/excludes does not work cross-platform) -->
-    <plexusUtilsVersion>1.5.16-SNAPSHOT</plexusUtilsVersion>
 
     <!--
       Check out maven 3.0 source and make note of the svn rev.
 
       Rename the 3.0-SNAPSHOT to something like 3.0-TYCHO-[svnrev] in all the poms,
       including cross dependencies.
-      
-      Override deployment repository with source:jar -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/service/local/staging/deploy/maven2/
+
+      Override deployment repository with 
+
+        clean source:jar deploy -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/service/local/staging/deploy/maven2/
+
       DO NOT FORGET TO DEPLOY SOURCES (add source:jar goal)
       
       Promote build to tycho-pseudo-releases repository from nexus GUI
@@ -65,7 +66,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-TYCHO-816755</maven-version>
+    <maven-version>3.0-TYCHO-818442</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0
