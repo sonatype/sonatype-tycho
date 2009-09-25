@@ -7,6 +7,7 @@ import org.eclipse.equinox.internal.p2.artifact.repository.MirrorRequest;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
+import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 
 @SuppressWarnings( "restriction" )
@@ -75,7 +76,16 @@ public class MavenMirrorRequest
         {
             // If we got here, we just copied artifact from p2 to local maven repo
             // Now need to create matching p2 metadata to describe installable unit
-            GAV gav = localRepository.getP2GAV( descriptor );
+            GAV gav = null;
+            if ( descriptor != null )
+            {
+                gav = localRepository.getP2GAV( descriptor );
+            }
+            if ( gav == null )
+            {
+                IArtifactKey key = getArtifactKey();
+                gav = RepositoryLayoutHelper.getP2Gav( key.getClassifier(), key.getId(), key.toString() );
+            }
             localMetadataRepository.addInstallableUnit( iu, gav );
         }
     }

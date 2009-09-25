@@ -142,8 +142,6 @@ public class LocalArtifactRepository
             gav = getP2GAV( descriptor );
         }
 
-        // TODO new LocalRepositoryM2("/repo").getWriter().writeArtifacts( ... )
-
         File basedir = getBasedir();
         File file = new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, null, null ) );
         file.getParentFile().mkdirs();
