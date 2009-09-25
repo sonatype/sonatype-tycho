@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import junit.framework.Assert;
 
@@ -96,22 +97,34 @@ public class LocalMetadataRepositoryTest
 
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
         iud.setId( "test" );
-        iud.setVersion( new Version( "1.0.0" ) );
+        iud.setVersion( Version.parseVersion( "1.0.0" ) );
 
         iud.setProperty( RepositoryLayoutHelper.PROP_GROUP_ID, "group" );
         iud.setProperty( RepositoryLayoutHelper.PROP_ARTIFACT_ID, "artifact" );
         iud.setProperty( RepositoryLayoutHelper.PROP_VERSION, "version" );
 
+        InstallableUnitDescription iud2 = new MetadataFactory.InstallableUnitDescription();
+        iud2.setId( "test2" );
+        iud2.setVersion( Version.parseVersion( "1.0.0" ) );
+
+        iud2.setProperty( RepositoryLayoutHelper.PROP_GROUP_ID, "group" );
+        iud2.setProperty( RepositoryLayoutHelper.PROP_ARTIFACT_ID, "artifact2" );
+        iud2.setProperty( RepositoryLayoutHelper.PROP_VERSION, "version" );
+
         IInstallableUnit iu = MetadataFactory.createInstallableUnit( iud );
-        repository.addInstallableUnits( new IInstallableUnit[] { iu } );
-        
+        IInstallableUnit iu2 = MetadataFactory.createInstallableUnit( iud2 );
+        repository.addInstallableUnits( new IInstallableUnit[] { iu, iu2 } );
+
         manager.removeRepository( location.toURI() );
         repository = (LocalMetadataRepository) manager.loadRepository( location.toURI(), monitor );
 
         Collector iusCollector = repository.query( new AnyIUQuery(), new Collector(), monitor );
-        ArrayList<IInstallableUnit> ius = new ArrayList<IInstallableUnit>( iusCollector.toCollection() );
+        ArrayList<IInstallableUnit> allius = new ArrayList<IInstallableUnit>( iusCollector.toCollection() );
+        Assert.assertEquals( 2, allius.size() );
+        Assert.assertEquals( iu.getId(), allius.get( 0 ).getId() );
+
+        Set<IInstallableUnit> ius = repository.getGAVs().get( RepositoryLayoutHelper.getGAV( iu.getProperties() ) );
         Assert.assertEquals( 1, ius.size() );
-        Assert.assertEquals( iu.getId(), ius.get( 0 ).getId() );
     }
 
 }

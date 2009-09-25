@@ -90,5 +90,11 @@ public abstract class AbstractMavenMetadataRepository
         return query.perform( units.iterator(), collector );
     }
 
-
+    /**
+     * For testing purposes only 
+     */
+    public Map<GAV, Set<IInstallableUnit>> getGAVs()
+    {
+        return unitsMap;
+    }
 }

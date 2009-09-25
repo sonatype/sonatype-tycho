@@ -82,23 +82,28 @@ public class LocalMetadataRepository
         {
             GAV gav = gavEntry.getKey();
 
-            String relpath = RepositoryLayoutHelper.getRelativePath(
-                gav,
-                RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                RepositoryLayoutHelper.EXTENSION_P2_METADATA );
+            Set<IInstallableUnit> gavUnits = unitsMap.get( gav );
 
-            File file = new File( basedir, relpath );
-            file.getParentFile().mkdirs();
-
-            try
+            if ( gavUnits != null && !gavUnits.isEmpty() )
             {
-                io.writeXML( units, file );
+                String relpath = RepositoryLayoutHelper.getRelativePath(
+                    gav,
+                    RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
+                    RepositoryLayoutHelper.EXTENSION_P2_METADATA );
 
-                index.addProject( gav );
-            }
-            catch ( IOException e )
-            {
-                // XXX not good
+                File file = new File( basedir, relpath );
+                file.getParentFile().mkdirs();
+
+                try
+                {
+                    io.writeXML( gavUnits, file );
+    
+                    index.addProject( gav );
+                }
+                catch ( IOException e )
+                {
+                    // XXX not good
+                }
             }
         }
 
