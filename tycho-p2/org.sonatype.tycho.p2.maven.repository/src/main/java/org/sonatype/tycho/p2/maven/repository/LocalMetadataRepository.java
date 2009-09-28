@@ -19,6 +19,8 @@ import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 public class LocalMetadataRepository
     extends AbstractMavenMetadataRepository
 {
+    
+    private Set<GAV> changedGAVs = new HashSet<GAV>();
 
     /**
      * Create new repository
@@ -67,6 +69,8 @@ public class LocalMetadataRepository
             unitsMap.put( gav, gavUnits );
         }
         gavUnits.add( unit );
+
+        changedGAVs.add( gav );
     }
 
     public void save()
@@ -78,10 +82,8 @@ public class LocalMetadataRepository
 
         MetadataIO io = new MetadataIO();
 
-        for ( Map.Entry<GAV, Set<IInstallableUnit>> gavEntry : unitsMap.entrySet() )
+        for ( GAV gav : changedGAVs )
         {
-            GAV gav = gavEntry.getKey();
-
             Set<IInstallableUnit> gavUnits = unitsMap.get( gav );
 
             if ( gavUnits != null && !gavUnits.isEmpty() )
@@ -102,7 +104,7 @@ public class LocalMetadataRepository
                 }
                 catch ( IOException e )
                 {
-                    // XXX not good
+                    throw new RuntimeException( e );
                 }
             }
         }
@@ -113,8 +115,10 @@ public class LocalMetadataRepository
         }
         catch ( IOException e )
         {
-            // XXX not good
+            throw new RuntimeException( e );
         }
+        
+        changedGAVs.clear();
     }
 
     @Override

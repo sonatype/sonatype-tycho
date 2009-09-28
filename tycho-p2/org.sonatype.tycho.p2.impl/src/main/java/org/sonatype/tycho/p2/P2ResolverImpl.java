@@ -48,6 +48,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
+import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
@@ -70,6 +71,8 @@ public class P2ResolverImpl
     private static final IRequiredCapability[] REQUIRED_CAPABILITY_ARRAY = new IRequiredCapability[0];
 
     private P2GeneratorImpl generator = new P2GeneratorImpl( true );
+
+    private P2RepositoryCache repositoryCache;
 
     /**
      * All known P2 metadata repositories, including maven local repository 
@@ -450,7 +453,7 @@ public class P2ResolverImpl
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
         String time = Long.toString( System.currentTimeMillis() );
         iud.setId( time );
-        iud.setVersion( new Version( 0, 0, 0, time ) );
+        iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
 
         ArrayList<IRequiredCapability> capabilities = new ArrayList<IRequiredCapability>();
         for ( IInstallableUnit iu : rootIUs )
@@ -473,12 +476,21 @@ public class P2ResolverImpl
 
     public void setLocalRepositoryLocation( File location )
     {
-        TychoRepositoryIndex projectIndex = new LocalTychoRepositoryIndex( location );
-        RepositoryReader contentLocator = new LocalRepositoryReader( location );
+        URI uri = location.toURI();
 
-        localRepository = new LocalArtifactRepository( location, projectIndex, contentLocator );
+        localRepository = (LocalArtifactRepository) repositoryCache.getArtifactRepository( uri );
+        localMetadataRepository = (LocalMetadataRepository) repositoryCache.getMetadataRepository( uri );
 
-        localMetadataRepository = new LocalMetadataRepository( location.toURI(), projectIndex, contentLocator );
+        if ( localRepository == null || localMetadataRepository == null )
+        {
+            TychoRepositoryIndex projectIndex = new LocalTychoRepositoryIndex( location );
+            RepositoryReader contentLocator = new LocalRepositoryReader( location );
+    
+            localRepository = new LocalArtifactRepository( location, projectIndex, contentLocator );
+            localMetadataRepository = new LocalMetadataRepository( uri, projectIndex, contentLocator );
+            
+            repositoryCache.putRepository( uri, localMetadataRepository, localRepository );
+        }
 
         // XXX remove old
         metadataRepositories.add( localMetadataRepository );
@@ -515,12 +527,28 @@ public class P2ResolverImpl
 
     public void addMavenRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
-        metadataRepositories.add( new MavenMetadataRepository( location, projectIndex, contentLocator ) );
-        artifactRepositories.add( new MavenArtifactRepository( location, projectIndex, contentLocator ) );
+        MavenMetadataRepository metadataRepository = (MavenMetadataRepository) repositoryCache.getMetadataRepository( location );
+        MavenArtifactRepository artifactRepository = (MavenArtifactRepository) repositoryCache.getArtifactRepository( location );
+        
+        if ( metadataRepository == null || artifactRepository == null )
+        {
+            metadataRepository = new MavenMetadataRepository( location, projectIndex, contentLocator );
+            artifactRepository = new MavenArtifactRepository( location, projectIndex, contentLocator );
+            
+            repositoryCache.putRepository( location, metadataRepository, artifactRepository );
+        }
+        
+        metadataRepositories.add( metadataRepository );
+        artifactRepositories.add( artifactRepository );
     }
 
     public void setLogger( P2Logger logger )
     {
         this.monitor = new LoggingProgressMonitor( logger );
+    }
+
+    public void setRepositoryCache( P2RepositoryCache repositoryCache )
+    {
+        this.repositoryCache = repositoryCache;
     }
 }

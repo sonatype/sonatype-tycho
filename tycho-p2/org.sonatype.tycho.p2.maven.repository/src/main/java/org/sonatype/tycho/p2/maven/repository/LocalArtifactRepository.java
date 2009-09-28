@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -31,6 +29,8 @@ import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 public class LocalArtifactRepository
     extends AbstractMavenArtifactRepository
 {
+    
+    private Set<IArtifactKey> changedDescriptors = new HashSet<IArtifactKey>();
 
     public LocalArtifactRepository( File location )
     {
@@ -48,13 +48,11 @@ public class LocalArtifactRepository
 
         LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location );
 
-        Properties properties = new Properties();
-
         ArtifactsIO io = new ArtifactsIO();
 
-        for ( Map.Entry<IArtifactKey, Set<IArtifactDescriptor>> keyEntry : descriptorsMap.entrySet() )
+        for ( IArtifactKey key : changedDescriptors )
         {
-            Set<IArtifactDescriptor> keyDescriptors = keyEntry.getValue();
+            Set<IArtifactDescriptor> keyDescriptors = descriptorsMap.get( key );
             if ( keyDescriptors != null && !keyDescriptors.isEmpty() )
             {
                 IArtifactDescriptor random = keyDescriptors.iterator().next();
@@ -83,12 +81,10 @@ public class LocalArtifactRepository
                     {
                         os.close();
                     }
-
-                    properties.put( keyEntry.getKey().toExternalForm(), gav.toExternalForm() );
                 }
                 catch ( IOException e )
                 {
-                    // XXX not good
+                    throw new RuntimeException( e );
                 }
             }
         }
@@ -99,10 +95,10 @@ public class LocalArtifactRepository
         }
         catch ( IOException e )
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new RuntimeException( e );
         }
 
+        changedDescriptors.clear();
     }
 
     private String getMetadataRelpath( GAV gav )
@@ -160,6 +156,8 @@ public class LocalArtifactRepository
             descriptorsMap.put( key, keyDescriptors );
         }
         keyDescriptors.add( newDescriptor );
+
+        changedDescriptors.add( key );
 
         try
         {
@@ -232,5 +230,13 @@ public class LocalArtifactRepository
     public boolean contains( IArtifactDescriptor descriptor )
     {
         return super.contains( descriptor ) && getLocationFile( descriptor ).canRead();
+    }
+
+    @Override
+    public void addDescriptor( IArtifactDescriptor descriptor )
+    {
+        super.addDescriptor( descriptor );
+
+        changedDescriptors.add( descriptor.getArtifactKey() );
     }
 }

@@ -6,11 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -30,11 +26,6 @@ import org.codehaus.plexus.component.annotations.Requirement;
 public class MavenRepositoryReader
     implements RepositoryReader
 {
-    /**
-     * Maps repository URL to set of GAVC keys that are not present in the repository
-     */
-    private static Map<String, Set<String>> notFoundCache = new HashMap<String, Set<String>>();
-
     @Requirement
     private RepositorySystem repositorySystem;
 
@@ -45,13 +36,6 @@ public class MavenRepositoryReader
     public InputStream getContents( GAV gav, String classifier, String extension )
         throws IOException
     {
-        String key = getKey( gav, classifier, extension );
-
-        if ( isNotFound( key ) )
-        {
-            throw new IOException( );
-        }
-
         Artifact a = repositorySystem.createArtifactWithClassifier( gav.getGroupId(), gav.getArtifactId(), gav
             .getVersion(), extension, classifier );
 
@@ -63,8 +47,6 @@ public class MavenRepositoryReader
 
         if ( !a.isResolved() )
         {
-            setNotFound( key );
-
             IOException exception = new IOException( "Could not resolve artifact" );
             if ( result.hasExceptions() )
             {
@@ -115,37 +97,6 @@ public class MavenRepositoryReader
                 file.delete();
             }
         };
-    }
-
-    private boolean isNotFound( String key )
-    {
-        for ( ArtifactRepository repository : repositories )
-        {
-            Set<String> keys = notFoundCache.get( repository.getUrl() );
-
-            if ( keys == null || !keys.contains( key ) )
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private void setNotFound( String key )
-    {
-        for ( ArtifactRepository repository : repositories )
-        {
-            Set<String> keys = notFoundCache.get( repository.getUrl() );
-
-            if ( keys == null )
-            {
-                keys = new HashSet<String>();
-                notFoundCache.put( repository.getUrl(), keys );
-            }
-
-            keys.add( key );
-        }
     }
 
     private String getKey( GAV gav, String classifier, String extension )

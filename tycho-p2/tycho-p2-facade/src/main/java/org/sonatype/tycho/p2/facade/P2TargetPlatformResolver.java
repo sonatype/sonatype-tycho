@@ -40,6 +40,7 @@ import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
+import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
@@ -67,6 +68,9 @@ public class P2TargetPlatformResolver
     @Requirement( hint = "p2" )
     private ArtifactRepositoryLayout p2layout;
 
+    @Requirement
+    private P2RepositoryCache repositoryCache;
+
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
@@ -77,6 +81,8 @@ public class P2TargetPlatformResolver
             .getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
 
         P2Resolver resolver = resolverFactory.createResolver();
+
+        resolver.setRepositoryCache( repositoryCache );
 
         resolver.setLogger( new P2Logger()
         {
@@ -144,9 +150,16 @@ public class P2TargetPlatformResolver
                         MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
                         reader.setArtifactRepository( repository );
                         reader.setLocalRepository( localRepository );
-    
-                        TychoRepositoryIndex index = new DefaultTychoRepositoryIndex( reader );
-    
+
+                        String repositoryKey = getRepositoryKey( repository );
+                        TychoRepositoryIndex index = repositoryCache.getRepositoryIndex( repositoryKey );
+                        if ( index == null )
+                        {
+                            index = new DefaultTychoRepositoryIndex( reader );
+                            
+                            repositoryCache.putRepositoryIndex( repositoryKey, index );
+                        }
+
                         resolver.addMavenRepository( uri, index, reader );
                         getLogger().debug("Added Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                     }
@@ -217,6 +230,14 @@ public class P2TargetPlatformResolver
         addProjects( platform );
 
         return platform;
+    }
+
+    private String getRepositoryKey( ArtifactRepository repository )
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( repository.getId() );
+        sb.append( '|' ).append( repository.getUrl() );
+        return sb.toString();
     }
 
     private String getMirror( Location location, List<Mirror> mirrors )

@@ -61,7 +61,7 @@ public class MavenMirrorRequest
 
         // not a maven repository, check local repo to avoid duplicate downloads
 
-        if ( descriptor != null && localRepository.contains( descriptor ) )
+        if ( localRepository.contains( getArtifactKey() ) )
         {
             setResult( Status.OK_STATUS );
 

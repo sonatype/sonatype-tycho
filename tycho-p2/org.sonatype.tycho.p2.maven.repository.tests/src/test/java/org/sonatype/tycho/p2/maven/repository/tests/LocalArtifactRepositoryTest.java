@@ -55,7 +55,7 @@ public class LocalArtifactRepositoryTest
         ArtifactDescriptor desc = newBundleArtifactDescriptor( false );
 
         URI location = repo.getLocation( desc );
-        Assert.assertEquals( new File( basedir, "p2/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0.jar" ).toURI(), location );
+        Assert.assertEquals( new File( basedir, "p2/osgi/bundle/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0.jar" ).toURI(), location );
 
         ProcessingStepDescriptor[] steps = new ProcessingStepDescriptor[] { 
               new ProcessingStepDescriptor( "org.eclipse.equinox.p2.processing.Pack200Unpacker", null, true ) 
@@ -64,7 +64,7 @@ public class LocalArtifactRepositoryTest
         desc.setProperty( IArtifactDescriptor.FORMAT, "packed" );
 
         location = repo.getLocation( desc );
-        Assert.assertEquals( new File( basedir, "p2/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0-pack200.jar.pack.gz" ).toURI(),
+        Assert.assertEquals( new File( basedir, "p2/osgi/bundle/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0-pack200.jar.pack.gz" ).toURI(),
                              location );
     }
 
@@ -108,7 +108,7 @@ public class LocalArtifactRepositoryTest
 
         writeDummyArtifact( repo, desc );
 
-        Assert.assertTrue( new File( basedir, "p2/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0.jar" ).exists() );
+        Assert.assertTrue( new File( basedir, "p2/osgi/bundle/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0.jar" ).exists() );
         Assert.assertTrue( repo.contains( desc.getArtifactKey() ) );
         Assert.assertTrue( repo.contains( desc ) );
     }

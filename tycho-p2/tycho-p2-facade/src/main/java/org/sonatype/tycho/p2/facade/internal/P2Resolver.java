@@ -38,4 +38,6 @@ public interface P2Resolver
     public void addDependency( String type, String id, String version );
 
     public void setLogger( P2Logger logger );
+
+    void setRepositoryCache( P2RepositoryCache repositoryCache );
 }
