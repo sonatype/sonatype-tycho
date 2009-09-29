@@ -1,9 +1,6 @@
 package org.sonatype.tycho.test.TYCHO109product;
 
 import static org.sonatype.tycho.test.util.EnvironmentUtil.isEclipse32Platform;
-import static org.sonatype.tycho.test.util.EnvironmentUtil.isLinux;
-import static org.sonatype.tycho.test.util.EnvironmentUtil.isMac;
-import static org.sonatype.tycho.test.util.EnvironmentUtil.isWindows;
 
 import java.io.File;
 import java.io.StringWriter;
@@ -33,12 +30,12 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 		verifier.verifyErrorFreeLog();
 
 		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "target/linux.gtk.x86_64/eclipse");
+		File output = new File(basedir, "target/linux.gtk.x86_64/eclipse/");
 
 		Assert.assertTrue("Exported product folder not found", output
 				.isDirectory());
 
-		File launcher = getLauncher(output, "headless");
+		File launcher = new File(output, "headless");
 		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
 		Assert.assertTrue("config.ini not found", new File(output,
 				"configuration/config.ini").isFile());
@@ -84,7 +81,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 
 		Assert.assertTrue("Exported product folder not found\n"
 				+ output.getAbsolutePath(), output.isDirectory());
-		File launcher = getLauncher(output, null);
+		File launcher = new File(output, "launcher");
 		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
 		Assert.assertTrue("config.ini not found", new File(output,
 				"configuration/config.ini").isFile());
@@ -122,22 +119,22 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 				"Headless application OK!"));
 	}
 
-	private File getLauncher(File output, String expectedName) {
-		if (expectedName == null) {
-			expectedName = "launcher";
-		}
-		if (isWindows()) {
-			return new File(output, expectedName + ".exe");
-		} else if (isLinux()) {
-			return new File(output, expectedName);
-		} else if (isMac()) {
-			return new File(output, "Eclipse.app/Contents/MacOS/"
-					+ expectedName);
-		} else {
-			Assert.fail("Unable to determine launcher to current OS");
-			return null;
-		}
-	}
+//	private File getLauncher(File output, String expectedName) {
+//		if (expectedName == null) {
+//			expectedName = "launcher";
+//		}
+//		if (isWindows()) {
+//			return new File(output, expectedName + ".exe");
+//		} else if (isLinux()) {
+//			return new File(output, expectedName);
+//		} else if (isMac()) {
+//			return new File(output, "Eclipse.app/Contents/MacOS/"
+//					+ expectedName);
+//		} else {
+//			Assert.fail("Unable to determine launcher to current OS");
+//			return null;
+//		}
+//	}
 
 	@Test
 	public void exportPluginRcpApplication() throws Exception {
