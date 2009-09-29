@@ -140,7 +140,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 	private String getClasspathElement(File base, String path, String accessRules) throws IOException {
 		String file = new File(base, path).getCanonicalPath();
-		return file.replace('\\', '/') + accessRules.replace(":", ClasspathComputer.ACCESS_RULE_SEPARATOR);
+		return file + accessRules.replace(":", ClasspathComputer.ACCESS_RULE_SEPARATOR);
 	}
 
 	public void test_multisourceP001_viaMojoConfiguration() throws Exception {
