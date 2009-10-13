@@ -171,6 +171,13 @@ public class TestMojo extends AbstractMojo {
     private String argLine;
 
     /**
+     * Arbitrary applications arguments to set on the command line.
+     * 
+     * @parameter
+     */
+    private String appArgLine;
+
+    /**
      * Kill the forked test process after a certain number of seconds.  If set to 0,
      * wait forever for the process, never timing out.
      * 
@@ -445,6 +452,10 @@ public class TestMojo extends AbstractMojo {
 				"-application",	getTestApplication(testRuntime),
 				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
+			if (appArgLine != null) {
+                Arg appArg = cli.createArg();
+                appArg.setLine(appArgLine);
+			}
 
 			getLog().info("Expected eclipse log file: " + new File(workspace, ".metadata/.log").getCanonicalPath());
 			getLog().info("Command line:\n\t" + cli.toString());
