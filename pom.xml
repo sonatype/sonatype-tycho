@@ -35,11 +35,11 @@
 
   <properties>
     <!-- copy&paste from maven/pom.xml file. I wish import scope worked in 3.0 -->
-    <classWorldsVersion>2.1.0</classWorldsVersion>
+    <classWorldsVersion>2.2.0</classWorldsVersion>
     <commonsCliVersion>1.2</commonsCliVersion>
     <easyMockVersion>1.2_Java1.3</easyMockVersion>
     <junitVersion>3.8.2</junitVersion>
-    <plexusVersion>1.2.1</plexusVersion>
+    <plexusVersion>1.4.0-SNAPSHOT</plexusVersion>
     <plexusInterpolationVersion>1.11</plexusInterpolationVersion>
     <plexusPluginManagerVersion>1.0-alpha-1</plexusPluginManagerVersion>
     <plexusUtilsVersion>2.0.0</plexusUtilsVersion>
@@ -66,7 +66,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-TYCHO-818442</maven-version>
+    <maven-version>3.0-SNAPSHOT</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0

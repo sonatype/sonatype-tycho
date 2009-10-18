@@ -12,9 +12,9 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.repository.ArtifactDoesNotExistException;
+import org.apache.maven.repository.ArtifactTransferFailedException;
 import org.apache.maven.repository.RepositorySystem;
-import org.apache.maven.wagon.ResourceDoesNotExistException;
-import org.apache.maven.wagon.TransferFailedException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 
@@ -74,13 +74,13 @@ public class MavenRepositoryReader
         {
             repositorySystem.retrieve( repository, file, remoteRelpath, null );
         }
-        catch ( TransferFailedException cause )
+        catch ( ArtifactTransferFailedException cause )
         {
-            IOException e = new IOException();
+            IOException e = new FileNotFoundException();
             e.initCause( cause );
             throw e;
         }
-        catch ( ResourceDoesNotExistException cause )
+        catch ( ArtifactDoesNotExistException cause )
         {
             IOException e = new FileNotFoundException();
             e.initCause( cause );

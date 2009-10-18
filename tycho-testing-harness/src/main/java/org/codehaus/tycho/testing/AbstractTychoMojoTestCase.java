@@ -5,11 +5,10 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.DefaultArtifactRepository;
-import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.FileUtils;
 
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
@@ -45,11 +44,11 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
     }
 
 	protected ArtifactRepository getLocalRepository() throws Exception {
-		ArtifactRepositoryLayout repoLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, "legacy");
+	    RepositorySystem repoSystem = lookup(RepositorySystem.class);
 		
 		File path = new File("target/local-repo").getCanonicalFile();
 
-		ArtifactRepository r = new DefaultArtifactRepository("local", "file://"	+ path, repoLayout);
+		ArtifactRepository r = repoSystem.createLocalRepository( path );
 
 		return r;
 	}

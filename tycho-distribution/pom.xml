@@ -49,7 +49,7 @@
                   <artifactId>apache-maven</artifactId>
                   <version>${maven-version}</version>
                   <classifier>bin</classifier>
-                  <type>tar.gz</type>
+                  <type>zip</type>
                 </artifactItem>
               </artifactItems>
             </configuration>

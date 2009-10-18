@@ -7,9 +7,9 @@ public class CompoundRuntimeException
 {
     private static final long serialVersionUID = 4566763905270086193L;
 
-    private final Collection<Exception> causes;
+    private final Collection<Throwable> causes;
 
-    public CompoundRuntimeException( Collection<Exception> causes )
+    public CompoundRuntimeException( Collection<Throwable> causes )
     {
         this.causes = causes;
 
