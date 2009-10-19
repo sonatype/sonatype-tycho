@@ -45,6 +45,7 @@ public abstract class AbstractTychoIntegrationTest {
         
         Verifier verifier = new Verifier( testDir.getAbsolutePath() );
         verifier.getCliOptions().add("-Dmaven.home=" + getTychoHome());
+        verifier.getCliOptions().add("-Dtycho-version=" + getTychoVersion());
         if (setTargetPlatform) {
         	verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + getTargetPlatforn() );
         }
@@ -78,6 +79,10 @@ public abstract class AbstractTychoIntegrationTest {
 	
 	protected String getTychoHome() {
 		return EnvironmentUtil.getTychoHome();
+	}
+
+	protected String getTychoVersion() {
+		return EnvironmentUtil.getTychoVersion();
 	}
 
     protected void assertFileExists( File targetdir, String pattern )

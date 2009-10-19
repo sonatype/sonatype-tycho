@@ -12,11 +12,11 @@
     <componentDescriptor>src/main/assembly/common.xml</componentDescriptor>
   </componentDescriptors>
 
-  <fileSets>
+  <!--fileSets>
     <fileSet>
       <directory>target/dependency/tycho-p2-runtime/eclipse</directory>
       <outputDirectory>/p2</outputDirectory>
     </fileSet>
-  </fileSets>
+  </fileSets-->
 
 </assembly>

@@ -7,17 +7,21 @@ public class TYCHO45Test extends AbstractTychoIntegrationTest {
 
 	@Test
 	public void test() throws Exception {
-        Verifier verifier = getVerifier("TYCHO45");
+		String tychoVersion = getTychoVersion();
+
+		Verifier verifier = getVerifier("TYCHO45");
 
         // generate poms
         verifier.getCliOptions().add("-DgroupId=tycho45");
         verifier.getCliOptions().add("-DtestSuite=tests.suite");
         verifier.setAutoclean( false );
-        verifier.executeGoal( "org.codehaus.tycho:maven-tycho-plugin:generate-poms" );
+        verifier.setLogFileName( "log-init.txt" );
+        verifier.executeGoal( "org.codehaus.tycho:maven-tycho-plugin:" + tychoVersion + ":generate-poms" );
         verifier.verifyErrorFreeLog();
 
         // run the build
         verifier.getCliOptions().add("-DtestClass=tests.suite.AllTests");
+        verifier.setLogFileName( "log-test.txt" );
         verifier.executeGoal("integration-test");
         verifier.verifyErrorFreeLog();
 	}

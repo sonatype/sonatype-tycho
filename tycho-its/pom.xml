@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.codehaus.tycho</groupId>
     <artifactId>tycho</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
   </parent>
   <artifactId>tycho-its</artifactId>
 
@@ -93,23 +93,6 @@
                   <artifactId>emma</artifactId>
                   <version>${emmaVersion}</version>
                   <outputDirectory>${tycho-dir}/lib/</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-          <execution>
-            <id>copy-tycho-osgi-components</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.codehaus.tycho</groupId>
-                  <artifactId>tycho-osgi-components</artifactId>
-                  <version>${tycho-build-version}</version>
-                  <outputDirectory>${tycho-dir}/tycho/</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -222,6 +205,12 @@
       <type>tar.gz</type>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-runtime</artifactId>
+      <version>${tycho-build-version}</version>
+      <type>zip</type>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.maven.its</groupId>
@@ -232,7 +221,7 @@
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>maven-verifier</artifactId>
-      <version>1.2-SNAPSHOT</version>
+      <version>1.2</version>
     </dependency>
     
     <dependency>
@@ -248,6 +237,12 @@
     </dependency> 
 
     <!-- artifacts to be tested -->
+    <dependency>
+      <groupId>org.codehaus.tycho</groupId>
+      <artifactId>tycho-maven-plugin</artifactId>
+      <version>${tycho-build-version}</version>
+      <type>maven-plugin</type>
+    </dependency>
     <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>maven-tycho-plugin</artifactId>

@@ -72,6 +72,10 @@ public class EnvironmentUtil {
 		return getProperty("tycho-dir");
 	}
 
+	public static String getTychoVersion() {
+		return getProperty("tycho-version");
+	}
+
 	public static int getHttpServerPort() {
 		String port = getProperty("server-port");
 		return Integer.parseInt(port);

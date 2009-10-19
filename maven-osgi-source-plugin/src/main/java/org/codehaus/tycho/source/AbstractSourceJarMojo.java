@@ -236,7 +236,7 @@ public abstract class AbstractSourceJarMojo
     protected void packageSources( List projects )
         throws MojoExecutionException
     {
-        if ( project.getArtifact().getClassifier() != null )
+        if ( project.getArtifact().hasClassifier() )
         {
             getLog().warn( "NOT adding sources to artifacts with classifier as Maven only supports one classifier "
                 + "per artifact. Current artifact [" + project.getArtifact().getId() + "] has a ["

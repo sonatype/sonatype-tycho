@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<extension>
+  <exportedPackages>
+    <exportedPackage>org.codehaus.tycho</exportedPackage>
+    <exportedPackage>org.sonatype.tycho</exportedPackage>
+    <exportedPackage>org.osgi.framework</exportedPackage>
+    <exportedPackage>org.eclipse.osgi</exportedPackage>
+  </exportedPackages>
+
+  <exportedArtifacts>
+    <exportedArtifact>tycho-osgi-components</exportedArtifact>
+    <exportedArtifact>tycho-p2-facade</exportedArtifact>
+    <exportedArtifact>tycho-equinox</exportedArtifact>
+    <exportedArtifact>org.eclipse.osgi</exportedArtifact>
+  </exportedArtifacts>
+</extension>

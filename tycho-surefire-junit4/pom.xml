@@ -5,7 +5,7 @@
   <parent>
     <artifactId>tycho</artifactId>
     <groupId>org.codehaus.tycho</groupId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.codehaus.tycho</groupId>
@@ -18,8 +18,13 @@
     <plugins>
       <plugin>
         <groupId>org.codehaus.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.tycho</groupId>
         <artifactId>maven-osgi-packaging-plugin</artifactId>
-        <version>${tycho-version}</version>
         <configuration>
           <attachP2Metadata>false</attachP2Metadata>
         </configuration>

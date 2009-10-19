@@ -14,26 +14,14 @@
   <!--
     Do not forget to update newVersion property of maven-version-plugin below
   -->
-  <version>0.4.0-SNAPSHOT</version>
+  <version>0.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Tycho</name>
   <description>Tycho integrates Maven with Eclipse and OSGi</description>
 
-  <modules>
-    <module>maven-tycho-plugin</module>
-    <module>maven-osgi-packaging-plugin</module>
-    <module>maven-osgi-compiler-plugin</module>
-    <module>maven-osgi-source-plugin</module>
-    <module>tycho-compiler-jdt</module>
-    <module>tycho-osgi-components</module>
-    <module>tycho-distribution</module>
-    <module>tycho-testing-harness</module>
-    <module>tycho-equinox</module>
-    <module>tycho-p2/tycho-p2-facade</module>
-    <module>target-platform-configuration</module>
-  </modules>
-
   <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
     <!-- copy&paste from maven/pom.xml file. I wish import scope worked in 3.0 -->
     <classWorldsVersion>2.2.0</classWorldsVersion>
     <commonsCliVersion>1.2</commonsCliVersion>
@@ -336,6 +324,9 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.2-beta-2</version>
+          <configuration>
+            <tarLongFileMode>gnu</tarLongFileMode>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -403,10 +394,24 @@
   
     <!-- Do NOT run unit/integration tests during bootstrap build -->
     <profile>
-      <id>bootstrap</id>
+      <id>bootstrap-1</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
+      <modules>
+        <module>maven-tycho-plugin</module>
+        <module>maven-osgi-packaging-plugin</module>
+        <module>maven-osgi-compiler-plugin</module>
+        <module>maven-osgi-source-plugin</module>
+        <module>tycho-compiler-jdt</module>
+        <module>tycho-osgi-components</module>
+        <module>tycho-distribution</module>
+        <module>tycho-testing-harness</module>
+        <module>tycho-equinox</module>
+        <module>target-platform-configuration</module>
+        <module>tycho-p2</module>
+        <module>tycho-maven-plugin</module>
+      </modules>
       <build>
         <plugins>
           <plugin>
@@ -421,18 +426,18 @@
     </profile>
 
     <profile>
-      <id>full</id>
-      <activation>
-        <property>
-          <name>tycho-version</name>
-        </property>
-      </activation>
+      <id>bootstrap-2</id>
       <modules>
+        <!--
+        NOTE: Do not include any module that is a dependency of the tycho-maven-plugin or the extension realm
+        will get screwed up during the build when the JAR is redeployed to the local repository.
+        -->
         <module>maven-osgi-test-plugin</module>
         <module>tycho-surefire-osgi-booter</module>
         <module>tycho-surefire-junit</module>
         <module>tycho-surefire-junit4</module>
         <module>tycho-p2</module>
+        <module>tycho-distribution</module>
       </modules>
     </profile>
 
@@ -462,7 +467,7 @@
             <artifactId>maven-version-plugin</artifactId>
             <version>1.1-SNAPSHOT</version>
             <configuration>
-              <newVersion>0.4.0-DEV-${buildNumber}</newVersion>
+              <newVersion>0.5.0-DEV-${buildNumber}</newVersion>
               <artifactId>${project.artifactId}</artifactId>
             </configuration>
           </plugin>

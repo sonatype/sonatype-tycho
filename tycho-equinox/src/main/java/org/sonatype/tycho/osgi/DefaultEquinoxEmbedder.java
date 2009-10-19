@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Configuration;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
@@ -32,6 +33,9 @@ public class DefaultEquinoxEmbedder
     private File runtimeLocation;
 
     private BundleContext frameworkContext;
+
+    @Requirement
+    private EquinoxLocator equinoxLocator;
 
     public synchronized void start()
         throws Exception
@@ -136,6 +140,12 @@ public class DefaultEquinoxEmbedder
             return;
         }
 
+        if ( isValidP2RuntimeLocation( equinoxLocator.getRuntimeLocation() ) )
+        {
+            runtimeLocation = equinoxLocator.getRuntimeLocation();
+            return;
+        }
+
         // lastly, try ${maven.home}/p2
         String mavenHome = System.getProperty( SYSPROP_MAVEN_HOME );
         if ( mavenHome != null )
@@ -167,7 +177,7 @@ public class DefaultEquinoxEmbedder
 
     private static boolean isValidP2RuntimeLocation( File runtimeLocation )
     {
-        return runtimeLocation != null && runtimeLocation.exists() && runtimeLocation.isDirectory();
+        return runtimeLocation != null && runtimeLocation.isDirectory();
     }
 
     public <T> T getService( Class<T> clazz )

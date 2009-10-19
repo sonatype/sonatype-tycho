@@ -5,26 +5,13 @@
   <parent>
     <groupId>org.codehaus.tycho</groupId>
     <artifactId>tycho</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.sonatype.tycho</groupId>
   <artifactId>tycho-p2</artifactId>
   <packaging>pom</packaging>
   <name>Tycho P2-based target platform resolver parent</name>
-
-  <modules>
-    <module>org.sonatype.tycho.p2.impl</module>
-    <module>org.sonatype.tycho.p2.maven.repository</module>
-
-    <!--
-      tycho is not smart enough to add tycho-p2-facade to the test
-      runtime
-
-      <module>org.sonatype.tycho.p2.maven.repository.tests</module>
-    -->
-    <module>tycho-p2-runtime</module>
-  </modules>
 
   <dependencyManagement>
     <dependencies>
@@ -64,7 +51,6 @@
         <plugin>
           <groupId>org.codehaus.tycho</groupId>
           <artifactId>maven-osgi-packaging-plugin</artifactId>
-          <version>${tycho-version}</version>
           <configuration>
             <attachP2Metadata>false</attachP2Metadata>
           </configuration>
@@ -93,6 +79,36 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>bootstrap-1</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>tycho-p2-facade</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>bootstrap-2</id>
+      <modules>
+        <!--
+        NOTE: Do not include any module that is a dependency of the tycho-maven-plugin or the extension realm
+        will get screwed up during the build when the JAR is redeployed to the local repository.
+        -->
+        <module>org.sonatype.tycho.p2.impl</module>
+        <module>org.sonatype.tycho.p2.maven.repository</module>
+
+        <!--
+          tycho is not smart enough to add tycho-p2-facade to the test
+          runtime
+
+          <module>org.sonatype.tycho.p2.maven.repository.tests</module>
+        -->
+        <module>tycho-p2-runtime</module>
+      </modules>
     </profile>
   </profiles>
 

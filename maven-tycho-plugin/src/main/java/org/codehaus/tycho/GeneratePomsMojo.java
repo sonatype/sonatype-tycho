@@ -18,8 +18,10 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
@@ -52,6 +54,12 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 
 	/** reference to real pom.xml in aggregator poma.xml */
 	private static final String THIS_MODULE = ".";
+
+	/**
+	 * @parameter default-value="${plugin.version}"
+	 * @readonly
+	 */
+	private String tychoVersion;
 
 	/**
 	 * @parameter expression="${baseDir}" default-value="${basedir}"
@@ -246,6 +254,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 				parent.addModule(getModuleName(parentDir, projectDir));
 			}
 			reorderModules(parent, parentDir, testSuiteLocation);
+			addTychoExtension(parent);
 			writePom(parentDir, parent);
 			generateAggregatorPoms(testSuiteLocation);
 		}
@@ -273,6 +282,23 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 			modules.remove(THIS_MODULE);
 			modules.add(THIS_MODULE);
 		}
+	}
+
+	private void addTychoExtension(Model model) {
+		Build build = model.getBuild();
+
+		if (build == null) {
+			build = new Build();
+			model.setBuild(build);
+		}
+
+		Plugin tychoPlugin = new Plugin();
+		tychoPlugin.setGroupId("org.codehaus.tycho");
+		tychoPlugin.setArtifactId("tycho-maven-plugin");
+		tychoPlugin.setVersion(tychoVersion);
+		tychoPlugin.setExtensions(true);
+
+		build.addPlugin(tychoPlugin);
 	}
 
 	private String toString(File file) {
