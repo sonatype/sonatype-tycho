@@ -16,12 +16,6 @@
     <plugins>
       <plugin>
         <groupId>org.codehaus.tycho</groupId>
-        <artifactId>tycho-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <extensions>true</extensions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.tycho</groupId>
         <artifactId>maven-osgi-compiler-plugin</artifactId>
         <configuration>
           <extraClasspathElements>

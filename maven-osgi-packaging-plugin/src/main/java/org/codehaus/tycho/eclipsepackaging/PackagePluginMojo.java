@@ -76,8 +76,6 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		File pluginFile = createPluginJar();
 
 		project.getArtifact().setFile(pluginFile);
-		
-		attachP2Metadata();
 	}
 
 	private void createSubJars() throws MojoExecutionException {

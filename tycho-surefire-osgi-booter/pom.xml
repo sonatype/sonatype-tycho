@@ -13,24 +13,6 @@
   <packaging>eclipse-plugin</packaging>
 
   <name>Tycho Surefire OSGi Booter Eclipse application</name>
-  
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.tycho</groupId>
-        <artifactId>tycho-maven-plugin</artifactId>
-        <version>${project.version}</version>
-        <extensions>true</extensions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.tycho</groupId>
-        <artifactId>maven-osgi-packaging-plugin</artifactId>
-        <configuration>
-          <attachP2Metadata>false</attachP2Metadata>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
   <profiles>
     <profile>

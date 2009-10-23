@@ -25,11 +25,6 @@
       <version>${project.version}</version>
     </dependency>     
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-p2-facade</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.tycho</groupId>
       <artifactId>tycho-testing-harness</artifactId>
       <version>${project.version}</version>

@@ -39,6 +39,7 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.Tycho03TargetPlatformResolver;
+import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.sonatype.tycho.osgi.EquinoxLocator;
 
 @Component( role = AbstractMavenLifecycleParticipant.class, hint = "TychoMavenLifecycleListener" )
@@ -73,8 +74,11 @@ public class TychoMavenLifecycleParticipant
         }
 
         File p2Directory = resolveEquinoxRuntime( session );
-        equinoxLocator.setRuntimeLocation( p2Directory );
-        logger.debug( "Using P2 runtime at " + p2Directory );
+        if ( p2Directory != null )
+        {
+            equinoxLocator.setRuntimeLocation( p2Directory );
+            logger.debug( "Using P2 runtime at " + p2Directory );
+        }
 
         List<MavenProject> projects = session.getProjects();
         MavenExecutionRequest request = session.getRequest();
@@ -325,16 +329,7 @@ public class TychoMavenLifecycleParticipant
     private File resolveEquinoxRuntime( MavenSession session )
         throws MavenExecutionException
     {
-        Properties p2Props = new Properties();
-        try
-        {
-            p2Props.load( getClass().getResourceAsStream( "/p2.properties" ) );
-        }
-        catch ( IOException e )
-        {
-            throw new MavenExecutionException( "Failed to read P2 properties: " + e.getMessage(), e );
-        }
-        String p2Version = p2Props.getProperty( "version" );
+        String p2Version = TychoVersion.getTychoVersion();
 
         Artifact p2Runtime =
             repositorySystem.createArtifact( "org.sonatype.tycho", "tycho-p2-runtime", p2Version, "zip" );
@@ -374,7 +369,15 @@ public class TychoMavenLifecycleParticipant
         }
         catch ( ArtifactResolutionException e )
         {
-            throw new MavenExecutionException( "Failed to resolve P2 runtime: " + e.getMessage(), e );
+            if ( logger.isDebugEnabled() )
+            {
+                logger.warn( "Could not resolve tycho-p2-runtime", e );
+            }
+            else
+            {
+                logger.warn( "Could not resolve tycho-p2-runtime" );
+            }
+            return null;
         }
 
         if ( p2Runtime.getFile().lastModified() > p2Directory.lastModified() )

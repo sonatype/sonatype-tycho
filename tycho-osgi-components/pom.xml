@@ -14,16 +14,6 @@
   <description>Components for OSGi operations</description>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-        <excludes>
-          <exclude>META-INF/plexus/components.xml</exclude>
-        </excludes>
-      </resource>
-    </resources>
-
     <plugins>
       <plugin>
         <groupId>org.codehaus.plexus</groupId>

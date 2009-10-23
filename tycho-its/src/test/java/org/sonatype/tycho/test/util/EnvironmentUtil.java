@@ -68,8 +68,8 @@ public class EnvironmentUtil {
 		return getProperty("eclipse-dir");
 	}
 
-	public static String getTychoHome() {
-		return getProperty("tycho-dir");
+	public static String getMavenHome() {
+		return getProperty("maven-dir");
 	}
 
 	public static String getTychoVersion() {

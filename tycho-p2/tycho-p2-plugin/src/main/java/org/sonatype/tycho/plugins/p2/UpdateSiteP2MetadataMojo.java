@@ -1,4 +1,4 @@
-package org.codehaus.tycho.eclipsepackaging;
+package org.sonatype.tycho.plugins.p2;
 
 import java.io.File;
 
@@ -13,9 +13,9 @@ import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 
 /**
- * @goal p2-metadata
+ * @goal update-site-p2-metadata
  */
-public class P2MetadataMojo extends AbstractMojo {
+public class UpdateSiteP2MetadataMojo extends AbstractMojo {
 
 	/**
 	 * @parameter expression="${project}"

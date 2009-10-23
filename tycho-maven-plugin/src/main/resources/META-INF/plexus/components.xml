@@ -29,12 +29,13 @@
               <test><!-- tests are always in a separate plugin -->
               </test>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin
+                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
               </package>
               <integration-test></integration-test>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install,
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:update-local-index
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-local-index
               </install>
               <deploy>
                 org.apache.maven.plugins:maven-deploy-plugin:deploy
@@ -60,7 +61,6 @@
         <includesDependencies>false</includesDependencies>
       </configuration>
     </component>
-
 
     <component>
       <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
@@ -90,14 +90,15 @@
               </test-compile>
               <test></test>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin
+                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
               </package>
               <integration-test>
                 org.codehaus.tycho:maven-osgi-test-plugin:${project.version}:test
               </integration-test>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install,
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:update-local-index
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-local-index
               </install>
               <deploy>
                 org.apache.maven.plugins:maven-deploy-plugin:deploy
@@ -142,11 +143,12 @@
               <generate-resources>
               </generate-resources>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-feature
+                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-feature,
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install,
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:update-local-index
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-local-index
               </install>
               <deploy>
                 org.apache.maven.plugins:maven-deploy-plugin:deploy
@@ -187,7 +189,7 @@
             <phases>
               <package>
                 org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:update-site,
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:p2-metadata
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-site-p2-metadata
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install

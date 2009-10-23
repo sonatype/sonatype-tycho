@@ -125,8 +125,6 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 			//TODO generate source not supported yet
 			generateSources(props);
 		}
-		
-		attachP2Metadata();
 	}
 
 	private void updateFeatureXml(File featureXml) throws MojoExecutionException, IOException {

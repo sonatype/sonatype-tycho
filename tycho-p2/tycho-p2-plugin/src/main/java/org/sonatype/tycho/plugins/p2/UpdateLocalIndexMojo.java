@@ -1,4 +1,4 @@
-package org.codehaus.tycho.eclipsepackaging;
+package org.sonatype.tycho.plugins.p2;
 
 import java.io.File;
 import java.io.IOException;

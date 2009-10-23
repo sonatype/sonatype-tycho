@@ -23,14 +23,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- copy&paste from maven/pom.xml file. I wish import scope worked in 3.0 -->
-    <classWorldsVersion>2.2.0</classWorldsVersion>
+    <classWorldsVersion>2.2.1</classWorldsVersion>
     <commonsCliVersion>1.2</commonsCliVersion>
     <easyMockVersion>1.2_Java1.3</easyMockVersion>
     <junitVersion>3.8.2</junitVersion>
-    <plexusVersion>1.4.0-SNAPSHOT</plexusVersion>
+    <plexusVersion>1.4.0</plexusVersion>
     <plexusInterpolationVersion>1.11</plexusInterpolationVersion>
     <plexusPluginManagerVersion>1.0-alpha-1</plexusPluginManagerVersion>
-    <plexusUtilsVersion>2.0.0</plexusUtilsVersion>
+    <plexusUtilsVersion>2.0.1</plexusUtilsVersion>
     <wagonVersion>1.0-beta-6</wagonVersion>
     <securityDispatcherVersion>1.3</securityDispatcherVersion>
     <modelloVersion>1.1</modelloVersion>
@@ -390,56 +390,6 @@
         </plugins>
       </build>
     </profile>
-  
-  
-    <!-- Do NOT run unit/integration tests during bootstrap build -->
-    <profile>
-      <id>bootstrap-1</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <modules>
-        <module>maven-tycho-plugin</module>
-        <module>maven-osgi-packaging-plugin</module>
-        <module>maven-osgi-compiler-plugin</module>
-        <module>maven-osgi-source-plugin</module>
-        <module>tycho-compiler-jdt</module>
-        <module>tycho-osgi-components</module>
-        <module>tycho-distribution</module>
-        <module>tycho-testing-harness</module>
-        <module>tycho-equinox</module>
-        <module>target-platform-configuration</module>
-        <module>tycho-p2</module>
-        <module>tycho-maven-plugin</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>bootstrap-2</id>
-      <modules>
-        <!--
-        NOTE: Do not include any module that is a dependency of the tycho-maven-plugin or the extension realm
-        will get screwed up during the build when the JAR is redeployed to the local repository.
-        -->
-        <module>maven-osgi-test-plugin</module>
-        <module>tycho-surefire-osgi-booter</module>
-        <module>tycho-surefire-junit</module>
-        <module>tycho-surefire-junit4</module>
-        <module>tycho-p2</module>
-        <module>tycho-distribution</module>
-      </modules>
-    </profile>
 
     <profile>
       <id>its</id>
@@ -449,31 +399,47 @@
     </profile>
 
     <profile>
-      <id>pseudo-release</id>
+      <id>bootstrap-1</id>
+      <modules>
+        <module>tycho-equinox</module>
+        <module>tycho-bootstrap-maven-plugin</module>
+        <module>tycho-osgi-components</module>
+        <module>tycho-testing-harness</module>
+
+      </modules>
+    </profile>
+    <profile>
+      <id>bootstrap-2</id>
+      <modules>
+        <module>tycho-compiler-jdt</module>
+        <module>maven-osgi-compiler-plugin</module>
+        <module>maven-osgi-packaging-plugin</module>
+        <module>maven-osgi-source-plugin</module>
+        <module>maven-tycho-plugin</module>
+        <module>target-platform-configuration</module>
+        <module>tycho-maven-plugin</module>
+
+        <!--  surefire -->
+        <module>maven-osgi-test-plugin</module>
+        <module>tycho-surefire-osgi-booter</module>
+        <module>tycho-surefire-junit</module>
+        <module>tycho-surefire-junit4</module>
+        
+        <!-- tycho-p2 -->
+        <module>tycho-p2</module>
+      </modules>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>buildnumber-maven-plugin</artifactId>
-            <version>1.0-beta-1</version>
-            <configuration>
-              <doCheck>false</doCheck>
-              <doUpdate>false</doUpdate>
-            </configuration>
-          </plugin>
-
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>maven-version-plugin</artifactId>
-            <version>1.1-SNAPSHOT</version>
-            <configuration>
-              <newVersion>0.5.0-DEV-${buildNumber}</newVersion>
-              <artifactId>${project.artifactId}</artifactId>
-            </configuration>
+            <groupId>org.codehaus.tycho</groupId>
+            <artifactId>tycho-bootstrap-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <extensions>true</extensions>
           </plugin>
         </plugins>
       </build>
     </profile>
+
   </profiles>
 
 </project>
