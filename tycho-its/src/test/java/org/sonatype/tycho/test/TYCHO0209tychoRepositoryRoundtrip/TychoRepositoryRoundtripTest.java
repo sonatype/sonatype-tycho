@@ -44,12 +44,13 @@ public class TychoRepositoryRoundtripTest
     public void testRemoteRepository()
         throws Exception
     {
+        Verifier v01 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build01", false );
+
         // cleanup old tycho index
-        File localBasedir = new File( getLocalRepo() );
+        File localBasedir = new File( v01.localRepo );
         new File( localBasedir, DefaultTychoRepositoryIndex.INDEX_RELPATH ).delete();
 
         // install build01
-        Verifier v01 = getVerifier( "TYCHO0209tychoRepositoryRoundtrip/build01", false );
         v01.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
         v01.getCliOptions().add( "-Dmaven.test.skip=true" );
         v01.executeGoal( "install" );

@@ -69,10 +69,6 @@ public abstract class AbstractTychoIntegrationTest {
 		return getVerifier(test, true);
 	}
 
-	protected String getLocalRepo() {
-		return EnvironmentUtil.getLocalRepo();
-	}
-
 	protected String getTargetPlatforn() {
 		return  EnvironmentUtil.getTargetPlatforn();
 	}

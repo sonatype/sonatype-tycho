@@ -35,9 +35,9 @@ public class P2MetadataMojo
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
-        // TODO Auto-generated method stub
-        
+        attachP2Metadata();
     }
+
     protected P2Generator getP2Generator()
     {
         if ( p2 == null )

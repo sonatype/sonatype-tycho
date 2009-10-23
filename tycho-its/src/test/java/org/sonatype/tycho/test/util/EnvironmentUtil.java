@@ -60,10 +60,6 @@ public class EnvironmentUtil {
 		return new File(getTargetPlatforn(), "startup.jar").exists();
 	}
 
-	public static String getLocalRepo() {
-		return getProperty("local-repo");
-	}
-
 	public static String getTargetPlatforn() {
 		return getProperty("eclipse-dir");
 	}
