@@ -23,8 +23,6 @@
     <tycho-build-version>${project.version}</tycho-build-version>
   
     <maven-dir>${project.build.directory}/apache-maven-${maven-version}</maven-dir>
-    <source-dir>${project.build.directory}/test</source-dir>
-    <offline-repo>${project.build.directory}/offline-repo</offline-repo>
 
   </properties>
 
