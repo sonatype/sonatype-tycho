@@ -11,7 +11,7 @@
       <plugin>
         <groupId>org.codehaus.tycho</groupId>
         <artifactId>maven-osgi-compiler-plugin</artifactId>
-        <version>${tycho.version}</version>
+        <version>${tycho-version}</version>
         <configuration>
           <compilerId>jdt</compilerId>
           <usePdeSourceRoots>true</usePdeSourceRoots>

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.buildnumber.BuildQualifierMojo;
@@ -133,7 +134,8 @@ public class BuildQualifierTest
     private MavenProject getProject( MavenExecutionRequest request )
         throws Exception
     {
-        return maven.execute( request ).getProject();
+        MavenExecutionResult result = maven.execute( request );
+        return result.getProject();
     }
 
     private BuildQualifierMojo getMojo(MavenProject project, MavenSession session) throws Exception {

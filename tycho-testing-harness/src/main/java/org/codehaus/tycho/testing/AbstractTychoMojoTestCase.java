@@ -54,13 +54,17 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 	}
 
 	protected MavenExecutionRequest newMavenExecutionRequest(File pom) throws Exception {
-		Properties props = new Properties();
-		props.putAll(System.getProperties());
+		Properties systemProps = new Properties();
+		systemProps.putAll(System.getProperties());
+
+		Properties userProps = new Properties();
+		userProps.put("tycho-version", "0.0.0");
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
 		request.setBaseDirectory(pom.getParentFile());
 		request.setPom(pom);
-		request.setSystemProperties(props);
+		request.setSystemProperties(systemProps);
+		request.setUserProperties(userProps);
 		request.setLocalRepository(getLocalRepository());
 		return request;
 	}
