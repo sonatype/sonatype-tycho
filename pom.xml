@@ -412,23 +412,25 @@
 
       </modules>
     </profile>
+
     <profile>
       <id>bootstrap-2</id>
       <modules>
+        <module>tycho-maven-plugin</module>
+
         <module>tycho-compiler-jdt</module>
         <module>maven-osgi-compiler-plugin</module>
         <module>maven-osgi-packaging-plugin</module>
         <module>maven-osgi-source-plugin</module>
         <module>maven-tycho-plugin</module>
         <module>target-platform-configuration</module>
-        <module>tycho-maven-plugin</module>
 
         <!--  surefire -->
         <module>maven-osgi-test-plugin</module>
         <module>tycho-surefire-osgi-booter</module>
         <module>tycho-surefire-junit</module>
         <module>tycho-surefire-junit4</module>
-        
+
         <!-- tycho-p2 -->
         <module>tycho-p2</module>
       </modules>

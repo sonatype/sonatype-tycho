@@ -17,5 +17,3 @@ TYCHO_M2_HOME=/tmp/apache-maven-3.0-SNAPSHOT
 $TYCHO_M2_HOME/bin/mvn clean install -e -V -Pbootstrap-1
 
 $TYCHO_M2_HOME/bin/mvn clean install -e -V -Pbootstrap-2 -Dtycho.targetPlatform=$TYCHO_TARGET_PLATFORM
-
-#$TYCHO_M2_HOME/bin/mvn clean install -e -V -Pfull,its -Dtycho.targetPlatform=$TYCHO_TARGET_PLATFORM
