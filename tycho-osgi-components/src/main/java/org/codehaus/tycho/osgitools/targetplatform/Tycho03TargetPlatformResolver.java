@@ -13,9 +13,10 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.settings.Mirror;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
@@ -41,7 +42,7 @@ public class Tycho03TargetPlatformResolver
     public static final String ROLE_HINT = "tycho03";
 
     @Requirement
-    private ArtifactResolver artifactResolver;
+    private RepositorySystem repositorySystem;
 
     @Requirement
     private ArtifactFactory artifactFactory;
@@ -213,7 +214,11 @@ public class Tycho03TargetPlatformResolver
                                   ArtifactRepository localRepository )
         throws AbstractArtifactResolutionException
     {
-        artifactResolver.resolve( artifact, remoteRepositories, localRepository );
+        ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+        request.setArtifact( artifact );
+        request.setRemoteRepositories( remoteRepositories );
+        request.setLocalRepository( localRepository );
+        repositorySystem.resolve( request );
         assertResolved( artifact );
     }
 

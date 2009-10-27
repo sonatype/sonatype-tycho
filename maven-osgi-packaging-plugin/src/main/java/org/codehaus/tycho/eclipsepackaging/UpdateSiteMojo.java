@@ -18,9 +18,11 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
@@ -43,10 +45,7 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 
 	/** @component */
-	private org.apache.maven.artifact.factory.ArtifactFactory artifactFactory;
-
-	/** @component */
-	private org.apache.maven.artifact.resolver.ArtifactResolver resolver;
+	private RepositorySystem repositorySystem;
 
 	/**@parameter expression="${localRepository}" */
 	private org.apache.maven.artifact.repository.ArtifactRepository localRepository;
@@ -304,8 +303,9 @@ public class UpdateSiteMojo extends AbstractTychoPackagingMojo {
 		MavenProject bundleProject = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
 
 		//resolve source artifact
-		Artifact bundleSourceArtifact = artifactFactory.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), "jar", "sources");
-		resolver.resolve(bundleSourceArtifact, remoteRepositories, localRepository);
+		Artifact bundleSourceArtifact = repositorySystem.createArtifactWithClassifier(bundleProject.getGroupId(), bundleProject.getArtifactId(), bundleProject.getVersion(), "jar", "sources");
+		ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+        repositorySystem.resolve(request);
 		return bundleSourceArtifact;
 	}
 
