@@ -357,7 +357,7 @@
       <id>sonatype-release</id>
       <url>http://repository.sonatype.org/content/groups/sonatype-public-grid</url>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
       <releases>
         <enabled>true</enabled>
