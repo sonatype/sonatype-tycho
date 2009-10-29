@@ -47,6 +47,11 @@ public class EclipseInstallationLayout extends AbstractLogEnabled {
 		this.dropinsLocation = new File(location, "dropins");
 	}
 
+	public File getLocation()
+	{
+	    return location;
+	}
+
 	public Set<File> getFeatures(File site) {
 		Set<File> result = new LinkedHashSet<File>();
 

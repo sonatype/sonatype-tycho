@@ -48,6 +48,11 @@ public class LocalTargetPlatformResolver
 
         addProjects( platform );
 
+        if ( platform.isEmpty() )
+        {
+            getLogger().warn( "Could not find any bundles or features in " + layout.getLocation().getAbsolutePath() );
+        }
+
         return platform;
     }
 
