@@ -55,4 +55,10 @@ public class DefaultTargetPlatform
             System.out.println( entry.getValue() + "\t" + entry.getKey() );
         }
     }
+
+    public boolean isEmpty()
+    {
+        return artifacts.isEmpty();
+    }
+
 }
