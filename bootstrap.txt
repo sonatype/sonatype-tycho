@@ -1,3 +1,3 @@
 Build instructions
 
-http://docs.sonatype.org/display/M2ECLIPSE/Building+tycho
+http://docs.sonatype.org/display/TYCHO/BuildingTycho
