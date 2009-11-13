@@ -119,4 +119,60 @@ public class ProductConfiguration {
 	public void setVersion(String version) {
 	    dom.setAttribute("version", version);
 	}
+	
+	public List<String> getW32Icons() {
+		Xpp3Dom domLauncher = dom.getChild("launcher");
+		if (domLauncher == null) {
+			
+			return null;
+		}
+		Xpp3Dom win = domLauncher.getChild("win");
+		if (win == null) {
+			return null;
+		}
+		List<String> icons = new ArrayList<String>();
+		String useIco = win.getAttribute("useIco");
+		if (Boolean.valueOf(useIco)) {
+			//for (Xpp3Dom ico : win.getChildren("ico"))
+			{
+				Xpp3Dom ico = win.getChild("ico");
+				//should be only 1	
+				icons.add(ico.getAttribute("path"));
+			}
+		} else {
+			for (Xpp3Dom bmp : win.getChildren("bmp")) {
+				String[] attibuteNames = bmp.getAttributeNames();
+				if (attibuteNames != null && attibuteNames.length > 0)
+					icons.add(bmp.getAttribute(bmp.getAttributeNames()[0]));
+			}
+		}
+		return icons;
+	}
+
+	public String getLinuxIcon(){
+		Xpp3Dom domLauncher = dom.getChild("launcher");
+		if (domLauncher == null) {
+			
+			return null;
+		}
+		Xpp3Dom linux = domLauncher.getChild("linux");
+		if (linux == null) {
+			return null;
+		}
+		
+		return linux.getAttribute("icon");
+	}
+	
+	public String getMacIcon(){
+		Xpp3Dom domLauncher = dom.getChild("launcher");
+		if (domLauncher == null) {
+			
+			return null;
+		}
+		Xpp3Dom linux = domLauncher.getChild("macosx");
+		if (linux == null) {
+			return null;
+		}
+		return linux.getAttribute("icon");
+	}
 }

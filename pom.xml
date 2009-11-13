@@ -59,7 +59,7 @@
       By versioning it from the svn rev, we can always reproduce without having
       to actually commit the source to our svn.
     -->
-    <maven-version>3.0-SNAPSHOT</maven-version>
+    <maven-version>3.0-alpha-3</maven-version>
 
     <!-- 
       Version corresponds to Eclipse 3.5.0
@@ -388,7 +388,7 @@
               </configurators>
               <mojoExecutions>
                 <mojoExecution>org.apache.maven.plugins:maven-resources-plugin::</mojoExecution>
-                <mojoExecution>org.apache.maven.plugins:maven-plugin-plugin:2.5:descriptor</mojoExecution>
+                <mojoExecution>org.apache.maven.plugins:maven-plugin-plugin::descriptor</mojoExecution>
               </mojoExecutions>
             </configuration>
           </plugin>

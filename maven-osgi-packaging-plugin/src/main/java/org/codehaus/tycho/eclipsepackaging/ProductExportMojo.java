@@ -37,6 +37,7 @@ import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.Feature.FeatureRef;
 import org.codehaus.tycho.osgitools.features.FeatureDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.pde.internal.swt.tools.IconExe;
 import org.osgi.framework.Version;
 
 /**
@@ -890,6 +891,8 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Unable to make launcher being executable", e );
         }
 
+        File osxEclipseApp = null;
+
         // Rename launcher
         if ( productConfiguration.getLauncher() != null && productConfiguration.getLauncher().getName() != null )
         {
@@ -909,9 +912,15 @@ public class ProductExportMojo
                 // property within the Info.plist file.
                 // see http://jira.codehaus.org/browse/MNGECLIPSE-1087
                 newName = "eclipse";
-            }
+            } 
+
             getLog().debug( "Renaming launcher to " + newName );
-            launcher.renameTo( new File( launcher.getParentFile(), newName ) );
+            File newLauncher = new File( launcher.getParentFile(), newName );
+            if ( ! launcher.renameTo( newLauncher ) )
+            {
+                throw new MojoExecutionException( "Could not rename native launcher to " +  newName );
+            }
+            launcher = newLauncher;
 
             // macosx: the *.app directory is renamed to the
             // product configuration launcher name
@@ -921,11 +930,97 @@ public class ProductExportMojo
                 newName = launcherName + ".app";
                 getLog().debug( "Renaming Eclipse.app to " + newName );
                 File eclipseApp = new File( target, "Eclipse.app" );
-                File renamedEclipseApp = new File( eclipseApp.getParentFile(), newName );
-                eclipseApp.renameTo( renamedEclipseApp );
+                osxEclipseApp = new File( eclipseApp.getParentFile(), newName );
+                eclipseApp.renameTo( osxEclipseApp );
                 // ToDo: the "Info.plist" file must be patched, so that the
                 // property "CFBundleName" has the value of the
                 // launcherName variable
+            }
+        }
+
+        // icons
+        if ( productConfiguration.getLauncher() != null )
+        {
+            if ( PlatformPropertiesUtils.OS_WIN32.equals( os ) )
+            {
+                getLog().debug( "win32 icons" );
+                List<String> icons = productConfiguration.getW32Icons();
+
+                if ( icons != null )
+                {
+                    getLog().debug( icons.toString() );
+                    try
+                    {
+                        String[] args = new String[icons.size() + 1];
+                        args[0] = launcher.getAbsolutePath();
+
+                        int pos = 1;
+                        for ( String string : icons )
+                        {
+                            args[pos] = string;
+                            pos++;
+                        }
+
+                        IconExe.main( args );
+                    }
+                    catch ( Exception e )
+                    {
+                        throw new MojoExecutionException( "Unable to replace icons", e );
+                    }
+                }
+                else
+                {
+                    getLog().debug( "icons is null" );
+                }
+            }
+            else if  ( PlatformPropertiesUtils.OS_LINUX.equals( os ) ) 
+            {
+                String icon = productConfiguration.getLinuxIcon();
+                if ( icon != null )
+                {
+                    try
+                    {
+                        File sourceXPM = new File( project.getBasedir(), removeFirstSegment( icon ) );
+                        File targetXPM = new File( launcher.getParentFile(), "icon.xpm" );
+                        FileUtils.copyFile( sourceXPM, targetXPM );
+                    }
+                    catch ( IOException e )
+                    {
+                        throw new MojoExecutionException( "Unable to create ico.xpm", e );
+                    }
+                }
+            }
+            else if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
+            {
+                String icon = productConfiguration.getMacIcon();
+                if ( icon != null )
+                {
+                    try
+                    {
+                        if ( osxEclipseApp == null )
+                        {
+                            osxEclipseApp = new File( target, "Eclipse.app" );
+                        }
+
+                        File source = new File( project.getBasedir(), removeFirstSegment( icon ) );
+                        File targetFolder = new File( osxEclipseApp, "/Resources/" + source.getName() );
+
+                        FileUtils.copyFile( source, targetFolder );
+                        // Modify eclipse.ini
+                        File iniFile = new File( osxEclipseApp + "/Contents/MacOS/eclipse.ini" );
+                        if ( iniFile.exists() && iniFile.canWrite() )
+                        {
+                            StringBuffer buf = new StringBuffer( FileUtils.readFileToString( iniFile ) );
+                            int pos = buf.indexOf( "Eclipse.icns" );
+                            buf.replace( pos, pos + 12, source.getName() );
+                            FileUtils.writeStringToFile( iniFile, buf.toString() );
+                        }
+                    }
+                    catch ( Exception e )
+                    {
+                        throw new MojoExecutionException( "Unable to create macosx icon", e );
+                    }
+                }
             }
         }
 
@@ -943,6 +1038,27 @@ public class ProductExportMojo
             }
         }
 
+    }
+
+    private String removeFirstSegment( String path )
+    {
+        int idx = path.indexOf( '/' );
+        if ( idx < 0 )
+        {
+            return null;
+        }
+        
+        if ( idx == 0 )
+        {
+            idx = path.indexOf( '/', 1 );
+        }
+        
+        if ( idx < 0 )
+        {
+            return null;
+        }
+
+        return path.substring( idx );
     }
 
     private File getLauncher( TargetEnvironment environment, File target )

@@ -31,10 +31,8 @@
       startupMessageRect="7,220,441,20"
       startupForegroundColor="400040" />
    <launcher name="tychodemo">
-      <linux icon="/com.example.zyx/icons/alt_launcher.xpm"/>
       <solaris/>
-      <win useIco="true">
-         <ico path="/tycho.demo.application/icons/7Images.ico"/>
+      <win useIco="false">
          <bmp/>
       </win>
    </launcher>
@@ -74,8 +72,8 @@
       <plugin id="org.eclipse.ui.carbon" fragment="true"/>
       <plugin id="org.eclipse.ui.workbench"/>
       <plugin id="org.junit"/>
-      <plugin id="tycho.demo"/>
-      <plugin id="tycho.demo.application"/>
+      <plugin id="tycho.demo" fragment=""/>
+      <plugin id="tycho.demo.application" fragment=""/>
       <plugin id="tycho.demo.test" fragment="true"/>
    </plugins>
 
