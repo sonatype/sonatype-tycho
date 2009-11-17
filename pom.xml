@@ -427,14 +427,12 @@
         <module>target-platform-configuration</module>
 
         <!--  surefire -->
-        <module>maven-osgi-test-plugin</module>
-        <module>tycho-surefire-osgi-booter</module>
-        <module>tycho-surefire-junit</module>
-        <module>tycho-surefire-junit4</module>
+        <module>tycho-surefire</module>
 
         <!-- tycho-p2 -->
         <module>tycho-p2</module>
       </modules>
+
       <build>
         <plugins>
           <plugin>
