@@ -16,5 +16,7 @@ TYCHO_M2_HOME=/opt/maven
 
 $TYCHO_M2_HOME/bin/mvn clean install -e -V -Pbootstrap-1
 
-$TYCHO_M2_HOME/bin/mvn clean install -e -V -Pbootstrap-2,its -Dtycho.targetPlatform=$TYCHO_TARGET_PLATFORM
+$TYCHO_M2_HOME/bin/mvn clean install -e -V -Pbootstrap-2 -Dtycho.targetPlatform=$TYCHO_TARGET_PLATFORM
+
+$TYCHO_M2_HOME/bin/mvn clean install -e -V -Pits -Dtycho.targetPlatform=$TYCHO_TARGET_PLATFORM
 
