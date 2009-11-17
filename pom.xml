@@ -88,6 +88,8 @@
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/eclipse/
      -->
     <jdtVersion>3.5.0.v_963</jdtVersion>
+
+    <forceContextQualifier>20091117-1700</forceContextQualifier>
   </properties>
 
   <dependencyManagement>
