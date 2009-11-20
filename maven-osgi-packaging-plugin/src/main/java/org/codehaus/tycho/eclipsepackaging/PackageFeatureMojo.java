@@ -152,7 +152,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 
 			BundleDescription bundle = bundleResolutionState.getBundle(bundleId, bundleVersion);
 			if (bundle == null) {
-				getLog().warn(project.getId() + " referenced uknown bundle " + bundleId + ":" + bundleVersion);
+				getLog().warn(project.getId() + " referenced unknown bundle " + bundleId + ":" + bundleVersion);
 				continue;
 			}
 
@@ -215,7 +215,7 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 
 			FeatureDescription refDescription = featureResolutionState.getFeature(refId, refVersion);
 			if (refDescription == null) {
-				getLog().warn(project.getId() + " referenced uknown feature " + refId + ":" + refVersion);
+				getLog().warn(project.getId() + " referenced unknown feature " + refId + ":" + refVersion);
 				continue;
 			}
 
