@@ -62,32 +62,32 @@
     <maven-version>3.0-alpha-4</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.5.0
+      Version corresponds to Eclipse 3.5.1
 
-      mvn install:install-file -Dfile=org.eclipse.osgi_3.5.0.v20090520.jar \
-        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090520 -Dpackaging=jar
+      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.osgi_3.5.1.R35x_v20090827.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.1.R35x_v20090827 -Dpackaging=jar
 
-      mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.0.v20090520.jar \
-        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.0.v20090520 -Dpackaging=jar \
+      /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.1.R35x_v20090827.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.osgi -Dversion=3.5.1.R35x_v20090827 -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/eclipse/
      -->
-    <equinoxVersion>3.5.0.v20090520</equinoxVersion>
+    <equinoxVersion>3.5.1.R35x_v20090827</equinoxVersion>
 
     <!-- 
-      Version corresponds to Eclipse 3.5.0
+      Version corresponds to Eclipse 3.5.1
       
-      mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.0.v_963.jar \
-        -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.0.v_963 -Dpackaging=jar
+      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.1.v_972_R35x.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.1.v_972_R35x -Dpackaging=jar
 
-      mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.0.v_963.jar \
-        -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.0.v_963 -Dpackaging=jar \
+      /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.1.v_972_R35x.jar \
+        -DgroupId=org.eclipse -DartifactId=org.eclipse.jdt.core -Dversion=3.5.1.v_972_R35x -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/eclipse/
      -->
-    <jdtVersion>3.5.0.v_963</jdtVersion>
+    <jdtVersion>3.5.1.v_972_R35x</jdtVersion>
   </properties>
 
   <dependencyManagement>
