@@ -2,7 +2,7 @@ package org.codehaus.tycho;
 
 public interface ProjectType
 {
-    public static final String OSGI_BUNDLE = "eclipse-plugin"; // XXX change to osgi-bundle
+    public static final String ECLIPSE_PLUGIN = "eclipse-plugin";
 
     public static final String ECLIPSE_TEST_PLUGIN = "eclipse-test-plugin";
 
@@ -23,7 +23,7 @@ public interface ProjectType
     public static final String ECLIPSE_EXTENSION_LOCATION = "eclipse-extension-location";
 
     public static final String[] PROJECT_TYPES = {
-        OSGI_BUNDLE,
+        ECLIPSE_PLUGIN,
         ECLIPSE_TEST_PLUGIN,
         ECLIPSE_FEATURE,
         ECLIPSE_UPDATE_SITE,

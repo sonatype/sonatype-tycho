@@ -32,7 +32,7 @@ public class P2GeneratorImpl
     implements P2Generator
 {
     private static final String[] SUPPORTED_TYPES =
-        { P2Resolver.TYPE_OSGI_BUNDLE, P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN, P2Resolver.TYPE_ECLIPSE_FEATURE,
+        { P2Resolver.TYPE_ECLIPSE_PLUGIN, P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN, P2Resolver.TYPE_ECLIPSE_FEATURE,
             P2Resolver.TYPE_ECLIPSE_UPDATE_SITE, P2Resolver.TYPE_ECLIPSE_APPLICATION };
 
     /**
@@ -64,11 +64,6 @@ public class P2GeneratorImpl
     public void generateMetadata( File location, String packaging, String groupId, String artifactId, String version,
                                   Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts )
     {
-        if ( !isSupported( packaging ) )
-        {
-            return;
-        }
-
         TransientArtifactRepository artifactsRepository = new TransientArtifactRepository();
 
         PublisherInfo request = new PublisherInfo();
@@ -98,7 +93,7 @@ public class P2GeneratorImpl
 
     private IPublisherAction[] getPublisherActions( File location, String packaging, String id, String version )
     {
-        if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( packaging ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) )
+        if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( packaging ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) )
         {
             return new IPublisherAction[] { new BundlesAction( new File[] { location } ) };
         }
@@ -129,6 +124,10 @@ public class P2GeneratorImpl
             {
                 return new IPublisherAction[] { new SiteXMLAction( location.toURI(), null ) };
             }
+        } 
+        else if ( location.isFile() && location.getName().endsWith( ".jar" ) )
+        {
+            return new IPublisherAction[] { new BundlesAction( new File[] { location } ) };
         }
 
         throw new IllegalArgumentException();

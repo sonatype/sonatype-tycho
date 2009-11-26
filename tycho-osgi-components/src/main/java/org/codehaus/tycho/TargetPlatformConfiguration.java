@@ -10,6 +10,8 @@ public class TargetPlatformConfiguration
 
     private Target target;
 
+    private String pomDependencies;
+
     public TargetEnvironment getEnvironment()
     {
         return environment;
@@ -19,7 +21,7 @@ public class TargetPlatformConfiguration
     {
         return resolver;
     }
-    
+
     public Target getTarget()
     {
         return target;
@@ -38,5 +40,15 @@ public class TargetPlatformConfiguration
     public void setTarget( Target target )
     {
         this.target = target;
+    }
+
+    public void setPomDependencies( String pomDependencies )
+    {
+        this.pomDependencies = pomDependencies;
+    }
+
+    public String getPomDependencies()
+    {
+        return pomDependencies;
     }
 }

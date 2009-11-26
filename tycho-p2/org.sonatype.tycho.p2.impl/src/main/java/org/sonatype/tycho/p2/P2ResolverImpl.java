@@ -111,6 +111,11 @@ public class P2ResolverImpl
             return;
         }
 
+        addMavenArtifact( location, type, groupId, artifactId, version );
+    }
+
+    public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
+    {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
         generator.generateMetadata( location, type, groupId, artifactId, version, units, null );
@@ -373,13 +378,16 @@ public class P2ResolverImpl
         {
             platform.addFeature( file );
         }
+
+        // ignore other/unknown artifacts, like binary blobs for now.
+        //throw new IllegalArgumentException();
     }
 
     private void addReactorProject( P2ResolutionResult platform, File basedir )
     {
         String type = projects.get( basedir );
 
-        if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( type ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( type ) )
+        if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( type ) )
         {
             platform.addBundle( basedir );
         }
@@ -387,6 +395,13 @@ public class P2ResolverImpl
         {
             platform.addFeature( basedir );
         }
+        else if ( basedir.isFile() && basedir.getName().endsWith( ".jar" ) )
+        {
+            platform.addBundle( basedir );
+        }
+
+        // we don't care about eclipse-update-site and eclipse-application projects for now
+        //throw new IllegalArgumentException();
     }
 
     private File getLocalArtifactFile( IArtifactKey key )
@@ -513,7 +528,7 @@ public class P2ResolverImpl
                                                                                   false,
                                                                                   true ) );
         }
-        else if ( P2Resolver.TYPE_OSGI_BUNDLE.equals( type ) )
+        else if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) )
         {
             // BundlesAction#CAPABILITY_NS_OSGI_BUNDLE
             additionalRequirements.add( MetadataFactory.createRequiredCapability( "osgi.bundle",

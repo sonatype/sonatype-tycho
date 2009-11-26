@@ -46,7 +46,7 @@ public class TestEclipseRuntime
     public void initialize()
     {
         this.bundles = new ArrayList<File>();
-        bundles.addAll( sourcePlatform.getArtifactFiles( ProjectType.OSGI_BUNDLE, ProjectType.ECLIPSE_TEST_PLUGIN ) );
+        bundles.addAll( sourcePlatform.getArtifactFiles( ProjectType.ECLIPSE_PLUGIN, ProjectType.ECLIPSE_TEST_PLUGIN ) );
 
         sites.addAll( sourcePlatform.getSites() );
     }
@@ -64,7 +64,7 @@ public class TestEclipseRuntime
     {
         for ( String type : types )
         {
-            if ( ProjectType.OSGI_BUNDLE.equals( type ) || ProjectType.ECLIPSE_TEST_PLUGIN.equals( type ) )
+            if ( ProjectType.ECLIPSE_PLUGIN.equals( type ) || ProjectType.ECLIPSE_TEST_PLUGIN.equals( type ) )
             {
                 return true;
             }

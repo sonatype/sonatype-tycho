@@ -494,7 +494,7 @@ public class EquinoxBundleResolutionState
 
             resolver.setManifestsDir( manifestsDir );
 
-            for ( File file : platform.getArtifactFiles( ProjectType.OSGI_BUNDLE ) )
+            for ( File file : platform.getArtifactFiles( ProjectType.ECLIPSE_PLUGIN ) )
             {
                 boolean isProject = basedirs.contains( file );
                 resolver.addBundle( file, isProject );

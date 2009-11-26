@@ -158,22 +158,6 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 
             MavenProject bundleProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
 
-            String pluginGroupId = null;
-            if (bundleProject != null) {
-                pluginGroupId = bundleProject.getGroupId();
-            } else {
-                pluginGroupId = bundleResolutionState.getManifestAttribute( bundle, TychoConstants.ATTR_GROUP_ID );
-            }
-
-			if (pluginGroupId != null) {
-				pluginRef.setMavenGroupId(pluginGroupId);
-			}
-
-			String pluginBaseVersion = VersioningHelper.getMavenBaseVersion(session, bundle);
-			if (pluginBaseVersion != null) {
-				pluginRef.setMavenBaseVersion(pluginBaseVersion);
-			}
-
 			pluginRef.setVersion(VersioningHelper.getExpandedVersion(session, bundle));
 
 			File file;

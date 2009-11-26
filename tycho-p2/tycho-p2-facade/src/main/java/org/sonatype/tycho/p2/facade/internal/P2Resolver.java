@@ -8,7 +8,7 @@ import org.codehaus.tycho.ProjectType;
 
 public interface P2Resolver
 {
-    public static final String TYPE_OSGI_BUNDLE = ProjectType.OSGI_BUNDLE;
+    public static final String TYPE_ECLIPSE_PLUGIN = ProjectType.ECLIPSE_PLUGIN;
 
     public static final String TYPE_ECLIPSE_FEATURE = ProjectType.ECLIPSE_FEATURE;
 
@@ -24,6 +24,8 @@ public interface P2Resolver
     public static final String TYPE_INSTALLABLE_UNIT = "p2-installable-unit";
 
     public void addMavenProject( File location, String type, String groupId, String artifactId, String version );
+
+    public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version );
 
     public void addP2Repository( URI location );
 

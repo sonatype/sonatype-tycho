@@ -14,7 +14,6 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
-import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
@@ -38,7 +37,6 @@ import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
-import org.codehaus.tycho.osgitools.targetplatform.Tycho03TargetPlatformResolver;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.sonatype.tycho.osgi.EquinoxLocator;
 
@@ -81,7 +79,6 @@ public class TychoMavenLifecycleParticipant
         }
 
         List<MavenProject> projects = session.getProjects();
-        MavenExecutionRequest request = session.getRequest();
 
         for ( MavenProject project : projects )
         {
@@ -95,16 +92,12 @@ public class TychoMavenLifecycleParticipant
 
             TargetPlatformResolver resolver = lookupPlatformResolver( container, project );
 
-            resolver.setLocalRepository( request.getLocalRepository() );
-
-            resolver.setMavenProjects( new ArrayList<MavenProject>( projects ) );
-
             try
             {
                 DependenciesReader dr =
                     (DependenciesReader) container.lookup( DependenciesReader.class, project.getPackaging() );
                 logger.info( "Resolving target platform for project " + project );
-                TargetPlatform targetPlatform = resolver.resolvePlatform( project, null, request.getMirrors() );
+                TargetPlatform targetPlatform = resolver.resolvePlatform( session, project, null );
                 project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM, targetPlatform );
                 for ( Dependency dependency : dr.getDependencies( session, project ) )
                 {
@@ -136,6 +129,8 @@ public class TychoMavenLifecycleParticipant
                 result.setResolver( getTargetPlatformResolver( configuration ) );
 
                 result.setTarget( getTarget( session, project, configuration ) );
+                
+                result.setPomDependencies( getPomDependencies( configuration ) );
             }
         }
 
@@ -154,6 +149,17 @@ public class TychoMavenLifecycleParticipant
         }
 
         return result;
+    }
+
+    private String getPomDependencies( Xpp3Dom configuration )
+    {
+        Xpp3Dom pomDependenciesDom = configuration.getChild( "pomDependencies" );
+        if ( pomDependenciesDom == null )
+        {
+            return null;
+        }
+        
+        return pomDependenciesDom.getValue();
     }
 
     private Target getTarget( MavenSession session, MavenProject project, Xpp3Dom configuration )
@@ -273,7 +279,7 @@ public class TychoMavenLifecycleParticipant
         String resolverRole = configuration.getTargetPlatformResolver();
         if ( resolverRole == null )
         {
-            resolverRole = Tycho03TargetPlatformResolver.ROLE_HINT;
+            resolverRole = LocalTargetPlatformResolver.ROLE_HINT;
         }
 
         // not exactly pretty and not exactly the right place

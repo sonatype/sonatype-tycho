@@ -243,9 +243,6 @@ public class TestMojo extends AbstractMojo {
 
 		TargetPlatformResolver platformResolver = TychoMavenLifecycleParticipant.lookupPlatformResolver( plexus, project );
 
-		platformResolver.setMavenProjects( session.getProjects() );
-		platformResolver.setLocalRepository( session.getLocalRepository() );
-
 		ArrayList<Dependency> dependencies = new ArrayList<Dependency>(); 
 
 		if ( this.dependencies != null )
@@ -255,7 +252,7 @@ public class TestMojo extends AbstractMojo {
 
 		dependencies.addAll( getTestDependencies() );
 
-		TargetPlatform targetPlatform = platformResolver.resolvePlatform( project, dependencies, session.getRequest().getMirrors() );
+		TargetPlatform targetPlatform = platformResolver.resolvePlatform( session, project, dependencies );
 
 		if (targetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
@@ -306,19 +303,19 @@ public class TestMojo extends AbstractMojo {
 
         Dependency equinox = new Dependency();
         equinox.setArtifactId( "org.eclipse.osgi" );
-        equinox.setType( ProjectType.OSGI_BUNDLE );
+        equinox.setType( ProjectType.ECLIPSE_PLUGIN );
         result.add( equinox );
 
 	    Dependency launcher = new Dependency();
 	    launcher.setArtifactId( "org.eclipse.equinox.launcher" );
-	    launcher.setType( ProjectType.OSGI_BUNDLE );
+	    launcher.setType( ProjectType.ECLIPSE_PLUGIN );
 	    result.add( launcher );
 
 	    if ( useUIHarness )
 	    {
 	        Dependency ideapp = new Dependency();
 	        ideapp.setArtifactId( "org.eclipse.ui.ide.application" );
-	        ideapp.setType( ProjectType.OSGI_BUNDLE );
+	        ideapp.setType( ProjectType.ECLIPSE_PLUGIN );
 	        result.add( ideapp );
 	    }
 

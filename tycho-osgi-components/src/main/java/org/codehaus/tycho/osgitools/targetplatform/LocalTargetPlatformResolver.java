@@ -3,9 +3,9 @@ package org.codehaus.tycho.osgitools.targetplatform;
 import java.io.File;
 import java.util.List;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Mirror;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.DefaultTargetPlatform;
@@ -27,7 +27,7 @@ public class LocalTargetPlatformResolver
     @Requirement
     private EclipseInstallationLayout layout;
 
-    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies, List<Mirror> mirrors )
+    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
         DefaultTargetPlatform platform = createPlatform();
 
@@ -37,7 +37,7 @@ public class LocalTargetPlatformResolver
 
             for ( File plugin : layout.getPlugins( site ) )
             {
-                platform.addArtifactFile( ProjectType.OSGI_BUNDLE, plugin );
+                platform.addArtifactFile( ProjectType.ECLIPSE_PLUGIN, plugin );
             }
 
             for ( File feature : layout.getFeatures( site ) )
@@ -46,7 +46,7 @@ public class LocalTargetPlatformResolver
             }
         }
 
-        addProjects( platform );
+        addProjects( session, platform );
 
         if ( platform.isEmpty() )
         {

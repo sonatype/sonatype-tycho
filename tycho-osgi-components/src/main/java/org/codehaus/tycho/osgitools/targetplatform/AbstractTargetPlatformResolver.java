@@ -1,10 +1,8 @@
 package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.DefaultTargetPlatform;
@@ -14,24 +12,9 @@ public abstract class AbstractTargetPlatformResolver
     extends AbstractLogEnabled
     implements TargetPlatformResolver
 {
-
-    protected List<MavenProject> projects;
-
-    protected ArtifactRepository localRepository;
-
-    public void setMavenProjects( List<MavenProject> projects )
-    {
-        this.projects = new ArrayList<MavenProject>( projects );
-    }
-
     protected boolean isSubdir( File parent, File child )
     {
         return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
-    }
-
-    public void setLocalRepository( ArtifactRepository localRepository )
-    {
-        this.localRepository = localRepository;
     }
 
     protected DefaultTargetPlatform createPlatform()
@@ -41,11 +24,11 @@ public abstract class AbstractTargetPlatformResolver
         return platform;
     }
 
-    protected void addProjects( DefaultTargetPlatform platform )
+    protected void addProjects( MavenSession session, DefaultTargetPlatform platform )
     {
         File parentDir = null;
 
-        for ( MavenProject otherProject : projects )
+        for ( MavenProject otherProject : session.getProjects() )
         {
             platform.addArtifactFile( otherProject.getPackaging(), otherProject.getBasedir() );
 

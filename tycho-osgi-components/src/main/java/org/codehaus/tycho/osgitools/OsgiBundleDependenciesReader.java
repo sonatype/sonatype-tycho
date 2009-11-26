@@ -19,7 +19,7 @@ import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
 
-@Component( role = DependenciesReader.class, hint = ProjectType.OSGI_BUNDLE )
+@Component( role = DependenciesReader.class, hint = ProjectType.ECLIPSE_PLUGIN )
 public class OsgiBundleDependenciesReader
     extends AbstractDependenciesReader
 {

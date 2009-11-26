@@ -189,22 +189,4 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertNotNull(state.getBundle( "org.junit4.nl_ru", TychoConstants.HIGHEST_VERSION));
 	}
 	
-	public void testAddHocExtensionLocation() throws Exception {
-        File targetPlatform = new File("src/test/resources/targetplatforms/simple");
-        File extensionLocation = new File("src/test/resources/targetplatforms/adhoclocation");
-
-        File pom = new File(getBasedir("projects/adhoclocations"), "pom.xml");
-
-        MavenExecutionRequest request = newMavenExecutionRequest(pom);
-        request.getUserProperties().put("targetPlatform", targetPlatform.getCanonicalPath());
-        request.getUserProperties().put("extensionLocation", extensionLocation.getCanonicalPath());
-
-        MavenProject project = getSortedProjects(request).get(0);
-        BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-
-        List<BundleDescription> bundles = state.getBundles();
-
-        assertEquals(2, bundles.size());
-        assertNotNull(state.getBundle( "testjar", TychoConstants.HIGHEST_VERSION));
-	}
 }

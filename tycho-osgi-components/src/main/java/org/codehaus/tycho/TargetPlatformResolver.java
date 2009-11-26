@@ -2,10 +2,9 @@ package org.codehaus.tycho;
 
 import java.util.List;
 
-import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Mirror;
 
 
 /**
@@ -16,10 +15,5 @@ import org.apache.maven.settings.Mirror;
  */
 public interface TargetPlatformResolver
 {
-    public TargetPlatform resolvePlatform( MavenProject project, List<Dependency> dependencies, List<Mirror> mirrors );
-
-    public void setMavenProjects( List<MavenProject> projects );
-
-    public void setLocalRepository( ArtifactRepository localRepository );
-
+    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies );
 }
