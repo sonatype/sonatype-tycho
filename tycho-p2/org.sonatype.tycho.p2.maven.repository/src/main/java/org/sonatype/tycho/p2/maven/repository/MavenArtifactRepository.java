@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -128,5 +129,39 @@ public class MavenArtifactRepository
     public IStatus resolve( IArtifactDescriptor descriptor )
     {
         return downloadArtifact( descriptor, null );
+    }
+
+    public String getRelativePath( IArtifactDescriptor descriptor )
+    {
+        GAV gav = getGAV( descriptor );
+
+        String classifier = null;
+        String extension = null;
+
+        if ( "packed".equals( descriptor.getProperty( IArtifactDescriptor.FORMAT ) ) )
+        {
+            classifier = "pack200";
+            extension = "jar.pack.gz";
+        }
+
+        return RepositoryLayoutHelper.getRelativePath( gav, classifier, extension );
+    }
+
+    public URI getLocation( IArtifactDescriptor descriptor )
+    {
+        String relativePath = getRelativePath( descriptor );
+        String baseURI = location.toString();
+        if ( !baseURI.endsWith( "/" ) && !relativePath.startsWith( "/" ) )
+        {
+            baseURI += "/";
+        }
+        try
+        {
+            return new URI( baseURI + relativePath );
+        }
+        catch ( URISyntaxException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 }

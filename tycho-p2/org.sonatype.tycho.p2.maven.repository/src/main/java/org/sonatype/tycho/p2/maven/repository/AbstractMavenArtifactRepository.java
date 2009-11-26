@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.equinox.internal.provisional.p2.artifact.repository.ArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.internal.provisional.spi.p2.artifact.repository.AbstractArtifactRepository;
@@ -143,5 +144,17 @@ public abstract class AbstractMavenArtifactRepository
         }
 
         keyDescriptors.add( descriptor );
+    }
+
+    public GAV getGAV( IArtifactDescriptor descriptor )
+    {
+        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
+
+        if ( gav == null )
+        {
+            gav = getP2GAV( descriptor );
+        }
+
+        return gav;
     }
 }

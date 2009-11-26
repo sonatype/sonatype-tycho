@@ -208,18 +208,6 @@ public class LocalArtifactRepository
         return new File( basedir, RepositoryLayoutHelper.getRelativePath( gav, classifier, extension ) );
     }
 
-    public GAV getGAV( IArtifactDescriptor descriptor )
-    {
-        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
-
-        if ( gav == null )
-        {
-            gav = getP2GAV( descriptor );
-        }
-
-        return gav;
-    }
-
     @Override
     public IStatus resolve( IArtifactDescriptor descriptor )
     {
