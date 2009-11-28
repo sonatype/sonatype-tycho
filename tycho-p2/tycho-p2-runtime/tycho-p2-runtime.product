@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="org.sonatype.tycho.p2" id="org.eclipse.equinox.p2.director.app.product" application="org.eclipse.equinox.p2.director.app.application" version="0.5.0.qualifier" useFeatures="false" includeLaunchers="false">
+<product name="org.sonatype.tycho.p2" id="org.eclipse.equinox.p2.director.app.product" application="org.eclipse.equinox.p2.director.app.application" version="0.6.0.qualifier" useFeatures="false" includeLaunchers="false">
 
    <configIni use="default">
    </configIni>
@@ -63,8 +63,8 @@
       <plugin id="org.eclipse.osgi.services"/>
       <plugin id="org.sat4j.core"/>
       <plugin id="org.sat4j.pb"/>
-      <plugin id="org.sonatype.tycho.p2.impl" fragment=""/>
-      <plugin id="org.sonatype.tycho.p2.maven.repository" fragment=""/>
+      <plugin id="org.sonatype.tycho.p2.impl"/>
+      <plugin id="org.sonatype.tycho.p2.maven.repository"/>
    </plugins>
 
 
