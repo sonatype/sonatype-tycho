@@ -30,7 +30,7 @@ public class ClasspathComputer {
 	public static final String ACCESS_RULE_SEPARATOR = File.pathSeparator;
 
 //	public static final String INCLUDE_ALL_RULE = "**/*";
-	public static final String EXCLUDE_ALL_RULE = "-**/*";
+	public static final String EXCLUDE_ALL_RULE = "?**/*";
 
 	//@Required
 	private final BundleResolutionState bundleResolutionState;
