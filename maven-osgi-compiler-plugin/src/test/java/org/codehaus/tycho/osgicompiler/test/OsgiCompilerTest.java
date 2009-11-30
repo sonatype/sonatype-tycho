@@ -97,10 +97,10 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
         List<String> cp = mojo.getClasspathElements();
 		assertEquals(4, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*:-**/*]"), cp.get(1));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p001/target/classes", "[+p001/*:?**/*]"), cp.get(1));
 		// note that PDE sorts dependencies coming via imported-package by symbolicName_version
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*:-**/*]"), cp.get(2));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*:-**/*]"), cp.get(3));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p003/target/classes", "[+p003/*:?**/*]"), cp.get(2));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/projects/accessrules/p004/target/classes", "[+p004/*:?**/*]"), cp.get(3));
 	}
 
 	public void testClasspath() throws Exception {
@@ -134,8 +134,8 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		cp = mojo.getClasspathElements();
 		assertEquals(3, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
-		assertEquals(getClasspathElement(new File(getBasedir()), "src/test/resources/projects/classpath/platform/plugins/p003_0.0.1.jar", "[-**/*]"), cp.get(1));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/storage/p003_1.0.0/lib/lib.jar", "[-**/*]"), cp.get(2));
+		assertEquals(getClasspathElement(new File(getBasedir()), "src/test/resources/projects/classpath/platform/plugins/p003_0.0.1.jar", "[?**/*]"), cp.get(1));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/storage/p003_1.0.0/lib/lib.jar", "[?**/*]"), cp.get(2));
 	}
 
 	private String getClasspathElement(File base, String path, String accessRules) throws IOException {
