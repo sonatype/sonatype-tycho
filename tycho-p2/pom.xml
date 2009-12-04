@@ -39,7 +39,7 @@
       </dependency>
 
       <dependency>
-        <groupId>org.eclipse</groupId>
+        <groupId>org.sonatype.tycho</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
         <version>${equinoxVersion}</version>
       </dependency>
