@@ -13,13 +13,13 @@
             <id>default</id>
             <phases>
               <validate>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
               </validate>
               <process-resources>
                 org.apache.maven.plugins:maven-resources-plugin:resources
               </process-resources>
               <compile>
-                org.codehaus.tycho:maven-osgi-compiler-plugin:${project.version}:compile
+                org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:compile
               </compile>
               <process-test-resources>
                 org.apache.maven.plugins:maven-resources-plugin:testResources
@@ -29,7 +29,7 @@
               <test><!-- tests are always in a separate plugin -->
               </test>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
               </package>
               <integration-test></integration-test>
@@ -74,27 +74,27 @@
             <id>default</id>
             <phases>
               <validate>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
               </validate>
               <process-resources>
                 org.apache.maven.plugins:maven-resources-plugin:resources
               </process-resources>
               <compile>
-                org.codehaus.tycho:maven-osgi-compiler-plugin:${project.version}:compile
+                org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:compile
               </compile>
               <process-test-resources>
                 org.apache.maven.plugins:maven-resources-plugin:testResources
               </process-test-resources>
               <test-compile>
-                org.codehaus.tycho:maven-osgi-compiler-plugin:${project.version}:testCompile
+                org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:testCompile
               </test-compile>
               <test></test>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
               </package>
               <integration-test>
-                org.codehaus.tycho:maven-osgi-test-plugin:${project.version}:test
+                org.sonatype.tycho:maven-osgi-test-plugin:${project.version}:test
               </integration-test>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install,
@@ -138,12 +138,12 @@
             <id>default</id>
             <phases>
               <validate>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
               </validate>
               <generate-resources>
               </generate-resources>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-feature,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:package-feature,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
               </package>
               <install>
@@ -188,7 +188,7 @@
             <id>default</id>
             <phases>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:update-site,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:update-site,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-site-p2-metadata
               </package>
               <install>
@@ -232,7 +232,7 @@
             <id>default</id>
             <phases>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:product-export
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:product-export
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install

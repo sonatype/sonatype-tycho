@@ -27,7 +27,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
       <version>${project.version}</version>
     </dependency>

@@ -42,7 +42,7 @@ public class Tycho46MapfileTest extends AbstractTychoIntegrationTest {
 		verifier.getCliOptions().add("-Dmapfile=directory.txt");
 		verifier.getCliOptions().add("-Dmaven.scm.provider.cvs.implementation=cvs_native");
 		verifier
-				.executeGoal("org.codehaus.tycho:maven-tycho-plugin:import-mapfile");
+				.executeGoal("org.sonatype.tycho:maven-tycho-plugin:import-mapfile");
 		verifier.verifyErrorFreeLog();
 
 		File directorySrc = new File(verifier.getBasedir(), "directory.src");

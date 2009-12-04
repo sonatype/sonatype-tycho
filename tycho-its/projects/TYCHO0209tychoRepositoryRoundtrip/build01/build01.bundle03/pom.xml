@@ -12,12 +12,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.codehaus.tycho.tychoits.tycho0209.build01</groupId>
+    <groupId>org.sonatype.tycho.tychoits.tycho0209.build01</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.codehaus.tycho.tychoits.tycho0209.build01.bundle03</artifactId>
+  <artifactId>org.sonatype.tycho.tychoits.tycho0209.build01.bundle03</artifactId>
   <packaging>eclipse-test-plugin</packaging>
 
 </project>

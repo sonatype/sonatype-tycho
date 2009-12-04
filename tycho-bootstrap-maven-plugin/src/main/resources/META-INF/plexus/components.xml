@@ -13,13 +13,13 @@
             <id>default</id>
             <phases>
               <validate>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
               </validate>
               <process-resources>
                 org.apache.maven.plugins:maven-resources-plugin:resources
               </process-resources>
               <compile>
-                org.codehaus.tycho:maven-osgi-compiler-plugin:${project.version}:compile
+                org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:compile
               </compile>
               <process-test-resources>
                 org.apache.maven.plugins:maven-resources-plugin:testResources
@@ -29,7 +29,7 @@
               <test><!-- tests are always in a separate plugin -->
               </test>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:package-plugin
               </package>
               <integration-test></integration-test>
               <install>
@@ -73,7 +73,7 @@
             <id>default</id>
             <phases>
               <package>
-                org.codehaus.tycho:maven-osgi-packaging-plugin:${project.version}:product-export
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:product-export
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install

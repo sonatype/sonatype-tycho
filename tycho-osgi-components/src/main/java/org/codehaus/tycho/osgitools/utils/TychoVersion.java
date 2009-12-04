@@ -6,11 +6,11 @@ import java.util.Properties;
 
 public class TychoVersion {
 
-	private static final String DEFAULT_TYCHO_VERSION = "0.5.0-SNAPSHOT";
+	private static final String DEFAULT_TYCHO_VERSION = "0.6.0-SNAPSHOT";
 
 	public static String getTychoVersion() {
 		ClassLoader cl = TychoVersion.class.getClassLoader();
-		InputStream is = cl.getResourceAsStream("META-INF/maven/org.codehaus.tycho/tycho-osgi-components/pom.properties");
+		InputStream is = cl.getResourceAsStream("META-INF/maven/org.sonatype.tycho/tycho-osgi-components/pom.properties");
 		String version = DEFAULT_TYCHO_VERSION;
 		if (is != null) {
 			try {

@@ -12,7 +12,7 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.tycho</groupId>
+        <groupId>org.sonatype.tycho</groupId>
         <artifactId>target-platform-configuration</artifactId>
         <configuration>
           <environment>

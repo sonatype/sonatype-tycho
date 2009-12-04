@@ -13,7 +13,7 @@ public class MNGECLIPSE999DIrectTestPluginInvocationTest extends AbstractTychoIn
 	public void test() throws Exception {
 		Verifier verifier = getVerifier("tycho98");
 
-		verifier.executeGoals(Arrays.asList(new String[] {"package", "org.codehaus.tycho:maven-osgi-test-plugin:test"}));
+		verifier.executeGoals(Arrays.asList(new String[] {"package", "org.sonatype.tycho:maven-osgi-test-plugin:test"}));
 		verifier.verifyErrorFreeLog();
 	}
 

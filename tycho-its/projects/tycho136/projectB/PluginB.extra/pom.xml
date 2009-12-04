@@ -14,7 +14,7 @@
   <build>
     <plugins>
         <plugin>
-            <groupId>org.codehaus.tycho</groupId>
+            <groupId>org.sonatype.tycho</groupId>
             <artifactId>maven-osgi-source-plugin</artifactId>
             <executions>
               <execution>

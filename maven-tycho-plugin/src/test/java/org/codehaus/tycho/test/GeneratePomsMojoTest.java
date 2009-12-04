@@ -30,7 +30,7 @@ public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	private void generate(File baseDir, File[] extraDirs, Map<String, Object> params) throws Exception {
-		Mojo generateMojo = lookupMojo("org.codehaus.tycho", "maven-tycho-plugin", TychoVersion.getTychoVersion(), "generate-poms", null);
+		Mojo generateMojo = lookupMojo("org.sonatype.tycho", "maven-tycho-plugin", TychoVersion.getTychoVersion(), "generate-poms", null);
 		setVariableValueToObject(generateMojo, "baseDir", baseDir);
 		if (extraDirs != null) {
 			StringBuilder sb = new StringBuilder();

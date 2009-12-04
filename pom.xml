@@ -13,7 +13,7 @@
     <version>5</version>
   </parent>
 
-  <groupId>org.codehaus.tycho</groupId>
+  <groupId>org.sonatype.tycho</groupId>
   <artifactId>tycho</artifactId>
   <!--
     Do not forget to update newVersion property of maven-version-plugin below
@@ -443,7 +443,7 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.codehaus.tycho</groupId>
+            <groupId>org.sonatype.tycho</groupId>
             <artifactId>tycho-bootstrap-maven-plugin</artifactId>
             <version>${project.version}</version>
             <extensions>true</extensions>

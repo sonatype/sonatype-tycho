@@ -16,7 +16,7 @@ public class TYCHO45Test extends AbstractTychoIntegrationTest {
         verifier.getCliOptions().add("-DtestSuite=tests.suite");
         verifier.setAutoclean( false );
         verifier.setLogFileName( "log-init.txt" );
-        verifier.executeGoal( "org.codehaus.tycho:maven-tycho-plugin:" + tychoVersion + ":generate-poms" );
+        verifier.executeGoal( "org.sonatype.tycho:maven-tycho-plugin:" + tychoVersion + ":generate-poms" );
         verifier.verifyErrorFreeLog();
 
         // run the build

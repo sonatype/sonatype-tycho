@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.codehaus.tycho</groupId>
+    <groupId>org.sonatype.tycho</groupId>
     <artifactId>tycho</artifactId>
     <version>0.6.0-SNAPSHOT</version>
   </parent>
@@ -125,49 +125,49 @@
 
     <!-- artifacts to be tested -->
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>tycho-maven-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>maven-tycho-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>maven-osgi-compiler-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>maven-osgi-packaging-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>maven-osgi-test-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>maven-osgi-source-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>target-platform-configuration</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.tycho</groupId>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>tycho</artifactId>
       <version>${tycho-build-version}</version>
       <type>pom</type>

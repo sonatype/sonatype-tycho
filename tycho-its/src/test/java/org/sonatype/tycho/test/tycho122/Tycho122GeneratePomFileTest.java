@@ -18,7 +18,7 @@ public class Tycho122GeneratePomFileTest
         Verifier verifier = getVerifier( "/tycho122/tycho.demo" );
 
         verifier.setAutoclean( false );
-        verifier.executeGoal( "org.codehaus.tycho:maven-tycho-plugin:generate-poms" );
+        verifier.executeGoal( "org.sonatype.tycho:maven-tycho-plugin:generate-poms" );
         verifier.verifyErrorFreeLog();
 
         File pom = new File( verifier.getBasedir(), "pom.xml" );

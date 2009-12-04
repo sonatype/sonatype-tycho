@@ -516,7 +516,7 @@ public class TestMojo extends AbstractMojo {
 		}
 
 		for (Artifact artifact : pluginArtifacts) {
-			if ("org.codehaus.tycho".equals(artifact.getGroupId())) {
+			if ("org.sonatype.tycho".equals(artifact.getGroupId())) {
 				if ("tycho-surefire-osgi-booter".equals(artifact.getArtifactId()) || fragment.equals(artifact.getArtifactId())) {
 					result.add(artifact.getFile());
 				}
@@ -524,7 +524,7 @@ public class TestMojo extends AbstractMojo {
 		}
 
 		if (result.size() != 2) {
-			throw new MojoExecutionException("Unable to locate org.codehaus.tycho:tycho-surefire-osgi-booter and/or its fragments");
+			throw new MojoExecutionException("Unable to locate org.sonatype.tycho:tycho-surefire-osgi-booter and/or its fragments");
 		}
 
 		return result;
