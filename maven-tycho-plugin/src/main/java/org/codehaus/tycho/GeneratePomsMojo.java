@@ -293,7 +293,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 		}
 
 		Plugin tychoPlugin = new Plugin();
-		tychoPlugin.setGroupId("org.codehaus.tycho");
+		tychoPlugin.setGroupId("org.sonatype.tycho");
 		tychoPlugin.setArtifactId("tycho-maven-plugin");
 		tychoPlugin.setVersion(tychoVersion);
 		tychoPlugin.setExtensions(true);
