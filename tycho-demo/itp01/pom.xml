@@ -11,7 +11,7 @@
   </modules>
 
   <properties>
-    <tycho-version>0.5.0</tycho-version>
+    <tycho-version>0.6.0-SNAPSHOT</tycho-version>
   </properties>
 
   <repositories>
@@ -25,13 +25,13 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.tycho</groupId>
+        <groupId>org.sonatype.tycho</groupId>
         <artifactId>tycho-maven-plugin</artifactId>
         <version>${tycho-version}</version>
         <extensions>true</extensions>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.tycho</groupId>
+        <groupId>org.sonatype.tycho</groupId>
         <artifactId>target-platform-configuration</artifactId>
         <version>${tycho-version}</version>
         <configuration>
