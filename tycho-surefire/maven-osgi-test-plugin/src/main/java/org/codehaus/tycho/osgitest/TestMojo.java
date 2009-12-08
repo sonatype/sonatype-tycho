@@ -76,7 +76,7 @@ public class TestMojo extends AbstractMojo {
 	 * 
 	 * @parameter
 	 */
-	private List includes;
+	private List<String> includes;
 
 	/**
 	 * List of patterns (separated by commas) used to specify the tests that
@@ -87,7 +87,7 @@ public class TestMojo extends AbstractMojo {
 	 * 
 	 * @parameter
 	 */
-	private List excludes;
+	private List<String> excludes;
 
 	/**
 	 * Specify this parameter if you want to use the test pattern matching
@@ -505,14 +505,13 @@ public class TestMojo extends AbstractMojo {
 	private Set<File> getSurefirePlugins(String testFramework) throws MojoExecutionException {
 		Set<File> result = new LinkedHashSet<File>();
 		
-		
 		String fragment;
 		if (TEST_JUNIT.equals(testFramework)) {
 			fragment = "tycho-surefire-junit";
 		} else if (TEST_JUNIT4.equals(testFramework)) {
 			fragment = "tycho-surefire-junit4";
 		} else {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Unsupported test framework " + testFramework);
 		}
 
 		for (Artifact artifact : pluginArtifacts) {
@@ -524,7 +523,18 @@ public class TestMojo extends AbstractMojo {
 		}
 
 		if (result.size() != 2) {
-			throw new MojoExecutionException("Unable to locate org.sonatype.tycho:tycho-surefire-osgi-booter and/or its fragments");
+		    StringBuilder sb = new StringBuilder("Unable to locate org.sonatype.tycho:tycho-surefire-osgi-booter and/or its fragments\n");
+		    sb.append("Test framework: " + testFramework);
+		    sb.append("All plugin artifacts: ");
+            for (Artifact artifact : pluginArtifacts) {
+                sb.append("\n\t").append(artifact.toString());
+            }
+            sb.append("\nMatched OSGi test booter artifacts: ");
+            for (File file : result) {
+                sb.append("\n\t").append(file.getAbsolutePath());
+            }
+
+			throw new MojoExecutionException(sb.toString());
 		}
 
 		return result;
@@ -578,7 +588,7 @@ public class TestMojo extends AbstractMojo {
 			final String OUTPUT = "output.";
 			final String SOURCE = "source.";
 			
-			for (Iterator iterator = buildProperties.keySet().iterator(); iterator.hasNext();) {
+			for (Iterator<Object> iterator = buildProperties.keySet().iterator(); iterator.hasNext();) {
 				String key = (String) iterator.next();
 				String[] classesDir = null;
 				if (key.startsWith(OUTPUT) && !key.equals("output..")) {
