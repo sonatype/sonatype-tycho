@@ -66,7 +66,12 @@ public class TychoMavenLifecycleParticipant
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
     {
-        if ( "maven".equals( session.getExecutionProperties().get( "tycho.mode" ) ) )
+        if ( "maven".equals( session.getUserProperties().get( "tycho.mode" ) ) )
+        {
+            return;
+        }
+
+        if ( session.getUserProperties().containsKey( "m2e.version" ) )
         {
             return;
         }
@@ -84,7 +89,8 @@ public class TychoMavenLifecycleParticipant
         {
             Properties properties = new Properties();
             properties.putAll( project.getProperties() );
-            properties.putAll( session.getExecutionProperties() ); // session wins
+            properties.putAll( session.getSystemProperties() ); // session wins
+            properties.putAll( session.getUserProperties() );
             project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
 
             TargetPlatformConfiguration configuration = getTargetPlatformConfiguration( session, project );
@@ -208,7 +214,7 @@ public class TychoMavenLifecycleParticipant
             request.setArtifact( artifact );
             request.setLocalRepository( session.getLocalRepository() );
             request.setRemoteRepositories( project.getRemoteArtifactRepositories() );
-            ArtifactResolutionResult result = repositorySystem.resolve( request );
+            repositorySystem.resolve( request );
 
             if ( ! artifact.isResolved() )
             {

@@ -39,6 +39,11 @@ public class DefaultEquinoxEmbedder
             return;
         }
 
+        if ( "Eclipse".equals( System.getProperty( "org.osgi.framework.vendor" ) ) )
+        {
+            throw new IllegalStateException( "Nested Equinox instance is not supported" );
+        }
+
         String p2RuntimeLocation = getRuntimeLocation().getAbsolutePath();
 
         System.setProperty( "osgi.framework.useSystemProperties", "false" ); //$NON-NLS-1$ //$NON-NLS-2$
