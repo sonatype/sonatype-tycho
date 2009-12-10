@@ -42,4 +42,6 @@ public interface P2Resolver
     public void setLogger( P2Logger logger );
 
     void setRepositoryCache( P2RepositoryCache repositoryCache );
+
+    void setCredentials( URI location, String username, String password );
 }

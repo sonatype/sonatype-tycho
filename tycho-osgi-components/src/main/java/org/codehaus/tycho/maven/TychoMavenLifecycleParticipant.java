@@ -38,6 +38,7 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.utils.TychoVersion;
+import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.osgi.EquinoxLocator;
 
 @Component( role = AbstractMavenLifecycleParticipant.class, hint = "TychoMavenLifecycleListener" )
@@ -63,6 +64,9 @@ public class TychoMavenLifecycleParticipant
     @Requirement( hint = "zip" )
     private UnArchiver unArchiver;
 
+    @Requirement
+    private EquinoxEmbedder equinoxEmbedder;
+
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
     {
@@ -82,6 +86,12 @@ public class TychoMavenLifecycleParticipant
             equinoxLocator.setRuntimeLocation( p2Directory );
             logger.debug( "Using P2 runtime at " + p2Directory );
         }
+
+        File secureStorage = new File( session.getLocalRepository().getBasedir(), ".meta/tycho.secure_storage" );
+        equinoxEmbedder.setNonFrameworkArgs( new String[] {
+            "-eclipse.keyring", secureStorage.getAbsolutePath(),
+            //TODO "-eclipse.password", ""
+        });
 
         List<MavenProject> projects = session.getProjects();
 

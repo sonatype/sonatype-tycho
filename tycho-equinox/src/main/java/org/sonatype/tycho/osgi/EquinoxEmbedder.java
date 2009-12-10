@@ -9,4 +9,5 @@ public interface EquinoxEmbedder
 
     public File getRuntimeLocation();
 
+    public void setNonFrameworkArgs( String[] strings );
 }

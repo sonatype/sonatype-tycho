@@ -1,7 +1,9 @@
 package org.sonatype.tycho.p2;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -17,7 +19,9 @@ import java.util.Set;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.equinox.internal.p2.core.helpers.ServiceHelper;
 import org.eclipse.equinox.internal.p2.director.DirectorActivator;
 import org.eclipse.equinox.internal.p2.director.Explanation;
@@ -43,6 +47,10 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadata
 import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepositoryManager;
 import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.IQueryable;
+import org.eclipse.equinox.internal.provisional.p2.repository.IRepository;
+import org.eclipse.equinox.security.storage.ISecurePreferences;
+import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.osgi.framework.InvalidSyntaxException;
 import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
@@ -99,6 +107,8 @@ public class P2ResolverImpl
     private Map<File, String> projects = new LinkedHashMap<File, String>();
 
     private List<IRequiredCapability> additionalRequirements = new ArrayList<IRequiredCapability>();
+
+    private P2Logger logger;
 
     public P2ResolverImpl()
     {
@@ -559,6 +569,7 @@ public class P2ResolverImpl
 
     public void setLogger( P2Logger logger )
     {
+        this.logger = logger;
         this.monitor = new LoggingProgressMonitor( logger );
     }
 
@@ -566,4 +577,99 @@ public class P2ResolverImpl
     {
         this.repositoryCache = repositoryCache;
     }
+
+    // creating copy&paste from org.eclipse.equinox.internal.p2.repository.Credentials.forLocation(URI, boolean,
+    // AuthenticationInfo)
+    public void setCredentials( URI location, String username, String password )
+    {
+        ISecurePreferences securePreferences = SecurePreferencesFactory.getDefault();
+
+        // if URI is not opaque, just getting the host may be enough
+        String host = location.getHost();
+        if ( host == null )
+        {
+            String scheme = location.getScheme();
+            if ( URIUtil.isFileURI( location ) || scheme == null )
+            {
+                // If the URI references a file, a password could possibly be needed for the directory
+                // (it could be a protected zip file representing a compressed directory) - in this
+                // case the key is the path without the last segment.
+                // Using "Path" this way may result in an empty string - which later will result in
+                // an invalid key.
+                host = new Path( location.toString() ).removeLastSegments( 1 ).toString();
+            }
+            else
+            {
+                // it is an opaque URI - details are unknown - can only use entire string.
+                host = location.toString();
+            }
+        }
+        String nodeKey;
+        try
+        {
+            nodeKey = URLEncoder.encode( host, "UTF-8" ); //$NON-NLS-1$
+        }
+        catch ( UnsupportedEncodingException e2 )
+        {
+            // fall back to default platform encoding
+            try
+            {
+                // Uses getProperty "file.encoding" instead of using deprecated URLEncoder.encode(String location)
+                // which does the same, but throws NPE on missing property.
+                String enc = System.getProperty( "file.encoding" );//$NON-NLS-1$
+                if ( enc == null )
+                {
+                    throw new UnsupportedEncodingException(
+                                                            "No UTF-8 encoding and missing system property: file.encoding" ); //$NON-NLS-1$
+                }
+                nodeKey = URLEncoder.encode( host, enc );
+            }
+            catch ( UnsupportedEncodingException e )
+            {
+                throw new RuntimeException( e );
+            }
+        }
+        String nodeName = IRepository.PREFERENCE_NODE + '/' + nodeKey;
+
+        ISecurePreferences prefNode = securePreferences.node( nodeName );
+
+        try
+        {
+            if ( !username.equals( prefNode.get( IRepository.PROP_USERNAME, username ) )
+                || !password.equals( prefNode.get( IRepository.PROP_PASSWORD, password ) ) )
+            {
+                logger.info( "Redefining access credentials for repository host " + host );
+            }
+            prefNode.put( IRepository.PROP_USERNAME, username, false );
+            prefNode.put( IRepository.PROP_PASSWORD, password, false );
+        }
+        catch ( StorageException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
+    
+    @SuppressWarnings( "unchecked" )
+    private void dumpInstallableUnits( IQueryable source )
+    {
+        Collector collector = source.query( InstallableUnitQuery.ANY, new Collector(), monitor );
+        dumpInstallableUnits( collector.toCollection() );
+    }
+
+    private void dumpInstallableUnits( Collection<IInstallableUnit> ius )
+    {
+        for ( IInstallableUnit iu : ius )
+        {
+            System.out.println( iu.toString() );
+        }
+    }
+
+    private void dumpInstallableUnits( IInstallableUnit[] ius )
+    {
+        for ( IInstallableUnit iu : ius )
+        {
+            System.out.println( iu.toString() );
+        }
+    }
+    
 }

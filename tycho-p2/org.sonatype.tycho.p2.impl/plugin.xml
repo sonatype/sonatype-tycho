@@ -8,5 +8,13 @@
             class="org.sonatype.tycho.p2.TransientMetadataRepositoryFactory">
       </factory>
    </extension>
+   <extension
+         id="id1"
+         point="org.eclipse.equinox.security.secureStorage">
+      <provider
+            class="org.sonatype.tycho.p2.TychoPasswordProvider"
+            priority="0">
+      </provider>
+   </extension>
 
 </plugin>

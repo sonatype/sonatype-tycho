@@ -9,6 +9,8 @@ import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
 public class Activator
     implements BundleActivator
 {
+    public static final String PLUGIN_ID = "org.sonatype.tycho.p2.impl";
+    
     private static Activator instance;
 
     private BundleContext context;

@@ -28,8 +28,12 @@ public abstract class AbstractTychoIntegrationTest {
 		return dst;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Verifier getVerifier(String test, boolean setTargetPlatform) throws Exception {
+    protected Verifier getVerifier(String test, boolean setTargetPlatform) throws Exception {
+	    return getVerifier( test, setTargetPlatform, new File("settings.xml") );
+	}
+
+    @SuppressWarnings("unchecked")
+	protected Verifier getVerifier(String test, boolean setTargetPlatform, File userSettings) throws Exception {
 		/*
 		Test JVM can be started in debug mode by passing the following
 		env to execute(...) methods.
@@ -50,7 +54,7 @@ public abstract class AbstractTychoIntegrationTest {
         	verifier.getCliOptions().add( "-Dtycho.targetPlatform=" + getTargetPlatforn() );
         }
         verifier.getCliOptions().add("-X");
-        verifier.getCliOptions().add("-s " + new File("settings.xml").getCanonicalPath());
+        verifier.getCliOptions().add("-s " + userSettings.getCanonicalPath());
 //        verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
 //        verifier.setLocalRepo( getLocalRepo() );
         

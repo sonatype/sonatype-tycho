@@ -16,6 +16,7 @@ import org.apache.maven.ProjectDependenciesResolver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
+import org.apache.maven.artifact.repository.Authentication;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.execution.MavenSession;
@@ -23,6 +24,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.settings.Mirror;
+import org.apache.maven.settings.Server;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -175,7 +177,14 @@ public class P2TargetPlatformResolver
 
                 if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
                 {
+                    Authentication auth = repository.getAuthentication();
+                    if ( auth != null )
+                    {
+                        resolver.setCredentials( uri, auth.getUsername(), auth.getPassword() );
+                    }
+
                     resolver.addP2Repository( uri );
+
                     getLogger().debug("Added p2 repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                 }
                 else
@@ -231,6 +240,21 @@ public class P2TargetPlatformResolver
                     URI uri = new URI( getMirror( location, session.getRequest().getMirrors() ) );
                     if ( uris.add( uri ) )
                     {
+                        String id = location.getRepositoryId();
+                        if ( id != null )
+                        {
+                            Server server = session.getSettings().getServer( id );
+
+                            if ( server != null )
+                            {
+                                resolver.setCredentials( uri, server.getUsername(), server.getPassword() );
+                            }
+                            else
+                            {
+                                getLogger().info( "Unknown server id=" + id + " for repository location=" + location.getRepositoryLocation() );
+                            }
+                        }
+
                         resolver.addP2Repository( uri );
                     }
                 }

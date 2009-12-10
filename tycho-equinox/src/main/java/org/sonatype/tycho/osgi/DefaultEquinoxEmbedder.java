@@ -31,6 +31,8 @@ public class DefaultEquinoxEmbedder
     @Requirement
     private EquinoxLocator equinoxLocator;
 
+    private String[] nonFrameworkArgs;
+
     public synchronized void start()
         throws Exception
     {
@@ -67,7 +69,7 @@ public class DefaultEquinoxEmbedder
         // EclipseStarter is not helping here
 
         EclipseStarter.setInitialProperties( properties );
-        EclipseStarter.startup( new String[0], null );
+        EclipseStarter.startup( nonFrameworkArgs, null );
 
         frameworkContext = EclipseStarter.getSystemBundleContext();
 
@@ -164,5 +166,10 @@ public class DefaultEquinoxEmbedder
         }
 
         return clazz.cast( frameworkContext.getService( serviceReference ) );
+    }
+
+    public void setNonFrameworkArgs( String[] args )
+    {
+        nonFrameworkArgs = args;
     }
 }
