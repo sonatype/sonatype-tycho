@@ -15,10 +15,7 @@
 
   <groupId>org.sonatype.tycho</groupId>
   <artifactId>tycho</artifactId>
-  <!--
-    Do not forget to update newVersion property of maven-version-plugin below
-  -->
-  <version>0.6.0-SNAPSHOT</version>
+  <version>0.6.0</version>
   <packaging>pom</packaging>
   <name>Tycho</name>
   <description>Tycho integrates Maven with Eclipse and OSGi</description>
@@ -41,24 +38,6 @@
     <modelloVersion>1.1</modelloVersion>
     <jxpathVersion>1.3</jxpathVersion>
 
-    <!--
-      Check out maven 3.0 source and make note of the svn rev.
-
-      Rename the 3.0-SNAPSHOT to something like 3.0-TYCHO-[svnrev] in all the poms,
-      including cross dependencies.
-
-      Override deployment repository with 
-
-        clean source:jar deploy -DaltDeploymentRepository=forge-releases::default::http://repository.sonatype.org/service/local/staging/deploy/maven2/
-
-      DO NOT FORGET TO DEPLOY SOURCES (add source:jar goal)
-      
-      Promote build to tycho-pseudo-releases repository from nexus GUI
-      http://repository.sonatype.org/
-
-      By versioning it from the svn rev, we can always reproduce without having
-      to actually commit the source to our svn.
-    -->
     <maven-version>3.0-alpha-4</maven-version>
 
     <!-- 
@@ -88,6 +67,8 @@
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/eclipse/
      -->
     <jdtVersion>3.5.1.v_972_R35x</jdtVersion>
+
+    <forceContextQualifier>20091216-2300</forceContextQualifier>
   </properties>
 
   <dependencyManagement>
@@ -382,9 +363,9 @@
             <configuration>
               <mappingId>customizable</mappingId>
               <configurators>
-                <configurator id='org.maven.ide.eclipse.jdt.javaConfigurator' />
-                <configurator id='org.maven.ide.eclipse.modello.modelloConfigurator' />
-                <configurator id='org.maven.ide.eclipse.plexus.annotations.plexusConfigurator' />
+                <configurator id="org.maven.ide.eclipse.jdt.javaConfigurator" />
+                <configurator id="org.maven.ide.eclipse.modello.modelloConfigurator" />
+                <configurator id="org.maven.ide.eclipse.plexus.annotations.plexusConfigurator" />
               </configurators>
               <mojoExecutions>
                 <mojoExecution>org.apache.maven.plugins:maven-resources-plugin::</mojoExecution>
