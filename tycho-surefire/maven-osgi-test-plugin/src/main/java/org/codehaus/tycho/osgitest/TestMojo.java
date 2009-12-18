@@ -146,6 +146,22 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private Dependency[] dependencies;
 
+	/**
+	 * Eclipse application to be run. If not specified, default application
+	 * org.eclipse.ui.ide.workbench will be used.
+	 * 
+	 * @parameter 
+	 */
+	private String testApplication;
+
+	/**
+	 * Eclipse product to be run. Despite the name, regular -product parameter
+	 * will be used to start Eclipse.
+	 * 
+	 * @parameter
+	 */
+	private String testProduct;
+
 	private BundleResolutionState bundleResolutionState;
 
 	/**
@@ -155,8 +171,20 @@ public class TestMojo extends AbstractMojo {
 	*/
 	private MavenSession session;
 
-	/** @parameter default-value="false" */
+	/**
+	 * Run tests using UI (true) or headless (false) test harness.
+	 *  
+	 * @parameter default-value="false" 
+	 */
 	private boolean useUIHarness;
+
+	/**
+	 * Run tests in UI (true) or background (false) thread. Only applies to
+	 * UI test harness.
+	 *  
+	 * @parameter default-value="true" 
+	 */
+    private boolean useUIThread;
 
 	/**
 	 * @parameter expression="${plugin.artifacts}"
@@ -449,6 +477,21 @@ public class TestMojo extends AbstractMojo {
 				"-application",	getTestApplication(testRuntime),
 				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
+			if (testApplication != null) {
+                cli.addArguments(new String[] {
+                    "-testApplication", testApplication,
+                });
+			}
+			if (testProduct != null) {
+                cli.addArguments(new String[] {
+                    "-product", testProduct,
+                });
+			}
+            if (useUIHarness && !useUIThread) {
+                cli.addArguments(new String[] {
+                    "-nouithread",
+                });
+            }
 			if (appArgLine != null) {
                 Arg appArg = cli.createArg();
                 appArg.setLine(appArgLine);

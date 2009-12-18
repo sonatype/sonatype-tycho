@@ -16,22 +16,42 @@ public abstract class AbstractUITestApplication implements ITestHarness {
 	private String[] fArgs = new String[0];
 	private TestableObject fTestableObject;
 
-	public void runTests() {
-		fTestableObject.testingStarting();
-		fTestableObject.runTest(new Runnable() {
-			public void run() {
-		        try {
-					fTestRunnerResult = OsgiSurefireBooter.run(fArgs);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-		fTestableObject.testingFinished();
-	}
+    public void runTests() {
+        fTestableObject.testingStarting();
+        if (useUIThread(fArgs)) {
+            fTestableObject.runTest(new Runnable() {
+                public void run() {
+                    try {
+                        fTestRunnerResult = OsgiSurefireBooter.run(fArgs);
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            try {
+                fTestRunnerResult = OsgiSurefireBooter.run(fArgs);
+            } catch ( Exception e ) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        fTestableObject.testingFinished();
+    }
 
-	/*
+	private boolean useUIThread(String[] args) {
+	    if (args != null) {
+	        for (int i = 0; i < args.length; i++) {
+	            if ("-nouithread".equals(args[i])) {
+	                return false;
+	            }
+	        }
+	    }
+        return true;
+    }
+
+    /*
 	 * return the application to run, or null if not even the default application
 	 * is found.
 	 */
