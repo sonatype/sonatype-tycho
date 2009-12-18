@@ -148,19 +148,20 @@ public class TestMojo extends AbstractMojo {
 
 	/**
 	 * Eclipse application to be run. If not specified, default application
-	 * org.eclipse.ui.ide.workbench will be used.
+	 * org.eclipse.ui.ide.workbench will be used. Application runnable
+	 * will be invoked from test harness, not directly from Eclipse. 
 	 * 
 	 * @parameter 
 	 */
-	private String testApplication;
+	private String application;
 
 	/**
-	 * Eclipse product to be run. Despite the name, regular -product parameter
-	 * will be used to start Eclipse.
+	 * Eclipse product to be run, i.e. -product parameter
+	 * passed to test Eclipse runtime.
 	 * 
 	 * @parameter
 	 */
-	private String testProduct;
+	private String product;
 
 	private BundleResolutionState bundleResolutionState;
 
@@ -477,14 +478,14 @@ public class TestMojo extends AbstractMojo {
 				"-application",	getTestApplication(testRuntime),
 				"-testproperties", surefireProperties.getAbsolutePath(), 
 			});
-			if (testApplication != null) {
+			if (application != null) {
                 cli.addArguments(new String[] {
-                    "-testApplication", testApplication,
+                    "-testApplication", application,
                 });
 			}
-			if (testProduct != null) {
+			if (product != null) {
                 cli.addArguments(new String[] {
-                    "-product", testProduct,
+                    "-product", product,
                 });
 			}
             if (useUIHarness && !useUIThread) {
