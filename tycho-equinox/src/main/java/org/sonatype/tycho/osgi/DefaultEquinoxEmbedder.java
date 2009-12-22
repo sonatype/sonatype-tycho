@@ -69,7 +69,8 @@ public class DefaultEquinoxEmbedder
         // EclipseStarter is not helping here
 
         EclipseStarter.setInitialProperties( properties );
-        EclipseStarter.startup( nonFrameworkArgs, null );
+
+        EclipseStarter.startup( nonFrameworkArgs != null ? nonFrameworkArgs : new String[0], null );
 
         frameworkContext = EclipseStarter.getSystemBundleContext();
 
