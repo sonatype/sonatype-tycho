@@ -1,3 +1,0 @@
-Build instructions
-
-http://docs.sonatype.org/display/TYCHO/BuildingTycho
