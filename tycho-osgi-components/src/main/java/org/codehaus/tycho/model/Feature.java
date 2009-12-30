@@ -20,6 +20,9 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
+/**
+ * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/feature_manifest.html 
+ */
 public class Feature {
 	
 	public static final String FEATURE_XML = "feature.xml";
