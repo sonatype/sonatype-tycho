@@ -20,12 +20,8 @@ public interface FeatureDescription {
 
 	Object getUserProperty(String key);
 
-	String getMavenGroupId();
-
 	void setMavenProject(MavenProject project);
 
 	MavenProject getMavenProject();
-
-	String getMavenBaseVersion();
 
 }

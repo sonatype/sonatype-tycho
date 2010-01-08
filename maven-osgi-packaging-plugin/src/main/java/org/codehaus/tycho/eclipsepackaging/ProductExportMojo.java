@@ -30,6 +30,7 @@ import org.codehaus.tycho.PlatformPropertiesUtils;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.maven.DependenciesReader;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;

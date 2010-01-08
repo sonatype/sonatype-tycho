@@ -13,7 +13,8 @@
             <id>default</id>
             <phases>
               <validate>
-                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
               </validate>
               <process-resources>
                 org.apache.maven.plugins:maven-resources-plugin:resources
@@ -74,7 +75,8 @@
             <id>default</id>
             <phases>
               <validate>
-                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
               </validate>
               <process-resources>
                 org.apache.maven.plugins:maven-resources-plugin:resources
@@ -138,7 +140,8 @@
             <id>default</id>
             <phases>
               <validate>
-                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:build-qualifier,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
               </validate>
               <generate-resources>
               </generate-resources>

@@ -1,4 +1,4 @@
-package org.codehaus.tycho.buildnumber;
+package org.codehaus.tycho.buildversion;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -87,12 +87,12 @@ public class BuildQualifierMojo extends AbstractMojo {
 
 	private Date getSessionTimestamp() {
 		Date timestamp;
-		String value = session.getExecutionProperties().getProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY);
+		String value = session.getUserProperties().getProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY);
 		if (value != null) {
 			timestamp = new Date(Long.parseLong(value));
 		} else {
 			timestamp = new Date();
-			session.getExecutionProperties().setProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY, Long.toString(timestamp.getTime()));
+			session.getUserProperties().setProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY, Long.toString(timestamp.getTime()));
 		}
 		return timestamp;
 	}

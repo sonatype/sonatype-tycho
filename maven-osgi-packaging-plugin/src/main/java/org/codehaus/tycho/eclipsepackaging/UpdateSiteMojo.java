@@ -32,6 +32,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.IFeatureRef;
 import org.codehaus.tycho.model.PluginRef;

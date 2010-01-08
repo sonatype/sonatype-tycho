@@ -21,12 +21,12 @@ public class MultiplatformReactorTest
 
         // assert product got proper platform fragments 
         File productTarget = new File( verifier.getBasedir(), "product/target" );
-        assertFileExists( productTarget, "linux.gtk.x86/eclipse/plugins/fragment.linux_1.0.0.*.jar" );
-        assertFileExists( productTarget, "win32.win32.x86/eclipse/plugins/fragment.windows_1.0.0.*.jar" );
+        assertFileExists( productTarget, "linux.gtk.x86/eclipse/plugins/fragment.linux_0.0.1.*.jar" );
+        assertFileExists( productTarget, "win32.win32.x86/eclipse/plugins/fragment.windows_0.0.1.*.jar" );
         
         // assert site got all platform fragments
         File siteproductTarget = new File( verifier.getBasedir(), "site/target" );
-        assertFileExists( siteproductTarget, "site/plugins/fragment.linux_1.0.0.*.jar" );
-        assertFileExists( siteproductTarget, "site/plugins/fragment.windows_1.0.0.*.jar" );
+        assertFileExists( siteproductTarget, "site/plugins/fragment.linux_0.0.1.*.jar" );
+        assertFileExists( siteproductTarget, "site/plugins/fragment.windows_0.0.1.*.jar" );
     }
 }

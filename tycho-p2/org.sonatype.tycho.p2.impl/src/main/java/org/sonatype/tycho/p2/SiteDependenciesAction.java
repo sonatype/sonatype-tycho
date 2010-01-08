@@ -70,7 +70,7 @@ public class SiteDependenciesAction
                 }
                 else
                 {
-                    Version version = new Version( versionString );
+                    Version version = Version.create( versionString );
                     range = new VersionRange( version, true, version, true );
                 }
 

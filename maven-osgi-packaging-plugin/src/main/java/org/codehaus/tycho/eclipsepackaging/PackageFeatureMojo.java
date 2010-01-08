@@ -21,6 +21,7 @@ import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.MavenSessionUtils;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.eclipsepackaging.product.Plugin;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
@@ -131,9 +132,6 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 		FeatureDescription featureDesc = featureResolutionState.getFeatureByLocation( project.getBasedir() );
 		Feature feature = new Feature(featureDesc.getFeature());
 
-		feature.setMavenGroupId(project.getGroupId());
-		feature.setMavenBaseVersion(project.getVersion()); // not expanded yet
-
 		// expand version if necessary
 		if (VersioningHelper.isSnapshotVersion(featureDesc.getVersion())) {
 			Version version = VersioningHelper.expandVersion(featureDesc.getVersion(), qualifier);
@@ -201,16 +199,6 @@ public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 			if (refDescription == null) {
 				getLog().warn(project.getId() + " referenced unknown feature " + refId + ":" + refVersion);
 				continue;
-			}
-
-			String refGroupId = refDescription.getMavenGroupId();
-			if (refGroupId != null) {
-				ref.setMavenGroupId(refGroupId);
-			}
-
-			String refBaseVersion = refDescription.getMavenBaseVersion();
-			if (refBaseVersion != null) {
-				ref.setMavenBaseVersion(refBaseVersion);
 			}
 		}
 

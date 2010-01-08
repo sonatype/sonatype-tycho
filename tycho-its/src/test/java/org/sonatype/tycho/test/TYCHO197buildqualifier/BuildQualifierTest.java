@@ -1,4 +1,4 @@
-package org.sonatype.tycho.test.tycho197;
+package org.sonatype.tycho.test.TYCHO197buildqualifier;
 
 import java.io.File;
 import java.util.jar.Manifest;
@@ -14,7 +14,7 @@ import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 import de.schlichtherle.io.FileInputStream;
 
-public class Tycho197qualifierTest extends AbstractTychoIntegrationTest {
+public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 
 	@SuppressWarnings("unchecked")
 	@Test

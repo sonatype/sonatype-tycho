@@ -87,30 +87,12 @@ public class FeatureDescriptionImpl implements FeatureDescription {
 		return userProperties.get(key);
 	}
 
-	public String getMavenGroupId() {
-		MavenProject project = getMavenProject();
-		if (project != null) {
-			return project.getGroupId();
-		}
-
-		return feature.getMavenGroupId();
-	}
-
 	public MavenProject getMavenProject() {
 		return mavenProject;
 	}
 
 	public void setMavenProject(MavenProject project) {
 		this.mavenProject = project;
-	}
-
-	public String getMavenBaseVersion() {
-		MavenProject project = getMavenProject();
-		if (project != null) {
-			return project.getVersion();
-		}
-		
-		return feature.getMavenBaseVersion();
 	}
 
 }

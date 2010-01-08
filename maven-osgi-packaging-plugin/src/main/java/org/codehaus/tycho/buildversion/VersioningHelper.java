@@ -1,4 +1,4 @@
-package org.codehaus.tycho.eclipsepackaging;
+package org.codehaus.tycho.buildversion;
 
 import java.io.File;
 
@@ -13,7 +13,7 @@ import org.osgi.framework.Version;
 public class VersioningHelper
 {
 
-    private static final String QUALIFIER = "qualifier";
+    public static final String QUALIFIER = "qualifier";
 
     /**
      * Returns true is version is a snapshot version, i.e. qualifier is ".qualifier"
@@ -46,16 +46,6 @@ public class VersioningHelper
     public static void setExpandedVersion( MavenSession session, String location, String version )
     {
         setExpandedVersion( session, new File( location ), version );
-    }
-
-    public static String getMavenBaseVersion( MavenSession session, BundleDescription bundle )
-    {
-        MavenProject mavenProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
-        if ( mavenProject != null )
-        {
-            return mavenProject.getVersion(); // not expanded yet
-        }
-        return null;
     }
 
     public static String getExpandedVersion( MavenSession session, BundleDescription bundle )

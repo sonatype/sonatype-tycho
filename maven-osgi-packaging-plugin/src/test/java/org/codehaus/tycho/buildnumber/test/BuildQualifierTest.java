@@ -8,7 +8,7 @@ import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.buildnumber.BuildQualifierMojo;
+import org.codehaus.tycho.buildversion.BuildQualifierMojo;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class BuildQualifierTest

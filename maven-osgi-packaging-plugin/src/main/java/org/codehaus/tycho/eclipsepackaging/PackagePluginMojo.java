@@ -15,6 +15,7 @@ import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.eclipse.osgi.service.resolver.BundleDescription;

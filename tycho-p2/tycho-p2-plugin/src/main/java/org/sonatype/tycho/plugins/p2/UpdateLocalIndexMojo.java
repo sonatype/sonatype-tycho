@@ -31,7 +31,7 @@ public class UpdateLocalIndexMojo
         try
         {
             LocalTychoRepositoryIndex.addProject( location, project.getGroupId(), project.getArtifactId(), project
-                .getVersion() );
+                .getArtifact().getVersion() );
         }
         catch ( IOException e )
         {
