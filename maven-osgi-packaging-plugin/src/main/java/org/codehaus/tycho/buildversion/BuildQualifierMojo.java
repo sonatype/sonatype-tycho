@@ -32,6 +32,7 @@ import org.apache.maven.project.MavenProject;
  * the timestamp, however (highly not recommended but possible).
  * 
  * @goal build-qualifier
+ * @phase validate
  */
 public class BuildQualifierMojo extends AbstractMojo {
 
