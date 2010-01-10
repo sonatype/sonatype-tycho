@@ -32,10 +32,6 @@
       <artifactId>bcel</artifactId>
     </dependency>
     <dependency>
-      <groupId>velocity</groupId>
-      <artifactId>velocity</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.maven.surefire</groupId>
       <artifactId>surefire-booter</artifactId>
     </dependency>

@@ -3,7 +3,7 @@
 BASDIR=$(pwd)
 
 
-# Location of Eclipse 3.4.1 with RCP Delta pack
+# Location of Eclipse 3.5.1 with RCP Delta pack
 TYCHO_TARGET_PLATFORM=/opt/eclipse-3.5/eclipse
 
 # location of maven used to build bootstrap tycho distribution
