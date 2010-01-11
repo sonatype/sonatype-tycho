@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -24,8 +25,12 @@ import org.apache.maven.project.MavenProject;
  * 3. the tag that was used to fetch the bundle (only when using map file)
  * 4. a time stamp in the form YYYYMMDDHHMM (ie 200605121600)
  * 
- * The generated qualifier is assigned to buildQualifier project property 
- * (actual property name is configurable). 
+ * The generated qualifier is assigned to <code>buildQualifier</code> project property.
+ * 
+ * Unqualified project version is assigned to  <code>unqualifiedVersion</code>
+ * project property. Unqualified version is calculated based on <code>${project.version}</code>
+ * and can be used for any Tycho project (eclipse-update-site, eclipse-application, etc)
+ * and regular maven project.
  * 
  * Implementation guarantees that the same timestamp is used for all projects
  * in reactor build. Different projects can use different formats to expand
@@ -37,6 +42,7 @@ import org.apache.maven.project.MavenProject;
 public class BuildQualifierMojo extends AbstractMojo {
 
 	public static final String BUILD_QUALIFIER_PROPERTY = "buildQualifier";
+    public static final String UNQUALIFIED_VERSION_PROPERTY = "unqualifiedVersion";
 	private static final String REACTOR_BUILD_TIMESTAMP_PROPERTY = "reactorBuildTimestampProperty";
 
 	/**
@@ -84,9 +90,18 @@ public class BuildQualifierMojo extends AbstractMojo {
 		}
 
 		project.getProperties().put(BUILD_QUALIFIER_PROPERTY, qualifier);
+		project.getProperties().put(UNQUALIFIED_VERSION_PROPERTY, getUnqualifiedVersion());
 	}
 
-	private Date getSessionTimestamp() {
+	private String getUnqualifiedVersion() {
+	    String version = project.getArtifact().getVersion();
+	    if (version.endsWith("-" + Artifact.SNAPSHOT_VERSION)) {
+            version = version.substring( 0, version.length() - Artifact.SNAPSHOT_VERSION.length() - 1 );
+	    }
+        return version;
+    }
+
+    private Date getSessionTimestamp() {
 		Date timestamp;
 		String value = session.getUserProperties().getProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY);
 		if (value != null) {
