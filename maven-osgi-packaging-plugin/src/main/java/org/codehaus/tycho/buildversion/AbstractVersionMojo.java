@@ -43,20 +43,27 @@ public abstract class AbstractVersionMojo
         {
             BundleResolutionState bundleResolutionState =
                 (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-            BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
 
-            version = VersioningHelper.getExpandedVersion( session, bundle );
+            if ( bundleResolutionState != null )
+            {
+                BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
 
+                version = VersioningHelper.getExpandedVersion( session, bundle );
+            }
         }
         else if ( ProjectType.ECLIPSE_FEATURE.equals( packaging ) )
         {
             FeatureResolutionState featureResolutionState =
                 (FeatureResolutionState) project.getContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE );
-            FeatureDescription featureDesc = featureResolutionState.getFeatureByLocation( project.getBasedir() );
 
-            version = VersioningHelper.getExpandedVersion( session, featureDesc );
+            if ( featureResolutionState != null )
+            {
+                FeatureDescription featureDesc = featureResolutionState.getFeatureByLocation( project.getBasedir() );
+
+                version = VersioningHelper.getExpandedVersion( session, featureDesc );
+            }
         }
         return version;
     }
-    
+
 }
