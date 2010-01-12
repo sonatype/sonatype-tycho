@@ -189,31 +189,38 @@ public class P2TargetPlatformResolver
                 }
                 else
                 {
-                    try
+                    if ( !configuration.isIgnoreTychoRepositories() )
                     {
-                        MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
-                        reader.setArtifactRepository( repository );
-                        reader.setLocalRepository( session.getLocalRepository() );
-
-                        String repositoryKey = getRepositoryKey( repository );
-                        TychoRepositoryIndex index = repositoryCache.getRepositoryIndex( repositoryKey );
-                        if ( index == null )
+                        try
                         {
-                            index = new DefaultTychoRepositoryIndex( reader );
-                            
-                            repositoryCache.putRepositoryIndex( repositoryKey, index );
+                            MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
+                            reader.setArtifactRepository( repository );
+                            reader.setLocalRepository( session.getLocalRepository() );
+    
+                            String repositoryKey = getRepositoryKey( repository );
+                            TychoRepositoryIndex index = repositoryCache.getRepositoryIndex( repositoryKey );
+                            if ( index == null )
+                            {
+                                index = new DefaultTychoRepositoryIndex( reader );
+                                
+                                repositoryCache.putRepositoryIndex( repositoryKey, index );
+                            }
+    
+                            resolver.addMavenRepository( uri, index, reader );
+                            getLogger().debug("Added Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                         }
-
-                        resolver.addMavenRepository( uri, index, reader );
-                        getLogger().debug("Added Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
+                        catch ( FileNotFoundException e )
+                        {
+                            // it happens
+                        }
+                        catch ( Exception e )
+                        {
+                            getLogger().debug( "Unable to initialize remote Tycho repository", e );
+                        }
                     }
-                    catch ( FileNotFoundException e )
+                    else
                     {
-                        // it happens
-                    }
-                    catch ( Exception e )
-                    {
-                        getLogger().debug( "Unable to initialize remote Tycho repository", e );
+                        getLogger().debug( "Ignoring Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                     }
                 }
             }

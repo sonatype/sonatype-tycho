@@ -147,6 +147,8 @@ public class TychoMavenLifecycleParticipant
                 result.setTarget( getTarget( session, project, configuration ) );
                 
                 result.setPomDependencies( getPomDependencies( configuration ) );
+
+                result.setIgnoreTychoRepositories( getIgnoreTychoRepositories( configuration ) );
             }
         }
 
@@ -165,6 +167,17 @@ public class TychoMavenLifecycleParticipant
         }
 
         return result;
+    }
+
+    private boolean getIgnoreTychoRepositories( Xpp3Dom configuration )
+    {
+        Xpp3Dom ignoreTychoRepositoriesDom = configuration.getChild( "ignoreTychoRepositories" );
+        if ( ignoreTychoRepositoriesDom == null )
+        {
+            return false;
+        }
+
+        return Boolean.parseBoolean( ignoreTychoRepositoriesDom.getValue() );
     }
 
     private String getPomDependencies( Xpp3Dom configuration )

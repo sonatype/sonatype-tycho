@@ -12,6 +12,8 @@ public class TargetPlatformConfiguration
 
     private String pomDependencies;
 
+    private boolean ignoreTychoRepositories;
+
     public TargetEnvironment getEnvironment()
     {
         return environment;
@@ -50,5 +52,15 @@ public class TargetPlatformConfiguration
     public String getPomDependencies()
     {
         return pomDependencies;
+    }
+
+    public void setIgnoreTychoRepositories( boolean ignoreTychoRepositories )
+    {
+        this.ignoreTychoRepositories = ignoreTychoRepositories;
+    }
+
+    public boolean isIgnoreTychoRepositories()
+    {
+        return ignoreTychoRepositories;
     }
 }
