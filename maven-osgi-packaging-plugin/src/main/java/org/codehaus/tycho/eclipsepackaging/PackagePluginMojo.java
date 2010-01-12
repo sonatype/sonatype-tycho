@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -102,16 +104,17 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			if (pluginFile.exists()) {
 				pluginFile.delete();
 			}
+			Properties buildProperties = pdeProject.getBuildProperties();
+			List<String> binInludesList = toFilePattern(buildProperties.getProperty("bin.includes"));
+			List<String> binExcludesList = toFilePattern(buildProperties.getProperty("bin.excludes"));
 
 			BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
-			if (dotOutputJar != null) {
+			if (dotOutputJar != null && binInludesList.contains(".")) {
 				archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory());
 			}
 
-			String binIncludes = pdeProject.getBuildProperties().getProperty("bin.includes");
-			String binExcludes = pdeProject.getBuildProperties().getProperty("bin.excludes");
-			if (binIncludes != null) {
-				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), toFilePattern(binIncludes), toFilePattern(binExcludes)));
+			if (binInludesList.size() > 0) {
+				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), binInludesList, binExcludesList));
 			}
 
 			File manifest = updateManifest();
