@@ -190,6 +190,9 @@
           <lifecycle>
             <id>default</id>
             <phases>
+              <validate>
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
+              </validate>
               <package>
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:update-site,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-site-p2-metadata
@@ -234,6 +237,9 @@
           <lifecycle>
             <id>default</id>
             <phases>
+              <validate>
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
+              </validate>
               <package>
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:product-export
               </package>
