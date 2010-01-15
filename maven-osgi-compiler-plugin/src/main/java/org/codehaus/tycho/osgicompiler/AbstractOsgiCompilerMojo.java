@@ -34,9 +34,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
+import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
 import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
@@ -46,6 +48,10 @@ import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.utils.MavenArtifactRef;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
+
+	private static final Set<String> MATCH_ALL = Collections.singleton("**/*");
+	private static final Set<String> MATCH_JAVA = Collections
+			.singleton("**/*.java");
 
 	/**
 	 * A temporary directory to extract embedded jars
@@ -132,6 +138,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			this.outputJar = jar;
 			this.outputJar.getOutputDirectory().mkdirs();
 			super.execute();
+			copyResources();
 			getClasspathComputer().addOutputDirectory(this.outputJar.getOutputDirectory());
 		}
 
@@ -139,6 +146,44 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
 		if (dotOutputJar != null) {
 			project.getArtifact().setFile(dotOutputJar.getOutputDirectory());
+		}
+	}
+
+	/*
+	 * mimics the behavior of the PDE incremental builder which by default copies all
+	 * (non-java) resource files in source directories into the target folder
+	 */
+	private void copyResources() throws MojoExecutionException {
+		for (String sourceRoot : getCompileSourceRoots()) {
+			// StaleSourceScanner.getIncludedSources throws IllegalStateException
+			// if directory doesnt't exist
+			File sourceRootFile = new File(sourceRoot);
+			if (!sourceRootFile.isDirectory()) {
+				getLog().warn("Source directory " + sourceRoot + " does not exist");
+				continue;
+			}
+
+			StaleSourceScanner scanner = new StaleSourceScanner(0L, MATCH_ALL, MATCH_JAVA);
+			CopyMapping copyMapping = new CopyMapping();
+			scanner.addSourceMapping(copyMapping);
+			try {
+				scanner.getIncludedSources(sourceRootFile, this.outputJar
+						.getOutputDirectory());
+				for (CopyMapping.SourceTargetPair sourceTargetPair : copyMapping
+						.getSourceTargetPairs()) {
+					FileUtils.copyFile(new File(sourceRoot, sourceTargetPair.source),
+							sourceTargetPair.target);
+				}
+			} catch (InclusionScanException e) {
+				throw new MojoExecutionException(
+						"Exception while scanning for resource files in "
+								+ sourceRoot, e);
+			} catch (IOException e) {
+				throw new MojoExecutionException(
+						"Exception copying resource files from " + sourceRoot
+								+ " to " + this.outputJar.getOutputDirectory(),
+						e);
+			}
 		}
 	}
 
@@ -207,7 +252,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			}
 			scanner = new StaleSourceScanner(staleMillis, includes, excludes);
 		}
-
 		return scanner;
 	}
 

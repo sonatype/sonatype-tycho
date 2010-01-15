@@ -175,4 +175,14 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertTrue(new File(project.getBasedir(), "target/classes/src/Src.class").canRead());
 		assertTrue(new File(project.getBasedir(), "target/library.jar-classes/src2/Src2.class").canRead());
 	}
+	
+	public void testCopyResources() throws Exception { 
+		File basedir = getBasedir("projects/resources/p001");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+		MavenProject project = projects.get(0);
+		getMojo(projects, project).execute();
+		assertTrue(new File(project.getBasedir(), "target/classes/testresources/Test.class").canRead());
+		assertTrue(new File(project.getBasedir(), "target/classes/testresources/test.properties").canRead());
+	}
+	
 }
