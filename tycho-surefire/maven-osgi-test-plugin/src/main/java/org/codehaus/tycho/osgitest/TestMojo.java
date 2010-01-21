@@ -233,6 +233,13 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private String testClass;
 
+    /**
+     * Additional environments to set for the forked test JVM.
+     * 
+     * @parameter
+     */
+    private Map<String, String> environmentVariables;
+
 	/** @component */
     private PlexusContainer plexus;
 
@@ -496,6 +503,11 @@ public class TestMojo extends AbstractMojo {
 			if (appArgLine != null) {
                 Arg appArg = cli.createArg();
                 appArg.setLine(appArgLine);
+			}
+			if (environmentVariables != null) {
+				for (Map.Entry<String, String> entry : environmentVariables.entrySet()) {
+					cli.addEnvironment(entry.getKey(), entry.getValue());
+				}
 			}
 
 			getLog().info("Expected eclipse log file: " + new File(workspace, ".metadata/.log").getCanonicalPath());
