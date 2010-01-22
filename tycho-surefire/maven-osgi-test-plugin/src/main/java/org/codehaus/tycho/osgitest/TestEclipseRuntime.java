@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -15,6 +16,8 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import org.codehaus.plexus.PlexusContainer;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
@@ -43,10 +46,46 @@ public class TestEclipseRuntime
 
     private PlexusContainer plexus;
 
+	private List<String> bundlesToExplode;
+
+	@SuppressWarnings("unchecked")
     public void initialize()
     {
+		initializeResolver();
+
         this.bundles = new ArrayList<File>();
-        bundles.addAll( sourcePlatform.getArtifactFiles( ProjectType.ECLIPSE_PLUGIN, ProjectType.ECLIPSE_TEST_PLUGIN ) );
+		List<File> plugins = sourcePlatform.getArtifactFiles(
+				ProjectType.ECLIPSE_PLUGIN, ProjectType.ECLIPSE_TEST_PLUGIN);
+
+		if (bundlesToExplode == null || bundlesToExplode.isEmpty()) {
+			bundles.addAll(plugins);
+		} else {
+			for (File plugin : plugins) {
+				Dictionary<String, String> descriptor = resolver
+						.loadBundleManifest(plugin);
+				String name = descriptor.get("Bundle-SymbolicName");
+				if (name == null) {
+					name = descriptor.get("Bundle-Name");
+				}
+				if (name.contains(";")) {
+					name = name.substring(0, name.indexOf(';'));
+				}
+				String version = descriptor.get("Bundle-Version");
+
+				if (!plugin.isDirectory() && bundlesToExplode.contains(name)) {
+					final String bundleName = name + "_" + version;
+					File unpackBundle = new File(plugin.getParentFile(),
+							bundleName);
+					if (!unpackBundle.exists()) {
+						unpackBundle.mkdirs();
+						unpack(plugin, unpackBundle);
+					}
+					bundles.add(unpackBundle);
+				} else {
+					bundles.add(plugin);
+				}
+			}
+		}
 
         sites.addAll( sourcePlatform.getSites() );
     }
@@ -223,14 +262,7 @@ public class TestEclipseRuntime
 
     public void create()
     {
-        try
-        {
-            resolver = (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new RuntimeException( "Could not instantiate required component", e );
-        }
+    	initializeResolver();
 
         for ( File file : bundles )
         {
@@ -393,5 +425,40 @@ public class TestEclipseRuntime
     {
         return resolver.getSystemBundle();
     }
+
+	private void initializeResolver() {
+		if (resolver != null) {
+			return;
+		}
+
+		try {
+			resolver = (EquinoxBundleResolutionState) plexus
+					.lookup(BundleResolutionState.class);
+		} catch (ComponentLookupException e) {
+			throw new RuntimeException(
+					"Could not instantiate required component", e);
+		}
+	}
+
+	public void setBundlesToExplode(List<String> bundlesToExplod) {
+		this.bundlesToExplode = bundlesToExplod;
+	}
+
+	private void unpack(File source, File destination) {
+		UnArchiver unzip;
+		try {
+			unzip = plexus.lookup(UnArchiver.class, "zip");
+		} catch (ComponentLookupException e) {
+			throw new RuntimeException(
+					"Could not instantiate required component", e);
+		}
+		unzip.setSourceFile(source);
+		unzip.setDestDirectory(destination);
+		try {
+			unzip.extract();
+		} catch (ArchiverException e) {
+			throw new RuntimeException("Unable to unpack jar " + source, e);
+		}
+	}
 
 }

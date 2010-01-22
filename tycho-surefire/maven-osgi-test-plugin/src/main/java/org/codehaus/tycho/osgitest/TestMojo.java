@@ -240,6 +240,13 @@ public class TestMojo extends AbstractMojo {
      */
     private Map<String, String> environmentVariables;
 
+	/**
+	 * List of bundles that must be expanded in order to execute the tests
+	 * 
+	 * @parameter
+	 */
+	private String[] explodedBundles;
+
 	/** @component */
     private PlexusContainer plexus;
 
@@ -301,6 +308,7 @@ public class TestMojo extends AbstractMojo {
 		testRuntime.setSourcePlatform( targetPlatform );
 		testRuntime.setLocation( work );
 		testRuntime.setPlexusContainer( plexus );
+		testRuntime.setBundlesToExplode(getBundlesToExplode());
 		testRuntime.initialize();
 
 		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
@@ -680,5 +688,15 @@ public class TestMojo extends AbstractMojo {
 		}
 		return reactorBundles;
 	}
-	
+
+	private List<String> getBundlesToExplode() {
+		List<String> bundles = new ArrayList<String>();
+
+		if(explodedBundles != null) {
+			bundles.addAll(Arrays.asList(explodedBundles));
+		}
+
+		return bundles;
+	}
+
 }
