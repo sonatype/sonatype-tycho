@@ -49,6 +49,9 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadata
 import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.IQueryable;
 import org.eclipse.equinox.internal.provisional.p2.repository.IRepository;
+import org.eclipse.equinox.p2.publisher.PublisherInfo;
+import org.eclipse.equinox.p2.publisher.PublisherResult;
+import org.eclipse.equinox.p2.publisher.actions.JREAction;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
@@ -82,7 +85,7 @@ public class P2ResolverImpl
     private P2GeneratorImpl generator = new P2GeneratorImpl( true );
 
     private P2RepositoryCache repositoryCache;
-
+    
     /**
      * All known P2 metadata repositories, including maven local repository 
      */
@@ -148,7 +151,7 @@ public class P2ResolverImpl
         }
     }
 
-    public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
+	public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
     {
         doAddMavenArtifact( location, type, groupId, artifactId, version );
     }
@@ -548,11 +551,27 @@ public class P2ResolverImpl
                 }
             }
         }
+        result.addAll(createJREIUs());
         sub.done();
         return result.toArray( IU_ARRAY );
     }
 
-    private IInstallableUnit createMetaIU( Set<IInstallableUnit> rootIUs )
+    /**
+     * these dummy IUs are needed to satisfy Import-Package requirements to packages provided by the JDK.
+     */
+	@SuppressWarnings("unchecked")
+	private Collection<IInstallableUnit> createJREIUs() {
+		PublisherResult results = new PublisherResult();
+		// TODO use the appropriate profile name
+		new JREAction((String) null).perform(new PublisherInfo(), results,
+				new NullProgressMonitor());
+		Collector collector = new Collector();
+		results.query(InstallableUnitQuery.ANY, collector,
+				new NullProgressMonitor());
+		return collector.toCollection();
+	}
+
+	private IInstallableUnit createMetaIU( Set<IInstallableUnit> rootIUs )
     {
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
         String time = Long.toString( System.currentTimeMillis() );

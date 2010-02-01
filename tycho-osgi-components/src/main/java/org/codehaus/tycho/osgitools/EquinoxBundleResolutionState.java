@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -421,6 +422,8 @@ public class EquinoxBundleResolutionState
         properties.put( org.eclipse.osgi.framework.internal.core.Constants.OSGI_RESOLVER_MODE,
                         org.eclipse.osgi.framework.internal.core.Constants.DEVELOPMENT_MODE );
 
+        addSystemBundleToState(properties);
+
         state.setPlatformProperties( properties );
         
         state.resolve( false );
@@ -447,6 +450,23 @@ public class EquinoxBundleResolutionState
         }
 
         return bundle;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private void addSystemBundleToState(Properties properties) {
+        String systemPackages = properties.getProperty(org.osgi.framework.Constants.FRAMEWORK_SYSTEMPACKAGES);
+
+        Dictionary systemBundleManifest = new Hashtable();
+        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_SYMBOLICNAME, "system.bundle");
+        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_VERSION, "0.0.0");
+        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_MANIFESTVERSION, "2");
+        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.EXPORT_PACKAGE, systemPackages);
+
+        try {
+            addBundle( systemBundleManifest, new File(""), false);
+        } catch (BundleException e) {
+            getLogger().error("Failed to add system bundle", e);
+        }
     }
 
     private static void setUserProperty( BundleDescription desc, String name, Object value )
