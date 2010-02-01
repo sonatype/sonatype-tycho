@@ -345,25 +345,26 @@ public class TestMojo extends AbstractMojo {
     {
 	    ArrayList<Dependency> result = new ArrayList<Dependency>();
 
-        Dependency equinox = new Dependency();
-        equinox.setArtifactId( "org.eclipse.osgi" );
-        equinox.setType( TychoProject.ECLIPSE_PLUGIN );
-        result.add( equinox );
-
-	    Dependency launcher = new Dependency();
-	    launcher.setArtifactId( "org.eclipse.equinox.launcher" );
-	    launcher.setType( TychoProject.ECLIPSE_PLUGIN );
-	    result.add( launcher );
-
+        result.add( newBundleDependency( "org.eclipse.osgi" ) );
+        result.add( newBundleDependency( "org.eclipse.equinox.launcher" ) );
 	    if ( useUIHarness )
 	    {
-	        Dependency ideapp = new Dependency();
-	        ideapp.setArtifactId( "org.eclipse.ui.ide.application" );
-	        ideapp.setType( TychoProject.ECLIPSE_PLUGIN );
-	        result.add( ideapp );
+            result.add( newBundleDependency( "org.eclipse.ui.ide.application" ) );
+	    }
+	    else
+	    {
+            result.add( newBundleDependency( "org.eclipse.core.runtime" ) );
 	    }
 
 	    return result;
+    }
+
+    protected Dependency newBundleDependency( String bundleId )
+    {
+        Dependency ideapp = new Dependency();
+        ideapp.setArtifactId( bundleId );
+        ideapp.setType( TychoProject.ECLIPSE_PLUGIN );
+        return ideapp;
     }
 
     private Set<File> getTestBundles() throws MojoExecutionException {
