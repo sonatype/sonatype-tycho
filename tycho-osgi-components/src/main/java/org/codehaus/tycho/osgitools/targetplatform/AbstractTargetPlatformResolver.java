@@ -4,8 +4,10 @@ import java.io.File;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.tycho.DefaultTargetPlatform;
+import org.codehaus.tycho.ArtifactKey;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetPlatformResolver;
 
 public abstract class AbstractTargetPlatformResolver
@@ -27,17 +29,30 @@ public abstract class AbstractTargetPlatformResolver
     protected void addProjects( MavenSession session, DefaultTargetPlatform platform )
     {
         File parentDir = null;
-
-        for ( MavenProject otherProject : session.getProjects() )
+    
+        for ( MavenProject project : session.getProjects() )
         {
-            platform.addArtifactFile( otherProject.getPackaging(), otherProject.getBasedir() );
-
-            if ( parentDir == null || isSubdir( otherProject.getBasedir(), parentDir ) )
+            try
             {
-                parentDir = otherProject.getBasedir();
+                TychoProject dr =
+                    (TychoProject) session.lookup( TychoProject.class.getName(), project.getPackaging() );
+    
+                ArtifactKey key = dr.getArtifactKey( project );
+    
+                platform.addArtifactFile( key, project.getBasedir() );
+                platform.addMavenProject( key, project );
+    
+                if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
+                {
+                    parentDir = project.getBasedir();
+                }
+            }
+            catch ( ComponentLookupException e )
+            {
+                // fully expected
             }
         }
-
+    
         platform.addSite( parentDir );
     }
 

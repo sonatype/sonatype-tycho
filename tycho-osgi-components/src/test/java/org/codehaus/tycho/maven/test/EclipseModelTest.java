@@ -8,6 +8,7 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.Target;
@@ -34,7 +35,7 @@ public class EclipseModelTest
     {
         UpdateSite site = UpdateSite.read( new File( "src/test/resources/modelio/site.xml" ) );
 
-        List<UpdateSite.FeatureRef> features = site.getFeatures();
+        List<UpdateSite.SiteFeatureRef> features = site.getFeatures();
         assertEquals( 2, features.size() );
         assertEquals( "featureB", features.get( 1 ).getId() );
         assertEquals( "2.0.0", features.get( 1 ).getVersion() );
@@ -67,7 +68,7 @@ public class EclipseModelTest
         assertEquals( 1, plugins.size() );
         assertEquals( "pluginA", plugins.get( 0 ).getId() );
 
-        List<Feature.FeatureRef> features = feature.getIncludedFeatures();
+        List<FeatureRef> features = feature.getIncludedFeatures();
         assertEquals( 1, features.size() );
 
         List<Feature.RequiresRef> requires = feature.getRequires();

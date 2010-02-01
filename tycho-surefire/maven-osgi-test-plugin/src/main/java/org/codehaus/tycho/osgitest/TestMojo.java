@@ -31,12 +31,12 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.MavenSessionUtils;
-import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.TychoMavenLifecycleParticipant;
+import org.codehaus.tycho.utils.MavenSessionUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
@@ -347,19 +347,19 @@ public class TestMojo extends AbstractMojo {
 
         Dependency equinox = new Dependency();
         equinox.setArtifactId( "org.eclipse.osgi" );
-        equinox.setType( ProjectType.ECLIPSE_PLUGIN );
+        equinox.setType( TychoProject.ECLIPSE_PLUGIN );
         result.add( equinox );
 
 	    Dependency launcher = new Dependency();
 	    launcher.setArtifactId( "org.eclipse.equinox.launcher" );
-	    launcher.setType( ProjectType.ECLIPSE_PLUGIN );
+	    launcher.setType( TychoProject.ECLIPSE_PLUGIN );
 	    result.add( launcher );
 
 	    if ( useUIHarness )
 	    {
 	        Dependency ideapp = new Dependency();
 	        ideapp.setArtifactId( "org.eclipse.ui.ide.application" );
-	        ideapp.setType( ProjectType.ECLIPSE_PLUGIN );
+	        ideapp.setType( TychoProject.ECLIPSE_PLUGIN );
 	        result.add( ideapp );
 	    }
 

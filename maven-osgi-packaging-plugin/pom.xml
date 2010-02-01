@@ -76,10 +76,6 @@
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-archiver</artifactId>
     </dependency>    
-    <dependency>
-      <groupId>de.schlichtherle.io</groupId>
-      <artifactId>truezip</artifactId>
-    </dependency>     
   </dependencies>
 
 </project>

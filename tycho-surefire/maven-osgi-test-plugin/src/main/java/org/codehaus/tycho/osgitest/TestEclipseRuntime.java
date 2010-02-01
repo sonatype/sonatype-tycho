@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -21,14 +20,16 @@ import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Platform;
+import org.codehaus.tycho.osgitools.BundleManifestReader;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 
 public class TestEclipseRuntime
     extends AbstractLogEnabled
@@ -44,48 +45,10 @@ public class TestEclipseRuntime
 
     private EquinoxBundleResolutionState resolver;
 
-    private PlexusContainer plexus;
-
-	private List<String> bundlesToExplode;
-
-	@SuppressWarnings("unchecked")
     public void initialize()
     {
-		initializeResolver();
-
         this.bundles = new ArrayList<File>();
-		List<File> plugins = sourcePlatform.getArtifactFiles(
-				ProjectType.ECLIPSE_PLUGIN, ProjectType.ECLIPSE_TEST_PLUGIN);
-
-		if (bundlesToExplode == null || bundlesToExplode.isEmpty()) {
-			bundles.addAll(plugins);
-		} else {
-			for (File plugin : plugins) {
-				Dictionary<String, String> descriptor = resolver
-						.loadBundleManifest(plugin);
-				String name = descriptor.get("Bundle-SymbolicName");
-				if (name == null) {
-					name = descriptor.get("Bundle-Name");
-				}
-				if (name.contains(";")) {
-					name = name.substring(0, name.indexOf(';'));
-				}
-				String version = descriptor.get("Bundle-Version");
-
-				if (!plugin.isDirectory() && bundlesToExplode.contains(name)) {
-					final String bundleName = name + "_" + version;
-					File unpackBundle = new File(plugin.getParentFile(),
-							bundleName);
-					if (!unpackBundle.exists()) {
-						unpackBundle.mkdirs();
-						unpack(plugin, unpackBundle);
-					}
-					bundles.add(unpackBundle);
-				} else {
-					bundles.add(plugin);
-				}
-			}
-		}
+        bundles.addAll( sourcePlatform.getArtifactFiles( TychoProject.ECLIPSE_PLUGIN, TychoProject.ECLIPSE_TEST_PLUGIN ) );
 
         sites.addAll( sourcePlatform.getSites() );
     }
@@ -103,7 +66,7 @@ public class TestEclipseRuntime
     {
         for ( String type : types )
         {
-            if ( ProjectType.ECLIPSE_PLUGIN.equals( type ) || ProjectType.ECLIPSE_TEST_PLUGIN.equals( type ) )
+            if ( TychoProject.ECLIPSE_PLUGIN.equals( type ) || TychoProject.ECLIPSE_TEST_PLUGIN.equals( type ) )
             {
                 return true;
             }
@@ -246,6 +209,10 @@ public class TestEclipseRuntime
 
     private File location;
 
+    private List<String> bundlesToExplode;
+
+    private PlexusContainer plexus;
+
     static
     {
         START_LEVEL.put( "org.eclipse.equinox.common", 2 );
@@ -262,13 +229,32 @@ public class TestEclipseRuntime
 
     public void create()
     {
-    	initializeResolver();
+        BundleManifestReader manifestReader = resolver.getBundleManifestReader();
 
         for ( File file : bundles )
         {
             try
             {
-                resolver.addBundle( file, true );
+                Manifest mf = manifestReader.loadManifest( file );
+
+                ManifestElement[] id = manifestReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
+                ManifestElement[] version = manifestReader.parseHeader( Constants.BUNDLE_VERSION, mf );
+
+                if ( !file.isDirectory() && id != null && version != null && bundlesToExplode.contains(id[0].getValue()) )
+                {
+                    String filename = id[0].getValue() + "_" + version[0].getValue();
+                    File unpacked = new File(location, "plugins/"  + filename);
+
+                    unpacked.mkdirs();
+                    
+                    unpack(file, unpacked);
+
+                    resolver.addBundle( unpacked, true );
+                }
+                else
+                {
+                    resolver.addBundle( file, true );
+                }
             }
             catch ( BundleException e )
             {
@@ -282,18 +268,19 @@ public class TestEclipseRuntime
 
             String newOsgiBundles;
 
-//            if ( shouldUseP2() )
-//            {
-//                createBundlesInfoFile( location );
-//                createPlatformXmlFile( location );
-//                newOsgiBundles = "org.eclipse.equinox.simpleconfigurator@1:start";
-//            }
-//            else if ( shouldUseUpdateManager() )
-//            {
-//                createPlatformXmlFile( location );
-//                newOsgiBundles = "org.eclipse.equinox.common@2:start, org.eclipse.update.configurator@3:start, org.eclipse.core.runtime@start";
-//            }
-//            else
+            // if ( shouldUseP2() )
+            // {
+            // createBundlesInfoFile( location );
+            // createPlatformXmlFile( location );
+            // newOsgiBundles = "org.eclipse.equinox.simpleconfigurator@1:start";
+            // }
+            // else if ( shouldUseUpdateManager() )
+            // {
+            // createPlatformXmlFile( location );
+            // newOsgiBundles =
+            // "org.eclipse.equinox.common@2:start, org.eclipse.update.configurator@3:start, org.eclipse.core.runtime@start";
+            // }
+            // else
             /* use plain equinox */{
                 newOsgiBundles = toOsgiBundles( resolver.getBundles() );
             }
@@ -369,11 +356,6 @@ public class TestEclipseRuntime
         this.location = location;
     }
 
-    public void setPlexusContainer( PlexusContainer plexus )
-    {
-        this.plexus = plexus;
-    }
-
     private String getRelativeUrl( String siteUrl, File location )
     {
         String locationStr = toUrl( location );
@@ -426,39 +408,38 @@ public class TestEclipseRuntime
         return resolver.getSystemBundle();
     }
 
-	private void initializeResolver() {
-		if (resolver != null) {
-			return;
-		}
+    public void setPlexusContainer( PlexusContainer plexus )
+    {
+        this.plexus = plexus;
+        resolver = EquinoxBundleResolutionState.newInstance( plexus, new File( location, ".manifests" ) );
+    }
 
-		try {
-			resolver = (EquinoxBundleResolutionState) plexus
-					.lookup(BundleResolutionState.class);
-		} catch (ComponentLookupException e) {
-			throw new RuntimeException(
-					"Could not instantiate required component", e);
-		}
-	}
+    public void setBundlesToExplode( List<String> bundlesToExplode )
+    {
+        this.bundlesToExplode = bundlesToExplode;
+    }
 
-	public void setBundlesToExplode(List<String> bundlesToExplod) {
-		this.bundlesToExplode = bundlesToExplod;
-	}
-
-	private void unpack(File source, File destination) {
-		UnArchiver unzip;
-		try {
-			unzip = plexus.lookup(UnArchiver.class, "zip");
-		} catch (ComponentLookupException e) {
-			throw new RuntimeException(
-					"Could not instantiate required component", e);
-		}
-		unzip.setSourceFile(source);
-		unzip.setDestDirectory(destination);
-		try {
-			unzip.extract();
-		} catch (ArchiverException e) {
-			throw new RuntimeException("Unable to unpack jar " + source, e);
-		}
-	}
-
+    private void unpack( File source, File destination )
+    {
+        UnArchiver unzip;
+        try
+        {
+            unzip = plexus.lookup( UnArchiver.class, "zip" );
+        }
+        catch ( ComponentLookupException e )
+        {
+            throw new RuntimeException( "Could not lookup required component", e );
+        }
+        unzip.setSourceFile( source );
+        unzip.setDestDirectory( destination );
+        try
+        {
+            unzip.extract();
+        }
+        catch ( ArchiverException e )
+        {
+            throw new RuntimeException( "Unable to unpack jar " + source, e );
+        }
+    }
+    
 }

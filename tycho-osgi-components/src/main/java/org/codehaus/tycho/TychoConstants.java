@@ -13,11 +13,11 @@ public interface TychoConstants {
 	static final String PLATFORM_XML_PATH = "configuration/org.eclipse.update/platform.xml";
 
 	static final String CTX_BASENAME = TychoConstants.class.getName();
-    static final String CTX_FEATURE_RESOLUTION_STATE = CTX_BASENAME + "/featureResolutionState";
     static final String CTX_TARGET_PLATFORM = CTX_BASENAME + "/targetPlatform";
     static final String CTX_BUNDLE_RESOLUTION_STATE = CTX_BASENAME + "/bundleResolutionState";
     static final String CTX_ECLIPSE_PLUGIN_PROJECT = CTX_BASENAME + "/eclipsePluginProject";
     static final String CTX_EXPANDED_VERSION = CTX_BASENAME + "/expandedVersion";
     static final String CTX_MERGED_PROPERTIES = CTX_BASENAME + "/mergedProperties";
     static final String CTX_TARGET_PLATFORM_CONFIGURATION = CTX_BASENAME + "/targetPlatformConfiguration";
+    static final String CTX_DEPENDENCY_WALKER = CTX_BASENAME + "/dependencyWalker";
 }

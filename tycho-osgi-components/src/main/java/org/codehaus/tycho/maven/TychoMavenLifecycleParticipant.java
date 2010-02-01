@@ -15,7 +15,6 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
@@ -29,15 +28,17 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.tycho.PlatformPropertiesUtils;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
+import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
-import org.codehaus.tycho.osgitools.utils.TychoVersion;
+import org.codehaus.tycho.utils.PlatformPropertiesUtils;
+import org.codehaus.tycho.utils.TychoVersion;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.osgi.EquinoxLocator;
 
@@ -88,12 +89,26 @@ public class TychoMavenLifecycleParticipant
         }
 
         File secureStorage = new File( session.getLocalRepository().getBasedir(), ".meta/tycho.secure_storage" );
-        equinoxEmbedder.setNonFrameworkArgs( new String[] {
-            "-eclipse.keyring", secureStorage.getAbsolutePath(),
-            //TODO "-eclipse.password", ""
-        });
+        equinoxEmbedder.setNonFrameworkArgs( new String[] { "-eclipse.keyring", secureStorage.getAbsolutePath(),
+        // TODO "-eclipse.password", ""
+        } );
 
         List<MavenProject> projects = session.getProjects();
+        
+        for ( MavenProject project : projects )
+        {
+            try
+            {
+                AbstractTychoProject dr =
+                    (AbstractTychoProject) container.lookup( TychoProject.class, project.getPackaging() );
+
+                dr.setupProject( session, project );
+            }
+            catch ( ComponentLookupException e )
+            {
+                // no biggie
+            }
+        }
 
         for ( MavenProject project : projects )
         {
@@ -110,15 +125,20 @@ public class TychoMavenLifecycleParticipant
 
             try
             {
-                DependenciesReader dr =
-                    (DependenciesReader) container.lookup( DependenciesReader.class, project.getPackaging() );
+                AbstractTychoProject dr =
+                    (AbstractTychoProject) container.lookup( TychoProject.class, project.getPackaging() );
+
                 logger.info( "Resolving target platform for project " + project );
                 TargetPlatform targetPlatform = resolver.resolvePlatform( session, project, null );
-                project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM, targetPlatform );
-                for ( Dependency dependency : dr.getDependencies( session, project ) )
-                {
-                    project.getModel().addDependency( dependency );
-                }
+
+                dr.setTargetPlatform( session, project, targetPlatform );
+
+                dr.resolve( project );
+
+                MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
+                dr.getDependencyWalker( project ).walk( dependencyCollector );
+                
+                System.out.println( project.getDependencies() );
             }
             catch ( ComponentLookupException e )
             {
@@ -145,7 +165,7 @@ public class TychoMavenLifecycleParticipant
                 result.setResolver( getTargetPlatformResolver( configuration ) );
 
                 result.setTarget( getTarget( session, project, configuration ) );
-                
+
                 result.setPomDependencies( getPomDependencies( configuration ) );
 
                 result.setIgnoreTychoRepositories( getIgnoreTychoRepositories( configuration ) );
@@ -187,7 +207,7 @@ public class TychoMavenLifecycleParticipant
         {
             return null;
         }
-        
+
         return pomDependenciesDom.getValue();
     }
 
@@ -232,14 +252,15 @@ public class TychoMavenLifecycleParticipant
 
         if ( targetFile == null )
         {
-            Artifact artifact = repositorySystem.createArtifactWithClassifier( groupId, artifactId, version, "target", classifier );
+            Artifact artifact =
+                repositorySystem.createArtifactWithClassifier( groupId, artifactId, version, "target", classifier );
             ArtifactResolutionRequest request = new ArtifactResolutionRequest();
             request.setArtifact( artifact );
             request.setLocalRepository( session.getLocalRepository() );
             request.setRemoteRepositories( project.getRemoteArtifactRepositories() );
             repositorySystem.resolve( request );
 
-            if ( ! artifact.isResolved() )
+            if ( !artifact.isResolved() )
             {
                 throw new RuntimeException( "Could not resolve target platform specification artifact " + artifact );
             }

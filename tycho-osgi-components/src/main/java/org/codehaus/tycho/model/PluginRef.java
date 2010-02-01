@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.codehaus.tycho.model;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -23,8 +20,6 @@ public class PluginRef {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
-			return false;
 		if (!(obj instanceof PluginRef))
 			return false;
 		PluginRef other = (PluginRef) obj;
@@ -39,6 +34,12 @@ public class PluginRef {
 		} else if (!getVersion().equals(other.getVersion()))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+	    return getId() + "_" + getVersion();
 	}
 
 	public PluginRef(Xpp3Dom dom) {
@@ -93,9 +94,4 @@ public class PluginRef {
 		dom.setAttribute("install-size", Long.toString(size));
 	}
 
-	@Override
-	public String toString()
-	{
-	    return getId() + "_" + getVersion();
-	}
-}
+ }

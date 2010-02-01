@@ -39,8 +39,11 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.osgitools.BundleManifestReader;
+import org.codehaus.tycho.osgitools.DefaultBundleManifestReader;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -422,7 +425,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 
 			UpdateSite site = UpdateSite.read(new File(basedir, "site.xml"));
 
-			for (UpdateSite.FeatureRef feature : site.getFeatures()) {
+			for (FeatureRef feature : site.getFeatures()) {
 				addFeature(result, feature.getId());
 			}
 
@@ -475,7 +478,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 				addPlugin(result, plugin.getId());
 			}
 	
-			for (Feature.FeatureRef includedFeature : feature.getIncludedFeatures()) {
+			for (FeatureRef includedFeature : feature.getIncludedFeatures()) {
 				addFeature(result, includedFeature.getId());
 			}
 	
@@ -692,6 +695,8 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
         try
         {
             state = (EquinoxBundleResolutionState) plexus.lookup(BundleResolutionState.class);
+            DefaultBundleManifestReader manifestReader = (DefaultBundleManifestReader) plexus.lookup( BundleManifestReader.class );
+            ((EquinoxBundleResolutionState) state).setManifestsReader( manifestReader );
         }
         catch ( ComponentLookupException e )
         {

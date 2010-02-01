@@ -95,29 +95,6 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertEquals("0.0.1", dependency.getVersion());
 	}
 
-	public void _testRemoteTargetPlatform() throws Exception {
-		File pom = new File(getBasedir("projects/remoterepo/p001"), "pom.xml");
-
-		List<MavenProject> projects = getSortedProjects(pom);
-
-		MavenProject p001 = (MavenProject) projects.get(0);
-
-		assertEquals("remoterepo", p001.getGroupId());
-		assertEquals("remoterepo.p001", p001.getArtifactId());
-		assertEquals("1.0.0", p001.getVersion());
-		
-	}
-
-	public void _testPomless() throws Exception {
-		File pom = new File(getBasedir("projects/pomless/p001"), "pom.xml");
-
-		List<MavenProject> projects = getSortedProjects(pom);
-
-		MavenProject p001 = (MavenProject) projects.get(0);
-		
-		assertEquals("pomless.p001", p001.getArtifactId());
-	}
-
 	public void testFragment() throws Exception {
 		File pom = new File(getBasedir("projects/fragment"), "pom.xml");
 

@@ -29,6 +29,10 @@ public class Feature {
 
 	private final Xpp3Dom dom;
 
+    private ArrayList<PluginRef> plugins;
+
+    private ArrayList<FeatureRef> features;
+
 	public Feature(Xpp3Dom dom) {
 		this.dom = dom;
 	}
@@ -39,10 +43,12 @@ public class Feature {
 	}
 
 	public List<PluginRef> getPlugins() {
-		ArrayList<PluginRef> plugins = new ArrayList<PluginRef>();
-		for (Xpp3Dom pluginDom : dom.getChildren("plugin")) {
-			plugins.add(new PluginRef(pluginDom));
-		}
+	    if ( plugins == null ) {
+    		plugins = new ArrayList<PluginRef>();
+    		for (Xpp3Dom pluginDom : dom.getChildren("plugin")) {
+    			plugins.add(new PluginRef(pluginDom));
+    		}
+	    }
 		return Collections.unmodifiableList(plugins);
 	}
 
@@ -51,10 +57,12 @@ public class Feature {
 	}
 
 	public List<FeatureRef> getIncludedFeatures() {
-		ArrayList<FeatureRef> features = new ArrayList<FeatureRef>();
-		for (Xpp3Dom featureDom : dom.getChildren("includes")) {
-			features.add(new FeatureRef(featureDom));
-		}
+	    if (features == null) {
+    		features = new ArrayList<FeatureRef>();
+    		for (Xpp3Dom featureDom : dom.getChildren("includes")) {
+    			features.add(new FeatureRef(featureDom));
+    		}
+	    }
 		return Collections.unmodifiableList(features);
 	}
 
@@ -64,37 +72,6 @@ public class Feature {
 			requires.add(new RequiresRef(requiresDom));
 		}
 		return Collections.unmodifiableList(requires);
-	}
-
-	public static class FeatureRef implements IFeatureRef {
-		private final Xpp3Dom dom;
-
-		public FeatureRef(Xpp3Dom dom) {
-			this.dom = dom;
-		}
-
-		public String getId() {
-			return dom.getAttribute("id");
-		}
-
-		public String getVersion() {
-			return dom.getAttribute("version");
-		}
-
-		public void setVersion(String version) {
-			dom.setAttribute("version", version);
-		}
-
-		@Override
-		public String toString()
-		{
-            return getId() + "_" + getVersion();
-		}
-
-        public Xpp3Dom getDom()
-        {
-            return dom;
-        }
 	}
 
 	public static class RequiresRef {
@@ -133,30 +110,6 @@ public class Feature {
 
 	}
 
-	public static Feature read(File file) throws IOException, XmlPullParserException {
-	    FileInputStream is = new FileInputStream(file);
-        return read(is); // closes the stream
-	}
-
-	@SuppressWarnings("deprecation")
-	public static Feature read(InputStream input) throws IOException, XmlPullParserException {
-		XmlStreamReader reader = ReaderFactory.newXmlReader(input);
-		try {
-			return new Feature(Xpp3DomBuilder.build(reader));
-		} finally {
-			reader.close();
-		}
-	}
-
-	public static void write(Feature feature, File file) throws IOException {
-		Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-		try {
-			Xpp3DomWriter.write(writer, feature.dom);
-		} finally {
-			writer.close();
-		}
-	}
-
 	public String getVersion() {
 		return dom.getAttribute("version");
 	}
@@ -165,7 +118,31 @@ public class Feature {
 		return dom.getAttribute("id");
 	}
 
-	public static Feature readJar(File file) throws IOException, XmlPullParserException {
+    public static Feature read(File file) throws IOException, XmlPullParserException {
+        FileInputStream is = new FileInputStream(file);
+        return read(is); // closes the stream
+    }
+
+    @SuppressWarnings("deprecation")
+    public static Feature read(InputStream input) throws IOException, XmlPullParserException {
+        XmlStreamReader reader = ReaderFactory.newXmlReader(input);
+        try {
+            return new Feature(Xpp3DomBuilder.build(reader));
+        } finally {
+            reader.close();
+        }
+    }
+
+    public static void write(Feature feature, File file) throws IOException {
+        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+        try {
+            Xpp3DomWriter.write(writer, feature.dom);
+        } finally {
+            writer.close();
+        }
+    }
+
+    public static Feature readJar(File file) throws IOException, XmlPullParserException {
 		JarFile jar = new JarFile(file);
 		try {
 			ZipEntry ze = jar.getEntry(FEATURE_XML);
@@ -179,5 +156,37 @@ public class Feature {
 			jar.close();
 		}
 	}
+
+    /**
+     * Convenience method to load feature.xml file from either feature jar file
+     * or directory.
+     * 
+     * @throws RuntimeException if feature descriptor can not be read or parsed.
+     */
+    public static Feature loadFeature( File location )
+    {
+        try
+        {
+            Feature feature;
+            if ( location.isDirectory() )
+            {
+                feature = Feature.read( new File( location, Feature.FEATURE_XML ) );
+            }
+            else
+            {
+                // eclipse does NOT support packed features
+                feature = Feature.readJar( location );
+            }
+            return feature;
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( "Could not read feature descriptor at " + location.getAbsolutePath(), e );
+        }
+        catch ( XmlPullParserException e )
+        {
+            throw new RuntimeException( "Could not read feature descriptor at " + location.getAbsolutePath(), e );
+        }
+    }
 
 }

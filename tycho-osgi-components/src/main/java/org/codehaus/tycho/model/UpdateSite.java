@@ -24,17 +24,19 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
  * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/update_sitemap.html
  */
 public class UpdateSite {
-	
+
+    public static final String SITE_XML = "site.xml";
+
 	final Xpp3Dom dom;
-	
+
 	public UpdateSite(Xpp3Dom dom) {
 		this.dom = dom;
 	}
 
-	public List<FeatureRef> getFeatures() {
-		ArrayList<FeatureRef> features = new ArrayList<FeatureRef>();
+	public List<SiteFeatureRef> getFeatures() {
+		ArrayList<SiteFeatureRef> features = new ArrayList<SiteFeatureRef>();
 		for (Xpp3Dom featureDom : dom.getChildren("feature")) {
-			features.add(new FeatureRef(featureDom));
+			features.add(new SiteFeatureRef(featureDom));
 		}
 		return Collections.unmodifiableList(features);
 	}
@@ -61,20 +63,10 @@ public class UpdateSite {
 		}
 	}
 
-	public static class FeatureRef implements IFeatureRef {
+	public static class SiteFeatureRef extends FeatureRef {
 
-		private final Xpp3Dom dom;
-
-		public FeatureRef(Xpp3Dom dom) {
-			this.dom = dom;
-		}
-
-		public String getId() {
-			return dom.getAttribute("id");
-		}
-
-		public String getVersion() {
-			return dom.getAttribute("version");
+		public SiteFeatureRef(Xpp3Dom dom) {
+			super(dom);
 		}
 
 		public void setUrl(String url) {
@@ -86,20 +78,6 @@ public class UpdateSite {
 		    return dom.getAttribute("url");
 		}
 
-		public void setVersion(String version) {
-			dom.setAttribute("version", version);
-		}
-
-		@Override
-		public String toString()
-		{
-		    return getId() + "_" + getVersion();
-		}
-
-        public Xpp3Dom getDom()
-        {
-            return dom;
-        }
 	}
 
 	public static UpdateSite read(File file) throws IOException, XmlPullParserException {

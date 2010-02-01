@@ -1,25 +1,17 @@
 package org.codehaus.tycho.osgitools;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
@@ -27,16 +19,14 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.ExecutionEnvironmentUtils;
-import org.codehaus.tycho.PlatformPropertiesUtils;
-import org.codehaus.tycho.ProjectType;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
-import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
+import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
+import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
 import org.eclipse.osgi.service.resolver.ExportPackageDescription;
@@ -51,8 +41,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
-import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
-
 @Component( role = BundleResolutionState.class, instantiationStrategy = "per-lookup" )
 public class EquinoxBundleResolutionState
     extends AbstractLogEnabled
@@ -66,9 +54,7 @@ public class EquinoxBundleResolutionState
 
     private long nextBundleId;
 
-    private File manifestsDir;
-
-    private static final Map<File, Manifest> manifestCache = new HashMap<File, Manifest>();
+    private BundleManifestReader manifestReader;
 
     public BundleDescription addBundle( File bundleLocation, boolean override )
         throws BundleException
@@ -299,91 +285,7 @@ public class EquinoxBundleResolutionState
 
     public Manifest loadManifest( File bundleLocation )
     {
-        Manifest manifest = manifestCache.get( bundleLocation );
-        if ( manifest == null ) 
-        {
-            manifest = doLoadManifest( bundleLocation );
-            manifestCache.put( bundleLocation, manifest );
-        }
-        return manifest;
-    }
-
-    private Manifest doLoadManifest( File bundleLocation )
-    {
-        try
-        {
-            if ( bundleLocation.isDirectory() )
-            {
-                File m = new File( bundleLocation, JarFile.MANIFEST_NAME );
-                if ( m.canRead() )
-                {
-                    return loadManifestFile( m );
-                }
-                m = convertPluginManifest( bundleLocation );
-                if ( m != null && m.canRead() )
-                {
-                    return loadManifestFile( m );
-                }
-                return null;
-            }
-
-            // it's a file, make sure we can read it
-            if ( !bundleLocation.canRead() )
-            {
-                return null;
-            }
-
-            // file but not a jar, assume it is MANIFEST.MF
-            if ( !bundleLocation.getName().toLowerCase().endsWith( ".jar" ) )
-            {
-                return loadManifestFile( bundleLocation );
-            }
-
-            // it is a jar, lets see if it has OSGi bundle manifest
-            ZipFile jar = new ZipFile( bundleLocation, ZipFile.OPEN_READ );
-            try
-            {
-                ZipEntry me = jar.getEntry( JarFile.MANIFEST_NAME );
-                if ( me != null )
-                {
-                    InputStream is = jar.getInputStream( me );
-                    try
-                    {
-                        Manifest mf = new Manifest( is );
-                        if ( mf.getMainAttributes().getValue( "Bundle-SymbolicName" ) != null )
-                        {
-                            return mf;
-                        }
-                    }
-                    finally
-                    {
-                        is.close();
-                    }
-                }
-            }
-            finally
-            {
-                jar.close();
-            }
-
-            // it is a jar, does not have OSGi bundle manifest, lets try plugin.xml/fragment.xml
-            File m = convertPluginManifest( bundleLocation );
-            if ( m != null && m.canRead() )
-            {
-                return loadManifestFile( m );
-            }
-        }
-        catch ( IOException e )
-        {
-            getLogger().warn( "Exception reading bundle manifest", e );
-        }
-        catch ( PluginConversionException e )
-        {
-            getLogger().warn( "Exception reading bundle manifest: " + e.getMessage() );
-        }
-
-        // not a bundle
-        return null;
+        return manifestReader.loadManifest( bundleLocation );
     }
 
     public String getManifestAttribute( BundleDescription bundle, String name )
@@ -404,7 +306,7 @@ public class EquinoxBundleResolutionState
             return null;
         }
 
-        Dictionary manifest = manifestToProperties( m.getMainAttributes() );
+        Dictionary manifest = manifestReader.toProperties( m );
 
         // enforce symbolic name
         if ( manifest.get( Constants.BUNDLE_SYMBOLICNAME ) == null )
@@ -423,115 +325,85 @@ public class EquinoxBundleResolutionState
         return manifest;
     }
 
-    private static Properties manifestToProperties( Attributes d )
-    {
-        Iterator iter = d.keySet().iterator();
-        Properties result = new Properties();
-        while ( iter.hasNext() )
-        {
-            Attributes.Name key = (Attributes.Name) iter.next();
-            result.put( key.toString(), d.get( key ) );
-        }
-        return result;
-    }
-
-    private Manifest loadManifestFile( File m )
-        throws IOException
-    {
-        if ( !m.canRead() )
-        {
-            return null;
-        }
-        InputStream is = new FileInputStream( m );
-        try
-        {
-            return new Manifest( is );
-        }
-        finally
-        {
-            IOUtil.close( is );
-        }
-    }
-
-    private File convertPluginManifest( File bundleLocation )
-        throws PluginConversionException
-    {
-        PluginConverterImpl converter = new PluginConverterImpl( null, null );
-        String name = bundleLocation.getName();
-        if ( name.endsWith( ".jar" ) )
-        {
-            name = name.substring( 0, name.length() - 4 );
-        }
-        File manifestFile = new File( manifestsDir, name + "/META-INF/MANIFEST.MF" );
-        manifestFile.getParentFile().mkdirs();
-        converter.convertManifest( bundleLocation, manifestFile, false /* compatibility */, "3.2" /* target version */,
-                                   true /* analyse jars to set export-package */, null /* devProperties */);
-        if ( manifestFile.exists() )
-        {
-            return manifestFile;
-        }
-        return null;
-    }
-
     public static EquinoxBundleResolutionState newInstance( PlexusContainer plexus, MavenSession session,
                                                             MavenProject project )
     {
+        EquinoxBundleResolutionState resolver;
+        
         try
         {
-            EquinoxBundleResolutionState resolver =
-                (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
-
-            Set<File> basedirs = new HashSet<File>();
-            for ( MavenProject sessionProject : session.getProjects() )
-            {
-                basedirs.add( sessionProject.getBasedir() );
-            }
-
-            TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
-
-            File manifestsDir = new File( project.getBuild().getDirectory(), "manifests" );
-            manifestsDir.mkdirs();
-
-            resolver.setManifestsDir( manifestsDir );
-
-            for ( File file : platform.getArtifactFiles( ProjectType.ECLIPSE_PLUGIN ) )
-            {
-                boolean isProject = basedirs.contains( file );
-                resolver.addBundle( file, isProject );
-            }
-
-            for ( File file : platform.getArtifactFiles( ProjectType.ECLIPSE_TEST_PLUGIN ) )
-            {
-                boolean isProject = basedirs.contains( file );
-                resolver.addBundle( file, isProject );
-            }
-
-            resolver.resolve( project );
-
-            return resolver;
+            resolver = (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
         }
-        catch ( ComponentLookupException e )
+        catch ( ComponentLookupException e1 )
         {
-            throw new RuntimeException( "Could not lookup required component", e );
+            throw new RuntimeException( "Could not lookup required component", e1 );
+        }
+
+        resolver.setManifestsReader( newManifestReader( plexus, project ) );
+
+        // TODO why do I need this???
+        Set<File> basedirs = new HashSet<File>();
+        for ( MavenProject sessionProject : session.getProjects() )
+        {
+            basedirs.add( sessionProject.getBasedir() );
+        }
+        TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
+        try
+        {
+            for ( File file : platform.getArtifactFiles( TychoProject.ECLIPSE_PLUGIN, TychoProject.ECLIPSE_TEST_PLUGIN ) )
+            {
+                boolean isProject = basedirs.contains( file );
+                resolver.addBundle( file, isProject );
+            }
         }
         catch ( BundleException e )
         {
             throw new RuntimeException( "Unable to initialize BundleResolutionState", e );
         }
+
+        return resolver;
     }
 
-    public void setManifestsDir( File manifestsDir )
+    public static DefaultBundleManifestReader newManifestReader( PlexusContainer plexus, MavenProject project )
     {
-        this.manifestsDir = manifestsDir;
+        File manifestsDir = new File( project.getBuild().getDirectory(), "manifests" );
+
+        DefaultBundleManifestReader manifestReader = DefaultBundleManifestReader.newInstance( plexus, manifestsDir );
+        return manifestReader;
     }
 
-    public File getManifestsDir()
+    public static EquinoxBundleResolutionState newInstance( PlexusContainer plexus, File manifestsDir )
     {
-        return manifestsDir;
+        EquinoxBundleResolutionState resolver;
+
+        try
+        {
+            resolver = (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
+        }
+        catch ( ComponentLookupException e )
+        {
+            throw new RuntimeException( "Could not lookup required component", e );
+        }
+
+        resolver.setManifestsReader( DefaultBundleManifestReader.newInstance( plexus, manifestsDir ) );
+
+        return resolver;
     }
 
-    public void resolve( MavenProject project )
+    public void setManifestsReader( DefaultBundleManifestReader manifestReader )
     {
+        this.manifestReader = manifestReader;
+    }
+
+    public BundleDescription resolve( MavenProject project )
+    {
+        BundleDescription bundle = getBundleByLocation( project.getBasedir() );
+
+        if ( bundle == null )
+        {
+            throw new IllegalStateException( "Unknown project " + project );
+        }
+
         Properties properties = new Properties();
         properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
 
@@ -556,16 +428,16 @@ public class EquinoxBundleResolutionState
         if ( getLogger().isDebugEnabled() )
         {
             StringBuilder sb = new StringBuilder( "Resolved OSGi state\n" );
-            for ( BundleDescription bundle : state.getBundles() )
+            for ( BundleDescription otherBundle : state.getBundles() )
             {
-                if ( !bundle.isResolved() )
+                if ( !otherBundle.isResolved() )
                 {
                     sb.append( "NOT " );
                 }
                 sb.append( "RESOLVED " );
-                sb.append( bundle.toString() ).append( " : " ).append( bundle.getLocation() );
+                sb.append( otherBundle.toString() ).append( " : " ).append( otherBundle.getLocation() );
                 sb.append( '\n' );
-                for ( ResolverError error : state.getResolverErrors( bundle ) )
+                for ( ResolverError error : state.getResolverErrors( otherBundle ) )
                 {
                     sb.append( '\t' ).append( error.toString() ).append( '\n' );
                 }
@@ -574,6 +446,7 @@ public class EquinoxBundleResolutionState
             getLogger().debug( sb.toString() );
         }
 
+        return bundle;
     }
 
     private static void setUserProperty( BundleDescription desc, String name, Object value )
@@ -607,6 +480,11 @@ public class EquinoxBundleResolutionState
             return ( (Map) userObject ).get( name );
         }
         return null;
+    }
+
+    public BundleManifestReader getBundleManifestReader()
+    {
+        return manifestReader;
     }
 
 }

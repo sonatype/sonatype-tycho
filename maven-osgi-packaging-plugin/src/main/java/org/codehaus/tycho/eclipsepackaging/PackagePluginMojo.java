@@ -14,6 +14,7 @@ import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
+import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
@@ -59,18 +60,10 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 	 */
 	private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
-	/**
-	 * Build qualifier. Recommended way to set this parameter is using
-	 * build-qualifier goal. 
-	 * 
-	 * @parameter expression="${buildQualifier}"
-	 */
-	protected String qualifier;
-
 	public void execute() throws MojoExecutionException {
-	    initializeProjectContext();
-
 		pdeProject = (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+		
+		expandVersion();
 
 		createSubJars();
 
@@ -138,7 +131,7 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 
 	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 
 	{
-		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
+		BundleDescription bundle = getResolutionState().getBundleByLocation( project.getBasedir() );
 		Version version = bundle.getVersion();
 
 		File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
@@ -152,12 +145,7 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		}
 		Attributes attributes = mf.getMainAttributes();
 
-		if (VersioningHelper.isSnapshotVersion(version)) {
-			String expandedVersion = VersioningHelper.expandVersion(version, qualifier).toString();
-
-			attributes.putValue("Bundle-Version", expandedVersion);
-			VersioningHelper.setExpandedVersion(session, bundle.getLocation(), expandedVersion);
-		}
+        attributes.putValue("Bundle-Version", VersioningHelper.getExpandedVersion( project, version.toString()));
 
 		attributes.putValue(TychoConstants.ATTR_GROUP_ID, project.getGroupId());
 		attributes.putValue(TychoConstants.ATTR_BASE_VERSION, project.getVersion());
@@ -174,4 +162,8 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		return mfile;
 	}
 
+	private BundleResolutionState getResolutionState()
+	{
+	    return (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
+	}
 }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -98,13 +99,24 @@ public class P2ResolverImpl
     /** maven local repository as P2 IMetadataRepository */
     private LocalMetadataRepository localMetadataRepository;
 
-    private Map<File, Set<IInstallableUnit>> projectIUs = new HashMap<File, Set<IInstallableUnit>>();
+    /**
+     * Maps maven artifact location (project basedir or local repo path) to installable units
+     */
+    private Map<File, Set<IInstallableUnit>> mavenArtifactIUs = new HashMap<File, Set<IInstallableUnit>>();
+
+    /**
+     * Maps maven artifact location (project basedir or local repo path) to project type
+     */
+    private Map<File, String> mavenArtifactTypes = new LinkedHashMap<File, String>();
+
+    /**
+     * Maps installable unit id to locations of reactor projects
+     */
+    private Map<String, Set<File>> iuReactorProjects = new HashMap<String, Set<File>>();
 
     private IProgressMonitor monitor = new NullProgressMonitor();
 
     private Properties properties;
-
-    private Map<File, String> projects = new LinkedHashMap<File, String>();
 
     private List<IRequiredCapability> additionalRequirements = new ArrayList<IRequiredCapability>();
 
@@ -121,18 +133,38 @@ public class P2ResolverImpl
             return;
         }
 
-        addMavenArtifact( location, type, groupId, artifactId, version );
+        LinkedHashSet<IInstallableUnit> units = doAddMavenArtifact( location, type, groupId, artifactId, version );
+
+        for ( IInstallableUnit iu : units )
+        {
+            Set<File> projects = iuReactorProjects.get( iu.getId() );
+            if ( projects == null )
+            {
+                projects = new HashSet<File>();
+                iuReactorProjects.put( iu.getId(), projects );
+            }
+            // TODO do we support multiple versions of the same project
+            projects.add( location );
+        }
     }
 
     public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
+    {
+        doAddMavenArtifact( location, type, groupId, artifactId, version );
+    }
+
+    protected LinkedHashSet<IInstallableUnit> doAddMavenArtifact( File location, String type, String groupId,
+                                                                  String artifactId, String version )
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
         generator.generateMetadata( location, type, groupId, artifactId, version, units, null );
 
-        projectIUs.put( location, units );
+        mavenArtifactTypes.put( location, type );
 
-        projects.put( location, type );
+        mavenArtifactIUs.put( location, units );
+
+        return units;
     }
 
     public void addP2Repository( URI location )
@@ -256,13 +288,13 @@ public class P2ResolverImpl
                 File basedir = getReactorProjectBasedir( iu );
                 if ( basedir != null )
                 {
-                    addReactorProject( result, basedir );
+                    addReactorProject( result, iu, basedir );
                 }
                 else
                 {
                     for ( IArtifactKey key : iu.getArtifacts() )
                     {
-                        addArtifactFile( result, key );
+                        addArtifactFile( result, iu, key );
                     }
                 }
             }
@@ -273,7 +305,7 @@ public class P2ResolverImpl
 
     private File getReactorProjectBasedir( IInstallableUnit iu )
     {
-        for ( Map.Entry<File, Set<IInstallableUnit>> entry : projectIUs.entrySet() )
+        for ( Map.Entry<File, Set<IInstallableUnit>> entry : mavenArtifactIUs.entrySet() )
         {
             if ( entry.getValue().contains( iu ) )
             {
@@ -349,7 +381,7 @@ public class P2ResolverImpl
 
     private LinkedHashSet<IInstallableUnit> getProjectIUs( File location )
     {
-        LinkedHashSet<IInstallableUnit> ius = new LinkedHashSet<IInstallableUnit>( projectIUs.get( location ) );
+        LinkedHashSet<IInstallableUnit> ius = new LinkedHashSet<IInstallableUnit>( mavenArtifactIUs.get( location ) );
 
         return ius;
     }
@@ -372,7 +404,7 @@ public class P2ResolverImpl
         return result;
     }
 
-    private void addArtifactFile( P2ResolutionResult platform, IArtifactKey key )
+    private void addArtifactFile( P2ResolutionResult platform, IInstallableUnit iu, IArtifactKey key )
     {
         File file = getLocalArtifactFile( key );
         if ( file == null )
@@ -380,38 +412,64 @@ public class P2ResolverImpl
             return;
         }
 
+        String id = iu.getId();
+        String version = iu.getVersion().toString();
+
         if ( PublisherHelper.OSGI_BUNDLE_CLASSIFIER.equals( key.getClassifier() ) )
         {
-            platform.addBundle( file );
+            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, file );
         }
         else if ( PublisherHelper.ECLIPSE_FEATURE_CLASSIFIER.equals( key.getClassifier() ) )
         {
-            platform.addFeature( file );
+            String featureId = getFeatureId( iu );
+            if ( featureId != null )
+            {
+                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, file );
+            }
         }
 
         // ignore other/unknown artifacts, like binary blobs for now.
         //throw new IllegalArgumentException();
     }
 
-    private void addReactorProject( P2ResolutionResult platform, File basedir )
+    private void addReactorProject( P2ResolutionResult platform, IInstallableUnit iu, File basedir )
     {
-        String type = projects.get( basedir );
+        String type = mavenArtifactTypes.get( basedir );
+        String id = iu.getId();
+        String version = iu.getVersion().toString();
 
         if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( type ) )
         {
-            platform.addBundle( basedir );
+            platform.addArtifact( type, id, version, basedir );
         }
         else if ( P2Resolver.TYPE_ECLIPSE_FEATURE.equals( type ) )
         {
-            platform.addFeature( basedir );
+            String featureId = getFeatureId( iu );
+            if ( featureId != null )
+            {
+                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, basedir );
+            }
         }
         else if ( basedir.isFile() && basedir.getName().endsWith( ".jar" ) )
         {
-            platform.addBundle( basedir );
+            // TODO how do we get here???
+            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, basedir );
         }
 
         // we don't care about eclipse-update-site and eclipse-application projects for now
         //throw new IllegalArgumentException();
+    }
+
+    private String getFeatureId( IInstallableUnit iu )
+    {
+        for ( IProvidedCapability provided : iu.getProvidedCapabilities() )
+        {
+            if ( PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE.equals( provided.getNamespace() ) )
+            {
+                return provided.getName();
+            }
+        }
+        return null;
     }
 
     private File getLocalArtifactFile( IArtifactKey key )
@@ -446,11 +504,29 @@ public class P2ResolverImpl
     {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
-        for ( Collection<IInstallableUnit> ius : projectIUs.values() )
+        for ( Set<File> projects : iuReactorProjects.values() )
         {
-            result.addAll( ius );
+            for ( File location : projects )
+            {
+                Set<IInstallableUnit> projectIUs = mavenArtifactIUs.get( location );
+                if ( projectIUs != null )
+                {
+                    result.addAll( projectIUs );
+                }
+            }
         }
-        
+
+        for ( Collection<IInstallableUnit> ius : mavenArtifactIUs.values() )
+        {
+            for ( IInstallableUnit iu : ius )
+            {
+                if ( !iuReactorProjects.containsKey( iu.getId() ) )
+                {
+                    result.add( iu );
+                }
+            }
+        }
+
         SubMonitor sub = SubMonitor.convert( monitor, metadataRepositories.size() * 200 );
         for ( IMetadataRepository repository : metadataRepositories )
         {
@@ -461,7 +537,10 @@ public class P2ResolverImpl
 
                 if ( !PartialInstallableUnitsQuery.isPartialIU( iu ) )
                 {
-                    result.add( iu );
+                    if ( !iuReactorProjects.containsKey( iu.getId() ) )
+                    {
+                        result.add( iu );
+                    }
                 }
                 else
                 {

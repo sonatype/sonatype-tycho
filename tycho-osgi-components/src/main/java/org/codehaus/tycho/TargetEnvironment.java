@@ -1,7 +1,5 @@
 package org.codehaus.tycho;
 
-import java.util.Properties;
-
 public class TargetEnvironment
 {
     private String os;
@@ -43,5 +41,12 @@ public class TargetEnvironment
     public String getNl()
     {
         return nl;
+    }
+
+    public boolean match( String os, String ws, String arch )
+    {
+        return ( os == null || os.equals( this.os ) ) && //
+            ( ws == null || ws.equals( this.ws ) ) && //
+            ( arch == null || arch.equals( this.arch ) );
     }
 }

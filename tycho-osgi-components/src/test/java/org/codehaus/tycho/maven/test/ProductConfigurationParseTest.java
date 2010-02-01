@@ -4,10 +4,10 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.Launcher;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
-import org.codehaus.tycho.model.Feature.FeatureRef;
 import org.junit.Test;
 
 public class ProductConfigurationParseTest {

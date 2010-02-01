@@ -3,66 +3,14 @@ package org.sonatype.tycho.test.TYCHO109product;
 import static org.sonatype.tycho.test.util.EnvironmentUtil.isEclipse32Platform;
 
 import java.io.File;
-import java.io.StringWriter;
 
 import junit.framework.Assert;
 
 import org.apache.maven.it.Verifier;
-import org.apache.maven.it.util.cli.CommandLineUtils;
-import org.apache.maven.it.util.cli.Commandline;
-import org.apache.maven.it.util.cli.StreamConsumer;
-import org.apache.maven.it.util.cli.WriterStreamConsumer;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
-
-	@Test
-	public void exportPluginProduct() throws Exception {
-		Verifier verifier;
-		if (isEclipse32Platform()) {
-			verifier = getVerifier("/TYCHO109product/eclipse32/plugin-rcp");
-		} else {
-			verifier = getVerifier("/TYCHO109product/plugin-rcp");
-		}
-
-		verifier.executeGoal("package");
-		verifier.verifyErrorFreeLog();
-
-		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "target/linux.gtk.x86_64/eclipse/");
-
-		Assert.assertTrue("Exported product folder not found", output
-				.isDirectory());
-
-		File launcher = new File(output, "headless");
-		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
-		Assert.assertTrue("config.ini not found", new File(output,
-				"configuration/config.ini").isFile());
-
-		File plugins = new File(output, "plugins");
-		Assert.assertTrue("Plugins not found", plugins.isDirectory());
-
-		if (isEclipse32Platform()) {
-			Assert.assertEquals("No found the expected plugins number", 10,
-					plugins.list().length);
-		} else {
-			Assert.assertEquals("No found the expected plugins number", 12,
-					plugins.list().length);
-		}
-
-		// launch to be sure
-//		Commandline cmd = new Commandline();
-//		cmd.setExecutable(launcher.getAbsolutePath());
-//
-//		StringWriter logWriter = new StringWriter();
-//		StreamConsumer out = new WriterStreamConsumer(logWriter);
-//		StreamConsumer err = new WriterStreamConsumer(logWriter);
-//		CommandLineUtils.executeCommandLine(cmd, out, err);
-//		Assert.assertTrue("Didn't get a controled exit\n"
-//				+ logWriter.toString(), logWriter.toString().startsWith(
-//				"Headless application OK!"));
-	}
 
 	@Test
 	public void exportFeatureProduct() throws Exception {

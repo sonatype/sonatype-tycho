@@ -9,8 +9,6 @@ import java.util.jar.JarFile;
 import java.util.jar.Pack200;
 import java.util.jar.Pack200.Packer;
 
-import org.codehaus.plexus.archiver.ArchiverException;
-
 public class Pack200Archiver {
 
 	private Map<? extends String, ? extends String> properties;
@@ -38,7 +36,7 @@ public class Pack200Archiver {
 		this.properties = properties;
 	}
 
-	public void createArchive() throws ArchiverException, IOException {
+	public void createArchive() throws IOException {
 		// Create the Packer object
 		Packer packer = Pack200.newPacker();
 

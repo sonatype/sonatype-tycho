@@ -43,7 +43,7 @@ import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
-import org.codehaus.tycho.utils.ArtifactRef;
+import org.codehaus.tycho.utils.MavenArtifactRef;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
@@ -89,7 +89,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 *  
 	 * @parameter 
 	 */
-	private ArtifactRef[] extraClasspathElements;
+	private MavenArtifactRef[] extraClasspathElements;
 
 	/** @component */
 	private DependencyComputer dependencyComputer;
@@ -159,7 +159,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		if (extraClasspathElements != null) {
 	    	ArtifactRepository localRepository = session.getLocalRepository();
 	    	List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
-			for (ArtifactRef a : extraClasspathElements) {
+			for (MavenArtifactRef a : extraClasspathElements) {
 				Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar");
 
 				ArtifactResolutionRequest request = new ArtifactResolutionRequest();

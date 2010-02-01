@@ -4,19 +4,19 @@ import java.io.File;
 import java.net.URI;
 import java.util.Properties;
 
-import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.TychoProject;
 
 public interface P2Resolver
 {
-    public static final String TYPE_ECLIPSE_PLUGIN = ProjectType.ECLIPSE_PLUGIN;
+    public static final String TYPE_ECLIPSE_PLUGIN = TychoProject.ECLIPSE_PLUGIN;
 
-    public static final String TYPE_ECLIPSE_FEATURE = ProjectType.ECLIPSE_FEATURE;
+    public static final String TYPE_ECLIPSE_FEATURE = TychoProject.ECLIPSE_FEATURE;
 
-    public static final String TYPE_ECLIPSE_TEST_PLUGIN = ProjectType.ECLIPSE_TEST_PLUGIN;
+    public static final String TYPE_ECLIPSE_TEST_PLUGIN = TychoProject.ECLIPSE_TEST_PLUGIN;
 
-    public static final String TYPE_ECLIPSE_APPLICATION = ProjectType.ECLIPSE_APPLICATION;
+    public static final String TYPE_ECLIPSE_APPLICATION = TychoProject.ECLIPSE_APPLICATION;
 
-    public static final String TYPE_ECLIPSE_UPDATE_SITE = ProjectType.ECLIPSE_UPDATE_SITE;
+    public static final String TYPE_ECLIPSE_UPDATE_SITE = TychoProject.ECLIPSE_UPDATE_SITE;
 
     /**
      * Pseudo artifact type used to denote P2 installable unit dependencies

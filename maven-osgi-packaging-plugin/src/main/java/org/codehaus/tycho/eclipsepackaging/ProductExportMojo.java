@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -19,27 +18,26 @@ import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.codehaus.tycho.MavenSessionUtils;
-import org.codehaus.tycho.PlatformPropertiesUtils;
+import org.codehaus.tycho.ArtifactDependencyWalker;
+import org.codehaus.tycho.ArtifactKey;
+import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.buildversion.VersioningHelper;
-import org.codehaus.tycho.maven.DependenciesReader;
-import org.codehaus.tycho.model.Feature;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
-import org.codehaus.tycho.model.Feature.FeatureRef;
-import org.codehaus.tycho.osgitools.features.FeatureDescription;
-import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.codehaus.tycho.osgitools.BundleManifestReader;
+import org.codehaus.tycho.osgitools.DefaultPluginDescription;
+import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
+import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.pde.internal.swt.tools.IconExe;
-import org.osgi.framework.Version;
 
 /**
  * @goal product-export
@@ -73,22 +71,9 @@ public class ProductExportMojo
     private ProductConfiguration productConfiguration;
 
     /**
-     * Build qualifier. Recommended way to set this parameter is using
-     * build-qualifier goal. 
-     * 
-     * @parameter expression="${buildQualifier}"
-     */
-    protected String qualifier;
-
-    /**
      * @parameter
      */
     private TargetEnvironment[] environments;
-
-    /**
-     * @component roleHint="eclipse-application"
-     */
-    private DependenciesReader rcpDependencyReader;
 
     /**
      * @parameter expression="${tycho.product.createArchive}" default-value="true"
@@ -103,8 +88,6 @@ public class ProductExportMojo
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
-        initializeProjectContext();
-
         if ( productConfigurationFile == null )
         {
             File basedir = project.getBasedir();
@@ -145,6 +128,10 @@ public class ProductExportMojo
             throw new MojoFailureException( "Product includes native launcher but no target environment was specified" );
         }
 
+        // expandVersion();
+        
+        BundleManifestReader manifestReader = EquinoxBundleResolutionState.newManifestReader( plexus, project );
+
         for ( TargetEnvironment environment : getEnvironments() )
         {
             File target = getTarget( environment );
@@ -154,15 +141,12 @@ public class ProductExportMojo
             generateDotEclipseProduct( targetEclipse );
             generateConfigIni( environment, targetEclipse );
             includeRootFiles( environment, targetEclipse );
+            
+            ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, environment );
+            assembler.setIncludeSources( includeSources );
+            getDependencyWalker( environment ).walk( assembler );
 
-            if ( productConfiguration.useFeatures() )
-            {
-                copyFeatures( environment, targetEclipse, productConfiguration.getFeatures() );
-            }
-            else
-            {
-                copyPlugins( environment, targetEclipse, productConfiguration.getPlugins() );
-            }
+            copyImplicitDependencies( environment, assembler );
 
             if ( productConfiguration.includeLaunchers() )
             {
@@ -175,14 +159,14 @@ public class ProductExportMojo
             }
         }
 
-        Version productVersion = Version.parseVersion( productConfiguration.getVersion() );
-        productVersion = VersioningHelper.expandVersion( productVersion, qualifier );
-        productConfiguration.setVersion( productVersion.toString() );
+        // String version = getTychoProjectFacet().getArtifactKey( project ).getVersion();
+        // String productVersion = VersioningHelper.getExpandedVersion( project, version );
+        // productConfiguration.setVersion( productVersion.toString() );
 
         try
         {
             ProductConfiguration.write( productConfiguration, expandedProductFile );
-            
+
             if ( p2inf.canRead() )
             {
                 FileUtils.copyFile( p2inf, new File( expandedProductFile.getParentFile(), p2inf.getName() ) );
@@ -199,6 +183,11 @@ public class ProductExportMojo
         }
     }
 
+    private ArtifactDependencyWalker getDependencyWalker( TargetEnvironment environment )
+    {
+        return getTychoProjectFacet( TychoProject.ECLIPSE_APPLICATION ).getDependencyWalker( project, environment );
+    }
+
     private TargetEnvironment[] getEnvironments()
     {
         if ( environments != null )
@@ -206,7 +195,8 @@ public class ProductExportMojo
             return environments;
         }
 
-        TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        TargetPlatformConfiguration configuration =
+            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
         return new TargetEnvironment[] { configuration.getEnvironment() };
     }
 
@@ -220,7 +210,7 @@ public class ProductExportMojo
         }
         else
         {
-            target = new File( project.getBuild().getDirectory(),  toString( environment ) );
+            target = new File( project.getBuild().getDirectory(), toString( environment ) );
         }
 
         target.mkdirs();
@@ -231,9 +221,8 @@ public class ProductExportMojo
     private String toString( TargetEnvironment environment )
     {
         StringBuilder sb = new StringBuilder();
-        sb.append( environment.getOs() ).append( '.' )
-          .append( environment.getWs() ).append( '.' )
-          .append( environment.getArch() );
+        sb.append( environment.getOs() ).append( '.' ).append( environment.getWs() ).append( '.' ).append(
+                                                                                                           environment.getArch() );
         if ( environment.getNl() != null )
         {
             sb.append( '.' ).append( environment.getNl() );
@@ -241,16 +230,9 @@ public class ProductExportMojo
         return sb.toString();
     }
 
-    @Override
-    protected void initializeProjectContext()
-    {
-        bundleResolutionState = rcpDependencyReader.getBundleResolutionState( session, project );
-        featureResolutionState = rcpDependencyReader.getFeatureResolutionState( session, project );
-    }
-
     /**
      * Root files are files that must be packaged with an Eclipse install but are not features or plug-ins. These files
-     * are added to the root or to a specified sub folder of the build. 
+     * are added to the root or to a specified sub folder of the build.
      * 
      * <pre>
      * root=
@@ -259,10 +241,9 @@ public class ProductExportMojo
      * root.<config>.folder.<subfolder>=
      * </pre>
      * 
-     * Not supported are the properties root.permissions and root.link. 
+     * Not supported are the properties root.permissions and root.link.
      * 
      * @see http://help.eclipse.org/ganymede/index.jsp?topic=/org.eclipse.pde.doc.user/tasks/pde_rootfiles.htm
-     * 
      * @throws MojoExecutionException
      */
     private void includeRootFiles( TargetEnvironment environment, File target )
@@ -454,25 +435,6 @@ public class ProductExportMojo
         }
     }
 
-    private boolean isEclipse32Platform()
-        throws MojoFailureException
-    {
-        BundleDescription runtime = bundleResolutionState.getSystemBundle();
-
-        if ( runtime == null )
-        {
-            throw new MojoFailureException( "Could not obtain system bundle" );
-        }
-
-        if ( !"org.eclipse.osgi".equals( runtime.getSymbolicName() ) )
-        {
-            throw new MojoFailureException( "Unsupported OSGi platform " + runtime.getSymbolicName() );
-        }
-
-        Version osgiVersion = runtime.getVersion();
-        return osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2;
-    }
-
     private void generateDotEclipseProduct( File target )
         throws MojoExecutionException
     {
@@ -570,272 +532,59 @@ public class ProductExportMojo
             {
                 buf.append( "@start" );
             }
-
-            if ( isEclipse32Platform() && "org.eclipse.equinox.common".equals( plugin.getId() ) )
-            {
-                buf.append( "@2:start" );
-            }
         }
 
         // required plugins, RCP didn't start without both
-        if ( !isEclipse32Platform() )
+        if ( buf.length() != 0 )
         {
-            if ( buf.length() != 0 )
-            {
-                buf.append( ',' );
-            }
-            String os = environment.getOs();
-            String ws = environment.getWs();
-            String arch = environment.getArch();
-
-            buf.append( "org.eclipse.equinox.launcher," );
-            buf.append( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch );
+            buf.append( ',' );
         }
+        String os = environment.getOs();
+        String ws = environment.getWs();
+        String arch = environment.getArch();
+
+        buf.append( "org.eclipse.equinox.launcher," );
+        buf.append( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch );
 
         return buf.toString();
     }
 
-    private void copyFeatures( TargetEnvironment environment, File target, List<FeatureRef> features )
-        throws MojoExecutionException
+    private void copyImplicitDependencies( TargetEnvironment environment, ProductAssembler assembler )
+        throws MojoExecutionException, MojoFailureException
     {
-        getLog().debug( "copying " + features.size() + " features " );
-
-        for ( FeatureRef feature : features )
-        {
-            copyFeature( environment, target, feature );
-        }
-    }
-
-    private void copyFeature( TargetEnvironment environment, File target, FeatureRef feature )
-        throws MojoExecutionException
-    {
-        String featureId = feature.getId();
-        String featureVersion = feature.getVersion();
-
-        FeatureDescription featureDescription = featureResolutionState.getFeature( featureId, featureVersion );
-        if ( featureDescription == null )
-        {
-            throw new MojoExecutionException( "Unable to resolve feature " + featureId + "_" + featureVersion );
-        }
-
-        featureVersion = VersioningHelper.getExpandedVersion( session, featureDescription );
-
-        Feature featureRef = featureDescription.getFeature();
-
-        MavenProject project = MavenSessionUtils.getMavenProject( session, featureDescription.getLocation() );
-
-        de.schlichtherle.io.File source;
-        if ( project == null )
-        {
-            getLog().debug( "feature = bundle: " + featureDescription.getLocation() );
-            source = new de.schlichtherle.io.File( featureDescription.getLocation() );
-        }
-        else
-        {
-            getLog().debug( "feature = project: " + project.getArtifact() );
-            source = new de.schlichtherle.io.File( project.getArtifact().getFile() );
-        }
-
-        File targetFolder = new File( target, "features/" + featureRef.getId() + "_" + featureVersion );
-        targetFolder.mkdirs();
-
-        source.copyAllTo( targetFolder );
-
-        List<FeatureRef> featureRefs = featureRef.getIncludedFeatures();
-        for ( FeatureRef fRef : featureRefs )
-        {
-            copyFeature( environment, target, fRef );
-        }
-
-        // copy all plugins from all features
-        List<PluginRef> pluginRefs = featureRef.getPlugins();
-        for ( PluginRef pluginRef : pluginRefs )
-        {
-            if ( matchTargetEnvironment( environment, pluginRef ) )
-            {
-                copyPlugin( target, pluginRef );
-            }
-        }
-
-    }
-
-    private boolean matchTargetEnvironment( TargetEnvironment environment, PluginRef pluginRef )
-    {
-        String pluginOs = pluginRef.getOs();
-        String pluginWs = pluginRef.getWs();
-        String pluginArch = pluginRef.getArch();
-
-        if ( environments == null )
-        {
-            // no target environment, only include environment independent plugins
-            return pluginOs == null && pluginWs == null && pluginArch == null;
-        }
+        // required plugins, RCP didn't start without both
+        assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher" ) );
 
         String os = environment.getOs();
         String ws = environment.getWs();
         String arch = environment.getArch();
 
-        return ( pluginOs == null || os.equals( pluginOs ) ) && //
-            ( pluginWs == null || ws.equals( pluginWs ) ) && //
-            ( pluginArch == null || arch.equals( pluginArch ) );
-    }
-
-    private void copyPlugins( TargetEnvironment environment, File pluginsFolder, Collection<PluginRef> plugins )
-        throws MojoExecutionException, MojoFailureException
-    {
-        getLog().debug( "copying " + plugins.size() + " plugins " );
-
-        for ( PluginRef plugin : plugins )
+        // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
+        // only a org.eclipse.equinox.launcher.carbon.macosx folder.
+        // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
+        if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
         {
-            copyPlugin( pluginsFolder, plugin );
-        }
-
-        // required plugins, RCP didn't start without both
-        if ( !isEclipse32Platform() )
-        {
-            copyPlugin( pluginsFolder, newPluginRef( "org.eclipse.equinox.launcher", null, false ) );
-
-            String os = environment.getOs();
-            String ws = environment.getWs();
-            String arch = environment.getArch();
-
-            // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
-            // only a org.eclipse.equinox.launcher.carbon.macosx folder.
-            // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
-            if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
-            {
-                copyPlugin( pluginsFolder, newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os, null, false ) );
-            }
-            else
-            {
-                copyPlugin( pluginsFolder, newPluginRef( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, false ) );
-            }
-        }
-    }
-
-    private PluginRef newPluginRef( String id, String version, boolean unpack )
-    {
-        PluginRef plugin = new PluginRef( "plugin" );
-        plugin.setId( id );
-        if ( version != null )
-        {
-            plugin.setVersion( version );
-        }
-        plugin.setUnpack( unpack );
-        return plugin;
-    }
-
-    private String copyPlugin( File target, PluginRef plugin )
-        throws MojoExecutionException
-    {
-        String bundleId = plugin.getId();
-        String bundleVersion = plugin.getVersion();
-        
-        getLog().debug( "Copying plugin " + bundleId + "_" + bundleVersion );
-
-        if ( bundleVersion == null || "0.0.0".equals( bundleVersion ) )
-        {
-            bundleVersion = TychoConstants.HIGHEST_VERSION;
-        }
-
-        BundleDescription bundle = bundleResolutionState.getBundle( bundleId, bundleVersion );
-        if ( bundle == null )
-        {
-            throw new MojoExecutionException( "Plugin '" + bundleId + "_" + bundleVersion + "' not found!" );
-        }
-
-        String sourceBundle = bundleResolutionState.getManifestAttribute( bundle, "Eclipse-SourceBundle" );
-        if ( !includeSources && sourceBundle != null && sourceBundle.trim().length() > 0 )
-        {
-            getLog().debug( "Ignoring source bundle " + bundleId + "_" + bundleVersion );
-            return null;
-        }
-
-        MavenProject bundleProject = MavenSessionUtils.getMavenProject( session, bundle.getLocation() );
-        File source;
-        if ( bundleProject != null )
-        {
-            source = bundleProject.getArtifact().getFile();
+            assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher." + ws + "." + os ) );
         }
         else
         {
-            source = new File( bundle.getLocation() );
-        }
-
-        bundleVersion = VersioningHelper.getExpandedVersion( session, bundle );
-
-        File pluginsFolder = new File( target, "plugins" );
-        File targetFolder = new File( pluginsFolder, bundleId + "_" + bundleVersion + ".jar" );
-        if ( source.isDirectory() )
-        {
-            copyToDirectory( source, pluginsFolder );
-        }
-        else if ( plugin.isUnpack() )
-        {
-            // when unpacked doesn't have .jar extension
-            String path = targetFolder.getAbsolutePath();
-            path = path.substring( 0, path.length() - 4 );
-            targetFolder = new File( path );
-            targetFolder.mkdirs();
-            new de.schlichtherle.io.File( source ).copyAllTo( targetFolder );
-            // unpackToDirectory(source, target);
-        }
-        else
-        {
-            copyToFile( source, targetFolder );
-        }
-
-        return bundleVersion;
-    }
-
-    private void copyToFile( File source, File target )
-        throws MojoExecutionException
-    {
-        try
-        {
-            target.getParentFile().mkdirs();
-
-            if ( source.isFile() )
-            {
-                FileUtils.copyFile( source, target );
-            }
-            else if ( source.isDirectory() )
-            {
-                FileUtils.copyDirectory( source, target );
-            }
-            else
-            {
-                getLog().warn( "Skipping bundle " + source.getAbsolutePath() );
-            }
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Unable to copy " + source.getName(), e );
+            assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch ) );
         }
     }
 
-    private void copyToDirectory( File source, File targetFolder )
-        throws MojoExecutionException
+    private PluginDescription newPluginDescription( String id )
     {
-        try
+        TargetPlatform platform = getTargetPlatform();
+        ArtifactKey key = platform.getArtifactKey( TychoProject.ECLIPSE_PLUGIN, id, null );
+
+        if ( key == null )
         {
-            if ( source.isFile() )
-            {
-                FileUtils.copyFileToDirectory( source, targetFolder );
-            }
-            else if ( source.isDirectory() )
-            {
-                FileUtils.copyDirectoryToDirectory( source, targetFolder );
-            }
-            else
-            {
-                getLog().warn( "Skipping bundle " + source.getAbsolutePath() );
-            }
+            throw new IllegalArgumentException( "Could not resolve required bundle " + id );
         }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Unable to copy " + source.getName(), e );
-        }
+
+        File location = platform.getArtifact( key );
+
+        return new DefaultPluginDescription( key, location, null, null );
     }
 
     private void copyExecutable( TargetEnvironment environment, File target )
@@ -843,23 +592,13 @@ public class ProductExportMojo
     {
         getLog().debug( "Creating launcher" );
 
-        FeatureDescription feature;
-        // eclipse 3.2
-        if ( isEclipse32Platform() )
-        {
-            feature = featureResolutionState.getFeature( "org.eclipse.platform.launchers", null );
-        }
-        else
-        {
-            feature = featureResolutionState.getFeature( "org.eclipse.equinox.executable", null );
-        }
+        File location =
+            getTargetPlatform().getArtifact( TychoProject.ECLIPSE_FEATURE, "org.eclipse.equinox.executable", null );
 
-        if ( feature == null )
+        if ( location == null )
         {
             throw new MojoExecutionException( "RPC delta feature not found!" );
         }
-
-        File location = feature.getLocation();
 
         String os = environment.getOs();
         String ws = environment.getWs();
@@ -913,13 +652,13 @@ public class ProductExportMojo
                 // property within the Info.plist file.
                 // see http://jira.codehaus.org/browse/MNGECLIPSE-1087
                 newName = "eclipse";
-            } 
+            }
 
             getLog().debug( "Renaming launcher to " + newName );
             File newLauncher = new File( launcher.getParentFile(), newName );
-            if ( ! launcher.renameTo( newLauncher ) )
+            if ( !launcher.renameTo( newLauncher ) )
             {
-                throw new MojoExecutionException( "Could not rename native launcher to " +  newName );
+                throw new MojoExecutionException( "Could not rename native launcher to " + newName );
             }
             launcher = newLauncher;
 
@@ -974,7 +713,7 @@ public class ProductExportMojo
                     getLog().debug( "icons is null" );
                 }
             }
-            else if  ( PlatformPropertiesUtils.OS_LINUX.equals( os ) ) 
+            else if ( PlatformPropertiesUtils.OS_LINUX.equals( os ) )
             {
                 String icon = productConfiguration.getLinuxIcon();
                 if ( icon != null )
@@ -1024,21 +763,6 @@ public class ProductExportMojo
                 }
             }
         }
-
-        // eclipse 3.2
-        if ( isEclipse32Platform() )
-        {
-            File startUpJar = new File( location, "bin/startup.jar" );
-            try
-            {
-                FileUtils.copyFileToDirectory( startUpJar, target );
-            }
-            catch ( IOException e )
-            {
-                throw new MojoExecutionException( "Unable to copy startup.jar executable", e );
-            }
-        }
-
     }
 
     private String removeFirstSegment( String path )
@@ -1048,12 +772,12 @@ public class ProductExportMojo
         {
             return null;
         }
-        
+
         if ( idx == 0 )
         {
             idx = path.indexOf( '/', 1 );
         }
-        
+
         if ( idx < 0 )
         {
             return null;

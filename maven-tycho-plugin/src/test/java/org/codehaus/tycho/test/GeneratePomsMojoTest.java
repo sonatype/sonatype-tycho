@@ -13,8 +13,8 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.plugin.Mojo;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.codehaus.tycho.osgitools.utils.TychoVersion;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.codehaus.tycho.utils.TychoVersion;
 
 public class GeneratePomsMojoTest extends AbstractTychoMojoTestCase {
 

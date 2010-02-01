@@ -7,10 +7,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.maven.ProjectDependenciesResolver;
 import org.apache.maven.artifact.Artifact;
@@ -30,10 +33,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
-import org.codehaus.tycho.DefaultTargetPlatform;
-import org.codehaus.tycho.ExecutionEnvironmentUtils;
-import org.codehaus.tycho.PlatformPropertiesUtils;
-import org.codehaus.tycho.ProjectType;
+import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
@@ -42,7 +42,10 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.model.Target.Location;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
+import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
+import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
+import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
@@ -89,8 +92,8 @@ public class P2TargetPlatformResolver
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
-        TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project
-            .getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        TargetPlatformConfiguration configuration =
+            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
 
         P2Resolver resolver = resolverFactory.createResolver();
 
@@ -111,6 +114,8 @@ public class P2TargetPlatformResolver
                 getLogger().info( message );
             }
         } );
+        
+        Map<File, MavenProject> projects = new HashMap<File, MavenProject>();
 
         for ( MavenProject otherProject : session.getProjects() )
         {
@@ -118,12 +123,10 @@ public class P2TargetPlatformResolver
             {
                 getLogger().debug( "P2resolver.addMavenProject " + otherProject.toString() );
             }
-            resolver.addMavenProject(
-                otherProject.getBasedir(),
-                otherProject.getPackaging(),
-                otherProject.getGroupId(),
-                otherProject.getArtifactId(),
-                otherProject.getVersion() );
+            projects.put( otherProject.getBasedir(), otherProject );
+            resolver.addMavenProject( otherProject.getBasedir(), otherProject.getPackaging(),
+                                      otherProject.getGroupId(), otherProject.getArtifactId(),
+                                      otherProject.getVersion() );
         }
 
         resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
@@ -158,7 +161,8 @@ public class P2TargetPlatformResolver
                     {
                         getLogger().debug( "P2resolver.addMavenArtifact " + a.toString() );
                     }
-                    resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(), a.getVersion() );
+                    resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(),
+                                               a.getVersion() );
                 }
             }
             catch ( AbstractArtifactResolutionException e )
@@ -185,7 +189,7 @@ public class P2TargetPlatformResolver
 
                     resolver.addP2Repository( uri );
 
-                    getLogger().debug("Added p2 repository " + repository.getId() + " (" + repository.getUrl() + ")" );
+                    getLogger().debug( "Added p2 repository " + repository.getId() + " (" + repository.getUrl() + ")" );
                 }
                 else
                 {
@@ -258,7 +262,9 @@ public class P2TargetPlatformResolver
                             }
                             else
                             {
-                                getLogger().info( "Unknown server id=" + id + " for repository location=" + location.getRepositoryLocation() );
+                                getLogger().info(
+                                                  "Unknown server id=" + id + " for repository location="
+                                                      + location.getRepositoryLocation() );
                             }
                         }
 
@@ -283,14 +289,15 @@ public class P2TargetPlatformResolver
 
         platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
 
-        for ( File bundle : result.getBundles() )
+        for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
         {
-            platform.addArtifactFile( ProjectType.ECLIPSE_PLUGIN, bundle );
-        }
-
-        for ( File feature : result.getFeatures() )
-        {
-            platform.addArtifactFile( ProjectType.ECLIPSE_FEATURE, feature );
+            platform.addArtifactFile( entry.getKey(), entry.getValue() );
+            
+//            MavenProject otherProject = projects.get( entry.getValue() );
+//            if ( otherProject != null )
+//            {
+//                platform.addMavenProject( entry.getKey(), otherProject );
+//            }
         }
 
         addProjects( session, platform );
@@ -315,14 +322,15 @@ public class P2TargetPlatformResolver
             id = url;
         }
 
-        ArtifactRepository repository = repositorySystem.createArtifactRepository( id, url, p2layout, P2_REPOSITORY_POLICY, P2_REPOSITORY_POLICY );
+        ArtifactRepository repository =
+            repositorySystem.createArtifactRepository( id, url, p2layout, P2_REPOSITORY_POLICY, P2_REPOSITORY_POLICY );
 
         Mirror mirror = repositorySystem.getMirror( repository, mirrors );
-        
+
         return mirror != null ? mirror.getUrl() : url;
     }
 
-	public void initialize()
+    public void initialize()
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );

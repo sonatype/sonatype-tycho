@@ -42,7 +42,7 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.utils.ArtifactRef;
+import org.codehaus.tycho.utils.MavenArtifactRef;
 
 import aQute.lib.osgi.Instruction;
 
@@ -89,13 +89,13 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
      *  
      * @parameter 
      */
-    private ArtifactRef[] includes;
+    private MavenArtifactRef[] includes;
 
     /** @parameter */
-	private ArtifactRef[] exclusions;
+	private MavenArtifactRef[] exclusions;
 
 	/** @parameter */
-	private ArtifactRef[] requireBundles;
+	private MavenArtifactRef[] requireBundles;
 
 	/** @parameter */
 	private String classifier;
@@ -313,7 +313,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 		}
 		if (requireBundles != null) {
 			for (int i = 0; i < requireBundles.length; i++) {
-				ArtifactRef a = requireBundles[i];
+				MavenArtifactRef a = requireBundles[i];
 				if (sb.length() > 0) sb.append(",");
 				sb.append(getBundleSymbolicName(a.getGroupId(), a.getArtifactId()));
 			}
@@ -470,7 +470,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 
     	if (requireBundles != null) {
 	    	for (int i = 0; i < requireBundles.length; i++) {
-	    		ArtifactRef a = requireBundles[i];
+	    		MavenArtifactRef a = requireBundles[i];
 
 	    		ArtifactResolutionResult result = resolve( a, true );
 
@@ -482,7 +482,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
     	return keys;
     }
 
-    private ArtifactResolutionResult resolve( ArtifactRef a, boolean resolveTransitively )
+    private ArtifactResolutionResult resolve( MavenArtifactRef a, boolean resolveTransitively )
         throws MojoExecutionException
     {
         Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar");
@@ -544,7 +544,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 		plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
 	}
 
-	private Set<String> getArtifactKeys(ArtifactRef[] refs) {
+	private Set<String> getArtifactKeys(MavenArtifactRef[] refs) {
         Set<String> keys = new HashSet<String>();
         if (refs != null) {
             for (int i = 0; i < refs.length; i++) {

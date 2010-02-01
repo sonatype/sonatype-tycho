@@ -1,34 +1,24 @@
 package org.sonatype.tycho.p2.facade.internal;
 
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.codehaus.tycho.ArtifactKey;
 
 public class P2ResolutionResult
 {
 
-    private final Set<File> bundles = new LinkedHashSet<File>();
+    private final Map<ArtifactKey, File> artifacts = new LinkedHashMap<ArtifactKey, File>();
 
-    private final Set<File> features = new LinkedHashSet<File>();
-
-    public void addBundle( File bundle )
+    public void addArtifact( String type, String id, String version, File bundle )
     {
-        this.bundles.add( bundle );
+        artifacts.put( new ArtifactKey( type, id, version ), bundle );
     }
 
-    public void addFeature( File feature )
+    public Map<ArtifactKey, File> getArtifacts()
     {
-        this.features.add( feature );
-    }
-
-    public Set<File> getBundles()
-    {
-        return bundles;
-    }
-    
-    public Set<File> getFeatures()
-    {
-        return features;
+        return artifacts;
     }
 
 }

@@ -2,13 +2,10 @@ package org.codehaus.tycho.buildversion;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.FeatureResolutionState;
-import org.codehaus.tycho.ProjectType;
-import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.osgitools.features.FeatureDescription;
-import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.tycho.TychoProject;
 
 public abstract class AbstractVersionMojo
     extends AbstractMojo
@@ -35,35 +32,19 @@ public abstract class AbstractVersionMojo
      */
     protected MavenSession session;
 
-    protected String getOSGiVersion()
+    protected String getOSGiVersion() throws MojoFailureException
     {
-        String version = null;
-
-        if ( ProjectType.ECLIPSE_PLUGIN.equals( packaging ) || ProjectType.ECLIPSE_TEST_PLUGIN.endsWith( packaging ) )
+        TychoProject dependencyReader;
+        try
         {
-            BundleResolutionState bundleResolutionState =
-                (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-
-            if ( bundleResolutionState != null )
-            {
-                BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
-
-                version = VersioningHelper.getExpandedVersion( session, bundle );
-            }
+            dependencyReader = (TychoProject) session.lookup( TychoProject.class.getName(), packaging );
         }
-        else if ( ProjectType.ECLIPSE_FEATURE.equals( packaging ) )
+        catch ( ComponentLookupException e )
         {
-            FeatureResolutionState featureResolutionState =
-                (FeatureResolutionState) project.getContextValue( TychoConstants.CTX_FEATURE_RESOLUTION_STATE );
-
-            if ( featureResolutionState != null )
-            {
-                FeatureDescription featureDesc = featureResolutionState.getFeatureByLocation( project.getBasedir() );
-
-                version = VersioningHelper.getExpandedVersion( session, featureDesc );
-            }
+            throw new MojoFailureException( "Could not locate required component", e );
         }
-        return version;
+
+        return dependencyReader.getArtifactKey( project ).getVersion();
     }
 
 }
