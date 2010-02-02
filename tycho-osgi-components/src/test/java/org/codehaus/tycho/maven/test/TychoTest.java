@@ -76,9 +76,34 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 //	        assertEquals(1, exceptions.size());
 	        assertTrue(e.getMessage().contains("Missing Constraint: Import-Package: moduleorder.p002"));
 		}
-
 	}
 
+	public void testFeatureMissingFeature() throws Exception {
+        File pom = new File(getBasedir("projects/resolutionerror/feature_missing_feature"), "pom.xml");
+        try 
+        {
+            getSortedProjects(pom);
+            fail();
+        } 
+        catch ( Exception e )
+        {
+            assertTrue(e.getMessage().contains("Could not resolve feature feature.not.found_0.0.0"));
+        }
+	}
+
+    public void testFeatureMissingPlugin() throws Exception {
+        File pom = new File(getBasedir("projects/resolutionerror/feature_missing_plugin"), "pom.xml");
+        try 
+        {
+            getSortedProjects(pom);
+            fail();
+        } 
+        catch ( Exception e )
+        {
+            assertTrue(e.getMessage().contains("Could not resolve plugin plugin.not.found_0.0.0"));
+        }
+    }
+	
 	public void testProjectPriority() throws Exception {
 		File platform = new File(getBasedir(), "src/test/resources/projects/projectpriority/platform");
 		File pom = new File(getBasedir("projects/projectpriority"), "pom.xml");
