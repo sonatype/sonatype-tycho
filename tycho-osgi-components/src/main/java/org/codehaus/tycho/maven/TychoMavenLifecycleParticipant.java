@@ -137,8 +137,6 @@ public class TychoMavenLifecycleParticipant
 
                 MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
                 dr.getDependencyWalker( project ).walk( dependencyCollector );
-                
-                System.out.println( project.getDependencies() );
             }
             catch ( ComponentLookupException e )
             {
