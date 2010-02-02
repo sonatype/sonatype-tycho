@@ -65,9 +65,9 @@ public class PackageFeatureMojo
      * If set to <code>true</code> (the default), standard eclipse update site directory with feature content will be
      * created under target folder.
      * 
-     * @parameter default-value="true"
+     * @parameter default-value="false"
      */
-    private boolean deployable = true;
+    private boolean deployableFeature = false;
 
     /** @parameter expression="${project.build.directory}/site" */
     private File target;
@@ -134,7 +134,7 @@ public class PackageFeatureMojo
 
         project.getArtifact().setFile( outputJar );
 
-        if ( deployable )
+        if ( deployableFeature )
         {
             assembleDeployableFeature( feature );
         }

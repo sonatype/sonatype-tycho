@@ -147,7 +147,8 @@
               </generate-resources>
               <package>
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:package-feature,
-                org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:p2-metadata,
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:feature-p2-metadata
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install,
