@@ -15,6 +15,7 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
@@ -137,6 +138,15 @@ public class TychoMavenLifecycleParticipant
 
                 MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
                 dr.getDependencyWalker( project ).walk( dependencyCollector );
+
+                if ( logger.isDebugEnabled() )
+                {
+                    logger.debug( "Injected dependencies for " + project.toString() );
+                    for ( Dependency dependency : project.getDependencies() )
+                    {
+                        logger.debug( "\t" + dependency.toString() );
+                    }
+                }
             }
             catch ( ComponentLookupException e )
             {
