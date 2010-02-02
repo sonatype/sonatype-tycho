@@ -77,4 +77,8 @@ public class EnvironmentUtil {
 		return Integer.parseInt(port);
 	}
 
+    public static String getLocalRepo() {
+        return getProperty("local-repo");
+    }
+
 }

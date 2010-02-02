@@ -55,9 +55,9 @@ public abstract class AbstractTychoIntegrationTest {
         }
         verifier.getCliOptions().add("-X");
         verifier.getCliOptions().add("-s " + userSettings.getCanonicalPath());
-//        verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
-//        verifier.setLocalRepo( getLocalRepo() );
-        
+        verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
+        verifier.setLocalRepo( EnvironmentUtil.getLocalRepo() );
+
         String m2eState = System.getProperty("m2eclipse.workspace.state");
         String m2eResolver = System.getProperty("m2eclipse.workspace.resolver");
 
@@ -80,7 +80,7 @@ public abstract class AbstractTychoIntegrationTest {
 	protected String getMavenHome() {
 		return EnvironmentUtil.getMavenHome();
 	}
-
+	
 	protected String getTychoVersion() {
 		return EnvironmentUtil.getTychoVersion();
 	}
