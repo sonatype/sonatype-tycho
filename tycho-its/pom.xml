@@ -41,7 +41,7 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>maven-properties-plugin</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.0.2</version>
         <executions>
           <execution>
             <phase>process-test-resources</phase>
