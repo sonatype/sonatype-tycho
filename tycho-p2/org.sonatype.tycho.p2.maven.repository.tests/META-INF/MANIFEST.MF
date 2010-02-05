@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: P2 Maven Repository Tests Plug-in
 Bundle-SymbolicName: org.sonatype.tycho.p2.maven.repository.tests;singleton:=true
-Bundle-Version: 0.6.0.qualifier
+Bundle-Version: 0.8.0.qualifier
 Bundle-Vendor: Sonatype, Inc.
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: org.sonatype.tycho.p2.maven.repository,
