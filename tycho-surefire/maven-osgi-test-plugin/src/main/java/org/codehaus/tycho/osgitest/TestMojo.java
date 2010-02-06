@@ -240,6 +240,13 @@ public class TestMojo extends AbstractMojo {
      */
     private Map<String, String> environmentVariables;
 
+    /**
+     * Additional system properties to set for the forked test JVM.
+     * 
+     * @parameter
+     */
+    private Map<String, String> systemProperties;
+
 	/**
 	 * List of bundles that must be expanded in order to execute the tests
 	 * 
@@ -476,6 +483,12 @@ public class TestMojo extends AbstractMojo {
 				Arg arg = cli.createArg();
 				arg.setLine(argLine);
 			}
+
+            if (systemProperties != null) {
+                for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+                    cli.createArg().setValue("-D" + entry.getKey() + "=" + entry.getValue());
+                }
+            }
 
 			cli.addArguments(new String[] {
 				"-jar", getEclipseLauncher(testRuntime).getAbsolutePath(),
