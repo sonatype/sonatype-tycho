@@ -13,6 +13,7 @@ import org.eclipse.equinox.internal.p2.updatesite.SiteFeature;
 import org.eclipse.equinox.internal.p2.updatesite.UpdateSite;
 import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
 import org.eclipse.equinox.internal.provisional.p2.core.Version;
+import org.eclipse.equinox.internal.provisional.p2.core.VersionFormat;
 import org.eclipse.equinox.internal.provisional.p2.core.VersionRange;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IProvidedCapability;
@@ -50,7 +51,7 @@ public class SiteDependenciesAction
 
             InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
             iud.setId( id );
-            iud.setVersion( Version.create( "format(n[.n=0;[.n=0;[-S=[a-zA-Z0-9_-];]]]):" + version ) );
+            iud.setVersion( createVersion( version ) );
 
             Set<IProvidedCapability> provided = new LinkedHashSet<IProvidedCapability>();
             provided.add( MetadataFactory.createProvidedCapability( IInstallableUnit.NAMESPACE_IU_ID, iud.getId(),
@@ -92,5 +93,19 @@ public class SiteDependenciesAction
         }
 
         return Status.OK_STATUS;
+    }
+
+    public static Version createVersion( String version )
+    {
+        try
+        {
+            // try default (OSGi?) format first
+            return Version.create( version );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            // treat as raw otherwise
+            return Version.create( "format(n[.n=0;[.n=0;['-'S]]]):" + version );
+        }
     }
 }
