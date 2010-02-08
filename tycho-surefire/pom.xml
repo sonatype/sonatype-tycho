@@ -10,6 +10,7 @@
 
   <artifactId>tycho-surefire</artifactId>
   <packaging>pom</packaging>
+  <name>Tycho Surefire Parent</name>
 
   <modules>
     <module>maven-osgi-test-plugin</module>
