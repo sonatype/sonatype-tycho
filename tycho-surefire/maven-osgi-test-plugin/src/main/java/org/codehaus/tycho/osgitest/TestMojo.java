@@ -16,6 +16,10 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
@@ -23,6 +27,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
@@ -254,7 +259,24 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private String[] explodedBundles;
 
-	/** @component */
+    /**
+     * List of framework extension bundles to add.
+     * 
+     * @parameter
+     */
+    private Dependency[] frameworkExtensions;
+
+    /**
+     * @component
+     */
+    private RepositorySystem repositorySystem;
+
+    /**
+     * @component
+     */
+    private ResolutionErrorHandler resolutionErrorHandler;
+
+    /** @component */
     private PlexusContainer plexus;
 
     /** @component */
@@ -316,6 +338,7 @@ public class TestMojo extends AbstractMojo {
 		testRuntime.setLocation( work );
 		testRuntime.setPlexusContainer( plexus );
 		testRuntime.setBundlesToExplode(getBundlesToExplode());
+		testRuntime.addFrameworkExtensions(getFrameworkExtensions());
 		testRuntime.initialize();
 
 		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
@@ -712,5 +735,32 @@ public class TestMojo extends AbstractMojo {
 
 		return bundles;
 	}
+
+    private List<File> getFrameworkExtensions() throws MojoExecutionException {
+        List<File> files = new ArrayList<File>();
+
+        if (frameworkExtensions != null) {
+            for (Dependency frameworkExtension : frameworkExtensions) {
+                Artifact artifact = repositorySystem.createDependencyArtifact(frameworkExtension);
+                ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+                request.setArtifact(artifact);
+                request.setResolveRoot(true).setResolveTransitively(false);
+                request.setLocalRepository(session.getLocalRepository());
+                request.setRemoteRepositories(project.getPluginArtifactRepositories());
+                request.setOffline(session.isOffline());
+                request.setForceUpdate(session.getRequest().isUpdateSnapshots());
+                ArtifactResolutionResult result = repositorySystem.resolve(request);
+                try {
+                    resolutionErrorHandler.throwErrors(request, result);
+                } catch (ArtifactResolutionException e) {
+                    throw new MojoExecutionException("Failed to resolve framework extension "
+                            + frameworkExtension.getManagementKey(), e);
+                }
+                files.add(artifact.getFile());
+            }
+        }
+
+        return files;
+    }
 
 }

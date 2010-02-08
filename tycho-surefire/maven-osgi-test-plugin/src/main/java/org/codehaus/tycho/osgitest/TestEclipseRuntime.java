@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -20,6 +21,7 @@ import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
@@ -44,6 +46,8 @@ public class TestEclipseRuntime
     private TargetPlatform sourcePlatform;
 
     private EquinoxBundleResolutionState resolver;
+
+    private List<File> frameworkExtensions = new ArrayList<File>();
 
     public void initialize()
     {
@@ -324,6 +328,12 @@ public class TestEclipseRuntime
                 p.setProperty( "osgi.framework", url );
             }
 
+            if (!frameworkExtensions.isEmpty()) {
+                Collection<String> bundleNames = unpackFrameworkExtensions(frameworkExtensions);
+                p.setProperty("osgi.framework", copySystemBundle());
+                p.setProperty("osgi.framework.extensions", StringUtils.join(bundleNames.iterator(), ","));
+            }
+
             new File( location, "configuration" ).mkdir();
             FileOutputStream fos = new FileOutputStream( new File( location, TychoConstants.CONFIG_INI_PATH ) );
             try
@@ -430,6 +440,7 @@ public class TestEclipseRuntime
         {
             throw new RuntimeException( "Could not lookup required component", e );
         }
+        destination.mkdirs();
         unzip.setSourceFile( source );
         unzip.setDestDirectory( destination );
         try
@@ -441,5 +452,45 @@ public class TestEclipseRuntime
             throw new RuntimeException( "Unable to unpack jar " + source, e );
         }
     }
-    
+
+    public void addFrameworkExtensions(Collection<File> frameworkExtensions) {
+        this.frameworkExtensions.addAll(frameworkExtensions);
+    }
+
+    private List<String> unpackFrameworkExtensions(Collection<File> frameworkExtensions) throws IOException {
+        List<String> bundleNames = new ArrayList<String>();
+
+        BundleManifestReader manifestReader = resolver.getBundleManifestReader();
+
+        for (File bundleFile : frameworkExtensions) {
+            Manifest mf = manifestReader.loadManifest(bundleFile);
+            ManifestElement[] id = manifestReader.parseHeader(Constants.BUNDLE_SYMBOLICNAME, mf);
+            ManifestElement[] version = manifestReader.parseHeader(Constants.BUNDLE_VERSION, mf);
+
+            if (id == null || version == null) {
+                throw new IOException("Invalid OSGi manifest in bundle " + bundleFile);
+            }
+
+            bundleNames.add(id[0].getValue());
+
+            File bundleDir = new File(location, "plugins/" + id[0].getValue() + "_" + version[0].getValue());
+            if (bundleFile.isFile()) {
+                unpack(bundleFile, bundleDir);
+            } else {
+                FileUtils.copyDirectoryStructure(bundleFile, bundleDir);
+            }
+        }
+
+        return bundleNames;
+    }
+
+    private String copySystemBundle() throws IOException {
+        BundleDescription bundle = resolver.getSystemBundle();
+        File srcFile = new File(bundle.getLocation());
+        File dstFile = new File(location, "plugins/" + srcFile.getName());
+        FileUtils.copyFileIfModified(srcFile, dstFile);
+
+        return "file:" + dstFile.getAbsolutePath().replace('\\', '/');
+    }
+
 }
