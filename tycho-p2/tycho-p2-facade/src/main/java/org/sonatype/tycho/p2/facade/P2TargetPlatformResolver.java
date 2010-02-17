@@ -181,15 +181,34 @@ public class P2TargetPlatformResolver
 
                 if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
                 {
-                    Authentication auth = repository.getAuthentication();
-                    if ( auth != null )
+                    try
                     {
-                        resolver.setCredentials( uri, auth.getUsername(), auth.getPassword() );
+                        Authentication auth = repository.getAuthentication();
+                        if ( auth != null )
+                        {
+                            resolver.setCredentials( uri, auth.getUsername(), auth.getPassword() );
+                        }
+
+                        resolver.addP2Repository( uri );
+
+                        getLogger().debug(
+                                           "Added p2 repository " + repository.getId() + " (" + repository.getUrl()
+                                               + ")" );
                     }
-
-                    resolver.addP2Repository( uri );
-
-                    getLogger().debug( "Added p2 repository " + repository.getId() + " (" + repository.getUrl() + ")" );
+                    catch ( Exception e )
+                    {
+                        String msg =
+                            "Failed to access p2 repository " + repository.getId() + " (" + repository.getUrl()
+                                + "), will try to use local cache. Reason: " + e.getMessage();
+                        if ( getLogger().isDebugEnabled() )
+                        {
+                            getLogger().warn( msg, e );
+                        }
+                        else
+                        {
+                            getLogger().warn( msg );
+                        }
+                    }
                 }
                 else
                 {
