@@ -2,6 +2,9 @@ package org.sonatype.tycho.test.util;
 
 import java.io.File;
 import java.net.BindException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.mortbay.jetty.Connector;
@@ -26,6 +29,8 @@ public class HttpServer
     private final Context context;
 
     private final int port;
+
+    private final Map<String, FileServerServlet> servers = new HashMap<String, FileServerServlet>();
 
     private HttpServer( int port, Server server, Context context )
     {
@@ -107,6 +112,7 @@ public class HttpServer
     public String addServer( String contextName, final File content )
     {
         FileServerServlet servlet = new FileServerServlet( content );
+        servers.put( contextName, servlet );
         context.addServlet( new ServletHolder( servlet ), "/" + contextName + "/*" );
         
         return getUrl( contextName );
@@ -115,6 +121,11 @@ public class HttpServer
     public String getUrl( String contextName )
     {
         return "http://localhost:" + port + "/" + contextName;
+    }
+
+    public List<String> getAccessedUrls( String contextName )
+    {
+        return servers.get( contextName ).getAccessedUrls();
     }
 
 }
