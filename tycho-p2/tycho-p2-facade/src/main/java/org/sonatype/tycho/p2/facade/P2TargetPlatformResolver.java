@@ -287,7 +287,24 @@ public class P2TargetPlatformResolver
                             }
                         }
 
-                        resolver.addP2Repository( uri );
+                        try
+                        {
+                            resolver.addP2Repository( uri );
+                        }
+                        catch ( Exception e )
+                        {
+                            String msg =
+                                "Failed to access p2 repository " + uri + ", will try to use local cache. Reason: "
+                                    + e.getMessage();
+                            if ( getLogger().isDebugEnabled() )
+                            {
+                                getLogger().warn( msg, e );
+                            }
+                            else
+                            {
+                                getLogger().warn( msg );
+                            }
+                        }
                     }
                 }
                 catch ( URISyntaxException e )
