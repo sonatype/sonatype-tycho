@@ -202,7 +202,7 @@ public class TychoMavenLifecycleParticipant
         Xpp3Dom ignoreTychoRepositoriesDom = configuration.getChild( "ignoreTychoRepositories" );
         if ( ignoreTychoRepositoriesDom == null )
         {
-            return false;
+            return true;
         }
 
         return Boolean.parseBoolean( ignoreTychoRepositoriesDom.getValue() );
