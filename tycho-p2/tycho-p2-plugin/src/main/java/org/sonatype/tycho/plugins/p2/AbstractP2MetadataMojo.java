@@ -59,12 +59,22 @@ public abstract class AbstractP2MetadataMojo
      */
     private String argLine;
 
+    /** 
+     * @parameter default-value="true" 
+     */
+    protected boolean generateP2Metadata;
+
     /** @component */
     private EquinoxEmbedder p2;
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
+        if ( !generateP2Metadata )
+        {
+            return;
+        }
+
         try
         {
             if ( getUpdateSiteLocation().isDirectory() )
