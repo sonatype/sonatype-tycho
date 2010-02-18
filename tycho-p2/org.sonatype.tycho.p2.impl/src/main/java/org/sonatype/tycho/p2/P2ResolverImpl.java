@@ -57,6 +57,8 @@ import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.osgi.framework.InvalidSyntaxException;
+import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
@@ -248,9 +250,15 @@ public class P2ResolverImpl
             {
                 if ( getReactorProjectBasedir( iu ) == null )
                 {
-                    for ( IArtifactKey key : iu.getArtifacts() )
+                    IArtifactKey[] artifactKeys = iu.getArtifacts();
+                    for ( IArtifactKey key : artifactKeys )
                     {
                         requests.add( new MavenMirrorRequest( iu, key, localMetadataRepository, localRepository ) );
+                    }
+                    if ( artifactKeys.length <= 0 )
+                    {
+                        GAV gav = RepositoryLayoutHelper.getP2Gav( "iu", iu.getId(), iu.getVersion().toString() );
+                        localMetadataRepository.addInstallableUnit( iu, gav );
                     }
                 }
             }

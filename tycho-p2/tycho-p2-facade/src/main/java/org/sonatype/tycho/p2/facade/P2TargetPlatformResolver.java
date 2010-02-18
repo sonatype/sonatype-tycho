@@ -175,6 +175,14 @@ public class P2TargetPlatformResolver
 
         for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
         {
+            if ( session.isOffline() )
+            {
+                getLogger().debug(
+                                   "Ignored repository " + repository.getId() + " (" + repository.getUrl()
+                                       + ") while in offline mode" );
+                continue;
+            }
+
             try
             {
                 URI uri = new URL( repository.getUrl() ).toURI();
