@@ -278,39 +278,46 @@ public class P2TargetPlatformResolver
                     URI uri = new URI( getMirror( location, session.getRequest().getMirrors() ) );
                     if ( uris.add( uri ) )
                     {
-                        String id = location.getRepositoryId();
-                        if ( id != null )
+                        if ( session.isOffline() )
                         {
-                            Server server = session.getSettings().getServer( id );
-
-                            if ( server != null )
-                            {
-                                resolver.setCredentials( uri, server.getUsername(), server.getPassword() );
-                            }
-                            else
-                            {
-                                getLogger().info(
-                                                  "Unknown server id=" + id + " for repository location="
-                                                      + location.getRepositoryLocation() );
-                            }
+                            getLogger().debug( "Ignored repository " + uri + " while in offline mode" );
                         }
+                        else
+                        {
+                            String id = location.getRepositoryId();
+                            if ( id != null )
+                            {
+                                Server server = session.getSettings().getServer( id );
 
-                        try
-                        {
-                            resolver.addP2Repository( uri );
-                        }
-                        catch ( Exception e )
-                        {
-                            String msg =
-                                "Failed to access p2 repository " + uri + ", will try to use local cache. Reason: "
-                                    + e.getMessage();
-                            if ( getLogger().isDebugEnabled() )
-                            {
-                                getLogger().warn( msg, e );
+                                if ( server != null )
+                                {
+                                    resolver.setCredentials( uri, server.getUsername(), server.getPassword() );
+                                }
+                                else
+                                {
+                                    getLogger().info(
+                                                      "Unknown server id=" + id + " for repository location="
+                                                          + location.getRepositoryLocation() );
+                                }
                             }
-                            else
+
+                            try
                             {
-                                getLogger().warn( msg );
+                                resolver.addP2Repository( uri );
+                            }
+                            catch ( Exception e )
+                            {
+                                String msg =
+                                    "Failed to access p2 repository " + uri + ", will try to use local cache. Reason: "
+                                        + e.getMessage();
+                                if ( getLogger().isDebugEnabled() )
+                                {
+                                    getLogger().warn( msg, e );
+                                }
+                                else
+                                {
+                                    getLogger().warn( msg );
+                                }
                             }
                         }
                     }

@@ -35,6 +35,14 @@
         <version>${tycho-version}</version>
         <configuration>
           <resolver>p2</resolver>
+          <target>
+            <artifact>
+              <groupId>org.sonatype.tycho.its</groupId>
+              <artifactId>parent</artifactId>
+              <version>0.0.1-SNAPSHOT</version>
+              <classifier>platform</classifier>
+            </artifact>
+          </target>
         </configuration>
       </plugin>
     </plugins>
