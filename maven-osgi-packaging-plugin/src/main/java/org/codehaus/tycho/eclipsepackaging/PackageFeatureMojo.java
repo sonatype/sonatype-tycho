@@ -69,7 +69,9 @@ public class PackageFeatureMojo
      */
     private boolean deployableFeature = false;
 
-    /** @parameter expression="${project.build.directory}/site" */
+    /** 
+     * @parameter expression="${project.build.directory}/site" 
+     */
     private File target;
 
     public void execute()

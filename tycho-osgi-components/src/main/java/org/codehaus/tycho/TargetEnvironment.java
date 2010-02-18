@@ -49,4 +49,38 @@ public class TargetEnvironment
             ( ws == null || ws.equals( this.ws ) ) && //
             ( arch == null || arch.equals( this.arch ) );
     }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 17;
+        hash = 17 * hash + ( os != null ? os.hashCode() : 0 );
+        hash = 17 * hash + ( ws != null ? ws.hashCode() : 0 );
+        hash = 17 * hash + ( arch != null ? arch.hashCode() : 0 );
+        hash = 17 * hash + ( nl != null ? nl.hashCode() : 0 );
+        return hash;
+    }
+
+    @Override
+    public boolean equals( Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
+
+        if ( !( obj instanceof TargetEnvironment ) )
+        {
+            return false;
+        }
+
+        TargetEnvironment other = (TargetEnvironment) obj;
+
+        return eq( os, other.os ) && eq( ws, other.ws ) && eq( arch, other.arch ) && eq( nl, other.nl );
+    }
+
+    private static boolean eq( String a, String b )
+    {
+        return a != null? a.equals( b ): b == null;
+    }
 }
