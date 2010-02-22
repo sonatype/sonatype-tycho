@@ -562,7 +562,7 @@ public class ProductExportMojo
         // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
         // only a org.eclipse.equinox.launcher.carbon.macosx folder.
         // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
-        if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
+        if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) && PlatformPropertiesUtils.WS_CARBON.equals( os ))
         {
             assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher." + ws + "." + os ) );
         }

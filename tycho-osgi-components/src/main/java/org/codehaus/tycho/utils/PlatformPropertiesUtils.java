@@ -125,6 +125,12 @@ public class PlatformPropertiesUtils {
 	public static final String WS_CARBON = "carbon";//$NON-NLS-1$
 
 	/**
+	 * Constant string (value "carbon") indicating the platform is running on a
+	 * machine using the Carbon windowing system (Mac OS X).
+	 */
+	public static final String WS_COCOA = "cocoa";//$NON-NLS-1$
+	
+	/**
 	 * Constant string (value "unknown") indicating the platform is running on a
 	 * machine running an unknown windowing system.
 	 */
