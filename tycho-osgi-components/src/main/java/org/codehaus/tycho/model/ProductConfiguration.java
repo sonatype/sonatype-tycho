@@ -17,6 +17,12 @@ import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
+/**
+ * As of eclipse 3.5.1, file format does not seem to be documented. There are
+ * most likely multiple parser implementations.
+ * 
+ * org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile
+ */
 public class ProductConfiguration {
 
 	@SuppressWarnings("deprecation")

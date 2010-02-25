@@ -21,7 +21,7 @@ public class EclipseApplicationProject
     protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
     {
         final ProductConfiguration product = loadProduct( project );
-        return new AbstractArtifactDependencyWalker( getTargetPlatform( project ), environment )
+        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ), environment )
         {
             public void walk( ArtifactDependencyVisitor visitor )
             {

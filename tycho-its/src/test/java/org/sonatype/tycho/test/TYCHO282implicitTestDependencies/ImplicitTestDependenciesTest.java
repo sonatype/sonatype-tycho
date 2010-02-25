@@ -1,7 +1,6 @@
 package org.sonatype.tycho.test.TYCHO282implicitTestDependencies;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.maven.it.Verifier;
 import org.junit.Test;
@@ -16,10 +15,5 @@ public class ImplicitTestDependenciesTest extends AbstractTychoIntegrationTest {
         v01.executeGoal( "install" );
         v01.verifyErrorFreeLog();
 	}
-
-	private String toURI( File file ) throws IOException
-    {
-        return file.getCanonicalFile().toURI().normalize().toString();
-    }
 
 }

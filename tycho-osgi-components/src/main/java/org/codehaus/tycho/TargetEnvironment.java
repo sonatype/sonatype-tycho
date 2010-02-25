@@ -81,6 +81,14 @@ public class TargetEnvironment
 
     private static boolean eq( String a, String b )
     {
-        return a != null? a.equals( b ): b == null;
+        return a != null ? a.equals( b ) : b == null;
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( os ).append( '/' ).append( ws ).append( '/' ).append( arch );
+        return sb.toString();
     }
 }

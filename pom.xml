@@ -371,13 +371,14 @@
           <plugin>
             <groupId>org.maven.ide.eclipse</groupId>
             <artifactId>lifecycle-mapping</artifactId>
-            <version>0.9.9-SNAPSHOT</version>
+            <version>0.10.0</version>
             <configuration>
               <mappingId>customizable</mappingId>
               <configurators>
                 <configurator id="org.maven.ide.eclipse.jdt.javaConfigurator" />
                 <configurator id="org.maven.ide.eclipse.modello.modelloConfigurator" />
                 <configurator id="org.maven.ide.eclipse.plexus.annotations.plexusConfigurator" />
+                <configurator id="org.maven.ide.eclipse.mavenarchiver.pomProperties" />
               </configurators>
               <mojoExecutions>
                 <mojoExecution>org.apache.maven.plugins:maven-resources-plugin::</mojoExecution>

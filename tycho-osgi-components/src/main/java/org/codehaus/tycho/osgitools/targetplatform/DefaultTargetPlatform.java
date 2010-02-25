@@ -22,11 +22,11 @@ public class DefaultTargetPlatform
 {
     private static final Version VERSION_0_0_0 = new Version( "0.0.0" );
 
-    private Map<ArtifactKey, File> artifacts = new LinkedHashMap<ArtifactKey, File>();
+    protected Map<ArtifactKey, File> artifacts = new LinkedHashMap<ArtifactKey, File>();
 
-    private Map<File, MavenProject> projects = new LinkedHashMap<File, MavenProject>();
+    protected Map<File, MavenProject> projects = new LinkedHashMap<File, MavenProject>();
 
-    private Set<File> sites = new LinkedHashSet<File>();
+    protected Set<File> sites = new LinkedHashSet<File>();
 
     public List<File> getArtifactFiles( String... artifactTypes )
     {

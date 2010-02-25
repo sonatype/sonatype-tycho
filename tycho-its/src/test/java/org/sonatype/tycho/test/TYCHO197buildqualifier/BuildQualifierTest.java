@@ -5,7 +5,6 @@ import java.util.jar.Manifest;
 
 import junit.framework.Assert;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.maven.it.Verifier;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
@@ -85,7 +84,7 @@ public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Site folder should exists", site.isDirectory());
 		File siteXml = new File(site, "site.xml");
 		Assert.assertTrue("Site.xml should exists", siteXml.isFile());
-		String siteContet = FileUtils.readFileToString(siteXml);
+		String siteContet = readFileToString(siteXml).toString();
 		Assert.assertTrue("Site.xml should contain '" + featureLabel
 				+ "'. Got:\n" + siteContet, siteContet.contains(featureLabel));
 

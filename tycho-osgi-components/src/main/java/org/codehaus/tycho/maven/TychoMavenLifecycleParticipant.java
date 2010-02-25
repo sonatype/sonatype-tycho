@@ -29,12 +29,12 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
@@ -168,7 +168,7 @@ public class TychoMavenLifecycleParticipant
 
             if ( configuration != null )
             {
-                result.setEnvironment( getTargetEnvironment( configuration ) );
+                addTargetEnvironments( result, project, configuration );
 
                 result.setResolver( getTargetPlatformResolver( configuration ) );
 
@@ -180,9 +180,11 @@ public class TychoMavenLifecycleParticipant
             }
         }
 
-        // applying defaults
-        if ( result.getEnvironment() == null )
+        if ( result.getEnvironments().isEmpty() )
         {
+            // applying defaults
+            logger.warn( "No explicit target runtime environment configuration. Build is platform dependent." );
+
             // Otherwise, use project or execution properties, if provided
             Properties properties = (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES );
 
@@ -191,10 +193,40 @@ public class TychoMavenLifecycleParticipant
             String ws = PlatformPropertiesUtils.getWS( properties );
             String arch = PlatformPropertiesUtils.getArch( properties );
 
-            result.setEnvironment( new TargetEnvironment( os, ws, arch, null /* nl */) );
+            result.addEnvironment( new TargetEnvironment( os, ws, arch, null /* nl */) );
+
+            result.setImplicitTargetEnvironment( true );
+        }
+        else
+        {
+            result.setImplicitTargetEnvironment( false );
         }
 
         return result;
+    }
+
+    private void addTargetEnvironments( TargetPlatformConfiguration result, MavenProject project, Xpp3Dom configuration )
+    {
+        addDeprecatedTargetEnvironment( result, configuration );
+
+        Xpp3Dom environmentsDom = configuration.getChild( "environments" );
+        if ( environmentsDom != null )
+        {
+            for ( Xpp3Dom environmentDom : environmentsDom.getChildren( "environment" ) )
+            {
+                result.addEnvironment( newTargetEnvironment( environmentDom ) );
+            }
+        }
+    }
+
+    protected void addDeprecatedTargetEnvironment( TargetPlatformConfiguration result, Xpp3Dom configuration )
+    {
+        Xpp3Dom environmentDom = configuration.getChild( "environment" );
+        if ( environmentDom != null )
+        {
+            logger.warn( "target-platform-configuration <environment/> element is deprecated, please use <environments/> instead." );
+            result.addEnvironment( newTargetEnvironment( environmentDom ) );
+        }
     }
 
     private boolean getIgnoreTychoRepositories( Xpp3Dom configuration )
@@ -298,14 +330,8 @@ public class TychoMavenLifecycleParticipant
         return resolverDom.getValue();
     }
 
-    private TargetEnvironment getTargetEnvironment( Xpp3Dom configuration )
+    private TargetEnvironment newTargetEnvironment( Xpp3Dom environmentDom )
     {
-        Xpp3Dom environmentDom = configuration.getChild( "environment" );
-        if ( environmentDom == null )
-        {
-            return null;
-        }
-
         Xpp3Dom osDom = environmentDom.getChild( "os" );
         if ( osDom == null )
         {

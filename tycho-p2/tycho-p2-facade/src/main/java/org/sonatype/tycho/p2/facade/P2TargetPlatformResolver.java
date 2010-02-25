@@ -43,6 +43,7 @@ import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.model.Target.Location;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
+import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
@@ -117,6 +118,10 @@ public class P2TargetPlatformResolver
         
         Map<File, MavenProject> projects = new HashMap<File, MavenProject>();
 
+        resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
+
+        resolver.setEnvironments( getEnvironments( configuration ) );
+
         for ( MavenProject otherProject : session.getProjects() )
         {
             if ( getLogger().isDebugEnabled() )
@@ -128,18 +133,6 @@ public class P2TargetPlatformResolver
                                       otherProject.getGroupId(), otherProject.getArtifactId(),
                                       otherProject.getVersion() );
         }
-
-        resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
-
-        Properties properties = new Properties();
-        TargetEnvironment environment = configuration.getEnvironment();
-        properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
-        properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
-        properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
-        ExecutionEnvironmentUtils.loadVMProfile( properties );
-
-        properties.put( "org.eclipse.update.install.features", "true" );
-        resolver.setProperties( properties );
 
         if ( dependencies != null )
         {
@@ -170,8 +163,6 @@ public class P2TargetPlatformResolver
                 throw new RuntimeException( "Could not resolve project dependencies", e );
             }
         }
-
-        P2ResolutionResult result;
 
         for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
         {
@@ -334,26 +325,58 @@ public class P2TargetPlatformResolver
             }
         }
 
-        result = resolver.resolveProject( project.getBasedir() );
+        List<P2ResolutionResult> results = resolver.resolveProject( project.getBasedir() );
 
-        DefaultTargetPlatform platform = createPlatform();
-
-        platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
-
-        for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
+        MultiEnvironmentTargetPlatform multiPlatform = new MultiEnvironmentTargetPlatform();
+        
+        // FIXME this is just wrong
+        for ( int i = 0; i < configuration.getEnvironments().size(); i++ )
         {
-            platform.addArtifactFile( entry.getKey(), entry.getValue() );
-            
-//            MavenProject otherProject = projects.get( entry.getValue() );
-//            if ( otherProject != null )
-//            {
-//                platform.addMavenProject( entry.getKey(), otherProject );
-//            }
+            TargetEnvironment environment = configuration.getEnvironments().get( i );
+            P2ResolutionResult result = results.get( i ); 
+
+            DefaultTargetPlatform platform = new DefaultTargetPlatform();
+
+            platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
+    
+            for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
+            {
+                platform.addArtifactFile( entry.getKey(), entry.getValue() );
+                
+    //            MavenProject otherProject = projects.get( entry.getValue() );
+    //            if ( otherProject != null )
+    //            {
+    //                platform.addMavenProject( entry.getKey(), otherProject );
+    //            }
+            }
+
+            addProjects( session, platform );
+
+            multiPlatform.addPlatform( environment, platform );
         }
 
-        addProjects( session, platform );
+        return multiPlatform;
+    }
 
-        return platform;
+    private List<Properties> getEnvironments( TargetPlatformConfiguration configuration )
+    {
+        ArrayList<Properties> environments = new ArrayList<Properties>();
+
+        for ( TargetEnvironment environment : configuration.getEnvironments() )
+        {
+            Properties properties = new Properties();
+            properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
+            properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
+            properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
+            ExecutionEnvironmentUtils.loadVMProfile( properties );
+
+            // TODO does not belong here
+            properties.put( "org.eclipse.update.install.features", "true" );
+    
+            environments.add( properties );
+        }
+
+        return environments;
     }
 
     private String getRepositoryKey( ArtifactRepository repository )

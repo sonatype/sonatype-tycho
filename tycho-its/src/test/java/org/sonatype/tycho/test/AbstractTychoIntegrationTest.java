@@ -1,11 +1,19 @@
 package org.sonatype.tycho.test;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
 
 import org.apache.maven.it.Verifier;
 import org.apache.maven.it.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 import org.sonatype.tycho.test.util.EnvironmentUtil;
 
@@ -91,8 +99,18 @@ public abstract class AbstractTychoIntegrationTest {
         ds.setBasedir( targetdir );
         ds.setIncludes( new String[] { pattern } );
         ds.scan();
-        Assert.assertEquals( 1, ds.getIncludedFiles().length );
-        Assert.assertTrue( new File( targetdir, ds.getIncludedFiles()[0] ).canRead() );
+        Assert.assertEquals( targetdir.getAbsolutePath() + "/" + pattern, 1, ds.getIncludedFiles().length );
+        Assert.assertTrue( targetdir.getAbsolutePath() + "/" + pattern, new File( targetdir, ds.getIncludedFiles()[0] ).canRead() );
+    }
+
+    protected void assertDirectoryExists( File targetdir, String pattern )
+    {
+        DirectoryScanner ds = new DirectoryScanner();
+        ds.setBasedir( targetdir );
+        ds.setIncludes( new String[] { pattern } );
+        ds.scan();
+        Assert.assertEquals( targetdir.getAbsolutePath() + "/" + pattern, 1, ds.getIncludedDirectories().length );
+        Assert.assertTrue( targetdir.getAbsolutePath() + "/" + pattern, new File( targetdir, ds.getIncludedDirectories()[0] ).exists() );
     }
 
     protected void assertFileDoesNotExist( File targetdir, String pattern )
@@ -101,6 +119,45 @@ public abstract class AbstractTychoIntegrationTest {
         ds.setBasedir( targetdir );
         ds.setIncludes( new String[] { pattern } );
         ds.scan();
-        Assert.assertEquals( 0, ds.getIncludedFiles().length );
+        Assert.assertEquals( targetdir.getAbsolutePath() + "/" + pattern, 0, ds.getIncludedFiles().length );
     }
+
+    protected String toURI( File file ) throws IOException
+    {
+        return file.getCanonicalFile().toURI().normalize().toString();
+    }
+
+
+    protected void writeStringToFile( File iniFile, String string )
+        throws IOException
+    {
+        OutputStream os = new BufferedOutputStream( new FileOutputStream( iniFile ) );
+        try
+        {
+            IOUtil.copy( string, os );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+    }
+
+    protected StringBuffer readFileToString( File iniFile )
+        throws IOException
+    {
+        InputStream is = new BufferedInputStream( new FileInputStream( iniFile ) );
+        try
+        {
+            StringWriter buffer = new StringWriter();
+
+            IOUtil.copy( is, buffer, "UTF-8" );
+
+            return buffer.getBuffer();
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+    }
+    
 }

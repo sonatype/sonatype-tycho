@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -51,17 +53,18 @@ public class P2GeneratorImpl
                                   File content, File artifacts )
         throws IOException
     {
-
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
         LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
 
-        generateMetadata( location, packaging, groupId, artifactId, version, units, artifactDescriptors );
+        generateMetadata( location, packaging, groupId, artifactId, version, null, units, artifactDescriptors );
 
         new MetadataIO().writeXML( units, content );
         new ArtifactsIO().writeXML( artifactDescriptors, artifacts );
     }
 
+    @SuppressWarnings( "unchecked" )
     public void generateMetadata( File location, String packaging, String groupId, String artifactId, String version,
+                                  List<Properties> environments,
                                   Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts )
     {
         TransientArtifactRepository artifactsRepository = new TransientArtifactRepository();
@@ -72,7 +75,7 @@ public class P2GeneratorImpl
 
         request.addAdvice( new MavenPropertiesAdvice( groupId, artifactId, version ) );
 
-        IPublisherAction[] actions = getPublisherActions( location, packaging, artifactId, version );
+        IPublisherAction[] actions = getPublisherActions( location, packaging, artifactId, version, environments );
 
         PublisherResult result = new PublisherResult();
 
@@ -91,7 +94,7 @@ public class P2GeneratorImpl
         }
     }
 
-    private IPublisherAction[] getPublisherActions( File location, String packaging, String id, String version )
+    private IPublisherAction[] getPublisherActions( File location, String packaging, String id, String version, List<Properties> environments )
     {
         if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( packaging ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) )
         {
@@ -107,7 +110,14 @@ public class P2GeneratorImpl
             try
             {
                 IProductDescriptor productDescriptor = new ProductFile( product );
-                return new IPublisherAction[] { new ProductAction( product, productDescriptor, null, null ) };
+                if ( dependenciesOnly )
+                {
+                    return new IPublisherAction[] { new ProductDependenciesAction( productDescriptor, environments ) };
+                }
+                else
+                {
+                    return new IPublisherAction[] { new ProductAction( product, productDescriptor, null, null ) };
+                }
             }
             catch ( Exception e )
             {

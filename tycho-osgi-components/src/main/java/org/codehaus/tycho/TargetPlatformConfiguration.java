@@ -1,12 +1,17 @@
 package org.codehaus.tycho;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.codehaus.tycho.model.Target;
 
 public class TargetPlatformConfiguration
 {
     private String resolver;
 
-    private TargetEnvironment environment;
+    private List<TargetEnvironment> environments = new ArrayList<TargetEnvironment>();
+
+    private boolean implicitTargetEnvironment = true;
 
     private Target target;
 
@@ -14,9 +19,9 @@ public class TargetPlatformConfiguration
 
     private boolean ignoreTychoRepositories;
 
-    public TargetEnvironment getEnvironment()
+    public List<TargetEnvironment> getEnvironments()
     {
-        return environment;
+        return environments;
     }
 
     public String getTargetPlatformResolver()
@@ -29,9 +34,9 @@ public class TargetPlatformConfiguration
         return target;
     }
 
-    public void setEnvironment( TargetEnvironment environment )
+    public void addEnvironment( TargetEnvironment environment )
     {
-        this.environment = environment;
+        this.environments.add( environment );
     }
 
     public void setResolver( String resolver )
@@ -62,5 +67,15 @@ public class TargetPlatformConfiguration
     public boolean isIgnoreTychoRepositories()
     {
         return ignoreTychoRepositories;
+    }
+
+    public boolean isImplicitTargetEnvironment()
+    {
+        return implicitTargetEnvironment;
+    }
+
+    public void setImplicitTargetEnvironment( boolean implicitTargetEnvironment )
+    {
+        this.implicitTargetEnvironment = implicitTargetEnvironment;
     }
 }

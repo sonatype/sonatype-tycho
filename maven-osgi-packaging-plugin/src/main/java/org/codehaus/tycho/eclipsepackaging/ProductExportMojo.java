@@ -1,27 +1,37 @@
 package org.codehaus.tycho.eclipsepackaging;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.util.ArchiveEntryUtils;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.SelectorUtils;
+import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactKey;
@@ -49,7 +59,7 @@ public class ProductExportMojo
      * The product configuration, a .product file. This file manages all aspects of a product definition from its
      * constituent plug-ins to configuration files to branding.
      * 
-     * @parameter expression="${productConfiguration}"
+     * @parameter expression="${productConfiguration}" default-value="${project.basedir}/${project.artifactId}.product"
      */
     private File productConfigurationFile;
 
@@ -72,6 +82,7 @@ public class ProductExportMojo
 
     /**
      * @parameter
+     * @deprecated use target-platform-configuration <environments/> element
      */
     private TargetEnvironment[] environments;
 
@@ -85,23 +96,16 @@ public class ProductExportMojo
      */
     private boolean includeSources;
 
+    /**
+     * If true (the default), produce separate directory structure for each supported runtime environment.
+     * 
+     * @parameter default-value="true"
+     */
+    private boolean separateEnvironments = true;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
-        if ( productConfigurationFile == null )
-        {
-            File basedir = project.getBasedir();
-            File productCfg = new File( basedir, project.getArtifactId() + ".product" );
-            if ( productCfg.exists() )
-            {
-                productConfigurationFile = productCfg;
-            }
-        }
-
-        if ( productConfigurationFile == null )
-        {
-            throw new MojoExecutionException( "Product configuration file not expecified" );
-        }
         if ( !productConfigurationFile.exists() )
         {
             throw new MojoExecutionException( "Product configuration file not found "
@@ -123,13 +127,14 @@ public class ProductExportMojo
         }
 
         // build results will vary from system to system without explicit target environment configuration
-        if ( productConfiguration.includeLaunchers() && environments == null )
+        if ( productConfiguration.includeLaunchers() && getTargetPlatformConfiguration().isImplicitTargetEnvironment()
+            && environments == null )
         {
             throw new MojoFailureException( "Product includes native launcher but no target environment was specified" );
         }
 
         // expandVersion();
-        
+
         BundleManifestReader manifestReader = EquinoxBundleResolutionState.newManifestReader( plexus, project );
 
         for ( TargetEnvironment environment : getEnvironments() )
@@ -141,7 +146,7 @@ public class ProductExportMojo
             generateDotEclipseProduct( targetEclipse );
             generateConfigIni( environment, targetEclipse );
             includeRootFiles( environment, targetEclipse );
-            
+
             ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, environment );
             assembler.setIncludeSources( includeSources );
             getDependencyWalker( environment ).walk( assembler );
@@ -188,29 +193,43 @@ public class ProductExportMojo
         return getTychoProjectFacet( TychoProject.ECLIPSE_APPLICATION ).getDependencyWalker( project, environment );
     }
 
-    private TargetEnvironment[] getEnvironments()
+    private List<TargetEnvironment> getEnvironments()
     {
         if ( environments != null )
         {
-            return environments;
+            getLog().warn(
+                           "maven-osgi-packaging-plugin <environments/> is deprecated. use target-platform-configuration <environments/>." );
+            return Arrays.asList( environments );
         }
 
+        return getTargetPlatformConfiguration().getEnvironments();
+    }
+
+    protected TargetPlatformConfiguration getTargetPlatformConfiguration()
+    {
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-        return new TargetEnvironment[] { configuration.getEnvironment() };
+
+        if ( configuration == null )
+        {
+            throw new IllegalStateException(
+                                             "Project build target platform configuration has not been initialized properly." );
+        }
+
+        return configuration;
     }
 
     private File getTarget( TargetEnvironment environment )
     {
         File target;
 
-        if ( environments == null )
+        if ( separateEnvironments )
         {
-            target = new File( project.getBuild().getDirectory(), "product" );
+            target = new File( project.getBuild().getDirectory(), toString( environment ) );
         }
         else
         {
-            target = new File( project.getBuild().getDirectory(), toString( environment ) );
+            target = new File( project.getBuild().getDirectory(), "product" );
         }
 
         target.mkdirs();
@@ -319,8 +338,10 @@ public class ProductExportMojo
      *            <li>for a absolute folder: absolute:/eclipse/rootfiles,...</li>
      *            </ul>
      * @param subFolder the sub folder to which the root file entries are copied to
+     * @throws MojoExecutionException 
      */
-    private void handleRootEntry( File target, String rootFileEntries, String subFolder )
+    private void handleRootEntry( File target, String rootFileEntries, String subFolder ) 
+        throws MojoExecutionException
     {
         StringTokenizer t = new StringTokenizer( rootFileEntries, "," );
         File destination = target;
@@ -351,31 +372,25 @@ public class ProductExportMojo
             {
                 source = new File( fileName );
             }
-            if ( source.isFile() )
+
+            try
             {
-                try
+                if ( source.isFile() )
                 {
-                    FileUtils.copyFileToDirectory( source, destination );
+                        FileUtils.copyFileToDirectory( source, destination );
                 }
-                catch ( IOException e )
+                else if ( source.isDirectory() )
                 {
-                    e.printStackTrace();
+                    FileUtils.copyDirectoryStructure( source, destination );
+                }
+                else
+                {
+                    getLog().warn( "Skipping root entry " + rootFileEntry );
                 }
             }
-            else if ( source.isDirectory() )
+            catch ( IOException e )
             {
-                try
-                {
-                    FileUtils.copyDirectoryToDirectory( source, destination );
-                }
-                catch ( IOException e )
-                {
-                    e.printStackTrace();
-                }
-            }
-            else
-            {
-                getLog().warn( "Skipping root entry " + rootFileEntry );
+                throw new MojoExecutionException( "Coult not copy root entry " + fileName, e );
             }
         }
     }
@@ -544,6 +559,8 @@ public class ProductExportMojo
         String arch = environment.getArch();
 
         buf.append( "org.eclipse.equinox.launcher," );
+
+        // FIXME this fails on macosx/carbon (does anyone cares any more?)
         buf.append( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch );
 
         return buf.toString();
@@ -604,14 +621,19 @@ public class ProductExportMojo
         String ws = environment.getWs();
         String arch = environment.getArch();
 
-        File osLauncher = new File( location, "bin/" + ws + "/" + os + "/" + arch );
-
         try
         {
-            // Don't copy eclipsec file
-            IOFileFilter eclipsecFilter =
-                FileFilterUtils.notFileFilter( FileFilterUtils.prefixFileFilter( "eclipsec" ) );
-            FileUtils.copyDirectory( osLauncher, target, eclipsecFilter );
+            String launcherRelPath = "bin/" + ws + "/" + os + "/" + arch;
+            String excludes = "**/eclipsec*";
+
+            if ( location.isDirectory() )
+            {
+                copyDirectory( new File( location, launcherRelPath ), target, excludes );
+            }
+            else
+            {
+                unzipDirectory( location, launcherRelPath, target, excludes );
+            }
         }
         catch ( IOException e )
         {
@@ -642,7 +664,7 @@ public class ProductExportMojo
             // win32 has extensions
             if ( PlatformPropertiesUtils.OS_WIN32.equals( os ) )
             {
-                String extension = FilenameUtils.getExtension( launcher.getAbsolutePath() );
+                String extension = FileUtils.getExtension( launcher.getAbsolutePath() );
                 newName = launcherName + "." + extension;
             }
             else if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) )
@@ -750,10 +772,10 @@ public class ProductExportMojo
                         File iniFile = new File( osxEclipseApp + "/Contents/MacOS/eclipse.ini" );
                         if ( iniFile.exists() && iniFile.canWrite() )
                         {
-                            StringBuffer buf = new StringBuffer( FileUtils.readFileToString( iniFile ) );
+                            StringBuffer buf = readFileToString( iniFile );
                             int pos = buf.indexOf( "Eclipse.icns" );
                             buf.replace( pos, pos + 12, source.getName() );
-                            FileUtils.writeStringToFile( iniFile, buf.toString() );
+                            writeStringToFile( iniFile, buf.toString() );
                         }
                     }
                     catch ( Exception e )
@@ -762,6 +784,88 @@ public class ProductExportMojo
                     }
                 }
             }
+        }
+    }
+
+    private void writeStringToFile( File iniFile, String string ) 
+        throws IOException
+    {
+        OutputStream os = new BufferedOutputStream( new FileOutputStream( iniFile ) );
+        try
+        {
+            IOUtil.copy( string, os );
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+    }
+
+    private StringBuffer readFileToString( File iniFile ) 
+        throws IOException
+    {
+        InputStream is = new BufferedInputStream( new FileInputStream( iniFile ) );
+        try
+        {
+            StringWriter buffer = new StringWriter();
+            
+            IOUtil.copy( is, buffer, "UTF-8" );
+            
+            return buffer.getBuffer();
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+    }
+
+    private void unzipDirectory( File source, String sourceRelPath, File target, String excludes )
+        throws IOException
+    {
+        ZipFile zip = new ZipFile( source );
+        try
+        {
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+    
+            while ( entries.hasMoreElements() )
+            {
+                ZipEntry entry = entries.nextElement();
+                
+                if ( entry.isDirectory() )
+                {
+                    continue;
+                }
+    
+                String name = entry.getName();
+                
+                if ( name.startsWith( sourceRelPath ) && !SelectorUtils.matchPath( excludes, name ) )
+                {
+                    File targetFile = new File( target, name.substring( sourceRelPath.length() ) );
+                    targetFile.getParentFile().mkdirs();
+                    FileUtils.copyStreamToFile( new RawInputStreamFacade( zip.getInputStream( entry ) ), targetFile );
+                }
+            }
+        }
+        finally
+        {
+            zip.close();
+        }
+    }
+
+    private void copyDirectory( File source, File target, String excludes )
+        throws IOException
+    {
+        DirectoryScanner ds = new DirectoryScanner();
+        ds.setBasedir( source );
+        ds.setExcludes( new String[] { excludes } );
+
+        ds.scan();
+
+        for ( String relPath : ds.getIncludedFiles() )
+        {
+            File targetFile = new File( target, relPath );
+            targetFile.getParentFile().mkdirs();
+            FileUtils.copyFile( new File( source, relPath ), targetFile );
         }
     }
 

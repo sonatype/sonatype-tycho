@@ -2,6 +2,7 @@ package org.sonatype.tycho.p2.facade.internal;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 import java.util.Properties;
 
 import org.codehaus.tycho.TychoProject;
@@ -33,9 +34,9 @@ public interface P2Resolver
 
     public void setLocalRepositoryLocation( File location );
 
-    public void setProperties( Properties properties );
+    public void setEnvironments( List<Properties> properties );
 
-    public P2ResolutionResult resolveProject( File location );
+    public List<P2ResolutionResult> resolveProject( File location );
 
     public void addDependency( String type, String id, String version );
 

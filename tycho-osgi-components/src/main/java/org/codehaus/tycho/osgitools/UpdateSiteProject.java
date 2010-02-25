@@ -21,7 +21,7 @@ public class UpdateSiteProject
     protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environmen )
     {
         final UpdateSite site = loadSite( project );
-        return new AbstractArtifactDependencyWalker( getTargetPlatform( project ), environmen )
+        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environmen ), environmen )
         {
             public void walk( ArtifactDependencyVisitor visitor )
             {

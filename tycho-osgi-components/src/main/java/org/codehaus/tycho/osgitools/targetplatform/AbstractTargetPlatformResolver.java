@@ -19,13 +19,6 @@ public abstract class AbstractTargetPlatformResolver
         return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
     }
 
-    protected DefaultTargetPlatform createPlatform()
-    {
-        DefaultTargetPlatform platform = new DefaultTargetPlatform();
-
-        return platform;
-    }
-
     protected void addProjects( MavenSession session, DefaultTargetPlatform platform )
     {
         File parentDir = null;

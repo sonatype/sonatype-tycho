@@ -39,5 +39,4 @@ public interface TargetPlatform
     
     public MavenProject getMavenProject( File location );
 
-
 }

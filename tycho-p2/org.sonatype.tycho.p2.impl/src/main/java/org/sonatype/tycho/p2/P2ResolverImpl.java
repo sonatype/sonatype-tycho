@@ -121,7 +121,10 @@ public class P2ResolverImpl
 
     private IProgressMonitor monitor = new NullProgressMonitor();
 
-    private Properties properties;
+    /**
+     * Target runtime environment properties
+     */
+    private List<Properties> environments;
 
     private List<IRequiredCapability> additionalRequirements = new ArrayList<IRequiredCapability>();
 
@@ -163,7 +166,7 @@ public class P2ResolverImpl
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
-        generator.generateMetadata( location, type, groupId, artifactId, version, units, null );
+        generator.generateMetadata( location, type, groupId, artifactId, version, environments, units, null );
 
         mavenArtifactTypes.put( location, type );
 
@@ -206,10 +209,22 @@ public class P2ResolverImpl
     }
 
     @SuppressWarnings( "unchecked" )
-    public P2ResolutionResult resolveProject( File projectLocation )
+    public List<P2ResolutionResult> resolveProject( File projectLocation )
     {
-        P2ResolutionResult result = new P2ResolutionResult();
+        ArrayList<P2ResolutionResult> results = new ArrayList<P2ResolutionResult>();
 
+        for ( Properties properties : environments )
+        {
+            P2ResolutionResult result = new P2ResolutionResult(); 
+            resolveProject( result, projectLocation, properties );
+            results.add( result );
+        }
+
+        return results;
+    }
+
+    protected void resolveProject( P2ResolutionResult result, File projectLocation, Properties properties )
+    {
         Dictionary newSelectionContext = SimplePlanner.createSelectionContext( properties );
 
         IInstallableUnit[] availableIUs = gatherAvailableInstallableUnits( monitor );
@@ -310,8 +325,6 @@ public class P2ResolverImpl
                 }
             }
         }
-
-        return result;
     }
 
     private File getReactorProjectBasedir( IInstallableUnit iu )
@@ -627,10 +640,9 @@ public class P2ResolverImpl
         metadataRepositories.add( localMetadataRepository );
     }
 
-    public void setProperties( Properties properties )
+    public void setEnvironments( List<Properties> environments )
     {
-        this.properties = new Properties();
-        this.properties.putAll( properties );
+        this.environments = environments;
     }
 
     public void addDependency( String type, String id, String version )

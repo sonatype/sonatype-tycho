@@ -1,7 +1,6 @@
 package org.sonatype.tycho.test.TYCHO0209tychoRepositoryRoundtrip;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.maven.it.Verifier;
 import org.codehaus.plexus.util.FileUtils;
@@ -76,10 +75,5 @@ public class TychoRepositoryRoundtripTest
 
         Assert.assertEquals( 2, new File( site, "features" ).listFiles().length );
         Assert.assertEquals( 3, new File( site, "plugins" ).listFiles().length );
-    }
-
-    private String toURI( File file ) throws IOException
-    {
-        return file.getCanonicalFile().toURI().normalize().toString();
     }
 }

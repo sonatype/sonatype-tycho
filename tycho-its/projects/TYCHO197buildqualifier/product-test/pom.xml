@@ -19,6 +19,13 @@
         <version>${tycho-version}</version>
         <extensions>true</extensions>
       </plugin>
+      <plugin>
+        <groupId>org.sonatype.tycho</groupId>
+        <artifactId>maven-osgi-packaging-plugin</artifactId>
+        <configuration>
+          <separateEnvironments>false</separateEnvironments>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

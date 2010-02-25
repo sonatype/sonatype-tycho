@@ -23,12 +23,27 @@ public interface TychoProject
         ECLIPSE_APPLICATION
     };
 
+    /**
+     * Walks all project dependencies, regardless of runtime environment filters.
+     */
     public ArtifactDependencyWalker getDependencyWalker( MavenProject project );
 
-    /** @deprecated temporary, until target platform configuration properly supports multiple environments */   
+    /**
+     * Walks project dependencies resolved for the specified runtime environment.
+     */
     public ArtifactDependencyWalker getDependencyWalker( MavenProject project, TargetEnvironment environment );
 
+    /**
+     * Returns project build target platform. For projects targeting multiple 
+     * runtime environments, returned target platforms includes artifacts 
+     * for all supported runtime environments. 
+     */
     public TargetPlatform getTargetPlatform( MavenProject project );
+
+    /**
+     * Returns project build target platform resolved for specified runtime environment.
+     */
+    public TargetPlatform getTargetPlatform( MavenProject project, TargetEnvironment environment );
 
     // implementation must not depend on target platform
     public ArtifactKey getArtifactKey( MavenProject project );

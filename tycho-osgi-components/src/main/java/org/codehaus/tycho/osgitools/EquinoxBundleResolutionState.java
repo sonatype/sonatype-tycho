@@ -410,7 +410,7 @@ public class EquinoxBundleResolutionState
 
         // target environment
         TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-        TargetEnvironment environment = configuration.getEnvironment();
+        TargetEnvironment environment = configuration.getEnvironments().get( 0 );
         properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
         properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
         properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
