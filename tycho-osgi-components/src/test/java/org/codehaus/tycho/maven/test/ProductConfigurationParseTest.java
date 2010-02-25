@@ -1,9 +1,11 @@
 package org.codehaus.tycho.maven.test;
 
 import java.util.List;
+import java.util.Map;
 
 import junit.framework.Assert;
 
+import org.codehaus.tycho.model.BundleConfiguration;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.Launcher;
 import org.codehaus.tycho.model.PluginRef;
@@ -79,6 +81,25 @@ public class ProductConfigurationParseTest {
 		Assert.assertNotNull(feature);
 		Assert.assertEquals("HeadlessFeature", feature.getId());
 		Assert.assertEquals("1.0.0", feature.getVersion());
+	}
+
+	@Test
+	public void testProductConfigurationParseWithStartLevel() throws Exception {
+		ProductConfiguration config = ProductConfiguration.read(getClass().getResourceAsStream(
+						"/product/MyProduct.product"));
+		Map<String, BundleConfiguration> bundles = config.getPluginConfiguration();
+//		<plugin id="org.eclipse.core.contenttype" autoStart="true" startLevel="1" />
+		BundleConfiguration contentType = bundles.get("org.eclipse.core.contenttype");
+		Assert.assertNotNull(contentType);
+		Assert.assertTrue(contentType.isStarted());
+		Assert.assertEquals(1, contentType.getStartLevel());
+		
+//	      <plugin id="HeadlessProduct" autoStart="false" startLevel="2" />
+		BundleConfiguration headlessProduct = bundles.get("HeadlessProduct");
+		Assert.assertNotNull(headlessProduct);
+		Assert.assertFalse(headlessProduct.isStarted());
+		Assert.assertEquals(2, headlessProduct.getStartLevel());
+		
 	}
 
 }

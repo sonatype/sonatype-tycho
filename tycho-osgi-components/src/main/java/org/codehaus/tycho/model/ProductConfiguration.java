@@ -8,7 +8,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
@@ -166,6 +168,19 @@ public class ProductConfiguration {
 		}
 		
 		return linux.getAttribute("icon");
+	}
+	
+	public Map<String, org.codehaus.tycho.model.BundleConfiguration> getPluginConfiguration() {
+		Xpp3Dom configurationsDom = dom.getChild("configurations");
+		if (configurationsDom == null) {
+			return Collections.emptyMap();
+		}
+
+		Map<String, org.codehaus.tycho.model.BundleConfiguration> configs = new HashMap<String, org.codehaus.tycho.model.BundleConfiguration>(configurationsDom.getChildCount());
+		for (Xpp3Dom pluginDom : configurationsDom.getChildren("plugin")) {
+			configs.put(pluginDom.getAttribute("id"), new org.codehaus.tycho.model.BundleConfiguration(pluginDom));
+		}
+		return Collections.unmodifiableMap(configs);
 	}
 	
 	public String getMacIcon(){

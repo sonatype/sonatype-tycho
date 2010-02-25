@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -41,6 +42,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.model.BundleConfiguration;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.osgitools.BundleManifestReader;
@@ -488,15 +490,7 @@ public class ProductExportMojo
         // TODO check if there are any other levels
         setPropertyIfNotNull( props, "osgi.bundles.defaultStartLevel", "4" );
 
-        if ( productConfiguration.useFeatures() )
-        {
-            setPropertyIfNotNull( props, "osgi.bundles", getFeaturesOsgiBundles() );
-        }
-        else
-        {
-            setPropertyIfNotNull( props, "osgi.bundles", getPluginsOsgiBundles( environment ) );
-        }
-
+        generateOSGiBundles(props, environment);
         File configsFolder = new File( target, "configuration" );
         configsFolder.mkdirs();
 
@@ -513,10 +507,38 @@ public class ProductExportMojo
         }
     }
 
-    private String getFeaturesOsgiBundles()
+    private void generateOSGiBundles(Properties props, TargetEnvironment environment) throws MojoFailureException {
+        if ( productConfiguration.useFeatures() )
+        {
+            setPropertyIfNotNull( props, "osgi.bundles", getFeaturesOsgiBundles() );
+        }
+        else
+        {
+            setPropertyIfNotNull( props, "osgi.bundles", getPluginsOsgiBundles( environment ) );
+        }
+	}
+
+	private String getFeaturesOsgiBundles()
     {
-        // TODO how does eclipse know this?
-        return "org.eclipse.equinox.common@2:start,org.eclipse.update.configurator@3:start,org.eclipse.core.runtime@start";
+		StringBuilder result = new StringBuilder();
+		Map<String, BundleConfiguration> bundlesToStart = productConfiguration.getPluginConfiguration();
+		if (bundlesToStart.isEmpty()) {
+			// This is the wellknown set of bundles for Eclipse based application for 3.3 and 3.4 without p2
+			return "org.eclipse.equinox.common@2:start,org.eclipse.update.configurator@3:start,org.eclipse.core.runtime@start";			
+		}
+		for (Entry<String, BundleConfiguration> bundle : bundlesToStart.entrySet()) {
+			
+			result.append(bundle.getKey());
+        		result.append('@');
+        		if (bundle.getValue().getStartLevel() != -1)
+        			result.append(bundle.getValue().getStartLevel());
+        		if (! bundle.getValue().isStarted()) {
+        			if (bundle.getValue().getStartLevel() != -1)
+        				result.append(':');
+        			result.append("start");
+        		}
+        }
+		return result.toString();
     }
 
     private String getPluginsOsgiBundles( TargetEnvironment environment )
@@ -546,6 +568,18 @@ public class ProductExportMojo
             if ( "org.eclipse.core.runtime".equals( plugin.getId() ) )
             {
                 buf.append( "@start" );
+            }
+            
+            BundleConfiguration config = productConfiguration.getPluginConfiguration().get(plugin.getId());
+            if (config != null) {
+            		buf.append('@');
+            		if (config.getStartLevel() != -1)
+            			buf.append(config.getStartLevel());
+            		if (! config.isStarted()) {
+            			if (config.getStartLevel() != -1)
+            				buf.append(':');
+            			buf.append("start");
+            		}
             }
         }
 
