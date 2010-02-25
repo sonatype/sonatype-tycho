@@ -145,8 +145,12 @@ public class PlatformPropertiesUtils {
 			return Constants.WS_WIN32;
 		if (osName.equals(Constants.OS_LINUX))
 			return Constants.WS_GTK;
-		if (osName.equals(Constants.OS_MACOSX))
+		if (osName.equals(Constants.OS_MACOSX)) {
+		    String arch = getArch(properties);
+		    if (ARCH_X86_64.equals(arch))
+		        return Constants.WS_COCOA;
 			return Constants.WS_CARBON;
+		}
 		if (osName.equals(Constants.OS_HPUX))
 			return Constants.WS_MOTIF;
 		if (osName.equals(Constants.OS_AIX))
