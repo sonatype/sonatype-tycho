@@ -1,4 +1,4 @@
-package org.sonatype.tycho.test.TYCHO0294productP2Resolver;
+package org.sonatype.tycho.test.TYCHO0294ProductP2TargetPlatformResolver;
 
 import java.io.File;
 
