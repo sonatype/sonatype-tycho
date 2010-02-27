@@ -1,7 +1,9 @@
 package org.codehaus.tycho.osgitools;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.maven.project.MavenProject;
@@ -17,10 +19,13 @@ import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.UpdateSite;
+import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 
 public abstract class AbstractArtifactDependencyWalker
     implements ArtifactDependencyWalker
 {
+    public static final String EQUINOX_LAUNCHER = "org.eclipse.equinox.launcher";
+
     private final TargetPlatform platform;
 
     private final TargetEnvironment[] environments;
@@ -30,16 +35,15 @@ public abstract class AbstractArtifactDependencyWalker
         this( platform, null );
     }
 
-    public AbstractArtifactDependencyWalker( TargetPlatform platform, TargetEnvironment environment )
+    public AbstractArtifactDependencyWalker( TargetPlatform platform, TargetEnvironment[] environments )
     {
         this.platform = platform;
-
-        this.environments = environment != null ? new TargetEnvironment[] { environment } : null;
+        this.environments = environments;
     }
 
     public void traverseUpdateSite( UpdateSite site, ArtifactDependencyVisitor visitor )
     {
-        Set<File> visited = new HashSet<File>();
+        Map<ArtifactKey, File> visited = new HashMap<ArtifactKey, File>();
 
         for ( FeatureRef ref : site.getFeatures() )
         {
@@ -49,11 +53,11 @@ public abstract class AbstractArtifactDependencyWalker
 
     public void traverseFeature( File location, Feature feature, ArtifactDependencyVisitor visitor )
     {
-        traverseFeature( location, feature, null, visitor, new HashSet<File>() );
+        traverseFeature( location, feature, null, visitor, new HashMap<ArtifactKey, File>() );
     }
 
     protected void traverseFeature( File location, Feature feature, FeatureRef featureRef,
-                                    ArtifactDependencyVisitor visitor, Set<File> visited )
+                                    ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
     {
         ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );
         MavenProject project = platform.getMavenProject( location );
@@ -77,7 +81,7 @@ public abstract class AbstractArtifactDependencyWalker
 
     public void traverseProduct( ProductConfiguration product, ArtifactDependencyVisitor visitor )
     {
-        Set<File> visited = new HashSet<File>();
+        Map<ArtifactKey, File> visited = new HashMap<ArtifactKey, File>();
 
         if ( product.useFeatures() )
         {
@@ -93,14 +97,75 @@ public abstract class AbstractArtifactDependencyWalker
                 traversePlugin( ref, visitor, visited );
             }
         }
+
+        Set<String> bundles = new HashSet<String>();
+        for ( ArtifactKey key : visited.keySet() )
+        {
+            if ( TychoProject.ECLIPSE_PLUGIN.equals( key.getType() ) )
+            {
+                bundles.add( key.getId() );
+            }
+        }
+
+        // RCP apparently implicitly includes equinox.launcher and corresponding native fragments
+        // See also org.sonatype.tycho.p2.ProductDependenciesAction.perform
+
+        if ( !bundles.contains( EQUINOX_LAUNCHER ) )
+        {
+            PluginRef ref = new PluginRef( "plugin" );
+            ref.setId( EQUINOX_LAUNCHER );
+            traversePlugin( ref, visitor, visited );
+        }
+
+        if ( environments != null )
+        {
+            for ( TargetEnvironment environment : environments )
+            {
+                String os = environment.getOs();
+                String ws = environment.getWs();
+                String arch = environment.getArch();
+
+                String id;
+
+                // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
+                // only a org.eclipse.equinox.launcher.carbon.macosx folder.
+                // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
+                if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) && PlatformPropertiesUtils.WS_CARBON.equals( ws ) )
+                {
+                    id = "org.eclipse.equinox.launcher." + ws + "." + os;
+                }
+                else
+                {
+                    id = "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch;
+                }
+
+                if ( !bundles.contains( id ) )
+                {
+                    PluginRef ref = new PluginRef( "plugin" );
+                    ref.setId( id );
+                    ref.setOs( os );
+                    ref.setWs( ws );
+                    ref.setArch( arch );
+                    ref.setUnpack( true );
+                    traversePlugin( ref, visitor, visited );
+                }
+            }
+        }
     }
 
-    protected void traverseFeature( FeatureRef ref, ArtifactDependencyVisitor visitor, Set<File> visited )
+    protected void traverseFeature( FeatureRef ref, ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
     {
-        File location = platform.getArtifact( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
+        ArtifactKey key = platform.getArtifactKey( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
 
-        if ( location != null )
+        if ( key != null )
         {
+            if ( visited.containsKey( key ) )
+            {
+                return;
+            }
+
+            File location = platform.getArtifact( key );
+
             Feature feature = Feature.loadFeature( location );
             traverseFeature( location, feature, ref, visitor, visited );
         }
@@ -110,7 +175,7 @@ public abstract class AbstractArtifactDependencyWalker
         }
     }
 
-    private void traversePlugin( PluginRef ref, ArtifactDependencyVisitor visitor, Set<File> visited )
+    private void traversePlugin( PluginRef ref, ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
     {
         if ( !matchTargetEnvironment( ref ) )
         {
@@ -123,10 +188,12 @@ public abstract class AbstractArtifactDependencyWalker
         {
             File location = platform.getArtifact( key );
 
-            if ( !visited.add( location ) )
+            if ( visited.containsKey( key ) )
             {
                 return;
             }
+
+            visited.put( key, location );
 
             MavenProject project = platform.getMavenProject( location );
             PluginDescription description = new DefaultPluginDescription( key, location, project, ref );

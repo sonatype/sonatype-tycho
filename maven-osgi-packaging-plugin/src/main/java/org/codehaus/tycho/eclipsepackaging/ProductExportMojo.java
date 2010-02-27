@@ -12,7 +12,9 @@ import java.io.OutputStream;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,19 +36,16 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.BundleConfiguration;
-import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.osgitools.BundleManifestReader;
-import org.codehaus.tycho.osgitools.DefaultPluginDescription;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.pde.internal.swt.tools.IconExe;
@@ -139,30 +138,62 @@ public class ProductExportMojo
 
         BundleManifestReader manifestReader = EquinoxBundleResolutionState.newManifestReader( plexus, project );
 
-        for ( TargetEnvironment environment : getEnvironments() )
+        if ( separateEnvironments )
         {
-            File target = getTarget( environment );
+            for ( TargetEnvironment environment : getEnvironments() )
+            {
+                File target = getTarget( environment );
+                File targetEclipse = new File( target, "eclipse" );
+                targetEclipse.mkdirs();
+    
+                generateDotEclipseProduct( targetEclipse );
+                generateConfigIni( environment, targetEclipse );
+                includeRootFiles( environment, targetEclipse );
+    
+                ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, environment );
+                assembler.setIncludeSources( includeSources );
+                getDependencyWalker( environment ).walk( assembler );
+    
+                if ( productConfiguration.includeLaunchers() )
+                {
+                    copyExecutable( environment, targetEclipse );
+                }
+    
+                if ( createProductArchive )
+                {
+                    createProductArchive( target, toString( environment ) );
+                }
+            }
+        }
+        else
+        {
+            File target = getTarget( null );
             File targetEclipse = new File( target, "eclipse" );
             targetEclipse.mkdirs();
 
             generateDotEclipseProduct( targetEclipse );
-            generateConfigIni( environment, targetEclipse );
-            includeRootFiles( environment, targetEclipse );
+            generateConfigIni( null, targetEclipse );
+            
+            for ( TargetEnvironment environment : getEnvironments() )
+            {
+                includeRootFiles( environment, targetEclipse );
+            }
 
-            ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, environment );
+            ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, null );
             assembler.setIncludeSources( includeSources );
-            getDependencyWalker( environment ).walk( assembler );
-
-            copyImplicitDependencies( environment, assembler );
+            getDependencyWalker().walk( assembler );
 
             if ( productConfiguration.includeLaunchers() )
             {
-                copyExecutable( environment, targetEclipse );
+                for ( TargetEnvironment environment : getEnvironments() )
+                {
+                    copyExecutable( environment, targetEclipse );
+                }
             }
 
             if ( createProductArchive )
             {
-                createProductArchive( environment, target );
+                createProductArchive( target, null );
             }
         }
 
@@ -340,9 +371,9 @@ public class ProductExportMojo
      *            <li>for a absolute folder: absolute:/eclipse/rootfiles,...</li>
      *            </ul>
      * @param subFolder the sub folder to which the root file entries are copied to
-     * @throws MojoExecutionException 
+     * @throws MojoExecutionException
      */
-    private void handleRootEntry( File target, String rootFileEntries, String subFolder ) 
+    private void handleRootEntry( File target, String rootFileEntries, String subFolder )
         throws MojoExecutionException
     {
         StringTokenizer t = new StringTokenizer( rootFileEntries, "," );
@@ -379,7 +410,7 @@ public class ProductExportMojo
             {
                 if ( source.isFile() )
                 {
-                        FileUtils.copyFileToDirectory( source, destination );
+                    FileUtils.copyFileToDirectory( source, destination );
                 }
                 else if ( source.isDirectory() )
                 {
@@ -406,7 +437,7 @@ public class ProductExportMojo
         return config.toString();
     }
 
-    private void createProductArchive( TargetEnvironment environment, File target )
+    private void createProductArchive( File target, String classifier )
         throws MojoExecutionException
     {
         ZipArchiver zipper;
@@ -419,10 +450,8 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Unable to resolve ZipArchiver", e );
         }
 
-        String classifier = toString( environment );
-
         StringBuilder filename = new StringBuilder( project.getBuild().getFinalName() );
-        if ( environments != null )
+        if ( separateEnvironments )
         {
             filename.append( '-' ).append( classifier );
         }
@@ -441,14 +470,14 @@ public class ProductExportMojo
             throw new MojoExecutionException( "Error packing product", e );
         }
 
-        if ( environments == null )
+        if ( separateEnvironments )
         {
-            // main artifact
-            project.getArtifact().setFile( destFile );
+            projectHelper.attachArtifact( project, destFile, classifier );
         }
         else
         {
-            projectHelper.attachArtifact( project, destFile, classifier );
+            // main artifact
+            project.getArtifact().setFile( destFile );
         }
     }
 
@@ -490,7 +519,7 @@ public class ProductExportMojo
         // TODO check if there are any other levels
         setPropertyIfNotNull( props, "osgi.bundles.defaultStartLevel", "4" );
 
-        generateOSGiBundles(props, environment);
+        generateOSGiBundles( props, environment );
         File configsFolder = new File( target, "configuration" );
         configsFolder.mkdirs();
 
@@ -507,135 +536,83 @@ public class ProductExportMojo
         }
     }
 
-    private void generateOSGiBundles(Properties props, TargetEnvironment environment) throws MojoFailureException {
-        if ( productConfiguration.useFeatures() )
-        {
-            setPropertyIfNotNull( props, "osgi.bundles", getFeaturesOsgiBundles() );
-        }
-        else
-        {
-            setPropertyIfNotNull( props, "osgi.bundles", getPluginsOsgiBundles( environment ) );
-        }
-	}
-
-	private String getFeaturesOsgiBundles()
-    {
-		StringBuilder result = new StringBuilder();
-		Map<String, BundleConfiguration> bundlesToStart = productConfiguration.getPluginConfiguration();
-		if (bundlesToStart.isEmpty()) {
-			// This is the wellknown set of bundles for Eclipse based application for 3.3 and 3.4 without p2
-			return "org.eclipse.equinox.common@2:start,org.eclipse.update.configurator@3:start,org.eclipse.core.runtime@start";			
-		}
-		for (Entry<String, BundleConfiguration> bundle : bundlesToStart.entrySet()) {
-			
-			result.append(bundle.getKey());
-        		result.append('@');
-        		if (bundle.getValue().getStartLevel() != -1)
-        			result.append(bundle.getValue().getStartLevel());
-        		if (! bundle.getValue().isStarted()) {
-        			if (bundle.getValue().getStartLevel() != -1)
-        				result.append(':');
-        			result.append("start");
-        		}
-        }
-		return result.toString();
-    }
-
-    private String getPluginsOsgiBundles( TargetEnvironment environment )
+    private void generateOSGiBundles( Properties props, TargetEnvironment environment )
         throws MojoFailureException
     {
-        List<PluginRef> plugins = productConfiguration.getPlugins();
-        StringBuilder buf = new StringBuilder( plugins.size() * 10 );
-        for ( PluginRef plugin : plugins )
+        Map<String, BundleConfiguration> bundlesToStart = productConfiguration.getPluginConfiguration();
+
+        if ( bundlesToStart == null )
         {
+            bundlesToStart = new HashMap<String, BundleConfiguration>();
+
+            // This is the wellknown set of bundles for Eclipse based application for 3.3 and 3.4 without p2
+            bundlesToStart.put( "org.eclipse.equinox.common", // 
+                                new BundleConfiguration( "org.eclipse.equinox.common", 2, true ) );
+            bundlesToStart.put( "org.eclipse.update.configurator", //
+                                new BundleConfiguration( "org.eclipse.update.configurator", 3, true ) );
+            bundlesToStart.put( "org.eclipse.core.runtime", // 
+                                new BundleConfiguration( "org.eclipse.core.runtime", -1, true ) );
+        }
+
+        Map<String, PluginDescription> bundles =
+            new LinkedHashMap<String, PluginDescription>( getBundles( environment ) );
+
+        StringBuilder osgiBundles = new StringBuilder();
+        for ( PluginDescription plugin : bundles.values() )
+        {
+            String bundleId = plugin.getKey().getId();
+
             // reverse engineering discovered
             // this plugin is not present on config.ini, and if so nothing
             // starts
-            if ( "org.eclipse.osgi".equals( plugin.getId() ) )
+            if ( "org.eclipse.osgi".equals( bundleId ) )
             {
                 continue;
             }
 
-            if ( buf.length() != 0 )
+            if ( osgiBundles.length() > 0 )
             {
-                buf.append( ',' );
+                osgiBundles.append( ',' );
             }
 
-            buf.append( plugin.getId() );
+            osgiBundles.append( bundleId );
 
-            // reverse engineering discovered
-            // the final bundle has @start after runtime
-            if ( "org.eclipse.core.runtime".equals( plugin.getId() ) )
+            BundleConfiguration startup = bundlesToStart.get( bundleId );
+
+            if ( startup != null )
             {
-                buf.append( "@start" );
-            }
-            
-            BundleConfiguration config = productConfiguration.getPluginConfiguration().get(plugin.getId());
-            if (config != null) {
-            		buf.append('@');
-            		if (config.getStartLevel() != -1)
-            			buf.append(config.getStartLevel());
-            		if (! config.isStarted()) {
-            			if (config.getStartLevel() != -1)
-            				buf.append(':');
-            			buf.append("start");
-            		}
+                osgiBundles.append( '@' );
+
+                if ( startup.getStartLevel() != -1 )
+                {
+                    osgiBundles.append( startup.getStartLevel() );
+                }
+
+                if ( startup.isAutoStart() )
+                {
+                    if ( startup.getStartLevel() != -1 )
+                    {
+                        osgiBundles.append( ':' );
+                    }
+                    osgiBundles.append( "start" );
+                }
             }
         }
-
-        // required plugins, RCP didn't start without both
-        if ( buf.length() != 0 )
-        {
-            buf.append( ',' );
-        }
-        String os = environment.getOs();
-        String ws = environment.getWs();
-        String arch = environment.getArch();
-
-        buf.append( "org.eclipse.equinox.launcher," );
-
-        // FIXME this fails on macosx/carbon (does anyone cares any more?)
-        buf.append( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch );
-
-        return buf.toString();
+        setPropertyIfNotNull( props, "osgi.bundles", osgiBundles.toString() );
     }
 
-    private void copyImplicitDependencies( TargetEnvironment environment, ProductAssembler assembler )
-        throws MojoExecutionException, MojoFailureException
+    private Map<String, PluginDescription> getBundles( TargetEnvironment environment )
     {
-        // required plugins, RCP didn't start without both
-        assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher" ) );
-
-        String os = environment.getOs();
-        String ws = environment.getWs();
-        String arch = environment.getArch();
-
-        // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
-        // only a org.eclipse.equinox.launcher.carbon.macosx folder.
-        // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
-        if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) && PlatformPropertiesUtils.WS_CARBON.equals( ws ) )
+        final Map<String, PluginDescription> bundles = new LinkedHashMap<String, PluginDescription>();
+        getDependencyWalker( environment ).walk( new ArtifactDependencyVisitor()
         {
-            assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher." + ws + "." + os ) );
-        }
-        else
-        {
-            assembler.visitPlugin( newPluginDescription( "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch ) );
-        }
-    }
-
-    private PluginDescription newPluginDescription( String id )
-    {
-        TargetPlatform platform = getTargetPlatform();
-        ArtifactKey key = platform.getArtifactKey( TychoProject.ECLIPSE_PLUGIN, id, null );
-
-        if ( key == null )
-        {
-            throw new IllegalArgumentException( "Could not resolve required bundle " + id );
-        }
-
-        File location = platform.getArtifact( key );
-
-        return new DefaultPluginDescription( key, location, null, null );
+            @Override
+            public void visitPlugin( PluginDescription plugin )
+            {
+                bundles.put( plugin.getKey().getId(), plugin );
+            }
+        } );
+        return bundles;
     }
 
     private void copyExecutable( TargetEnvironment environment, File target )
@@ -821,7 +798,7 @@ public class ProductExportMojo
         }
     }
 
-    private void writeStringToFile( File iniFile, String string ) 
+    private void writeStringToFile( File iniFile, String string )
         throws IOException
     {
         OutputStream os = new BufferedOutputStream( new FileOutputStream( iniFile ) );
@@ -835,16 +812,16 @@ public class ProductExportMojo
         }
     }
 
-    private StringBuffer readFileToString( File iniFile ) 
+    private StringBuffer readFileToString( File iniFile )
         throws IOException
     {
         InputStream is = new BufferedInputStream( new FileInputStream( iniFile ) );
         try
         {
             StringWriter buffer = new StringWriter();
-            
+
             IOUtil.copy( is, buffer, "UTF-8" );
-            
+
             return buffer.getBuffer();
         }
         finally
@@ -860,18 +837,18 @@ public class ProductExportMojo
         try
         {
             Enumeration<? extends ZipEntry> entries = zip.entries();
-    
+
             while ( entries.hasMoreElements() )
             {
                 ZipEntry entry = entries.nextElement();
-                
+
                 if ( entry.isDirectory() )
                 {
                     continue;
                 }
-    
+
                 String name = entry.getName();
-                
+
                 if ( name.startsWith( sourceRelPath ) && !SelectorUtils.matchPath( excludes, name ) )
                 {
                     File targetFile = new File( target, name.substring( sourceRelPath.length() ) );

@@ -84,8 +84,7 @@ public class ProductDependenciesAction
         addRequiredCapability( required, "org.eclipse.equinox.executable.feature.group", null, null );
 
         // these are implicitly required, see
-        // org.codehaus.tycho.eclipsepackaging.ProductExportMojo.copyImplicitDependencies(TargetEnvironment,
-        // ProductAssembler)
+        // See also org.codehaus.tycho.osgitools.AbstractArtifactDependencyWalker.traverseProduct
         addRequiredCapability( required, "org.eclipse.equinox.launcher", null, null );
         if ( environments != null )
         {

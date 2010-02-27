@@ -11,14 +11,12 @@ import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 import de.schlichtherle.io.FileInputStream;
 
-public class TYCHO365exportProductWithStartLevel extends AbstractTychoIntegrationTest {
+public class ExportProductWithStartLevelTest extends AbstractTychoIntegrationTest {
 
 
 	@Test
 	public void exportPluginRcpApplication() throws Exception {
 		Verifier verifier = getVerifier("/TYCHO365exportProductWithStartLevel/plugin-rcp");
-		verifier.getCliOptions().add("-Dosgi.os=macosx -Dosgi.ws=cocoa -Dosgi.arch=x86_64");
-		
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 		
@@ -28,19 +26,14 @@ public class TYCHO365exportProductWithStartLevel extends AbstractTychoIntegratio
 		FileInputStream fis = new FileInputStream(configFile);
 		configIni.load(fis);
 		fis.close();
-		
+
 		String osgiBundles = configIni.getProperty("osgi.bundles");
-		Assert.assertNotNull(osgiBundles);
-		Assert.assertTrue(osgiBundles.contains("org.eclipse.core.contenttype@7:start"));
-		Assert.assertTrue(osgiBundles.contains("org.eclipse.equinox.preferences@6"));
-		Assert.assertTrue(osgiBundles.contains("org.eclipse.core.runtime"));
+		Assert.assertEquals("HeadlessPlugin@7:start,org.eclipse.equinox.app@6,org.eclipse.equinox.launcher,org.eclipse.equinox.launcher.gtk.linux.x86_64", osgiBundles);
 	}
 
 	@Test
 	public void exportFeatureRCPApplication() throws Exception {
 		Verifier verifier = getVerifier("/TYCHO365exportProductWithStartLevel/feature-rcp");
-		verifier.getCliOptions().add("-Dosgi.os=macosx -Dosgi.ws=cocoa -Dosgi.arch=x86_64");
-		
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 		
@@ -50,11 +43,8 @@ public class TYCHO365exportProductWithStartLevel extends AbstractTychoIntegratio
 		FileInputStream fis = new FileInputStream(configFile);
 		configIni.load(fis);
 		fis.close();
-		
+
 		String osgiBundles = configIni.getProperty("osgi.bundles");
-		Assert.assertNotNull(osgiBundles);
-		Assert.assertTrue(osgiBundles.contains("org.eclipse.core.contenttype@7:start"));
-		Assert.assertTrue(osgiBundles.contains("org.eclipse.equinox.preferences@6"));
-		Assert.assertFalse(osgiBundles.contains("org.eclipse.core.runtime"));
+        Assert.assertEquals("HeadlessPlugin@7:start,org.eclipse.equinox.app@6,org.eclipse.equinox.launcher,org.eclipse.equinox.launcher.gtk.linux.x86_64", osgiBundles);
 	}
 }

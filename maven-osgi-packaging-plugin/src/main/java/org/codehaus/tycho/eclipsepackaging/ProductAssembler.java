@@ -53,7 +53,7 @@ public class ProductAssembler
     protected boolean matchEntivonment( PluginDescription plugin )
     {
         PluginRef ref = plugin.getPluginRef();
-        return ref == null || environment.match( ref.getOs(), ref.getWs(), ref.getArch() );
+        return ref == null || environment == null || environment.match( ref.getOs(), ref.getWs(), ref.getArch() );
     }
 
     public void setIncludeSources( boolean includeSources )

@@ -20,7 +20,8 @@ public class EclipseFeatureProject
     {
         final File location = project.getBasedir();
         final Feature feature = Feature.loadFeature( location );
-        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ), environment )
+        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ),
+                                                     getEnvironments( project, environment ) )
         {
             public void walk( ArtifactDependencyVisitor visitor )
             {

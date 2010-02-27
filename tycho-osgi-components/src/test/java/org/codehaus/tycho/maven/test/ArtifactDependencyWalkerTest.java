@@ -34,10 +34,12 @@ public class ArtifactDependencyWalkerTest
 
         assertEquals( 0, features.size() );
 
-        assertEquals( 1, plugins.size() );
+        assertEquals( 2, plugins.size() );
         assertEquals( "bundle01", plugins.get( 0 ).getKey().getId() );
         assertEquals( "0.0.1", plugins.get( 0 ).getKey().getVersion() );
-        
+
+        assertEquals( AbstractArtifactDependencyWalker.EQUINOX_LAUNCHER, plugins.get( 1 ).getKey().getId() );
+
         plugins.clear();
         features.clear();
 
@@ -46,9 +48,11 @@ public class ArtifactDependencyWalkerTest
         assertEquals( "feature01", features.get( 0 ).getKey().getId() );
         assertEquals( "1.0.0", features.get( 0 ).getKey().getVersion() );
 
-        assertEquals( 1, plugins.size() );
+        assertEquals( 2, plugins.size() );
         assertEquals( "bundle01", plugins.get( 0 ).getKey().getId() );
         assertEquals( "0.0.1", plugins.get( 0 ).getKey().getVersion() );
+
+        assertEquals( AbstractArtifactDependencyWalker.EQUINOX_LAUNCHER, plugins.get( 1 ).getKey().getId() );
     }
     
 

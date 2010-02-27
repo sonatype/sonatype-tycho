@@ -21,7 +21,8 @@ public class EclipseApplicationProject
     protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
     {
         final ProductConfiguration product = loadProduct( project );
-        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ), environment )
+        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ),
+                                                     getEnvironments( project, environment ) )
         {
             public void walk( ArtifactDependencyVisitor visitor )
             {
@@ -50,8 +51,8 @@ public class EclipseApplicationProject
     public ArtifactKey getArtifactKey( MavenProject project )
     {
         ProductConfiguration product = loadProduct( project );
-        String id = product.getId() != null? product.getId(): project.getArtifactId();
-        String version = product.getVersion() != null? product.getVersion(): project.getVersion();
+        String id = product.getId() != null ? product.getId() : project.getArtifactId();
+        String version = product.getVersion() != null ? product.getVersion() : project.getVersion();
 
         return new ArtifactKey( TychoProject.ECLIPSE_APPLICATION, id, version );
     }

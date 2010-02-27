@@ -1,9 +1,12 @@
 package org.codehaus.tycho.osgitools;
 
+import java.util.List;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
@@ -53,4 +56,31 @@ public abstract class AbstractTychoProject
     }
 
     public abstract void resolve( MavenProject project );
+
+    protected TargetEnvironment[] getEnvironments( MavenProject project, TargetEnvironment environment )
+    {
+        if ( environment != null )
+        {
+            return new TargetEnvironment[] { environment };
+        }
+
+        TargetPlatformConfiguration configuration =
+            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+
+        if ( configuration == null )
+        {
+            throw new IllegalStateException( "Target platform configuration has not been initialized for project "
+                + project.toString() );
+        }
+
+        if ( configuration.isImplicitTargetEnvironment() )
+        {
+            return null; // any
+        }
+
+        // all specified
+        List<TargetEnvironment> environments = configuration.getEnvironments();
+        return environments.toArray( new TargetEnvironment[environments.size()] );
+    }
+
 }

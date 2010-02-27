@@ -20,7 +20,7 @@ public class ProductConfigurationParseTest {
 						"/product/MyFirstRCP.product"));
 
 		Assert.assertEquals("My First RCP", config.getName());
-		Assert.assertEquals("MyFirstRCP.product1", config.getId());
+		Assert.assertEquals("MyFirstRCP.product1", config.getProduct());
 		Assert.assertEquals("MyFirstRCP.application", config.getApplication());
 		Assert.assertEquals(false, config.useFeatures());
 
@@ -91,13 +91,13 @@ public class ProductConfigurationParseTest {
 //		<plugin id="org.eclipse.core.contenttype" autoStart="true" startLevel="1" />
 		BundleConfiguration contentType = bundles.get("org.eclipse.core.contenttype");
 		Assert.assertNotNull(contentType);
-		Assert.assertTrue(contentType.isStarted());
+		Assert.assertTrue(contentType.isAutoStart());
 		Assert.assertEquals(1, contentType.getStartLevel());
 		
 //	      <plugin id="HeadlessProduct" autoStart="false" startLevel="2" />
 		BundleConfiguration headlessProduct = bundles.get("HeadlessProduct");
 		Assert.assertNotNull(headlessProduct);
-		Assert.assertFalse(headlessProduct.isStarted());
+		Assert.assertFalse(headlessProduct.isAutoStart());
 		Assert.assertEquals(2, headlessProduct.getStartLevel());
 		
 	}

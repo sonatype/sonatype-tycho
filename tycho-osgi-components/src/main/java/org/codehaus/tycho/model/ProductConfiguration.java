@@ -64,6 +64,10 @@ public class ProductConfiguration {
 		this.dom = dom;
 	}
 
+    public String getProduct() {
+        return dom.getAttribute("id");
+    }
+
 	public String getApplication() {
 		return dom.getAttribute("application");
 	}
@@ -82,7 +86,7 @@ public class ProductConfiguration {
 	}
 
 	public String getId() {
-		return dom.getAttribute("id");
+		return dom.getAttribute("uid");
 	}
 
 	public Launcher getLauncher() {
@@ -170,15 +174,15 @@ public class ProductConfiguration {
 		return linux.getAttribute("icon");
 	}
 	
-	public Map<String, org.codehaus.tycho.model.BundleConfiguration> getPluginConfiguration() {
+	public Map<String, BundleConfiguration> getPluginConfiguration() {
 		Xpp3Dom configurationsDom = dom.getChild("configurations");
 		if (configurationsDom == null) {
-			return Collections.emptyMap();
+			return null;
 		}
 
-		Map<String, org.codehaus.tycho.model.BundleConfiguration> configs = new HashMap<String, org.codehaus.tycho.model.BundleConfiguration>(configurationsDom.getChildCount());
+		Map<String, BundleConfiguration> configs = new HashMap<String, BundleConfiguration>(configurationsDom.getChildCount());
 		for (Xpp3Dom pluginDom : configurationsDom.getChildren("plugin")) {
-			configs.put(pluginDom.getAttribute("id"), new org.codehaus.tycho.model.BundleConfiguration(pluginDom));
+			configs.put(pluginDom.getAttribute("id"), new BundleConfiguration(pluginDom));
 		}
 		return Collections.unmodifiableMap(configs);
 	}

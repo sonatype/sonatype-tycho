@@ -3,4 +3,4 @@ Bundle-ManifestVersion: 2
 Bundle-Name: HeadlessPlugin Plug-in
 Bundle-SymbolicName: HeadlessPlugin; singleton:=true
 Bundle-Version: 1.0.0
-Require-Bundle: org.eclipse.core.runtime
+Import-Package: org.eclipse.equinox.app;version="1.0.0"

@@ -69,13 +69,25 @@ public class PluginRef {
 	public String getOs() {
 		return dom.getAttribute("os");
 	}
+	
+	public void setOs(String os) {
+	    dom.setAttribute("os", os);
+	}
 
 	public String getWs() {
 		return dom.getAttribute("ws");
 	}
 
+	public void setWs(String ws) {
+	    dom.setAttribute("ws", ws);
+	}
+
 	public String getArch() {
 		return dom.getAttribute("arch");
+	}
+
+	public void setArch(String arch) {
+	    dom.setAttribute("arch", arch);
 	}
 
 	public boolean isUnpack() {
