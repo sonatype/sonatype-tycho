@@ -165,9 +165,13 @@ public class TychoMavenLifecycleParticipant
         if ( plugin != null )
         {
             Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-
             if ( configuration != null )
             {
+                if ( logger.isDebugEnabled() )
+                {
+                    logger.debug( "target-platform-configuration for " + project.toString() + ":\n" + configuration.toString() );
+                }
+
                 addTargetEnvironments( result, project, configuration );
 
                 result.setResolver( getTargetPlatformResolver( configuration ) );
