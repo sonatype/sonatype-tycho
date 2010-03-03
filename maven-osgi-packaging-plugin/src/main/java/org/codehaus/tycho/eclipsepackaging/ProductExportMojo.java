@@ -104,6 +104,15 @@ public class ProductExportMojo
      */
     private boolean separateEnvironments = true;
 
+    /**
+     * If true, all included features and bundles will be packed. If false
+     * (the default), all features will be unpacked and bundles will honour
+     * unpack value of <plugin/> element.
+     * 
+     * @parameter default-value="false"
+     */
+    private boolean forcePackedDependencies;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -181,6 +190,11 @@ public class ProductExportMojo
 
             ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, null );
             assembler.setIncludeSources( includeSources );
+            if ( forcePackedDependencies )
+            {
+                assembler.setUnpackFeatures( false );
+                assembler.setUnpackPlugins( false );
+            }
             getDependencyWalker().walk( assembler );
 
             if ( productConfiguration.includeLaunchers() )
