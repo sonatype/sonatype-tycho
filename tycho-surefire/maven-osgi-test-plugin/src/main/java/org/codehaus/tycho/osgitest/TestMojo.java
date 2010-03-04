@@ -53,7 +53,9 @@ import org.osgi.framework.Version;
  */
 public class TestMojo extends AbstractMojo {
 
-	private static final String TEST_JUNIT = "org.junit";
+	private static final String EQUINOX_LAUNCHER = "org.eclipse.equinox.launcher";
+
+    private static final String TEST_JUNIT = "org.junit";
 
 	private static final String TEST_JUNIT4 = "org.junit4";
 
@@ -376,7 +378,7 @@ public class TestMojo extends AbstractMojo {
 	    ArrayList<Dependency> result = new ArrayList<Dependency>();
 
         result.add( newBundleDependency( "org.eclipse.osgi" ) );
-        result.add( newBundleDependency( "org.eclipse.equinox.launcher" ) );
+        result.add( newBundleDependency( EQUINOX_LAUNCHER ) );
 	    if ( useUIHarness )
 	    {
             result.add( newBundleDependency( "org.eclipse.ui.ide.application" ) );
@@ -594,11 +596,14 @@ public class TestMojo extends AbstractMojo {
         BundleDescription systemBundle = testRuntime.getSystemBundle();
         Version osgiVersion = systemBundle.getVersion();
 		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
-		    throw new UnsupportedOperationException();
+		    throw new IllegalArgumentException("Eclipse 3.2 and earlier are not supported.");
 			//return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
 			// assume eclipse 3.3 or 3.4
-			BundleDescription launcher = testRuntime.getBundle("org.eclipse.equinox.launcher", TychoConstants.HIGHEST_VERSION);
+			BundleDescription launcher = testRuntime.getBundle(EQUINOX_LAUNCHER, TychoConstants.HIGHEST_VERSION);
+			if (launcher == null) {
+			    throw new IllegalArgumentException("Could not find " + EQUINOX_LAUNCHER + " bundle in the test runtime.");
+			}
 			return new File(launcher.getLocation()).getCanonicalFile();
 		}
 	}
