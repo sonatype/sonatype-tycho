@@ -42,6 +42,7 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.TychoMavenLifecycleParticipant;
 import org.codehaus.tycho.utils.MavenSessionUtils;
+import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
@@ -503,6 +504,13 @@ public class TestMojo extends AbstractMojo {
 			cli.addArguments(new String[] {
 				"-Dosgi.noShutdown=false",
 			});
+
+            Properties properties = (Properties) project.getContextValue(TychoConstants.CTX_MERGED_PROPERTIES);
+            cli.addArguments(new String[] {
+                "-Dosgi.os=" + PlatformPropertiesUtils.getOS(properties),
+                "-Dosgi.ws=" + PlatformPropertiesUtils.getWS(properties),
+                "-Dosgi.arch=" + PlatformPropertiesUtils.getArch(properties),
+            });
 
 			if (argLine != null) {
 				Arg arg = cli.createArg();
