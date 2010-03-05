@@ -447,7 +447,7 @@ public class ProductExportMojo
         String os = environment.getOs();
         String ws = environment.getWs();
         String arch = environment.getArch();
-        StringBuffer config = new StringBuffer( ws ).append( "." ).append( os ).append( "." ).append( arch );
+        StringBuffer config = new StringBuffer( os ).append( "." ).append( ws ).append( "." ).append( arch );
         return config.toString();
     }
 
