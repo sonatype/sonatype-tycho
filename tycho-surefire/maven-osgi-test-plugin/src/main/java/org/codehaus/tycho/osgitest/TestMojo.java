@@ -270,6 +270,13 @@ public class TestMojo extends AbstractMojo {
     private Dependency[] frameworkExtensions;
 
     /**
+     * Bundle start level and auto start configuration used by the test runtime. 
+     * 
+     * @parameter
+     */
+    private BundleStartLevel[] bundleStartLevel;
+
+    /**
      * @component
      */
     private RepositorySystem repositorySystem;
@@ -342,6 +349,13 @@ public class TestMojo extends AbstractMojo {
 		testRuntime.setPlexusContainer( plexus );
 		testRuntime.setBundlesToExplode(getBundlesToExplode());
 		testRuntime.addFrameworkExtensions(getFrameworkExtensions());
+		if ( bundleStartLevel != null )
+		{
+		    for ( BundleStartLevel level : bundleStartLevel )
+		    {
+		        testRuntime.addBundleStartLevel( level );
+		    }
+		}
 		testRuntime.initialize();
 
 		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );

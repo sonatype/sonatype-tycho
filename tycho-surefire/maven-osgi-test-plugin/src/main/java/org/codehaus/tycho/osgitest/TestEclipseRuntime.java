@@ -49,12 +49,37 @@ public class TestEclipseRuntime
 
     private List<File> frameworkExtensions = new ArrayList<File>();
 
+    private static final Map<String, BundleStartLevel> DEFAULT_START_LEVEL = new HashMap<String, BundleStartLevel>();
+
+    private File location;
+
+    private List<String> bundlesToExplode;
+
+    private Map<String, BundleStartLevel> startLevel = new HashMap<String, BundleStartLevel>( DEFAULT_START_LEVEL );
+
+    private PlexusContainer plexus;
+
+    static
+    {
+        setDefaultStartLevel( "org.eclipse.equinox.common", 2 );
+        setDefaultStartLevel( "org.eclipse.core.runtime", 4 );
+        setDefaultStartLevel( "org.eclipse.equinox.simpleconfigurator", 1 );
+        setDefaultStartLevel( "org.eclipse.update.configurator", 3 );
+        setDefaultStartLevel( "org.eclipse.osgi", -1 );
+        setDefaultStartLevel( "org.eclipse.equinox.ds", 1 );
+    }
+
     public void initialize()
     {
         this.bundles = new ArrayList<File>();
         bundles.addAll( sourcePlatform.getArtifactFiles( TychoProject.ECLIPSE_PLUGIN, TychoProject.ECLIPSE_TEST_PLUGIN ) );
 
         sites.addAll( sourcePlatform.getSites() );
+    }
+
+    private static void setDefaultStartLevel( String id, int level )
+    {
+        DEFAULT_START_LEVEL.put( id, new BundleStartLevel( id, level, true ) );
     }
 
     public List<File> getArtifactFiles( String... types )
@@ -115,11 +140,11 @@ public class TestEclipseRuntime
             sb.append( version ).append( ',' );
             sb.append( location.toURL().toExternalForm() ).append( ',' );
 
-            Integer level = START_LEVEL.get( bundle.getSymbolicName() );
+            BundleStartLevel level = startLevel.get( bundle.getSymbolicName() );
             if ( level != null )
             {
-                sb.append( level ).append( ',' ); // start level
-                sb.append( "true" ); // autostart
+                sb.append( level.getLevel() ).append( ',' ); // start level
+                sb.append( Boolean.toString( level.isAutoStart() ) ); // autostart
             }
             else
             {
@@ -176,8 +201,8 @@ public class TestEclipseRuntime
         StringBuilder result = new StringBuilder();
         for ( BundleDescription bundle : bundles )
         {
-            Integer level = START_LEVEL.get( bundle.getSymbolicName() );
-            if ( level != null && level.intValue() == -1 )
+            BundleStartLevel level = startLevel.get( bundle.getSymbolicName() );
+            if ( level != null && level.getLevel() == -1 )
             {
                 continue; // system bundle
             }
@@ -189,7 +214,11 @@ public class TestEclipseRuntime
             result.append( appendAbsolutePath( file ) );
             if ( level != null )
             {
-                result.append( '@' ).append( level ).append( ":start" );
+                result.append( '@' ).append( level.getLevel() );
+                if ( level.isAutoStart() )
+                {
+                    result.append( ":start" );
+                }
             }
         }
         return result.toString();
@@ -207,23 +236,6 @@ public class TestEclipseRuntime
     {
         file.getParentFile().mkdirs();
         FileUtils.fileWrite( file.getAbsolutePath(), data );
-    }
-
-    private static final Map<String, Integer> START_LEVEL = new HashMap<String, Integer>();
-
-    private File location;
-
-    private List<String> bundlesToExplode;
-
-    private PlexusContainer plexus;
-
-    static
-    {
-        START_LEVEL.put( "org.eclipse.equinox.common", 2 );
-        START_LEVEL.put( "org.eclipse.core.runtime", 4 );
-        START_LEVEL.put( "org.eclipse.equinox.simpleconfigurator", 1 );
-        START_LEVEL.put( "org.eclipse.update.configurator", 3 );
-        START_LEVEL.put( "org.eclipse.osgi", -1 );
     }
 
     public void addBundle( File file )
@@ -244,14 +256,15 @@ public class TestEclipseRuntime
                 ManifestElement[] id = manifestReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
                 ManifestElement[] version = manifestReader.parseHeader( Constants.BUNDLE_VERSION, mf );
 
-                if ( !file.isDirectory() && id != null && version != null && bundlesToExplode.contains(id[0].getValue()) )
+                if ( !file.isDirectory() && id != null && version != null
+                    && bundlesToExplode.contains( id[0].getValue() ) )
                 {
                     String filename = id[0].getValue() + "_" + version[0].getValue();
-                    File unpacked = new File(location, "plugins/"  + filename);
+                    File unpacked = new File( location, "plugins/" + filename );
 
                     unpacked.mkdirs();
-                    
-                    unpack(file, unpacked);
+
+                    unpack( file, unpacked );
 
                     resolver.addBundle( unpacked, true );
                 }
@@ -328,10 +341,11 @@ public class TestEclipseRuntime
                 p.setProperty( "osgi.framework", url );
             }
 
-            if (!frameworkExtensions.isEmpty()) {
-                Collection<String> bundleNames = unpackFrameworkExtensions(frameworkExtensions);
-                p.setProperty("osgi.framework", copySystemBundle());
-                p.setProperty("osgi.framework.extensions", StringUtils.join(bundleNames.iterator(), ","));
+            if ( !frameworkExtensions.isEmpty() )
+            {
+                Collection<String> bundleNames = unpackFrameworkExtensions( frameworkExtensions );
+                p.setProperty( "osgi.framework", copySystemBundle() );
+                p.setProperty( "osgi.framework.extensions", StringUtils.join( bundleNames.iterator(), "," ) );
             }
 
             new File( location, "configuration" ).mkdir();
@@ -429,6 +443,11 @@ public class TestEclipseRuntime
         this.bundlesToExplode = bundlesToExplode;
     }
 
+    public void addBundleStartLevel( BundleStartLevel level )
+    {
+        startLevel.put( level.getId(), level );
+    }
+
     private void unpack( File source, File destination )
     {
         UnArchiver unzip;
@@ -453,44 +472,54 @@ public class TestEclipseRuntime
         }
     }
 
-    public void addFrameworkExtensions(Collection<File> frameworkExtensions) {
-        this.frameworkExtensions.addAll(frameworkExtensions);
+    public void addFrameworkExtensions( Collection<File> frameworkExtensions )
+    {
+        this.frameworkExtensions.addAll( frameworkExtensions );
     }
 
-    private List<String> unpackFrameworkExtensions(Collection<File> frameworkExtensions) throws IOException {
+    private List<String> unpackFrameworkExtensions( Collection<File> frameworkExtensions )
+        throws IOException
+    {
         List<String> bundleNames = new ArrayList<String>();
 
         BundleManifestReader manifestReader = resolver.getBundleManifestReader();
 
-        for (File bundleFile : frameworkExtensions) {
-            Manifest mf = manifestReader.loadManifest(bundleFile);
-            ManifestElement[] id = manifestReader.parseHeader(Constants.BUNDLE_SYMBOLICNAME, mf);
-            ManifestElement[] version = manifestReader.parseHeader(Constants.BUNDLE_VERSION, mf);
+        for ( File bundleFile : frameworkExtensions )
+        {
+            Manifest mf = manifestReader.loadManifest( bundleFile );
+            ManifestElement[] id = manifestReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
+            ManifestElement[] version = manifestReader.parseHeader( Constants.BUNDLE_VERSION, mf );
 
-            if (id == null || version == null) {
-                throw new IOException("Invalid OSGi manifest in bundle " + bundleFile);
+            if ( id == null || version == null )
+            {
+                throw new IOException( "Invalid OSGi manifest in bundle " + bundleFile );
             }
 
-            bundleNames.add(id[0].getValue());
+            bundleNames.add( id[0].getValue() );
 
-            File bundleDir = new File(location, "plugins/" + id[0].getValue() + "_" + version[0].getValue());
-            if (bundleFile.isFile()) {
-                unpack(bundleFile, bundleDir);
-            } else {
-                FileUtils.copyDirectoryStructure(bundleFile, bundleDir);
+            File bundleDir = new File( location, "plugins/" + id[0].getValue() + "_" + version[0].getValue() );
+            if ( bundleFile.isFile() )
+            {
+                unpack( bundleFile, bundleDir );
+            }
+            else
+            {
+                FileUtils.copyDirectoryStructure( bundleFile, bundleDir );
             }
         }
 
         return bundleNames;
     }
 
-    private String copySystemBundle() throws IOException {
+    private String copySystemBundle()
+        throws IOException
+    {
         BundleDescription bundle = resolver.getSystemBundle();
-        File srcFile = new File(bundle.getLocation());
-        File dstFile = new File(location, "plugins/" + srcFile.getName());
-        FileUtils.copyFileIfModified(srcFile, dstFile);
+        File srcFile = new File( bundle.getLocation() );
+        File dstFile = new File( location, "plugins/" + srcFile.getName() );
+        FileUtils.copyFileIfModified( srcFile, dstFile );
 
-        return "file:" + dstFile.getAbsolutePath().replace('\\', '/');
+        return "file:" + dstFile.getAbsolutePath().replace( '\\', '/' );
     }
 
 }
