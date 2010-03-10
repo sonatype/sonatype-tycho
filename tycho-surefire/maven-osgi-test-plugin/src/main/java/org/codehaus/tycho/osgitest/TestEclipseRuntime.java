@@ -256,8 +256,10 @@ public class TestEclipseRuntime
                 ManifestElement[] id = manifestReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
                 ManifestElement[] version = manifestReader.parseHeader( Constants.BUNDLE_VERSION, mf );
 
-                if ( !file.isDirectory() && id != null && version != null
-                    && bundlesToExplode.contains( id[0].getValue() ) )
+                boolean directoryShape = id != null && version != null && bundlesToExplode.contains( id[0].getValue() );
+                directoryShape |= manifestReader.isDirectoryShape( mf );
+
+                if ( !file.isDirectory() && directoryShape )
                 {
                     String filename = id[0].getValue() + "_" + version[0].getValue();
                     File unpacked = new File( location, "plugins/" + filename );

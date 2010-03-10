@@ -17,5 +17,17 @@ public interface BundleManifestReader
     /**
      * returns null if header is not present in the manifest
      */
-    ManifestElement[] parseHeader(String header, Manifest mf );
+    ManifestElement[] parseHeader( String header, Manifest mf );
+
+    /**
+     * Returns true if Eclipse-BundleShape header is set to dir.
+     * 
+     * http://help.eclipse.org/galileo/index.jsp?topic=/org.eclipse.platform.doc.isv/reference/misc/bundle_manifest.html
+     * 
+     * http://eclipsesource.com/blogs/2009/01/20/tip-eclipse-bundleshape/
+     * 
+     * TODO this method does not belong here
+     */
+    boolean isDirectoryShape( Manifest mf );
+
 }
