@@ -377,7 +377,7 @@ public class TestMojo extends AbstractMojo {
 		reportsDirectory.mkdirs();
 
 		String testBundle = null;
-		boolean succeeded = runTest(testRuntime, testBundle , test);
+		boolean succeeded = runTest(testRuntime, testBundle);
 		
 		if (succeeded) {
 			getLog().info("All tests passed!");
@@ -440,12 +440,20 @@ public class TestMojo extends AbstractMojo {
 		p.put("reportsdirectory", reportsDirectory.getAbsolutePath());
 		p.put("testrunner", getTestRunner(testFramework));
 
-		if (testClass != null) {
-			p.put("includes", testClass.replace('.', '/')+".class");
-		} else {
-			p.put("includes", includes != null? getIncludesExcludes(includes): "**/Test*.class,**/*Test.class,**/*TestCase.class");
-			p.put("excludes", excludes != null? getIncludesExcludes(excludes): "**/Abstract*Test.class,**/Abstract*TestCase.class,**/*$*");
-		}
+		if (test != null) {
+            String test = this.test;
+            test = test.replace('.', '/');
+            test = test.endsWith(".class") ? test : test + ".class";
+            test = test.startsWith("**/") ? test : "**/" + test;
+            p.put("includes", test);
+        } else {
+            if (testClass != null) {
+                p.put("includes", testClass.replace('.', '/') + ".class");
+            } else {
+                p.put("includes", includes != null ? getIncludesExcludes(includes): "**/Test*.class,**/*Test.class,**/*TestCase.class");
+                p.put("excludes", excludes != null ? getIncludesExcludes(excludes): "**/Abstract*Test.class,**/Abstract*TestCase.class,**/*$*");
+            }
+        }
 
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(surefireProperties));
@@ -479,7 +487,7 @@ public class TestMojo extends AbstractMojo {
 		return sb.toString();
 	}
 
-	private boolean runTest(TestEclipseRuntime testRuntime, String testBundle, String className) throws MojoExecutionException {
+	private boolean runTest(TestEclipseRuntime testRuntime, String testBundle) throws MojoExecutionException {
 		int result;
 
 		try {
