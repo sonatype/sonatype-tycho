@@ -1,19 +1,24 @@
 package org.codehaus.tycho.buildnumber.test;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.eclipsepackaging.PackagePluginMojo;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.eclipse.osgi.util.ManifestElement;
 
-public class BinIncludesTest extends AbstractTychoMojoTestCase {
+public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 
 	protected Maven maven;
 
@@ -30,12 +35,12 @@ public class BinIncludesTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testNoDot() throws Exception {
-		File basedir = getBasedir("projects/binIncludes");
+		File basedir = getBasedir("projects/binIncludes/p001");
 		PackagePluginMojo mojo = execMaven(basedir);
 		createDummyClassFile(basedir);
 		mojo.execute();
 		JarFile pluginJar = new JarFile(new File(basedir,
-				"p001/target/test.jar"));
+				"target/test.jar"));
 		try {
 			assertNull(
 					"class files from target/classes must not be included in plugin jar if no '.' in bin.includes",
@@ -45,8 +50,29 @@ public class BinIncludesTest extends AbstractTychoMojoTestCase {
 		}
 	}
 
+	public void testNoManifestVersion() throws Exception {
+        File basedir = getBasedir( "projects/noManifestVersion" );
+        PackagePluginMojo mojo = execMaven(basedir);
+        mojo.execute();
+
+        Manifest mf;
+        InputStream is = new FileInputStream( new File( basedir, "target/MANIFEST.MF" ) );
+        try
+        {
+            mf = new Manifest( is );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+
+        String symbolicName = mf.getMainAttributes().getValue( "Bundle-SymbolicName" );
+        
+        assertEquals( "bundle;singleton:=true", symbolicName );
+	}
+
 	private PackagePluginMojo execMaven(File basedir) throws Exception {
-		File pom = new File(basedir, "p001/pom.xml");
+		File pom = new File(basedir, "pom.xml");
 		MavenExecutionRequest request = newMavenExecutionRequest(pom);
 		request.getProjectBuildingRequest().setProcessPlugins(false);
 		MavenExecutionResult result = maven.execute(request);
@@ -61,7 +87,7 @@ public class BinIncludesTest extends AbstractTychoMojoTestCase {
 
 	private void createDummyClassFile(File basedir) throws IOException {
 		File classFile = new File(basedir,
-				"p001/target/classes/TestNoDot.class");
+				"target/classes/TestNoDot.class");
 		classFile.getParentFile().mkdirs();
 		classFile.createNewFile();
 	}

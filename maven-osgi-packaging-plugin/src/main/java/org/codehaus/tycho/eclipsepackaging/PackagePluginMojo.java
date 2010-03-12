@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.jar.Attributes.Name;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -147,6 +148,10 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			is.close();
 		}
 		Attributes attributes = mf.getMainAttributes();
+
+		if (attributes.getValue(Name.MANIFEST_VERSION) == null) {
+		    attributes.put(Name.MANIFEST_VERSION, "1.0");
+		}
 
         attributes.putValue("Bundle-Version", VersioningHelper.getExpandedVersion( project, version.toString()));
 
