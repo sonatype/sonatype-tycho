@@ -56,11 +56,7 @@ public class TestMojo extends AbstractMojo {
 
 	private static final String EQUINOX_LAUNCHER = "org.eclipse.equinox.launcher";
 
-    private static final String TEST_JUNIT = "org.junit";
-
-	private static final String TEST_JUNIT4 = "org.junit4";
-
-	/**
+    /**
 	 * @parameter default-value="${project.build.directory}/work"
 	 */
 	private File work;
@@ -359,7 +355,9 @@ public class TestMojo extends AbstractMojo {
 		testRuntime.initialize();
 
 		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
-		String testFramework = getTestFramework(bundle);
+		String testFramework = new TestFramework().getTestFramework(bundleResolutionState, bundle);
+		getLog().debug("Using test framework " + testFramework);
+
 
 		Set<File> surefireBundles = getSurefirePlugins(testFramework);
 		for (File file : surefireBundles) {
@@ -462,23 +460,12 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private String getTestRunner(String testFramework) {
-		if (TEST_JUNIT.equals(testFramework)) {
+		if (TestFramework.TEST_JUNIT.equals(testFramework)) {
 			return "org.codehaus.tycho.surefire.junit.JUnitDirectoryTestSuite";
-		} else if (TEST_JUNIT4.equals(testFramework)) {
+		} else if (TestFramework.TEST_JUNIT4.equals(testFramework)) {
 			return "org.apache.maven.surefire.junit4.JUnit4DirectoryTestSuite";
 		}
 		throw new IllegalArgumentException(); // can't happen
-	}
-
-	private String getTestFramework(BundleDescription bundle) throws MojoExecutionException {
-		for (BundleDescription dependency : bundleResolutionState.getDependencies(bundle)) {
-			if (TEST_JUNIT.equals(dependency.getSymbolicName())) {
-				return TEST_JUNIT;
-			} else if (TEST_JUNIT4.equals(dependency.getSymbolicName())) {
-				return TEST_JUNIT4;
-			}
-		}
-		throw new MojoExecutionException("Could not determine test framework used by test bundle " + bundle.toString());
 	}
 
 	private String getIncludesExcludes(List<String> patterns) {
@@ -634,9 +621,9 @@ public class TestMojo extends AbstractMojo {
 		Set<File> result = new LinkedHashSet<File>();
 		
 		String fragment;
-		if (TEST_JUNIT.equals(testFramework)) {
+		if (TestFramework.TEST_JUNIT.equals(testFramework)) {
 			fragment = "tycho-surefire-junit";
-		} else if (TEST_JUNIT4.equals(testFramework)) {
+		} else if (TestFramework.TEST_JUNIT4.equals(testFramework)) {
 			fragment = "tycho-surefire-junit4";
 		} else {
 			throw new IllegalArgumentException("Unsupported test framework " + testFramework);

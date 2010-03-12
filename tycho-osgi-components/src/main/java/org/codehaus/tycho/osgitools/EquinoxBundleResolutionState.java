@@ -72,7 +72,7 @@ public class EquinoxBundleResolutionState
         return addBundle( manifest, bundleLocation, override );
     }
 
-    private BundleDescription addBundle( Dictionary enhancedManifest, File bundleLocation, boolean override )
+    public BundleDescription addBundle( Dictionary enhancedManifest, File bundleLocation, boolean override )
         throws BundleException
     {
         BundleDescription descriptor;
@@ -330,7 +330,7 @@ public class EquinoxBundleResolutionState
                                                             MavenProject project )
     {
         EquinoxBundleResolutionState resolver;
-        
+
         try
         {
             resolver = (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
@@ -405,27 +405,36 @@ public class EquinoxBundleResolutionState
             throw new IllegalStateException( "Unknown project " + project );
         }
 
+        // target environment
+        TargetPlatformConfiguration configuration =
+            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        TargetEnvironment environment = configuration.getEnvironments().get( 0 );
+
         Properties properties = new Properties();
         properties.putAll( (Properties) project.getContextValue( TychoConstants.CTX_MERGED_PROPERTIES ) );
 
-        // target environment
-        TargetPlatformConfiguration configuration = (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-        TargetEnvironment environment = configuration.getEnvironments().get( 0 );
         properties.put( PlatformPropertiesUtils.OSGI_OS, environment.getOs() );
         properties.put( PlatformPropertiesUtils.OSGI_WS, environment.getWs() );
         properties.put( PlatformPropertiesUtils.OSGI_ARCH, environment.getArch() );
 
         ExecutionEnvironmentUtils.loadVMProfile( properties );
 
+        resolve( properties );
+
+        return bundle;
+    }
+
+    public void resolve( Properties properties )
+    {
         // Put Equinox OSGi resolver into development mode.
         // See http://www.nabble.com/Re:-resolving-partially-p18449054.html
         properties.put( org.eclipse.osgi.framework.internal.core.Constants.OSGI_RESOLVER_MODE,
                         org.eclipse.osgi.framework.internal.core.Constants.DEVELOPMENT_MODE );
 
-        addSystemBundleToState(properties);
+        addSystemBundleToState( properties );
 
         state.setPlatformProperties( properties );
-        
+
         state.resolve( false );
 
         if ( getLogger().isDebugEnabled() )
@@ -448,24 +457,34 @@ public class EquinoxBundleResolutionState
 
             getLogger().debug( sb.toString() );
         }
-
-        return bundle;
     }
 
     @SuppressWarnings( "unchecked" )
-    private void addSystemBundleToState(Properties properties) {
-        String systemPackages = properties.getProperty(org.osgi.framework.Constants.FRAMEWORK_SYSTEMPACKAGES);
+    private void addSystemBundleToState( Properties properties )
+    {
+        String systemPackages = properties.getProperty( org.osgi.framework.Constants.FRAMEWORK_SYSTEMPACKAGES );
 
         Dictionary systemBundleManifest = new Hashtable();
-        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_SYMBOLICNAME, "system.bundle");
-        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_VERSION, "0.0.0");
-        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_MANIFESTVERSION, "2");
-        systemBundleManifest.put(org.eclipse.osgi.framework.internal.core.Constants.EXPORT_PACKAGE, systemPackages);
+        systemBundleManifest.put( org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_SYMBOLICNAME,
+                                  "system.bundle" );
+        systemBundleManifest.put( org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_VERSION, "0.0.0" );
+        systemBundleManifest.put( org.eclipse.osgi.framework.internal.core.Constants.BUNDLE_MANIFESTVERSION, "2" );
+        if ( systemPackages != null && systemPackages.trim().length() > 0 )
+        {
+            systemBundleManifest.put( org.eclipse.osgi.framework.internal.core.Constants.EXPORT_PACKAGE, systemPackages );
+        }
+        else
+        {
+            getLogger().warn( "Undefined or empty org.osgi.framework.system.packages system property, system.bundle does not export any packages." );
+        }
 
-        try {
-            addBundle( systemBundleManifest, new File(""), false);
-        } catch (BundleException e) {
-            getLogger().error("Failed to add system bundle", e);
+        try
+        {
+            addBundle( systemBundleManifest, new File( "" ), false );
+        }
+        catch ( BundleException e )
+        {
+            getLogger().error( "Failed to add system bundle", e );
         }
     }
 
