@@ -16,7 +16,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.eclipsepackaging.PackagePluginMojo;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
-import org.eclipse.osgi.util.ManifestElement;
 
 public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 
@@ -35,7 +34,8 @@ public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 	}
 
 	public void testNoDot() throws Exception {
-		File basedir = getBasedir("projects/binIncludes/p001");
+		File basedir = getBasedir("projects/binIncludes");
+		basedir = new File(basedir, "p001");
 		PackagePluginMojo mojo = execMaven(basedir);
 		createDummyClassFile(basedir);
 		mojo.execute();
