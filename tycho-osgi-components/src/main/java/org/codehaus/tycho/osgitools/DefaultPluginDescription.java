@@ -8,7 +8,7 @@ import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.model.PluginRef;
 
 public class DefaultPluginDescription
-    extends AbstractArtifactDescription
+    extends DefaultArtifactDescription
     implements PluginDescription
 {
 

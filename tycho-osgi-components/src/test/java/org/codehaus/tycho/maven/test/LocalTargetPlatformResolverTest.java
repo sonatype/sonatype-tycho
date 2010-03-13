@@ -9,6 +9,7 @@ import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
@@ -35,11 +36,12 @@ public class LocalTargetPlatformResolverTest
 
         TargetPlatform platform = resolver.resolvePlatform( session, project, null );
 
-        ArtifactKey key = platform.getArtifactKey( TychoProject.ECLIPSE_PLUGIN, "bundle01", null );
+        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, "bundle01", null );
+        ArtifactKey key = artifact.getKey();
         assertEquals( "bundle01", key.getId() );
         assertEquals( "0.0.1", key.getVersion() );
 
-        File file = platform.getArtifact( key );
+        File file = artifact.getLocation();
         assertEquals( "bundle01_0.0.1", file.getName() );
     }
 }

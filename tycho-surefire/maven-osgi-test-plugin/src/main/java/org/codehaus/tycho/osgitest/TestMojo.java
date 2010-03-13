@@ -35,6 +35,7 @@ import org.codehaus.plexus.util.cli.Arg;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
@@ -54,7 +55,9 @@ import org.osgi.framework.Version;
  */
 public class TestMojo extends AbstractMojo {
 
-	private static final String EQUINOX_LAUNCHER = "org.eclipse.equinox.launcher";
+	private static final Version VERSION_3_3_0 = Version.parseVersion("3.3.0");
+
+    private static final String EQUINOX_LAUNCHER = "org.eclipse.equinox.launcher";
 
     /**
 	 * @parameter default-value="${project.build.directory}/work"
@@ -306,7 +309,7 @@ public class TestMojo extends AbstractMojo {
 				throw new MojoExecutionException("Both testSuite and testClass must be provided or both should be null");
 			}
 
-			BundleDescription desc = bundleResolutionState.getBundle(testSuite, TychoConstants.HIGHEST_VERSION);
+			BundleDescription desc = bundleResolutionState.getBundle(testSuite, null);
 			MavenProject suite = MavenSessionUtils.getMavenProject(session, desc.getLocation());
 
 			if (suite == null) {
@@ -339,34 +342,33 @@ public class TestMojo extends AbstractMojo {
 		work.mkdirs();
 
 		TestEclipseRuntime testRuntime = new TestEclipseRuntime();
-		testRuntime.enableLogging( logger );
-		testRuntime.setSourcePlatform( targetPlatform );
-		testRuntime.setLocation( work );
-		testRuntime.setPlexusContainer( plexus );
+		testRuntime.enableLogging(logger);
+		testRuntime.setLocation(work);
+		testRuntime.setPlexusContainer(plexus);
 		testRuntime.setBundlesToExplode(getBundlesToExplode());
 		testRuntime.addFrameworkExtensions(getFrameworkExtensions());
-		if ( bundleStartLevel != null )
-		{
-		    for ( BundleStartLevel level : bundleStartLevel )
-		    {
-		        testRuntime.addBundleStartLevel( level );
-		    }
-		}
-		testRuntime.initialize();
+        if (bundleStartLevel != null) {
+            for (BundleStartLevel level : bundleStartLevel) {
+                testRuntime.addBundleStartLevel(level);
+            }
+        }
 
-		BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
+		BundleDescription bundle = bundleResolutionState.getBundleByLocation(project.getBasedir());
 		String testFramework = new TestFramework().getTestFramework(bundleResolutionState, bundle);
 		getLog().debug("Using test framework " + testFramework);
 
+		for (ArtifactDescription artifact : targetPlatform.getArtifacts(TychoProject.ECLIPSE_PLUGIN)) {
+		    testRuntime.addBundle(artifact);
+		}
 
 		Set<File> surefireBundles = getSurefirePlugins(testFramework);
 		for (File file : surefireBundles) {
-		    testRuntime.addBundle(file);
+		    testRuntime.addBundle(file, true);
 		}
 
 		Set<File> testBundles = getTestBundles();
         for (File file : testBundles) {
-            testRuntime.addBundle(file);
+            testRuntime.addBundle(file, true);
         }
 
         testRuntime.create();
@@ -416,6 +418,7 @@ public class TestMojo extends AbstractMojo {
 		Set<File> testBundles = new LinkedHashSet<File>(); 
 		for (BundleDescription bundle : getReactorBundles()) {
 			addBundle(testBundles, bundle);
+			// TODO why do we need this here?
 			for (BundleDescription fragment: bundle.getFragments()) {
 				addBundle(testBundles, fragment);
 			}
@@ -597,9 +600,9 @@ public class TestMojo extends AbstractMojo {
 
 	private String getTestApplication(TestEclipseRuntime testRuntime) {
 		if (useUIHarness) {
-		    BundleDescription systemBundle = testRuntime.getSystemBundle();
-			Version osgiVersion = systemBundle.getVersion();
-			if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+		    ArtifactDescription systemBundle = testRuntime.getSystemBundle();
+		    Version osgiVersion = Version.parseVersion(systemBundle.getKey().getVersion());
+			if (osgiVersion.compareTo(VERSION_3_3_0) < 0) {
 				return "org.codehaus.tycho.surefire.osgibooter.uitest32";
 			} else {
 				return "org.codehaus.tycho.surefire.osgibooter.uitest";
@@ -610,18 +613,18 @@ public class TestMojo extends AbstractMojo {
 	}
 
 	private File getEclipseLauncher(TestEclipseRuntime testRuntime) throws IOException {
-        BundleDescription systemBundle = testRuntime.getSystemBundle();
-        Version osgiVersion = systemBundle.getVersion();
-		if (osgiVersion.getMajor() == 3 && osgiVersion.getMinor() == 2) {
+        ArtifactDescription systemBundle = testRuntime.getSystemBundle();
+        Version osgiVersion = Version.parseVersion(systemBundle.getKey().getVersion());
+		if (osgiVersion.compareTo(VERSION_3_3_0) < 0) {
 		    throw new IllegalArgumentException("Eclipse 3.2 and earlier are not supported.");
 			//return new File(state.getTargetPlaform(), "startup.jar").getCanonicalFile();
 		} else {
 			// assume eclipse 3.3 or 3.4
-			BundleDescription launcher = testRuntime.getBundle(EQUINOX_LAUNCHER, TychoConstants.HIGHEST_VERSION);
+		    ArtifactDescription launcher = testRuntime.getBundle(EQUINOX_LAUNCHER, null);
 			if (launcher == null) {
 			    throw new IllegalArgumentException("Could not find " + EQUINOX_LAUNCHER + " bundle in the test runtime.");
 			}
-			return new File(launcher.getLocation()).getCanonicalFile();
+			return launcher.getLocation().getCanonicalFile();
 		}
 	}
 

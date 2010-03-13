@@ -188,7 +188,7 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		List<BundleDescription> bundles = state.getBundles();
 
 		assertEquals(3, bundles.size());
-		assertNotNull(state.getBundle( "org.junit4.nl_ru", TychoConstants.HIGHEST_VERSION));
+		assertNotNull(state.getBundle( "org.junit4.nl_ru", null));
 	}
 	
 }

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +19,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
@@ -159,7 +159,7 @@ public class EquinoxBundleResolutionState
     {
         try
         {
-            if ( TychoConstants.HIGHEST_VERSION == version )
+            if ( version == null )
             {
                 return getLatestBundle( symbolicName );
             }
@@ -342,19 +342,26 @@ public class EquinoxBundleResolutionState
 
         resolver.setManifestsReader( newManifestReader( plexus, project ) );
 
-        // TODO why do I need this???
-        Set<File> basedirs = new HashSet<File>();
-        for ( MavenProject sessionProject : session.getProjects() )
-        {
-            basedirs.add( sessionProject.getBasedir() );
-        }
         TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
         try
         {
-            for ( File file : platform.getArtifactFiles( TychoProject.ECLIPSE_PLUGIN, TychoProject.ECLIPSE_TEST_PLUGIN ) )
+            // make sure reactor projects override anything from target platform
+            // that has the same bundle symbolic name
+            ArrayList<ArtifactDescription> projects = new ArrayList<ArtifactDescription>();
+            for ( ArtifactDescription artifact : platform.getArtifacts( TychoProject.ECLIPSE_PLUGIN ) )
             {
-                boolean isProject = basedirs.contains( file );
-                resolver.addBundle( file, isProject );
+                if ( artifact.getMavenProject() != null )
+                {
+                    projects.add( artifact );
+                }
+                else
+                {
+                    resolver.addBundle( artifact.getLocation(), false );
+                }
+            }
+            for ( ArtifactDescription artifact : projects )
+            {
+                resolver.addBundle( artifact.getLocation(), true );
             }
         }
         catch ( BundleException e )

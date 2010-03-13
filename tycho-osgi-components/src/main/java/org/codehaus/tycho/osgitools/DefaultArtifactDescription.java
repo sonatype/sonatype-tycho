@@ -6,7 +6,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
 
-public abstract class AbstractArtifactDescription
+public class DefaultArtifactDescription
     implements ArtifactDescription
 {
 
@@ -16,7 +16,7 @@ public abstract class AbstractArtifactDescription
 
     private MavenProject project;
 
-    public AbstractArtifactDescription( ArtifactKey key, File location, MavenProject project )
+    public DefaultArtifactDescription( ArtifactKey key, File location, MavenProject project )
     {
         this.key = key;
         this.location = location;

@@ -8,35 +8,21 @@ import org.apache.maven.project.MavenProject;
 public interface TargetPlatform
 {
     /**
-     * Returns all artifact files of given types. 
-     * 
-     * Implementation must insure artifacts corresponding to MavenProjects
-     * are at the end of the list. 
-     * 
-     * TODO Probably not the best API spec.
+     * Returns all artifacts of the given type. 
      */
-    public List<File> getArtifactFiles( String... types );
-
-    public List<File> getSites();
+    public List<ArtifactDescription> getArtifacts( String type );
 
     /**
-     * Returns artifact of given type and id and best matching version.
+     * Returns artifact of the given type and id and best matching version.
      * 
      * 0.0.0 will matches latest version
      * 1.2.3 will matches 1.2.3 with latest qualifier
      * 1.2.3.qualifier matches this exact version
      *
      * TODO should we use version ranges explicitly here? Currently,
-     * there is no way to match 1.2.3 without qualifier
-     * 
-     * TODO do we need to distinguish eclipse-plugin from eclipse-test-plugin???
+     * there is no way to match 1.2.3 without qualifier.
      */
-    public ArtifactKey getArtifactKey( String type, String id, String version );
+    public ArtifactDescription getArtifact( String type, String id, String version );
 
-    public File getArtifact( String type, String id, String version );
-
-    public File getArtifact( ArtifactKey key );
-    
     public MavenProject getMavenProject( File location );
-
 }

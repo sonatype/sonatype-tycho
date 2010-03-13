@@ -192,7 +192,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 		// testSuite
 		File testSuiteLocation = null;
 		if (testSuite != null) {
-			BundleDescription bundle = state.getBundle(testSuite, TychoConstants.HIGHEST_VERSION);
+			BundleDescription bundle = state.getBundle(testSuite, null);
 			if (bundle != null) {
 				try {
 					testSuiteLocation = new File(bundle.getLocation()).getCanonicalFile();
