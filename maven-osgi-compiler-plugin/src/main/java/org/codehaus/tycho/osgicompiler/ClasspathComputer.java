@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -70,6 +73,8 @@ public class ClasspathComputer {
 		// this project's entries first
 		classpath.addAll(getProjectEntries(bundle, project));
 
+		addExtraClasspathEntries(classpath);
+		
 		// dependencies
 		for (DependencyComputer.DependencyEntry entry : dependencyComputer.computeDependencies(bundleResolutionState, bundle)) {
 			addBundle(classpath, entry);
@@ -78,6 +83,44 @@ public class ClasspathComputer {
 		return new ArrayList<String>(classpath);
 	}
 
+	private void addExtraClasspathEntries(Set<String> classpath) {
+		EclipsePluginProject pdeProject = (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+		Collection<BuildOutputJar> outputJars = pdeProject.getOutputJarMap().values();
+		for (BuildOutputJar buildOutputJar : outputJars) {
+			List<String> entries = 	buildOutputJar.getExtraClasspathEntries();
+			for (String entry : entries) {
+				Pattern platformURL = Pattern.compile("platform:/(plugin|fragment)/([^/]*)/*(.*)");
+				Matcher m = platformURL.matcher(entry.trim());
+				String bundleId = null;
+				String path = null;
+				if (m.matches()) {
+					bundleId = m.group(2);
+					path = m.group(3).trim();
+				} else {
+					//Log and 
+					continue;
+				}
+				BundleDescription matchingBundle = bundleResolutionState.getBundle(bundleId, null);
+				if (matchingBundle == null) {
+					//log
+					continue;
+				}
+				
+				addPartialPath(classpath, matchingBundle, path);
+			}
+		}
+	}
+
+	private void addPartialPath(Set<String> classpath, BundleDescription bundle, String path) {
+		if(path.length() == 0) {
+			classpath.addAll(getBundleEntries(bundle));
+			return;
+		}
+		File entry = getNestedJar(bundle, path);
+		if (entry != null)
+			classpath.add(entry.getAbsolutePath());
+	}
+	
 	private void addBundle(Set<String> classpath, DependencyComputer.DependencyEntry dependency) {
 		MavenProject project = sessionProjects.get( new File( dependency.desc.getLocation() ) );
 		List<String> entries;

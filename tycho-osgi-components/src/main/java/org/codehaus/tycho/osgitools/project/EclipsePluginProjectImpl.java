@@ -5,12 +5,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.zip.ExtraFieldUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public class EclipsePluginProjectImpl implements EclipsePluginProject {
@@ -36,6 +39,10 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 			}
 		}
 
+		List<String> globalExtraClasspath = new ArrayList<String>();
+		if (buildProperties.getProperty("jars.extra.classpath") != null)
+			globalExtraClasspath.addAll(Arrays.asList(buildProperties.getProperty("jars.extra.classpath").split(",")));
+		
 		for (Map.Entry<Object,Object> entry : buildProperties.entrySet()) {
 			String key = (String) entry.getKey();
 			String value = (String) entry.getValue();
@@ -47,7 +54,13 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 					? new File(project.getBuild().getOutputDirectory())
 					: new File(project.getBuild().getDirectory(), jarName + "-classes");
 			List<File> sourceFolders = toFileList(project.getBasedir(), value.split(","));
-			jars.put(jarName, new BuildOutputJar(jarName, outputDirectory, sourceFolders));
+			
+			List<String> extraEntries = new ArrayList<String>();
+			if (buildProperties.getProperty("extra." + jarName) != null) {
+				extraEntries.addAll(Arrays.asList(buildProperties.getProperty("extra." + jarName).split(",")));
+				extraEntries.addAll(globalExtraClasspath);
+			}
+			jars.put(jarName, new BuildOutputJar(jarName, outputDirectory, sourceFolders, extraEntries.size() == 0 ? globalExtraClasspath : extraEntries));
 		}
 
 		this.dotOutputJar = jars.get(".");
