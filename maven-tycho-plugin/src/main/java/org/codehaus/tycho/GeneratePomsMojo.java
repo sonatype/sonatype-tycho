@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
@@ -48,6 +50,7 @@ import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 
 /**
  * @goal generate-poms
@@ -600,7 +603,7 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 				}
 				model.setGroupId(groupId);
 				model.setArtifactId(dom.getAttribute("id"));
-				model.setVersion(dom.getAttribute("version"));
+				model.setVersion(toMavenVersion(dom.getAttribute("version")));
 				
 			} finally {
 				is.close();
@@ -635,11 +638,21 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 			}
 			model.setGroupId(groupId);
 			model.setArtifactId(bundleDescription.getSymbolicName());
-			model.setVersion(bundleDescription.getVersion().toString());
+			model.setVersion(toMavenVersion(bundleDescription.getVersion().toString()));
 
 			writePom(basedir, model);
 		} catch (BundleException e) {
 			throw new MojoExecutionException("Can't generate pom.xml", e);
+		}
+	}
+
+	private static String toMavenVersion(String osgiVersion) {
+		if (osgiVersion.endsWith(".qualifier")) {
+			return osgiVersion.substring(0, osgiVersion.length()
+					- ".qualifier".length())
+					+ "-" + Artifact.SNAPSHOT_VERSION;
+		} else {
+			return osgiVersion;
 		}
 	}
 
