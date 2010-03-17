@@ -6,14 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.zip.ExtraFieldUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public class EclipsePluginProjectImpl implements EclipsePluginProject {
@@ -75,7 +73,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 	private List<File> toFileList(File parent, String[] names) throws IOException {
 		ArrayList<File> result = new ArrayList<File>();
 		for (String name : names) {
-			result.add(new File(parent, name).getCanonicalFile());
+			result.add(new File(parent, name.trim()).getCanonicalFile());
 		}
 		return result;
 	}
