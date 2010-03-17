@@ -41,10 +41,10 @@
     <maven-version>3.0-alpha-7</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.5.1
+      Version corresponds to Eclipse 3.5.2
 
-      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.osgi_3.5.1.R35x_v20090827.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=3.5.1.R35x_v20090827 -Dpackaging=jar
+      /opt/apache-maven-2.2.1/bin/mvn install:install-file -Dfile=org.eclipse.osgi_3.5.2.R35x_v20100126.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=3.5.2.R35x_v20100126 -Dpackaging=jar
 
       /opt/apache-maven-2.2.1/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.1.R35x_v20090827.jar \
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=3.5.1.R35x_v20090827 -Dpackaging=jar \
@@ -52,21 +52,21 @@
 
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <equinoxVersion>3.5.1.R35x_v20090827</equinoxVersion>
+    <equinoxVersion>3.5.2.R35x_v20100126</equinoxVersion>
 
     <!-- 
-      Version corresponds to Eclipse 3.5.1
+      Version corresponds to Eclipse 3.5.2
       
-      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.1.v_972_R35x.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.5.1.v_972_R35x -Dpackaging=jar
+      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.2.v_981_R35x.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.5.2.v_981_R35x -Dpackaging=jar
 
-      /opt/apache-maven-2.2.1/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.1.v_972_R35x.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.5.1.v_972_R35x -Dpackaging=jar \
+      /opt/apache-maven-2.2.1/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.2.v_981_R35x.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.5.2.v_981_R35x -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <jdtVersion>3.5.1.v_972_R35x</jdtVersion>
+    <jdtVersion>3.5.2.v_981_R35x</jdtVersion>
   </properties>
 
   <dependencyManagement>
