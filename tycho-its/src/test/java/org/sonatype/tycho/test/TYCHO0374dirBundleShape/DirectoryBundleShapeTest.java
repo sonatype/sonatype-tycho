@@ -1,10 +1,10 @@
 package org.sonatype.tycho.test.TYCHO0374dirBundleShape;
 
+import java.io.File;
+
 import org.apache.maven.it.Verifier;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
-
-import de.schlichtherle.io.File;
 
 public class DirectoryBundleShapeTest
     extends AbstractTychoIntegrationTest

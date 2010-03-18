@@ -111,11 +111,6 @@
       <version>1.2</version>
     </dependency>
     
-    <dependency>
-        <groupId>de.schlichtherle.io</groupId>
-        <artifactId>truezip</artifactId>
-    </dependency>     
-
     <!-- update site tests -->
     <dependency>
       <groupId>org.mortbay.jetty</groupId>

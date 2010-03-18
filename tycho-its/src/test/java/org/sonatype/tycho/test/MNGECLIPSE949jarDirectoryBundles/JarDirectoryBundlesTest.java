@@ -2,6 +2,7 @@ package org.sonatype.tycho.test.MNGECLIPSE949jarDirectoryBundles;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -11,8 +12,6 @@ import org.codehaus.tycho.osgitools.DefaultBundleManifestReader;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
-
-import de.schlichtherle.io.FileInputStream;
 
 public class JarDirectoryBundlesTest
     extends AbstractTychoIntegrationTest

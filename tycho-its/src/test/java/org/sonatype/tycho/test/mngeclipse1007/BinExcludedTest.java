@@ -1,13 +1,12 @@
 package org.sonatype.tycho.test.mngeclipse1007;
 
 import java.io.File;
+import java.util.zip.ZipFile;
 
 import org.apache.maven.it.Verifier;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
-
-import de.schlichtherle.util.zip.ZipFile;
 
 public class BinExcludedTest extends AbstractTychoIntegrationTest {
 	

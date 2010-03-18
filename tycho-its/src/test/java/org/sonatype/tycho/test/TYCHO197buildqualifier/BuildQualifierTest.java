@@ -1,17 +1,21 @@
 package org.sonatype.tycho.test.TYCHO197buildqualifier;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import junit.framework.Assert;
 
 import org.apache.maven.it.Verifier;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.PluginRef;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
-
-import de.schlichtherle.io.FileInputStream;
 
 public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 
@@ -40,8 +44,7 @@ public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Feature '" + featureLabel + "' should exists",
 				feature.isDirectory());
 
-		de.schlichtherle.io.File featureJar = new de.schlichtherle.io.File(
-				feature, "feature.xml");
+		File featureJar = new File(feature, "feature.xml");
 		Feature featureXml = Feature.read(new FileInputStream(featureJar));
 		Assert.assertEquals("Invalid feature version", version, featureXml
 				.getVersion());
@@ -54,9 +57,7 @@ public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Plugin '" + pluginLabel + "' should exists", plugin
 				.isFile());
 
-		de.schlichtherle.io.File manifest = new de.schlichtherle.io.File(
-				plugin, "META-INF/MANIFEST.MF");
-		Manifest man = new Manifest(new FileInputStream(manifest));
+        Manifest man = readManifest(plugin);
 		String bundleVersion = man.getMainAttributes().getValue(
 				"Bundle-Version");
 		Assert.assertEquals("Invalid Bundle-Version at plugin Manifest.MF",
@@ -92,9 +93,7 @@ public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Feature '" + featureLabel + "' should exists",
 				feature.isFile());
 
-		de.schlichtherle.io.File featureJar = new de.schlichtherle.io.File(
-				feature, "feature.xml");
-		Feature featureXml = Feature.read(new FileInputStream(featureJar));
+		Feature featureXml = readFeatureXml(feature);
 		Assert.assertEquals("Invalid feature version", version, featureXml
 				.getVersion());
 
@@ -106,12 +105,29 @@ public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 		Assert.assertTrue("Plugin '" + pluginLabel + "' should exists", plugin
 				.isFile());
 
-		de.schlichtherle.io.File manifest = new de.schlichtherle.io.File(
-				plugin, "META-INF/MANIFEST.MF");
-		Manifest man = new Manifest(new FileInputStream(manifest));
+		Manifest man = readManifest(plugin);
 		String bundleVersion = man.getMainAttributes().getValue(
 				"Bundle-Version");
 		Assert.assertEquals("Invalid Bundle-Version at plugin Manifest.MF",
 				version, bundleVersion);
+	}
+
+	private Feature readFeatureXml(File file) throws IOException, XmlPullParserException {
+	    ZipFile zip = new ZipFile(file);
+	    try {
+	        ZipEntry entry = zip.getEntry(Feature.FEATURE_XML);
+	        return Feature.read(zip.getInputStream(entry));
+	    } finally {
+	        zip.close();
+	    }
+    }
+
+    private Manifest readManifest(File file) throws IOException {
+	    JarFile jar = new JarFile(file);
+	    try {
+	        return jar.getManifest();
+	    } finally {
+	        jar.close();
+	    }
 	}
 }
