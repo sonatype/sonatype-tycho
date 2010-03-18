@@ -4,45 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.maven.Maven;
-import org.apache.maven.execution.DefaultMavenExecutionResult;
-import org.apache.maven.execution.MavenExecutionRequest;
-import org.apache.maven.execution.MavenExecutionResult;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.ClasspathComputer;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
-import org.codehaus.tycho.testing.CompoundRuntimeException;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
-	protected Maven maven;
 	protected File storage;
 	
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		maven = lookup(Maven.class);
 		storage = new File(getBasedir(), "target/storage");
 		FileUtils.deleteDirectory(storage);
-	}
-
-	private List<MavenProject> getSortedProjects(File basedir, File platform) throws Exception {
-		File pom = new File(basedir, "pom.xml");
-		MavenExecutionRequest request = newMavenExecutionRequest(pom);
-		request.getProjectBuildingRequest().setProcessPlugins(false);
-        request.setLocalRepository(getLocalRepository());
-        if (platform != null) {
-            request.getUserProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
-        }
-		MavenExecutionResult result = maven.execute( request );
-		if (result.hasExceptions()) {
-		    throw new CompoundRuntimeException(result.getExceptions());
-		}
-        return result.getTopologicallySortedProjects();
 	}
 
 	private AbstractOsgiCompilerMojo getMojo(List<MavenProject> projects, MavenProject project) throws Exception {
@@ -56,16 +33,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 //		        setVariableValueToObject(mojo, "fork", fork? Boolean.TRUE: Boolean.FALSE);
 		return mojo;
 	}
-
-	private MavenSession newMavenSession( MavenProject project, List<MavenProject> projects ) throws Exception
-    {
-        MavenExecutionRequest request = newMavenExecutionRequest( new File( project.getBasedir(), "pom.xml" ) );
-        MavenExecutionResult result = new DefaultMavenExecutionResult();
-        MavenSession session = new MavenSession(getContainer(), request, result);
-        session.setCurrentProject( project );
-        session.setProjects( projects );
-        return session;
-    }
 
     public void testAccessRestrictionCompilationError() throws Exception {
 		File basedir = getBasedir("projects/accessrules");
