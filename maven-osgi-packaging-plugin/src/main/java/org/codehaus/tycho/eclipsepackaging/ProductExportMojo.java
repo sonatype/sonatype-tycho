@@ -522,7 +522,7 @@ public class ProductExportMojo
     {
         getLog().debug( "Generating config.ini" );
         Properties props = new Properties();
-        String id = productConfiguration.getId();
+        String id = productConfiguration.getProduct();
         if ( id != null )
         {
             String splash = id.split( "\\." )[0];
@@ -597,14 +597,14 @@ public class ProductExportMojo
             {
                 osgiBundles.append( '@' );
 
-                if ( startup.getStartLevel() != -1 )
+                if ( startup.getStartLevel() > 0 )
                 {
                     osgiBundles.append( startup.getStartLevel() );
                 }
 
                 if ( startup.isAutoStart() )
                 {
-                    if ( startup.getStartLevel() != -1 )
+                    if ( startup.getStartLevel() > 0 )
                     {
                         osgiBundles.append( ':' );
                     }
