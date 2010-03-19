@@ -19,20 +19,6 @@ import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 
-	protected Maven maven;
-
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-		maven = lookup(Maven.class);
-	}
-
-	@Override
-	protected void tearDown() throws Exception {
-		maven = null;
-		super.tearDown();
-	}
-
 	public void testNoDot() throws Exception {
 		File basedir = getBasedir("projects/binIncludes");
 		basedir = new File(basedir, "p001");

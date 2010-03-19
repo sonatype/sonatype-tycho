@@ -4,10 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
@@ -18,6 +16,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.equinox.internal.p2.publisher.eclipse.FeatureParser;
 import org.eclipse.equinox.internal.p2.publisher.eclipse.IProductDescriptor;
 import org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile;
 import org.eclipse.equinox.internal.p2.updatesite.SiteXMLAction;
@@ -37,6 +36,7 @@ import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
 import org.eclipse.equinox.p2.publisher.actions.ICapabilityAdvice;
 import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
+import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction;
 import org.eclipse.equinox.p2.publisher.eclipse.ProductAction;
 import org.sonatype.tycho.p2.facade.P2Generator;
@@ -217,7 +217,16 @@ public class P2GeneratorImpl
         }
         else if ( P2Resolver.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
         {
-            return new IPublisherAction[] { new FeaturesAction( new File[] { location } ) };
+            Feature feature = new FeatureParser().parse( location );
+            feature.setLocation( location.getAbsolutePath() );
+            if ( dependenciesOnly )
+            {
+                return new IPublisherAction[] { new FeatureDependenciesAction( feature ) };
+            }
+            else
+            {
+                return new IPublisherAction[] { new FeaturesAction( new Feature[] { feature } ) };
+            }
         }
         else if ( P2Resolver.TYPE_ECLIPSE_APPLICATION.equals( packaging ) )
         {

@@ -121,29 +121,22 @@ public class DefaultTargetPlatform
             return relevantArtifacts.get( relevantArtifacts.firstKey() ); // latest version
         }
 
-        ArtifactDescription perfectMatch = relevantArtifacts.get( parsedVersion );
+        String qualifier = parsedVersion.getQualifier();
 
-        if ( perfectMatch != null )
+        if ( qualifier == null || "".equals( qualifier ) || ANY_QUALIFIER.equals( qualifier ) )
         {
-            return perfectMatch; // perfect match
-        }
-
-        boolean qualified = !"".equals( parsedVersion.getQualifier() );
-
-        if ( qualified )
-        {
-            return null; // must be perfect match for qualified versions
-        }
-
-        for ( Map.Entry<Version, ArtifactDescription> entry : relevantArtifacts.entrySet() )
-        {
-            if ( baseVersionEquals( parsedVersion, entry.getKey() ) )
+            // latest qualifier
+            for ( Map.Entry<Version, ArtifactDescription> entry : relevantArtifacts.entrySet() )
             {
-                return entry.getValue();
+                if ( baseVersionEquals( parsedVersion, entry.getKey() ) )
+                {
+                    return entry.getValue();
+                }
             }
         }
 
-        return null;
+        // perfect match or nothing
+        return relevantArtifacts.get( parsedVersion );
     }
 
     private static boolean baseVersionEquals( Version v1, Version v2 )

@@ -21,17 +21,21 @@ import org.junit.Test;
 public class DependencyComputerTest
     extends AbstractTychoMojoTestCase
 {
-
-    private Maven maven;
-
     private DependencyComputer dependencyComputer;
 
     protected void setUp()
         throws Exception
     {
         super.setUp();
-        maven = lookup( Maven.class );
         dependencyComputer = (DependencyComputer) lookup( DependencyComputer.class );
+    }
+
+    @Override
+    protected void tearDown()
+        throws Exception
+    {
+        dependencyComputer = null;
+        super.tearDown();
     }
 
     @Test

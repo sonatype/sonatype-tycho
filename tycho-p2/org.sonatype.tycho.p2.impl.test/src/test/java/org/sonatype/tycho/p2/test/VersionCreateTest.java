@@ -9,9 +9,9 @@ public class VersionCreateTest
     public void test()
         throws Exception
     {
-        SiteDependenciesAction.createVersion( "0.10.0" ); // maven RELEASE version
-        SiteDependenciesAction.createVersion( "0.10.0-SNAPSHOT" ); // maven SNAPSHOT version
-        SiteDependenciesAction.createVersion( "0.10.0.20100205-2200" ); // maven RELEASE version
-        SiteDependenciesAction.createVersion( "0.10.0.qualifier" ); // maven RELEASE version
+        SiteDependenciesAction.createSiteVersion( "0.10.0" ); // maven RELEASE version
+        SiteDependenciesAction.createSiteVersion( "0.10.0-SNAPSHOT" ); // maven SNAPSHOT version
+        SiteDependenciesAction.createSiteVersion( "0.10.0.20100205-2200" ); // maven RELEASE version
+        SiteDependenciesAction.createSiteVersion( "0.10.0.qualifier" ); // maven RELEASE version
     }
 }
