@@ -650,7 +650,7 @@ public class ProductExportMojo
 
         try
         {
-            String launcherRelPath = "bin/" + ws + "/" + os + "/" + arch;
+            String launcherRelPath = "bin/" + ws + "/" + os + "/" + arch + "/";
             String excludes = "**/eclipsec*";
 
             if ( location.isDirectory() )

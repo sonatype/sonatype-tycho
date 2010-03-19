@@ -10,6 +10,7 @@ import org.eclipse.equinox.internal.provisional.p2.core.Version;
 import org.eclipse.equinox.internal.provisional.p2.core.VersionedName;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IRequiredCapability;
 import org.eclipse.osgi.service.environment.Constants;
+import org.sonatype.tycho.p2.model.VersionedName2;
 
 @SuppressWarnings( "restriction" )
 public class ProductDependenciesAction
@@ -57,7 +58,7 @@ public class ProductDependenciesAction
         {
             for ( VersionedName plugin : (List<VersionedName>) product.getBundles( true ) )
             {
-                addRequiredCapability( required, plugin.getId(), plugin.getVersion(), null );
+                addRequiredCapability( required, plugin.getId(), plugin.getVersion(), getFilter( plugin ) );
             }
         }
 
@@ -78,18 +79,32 @@ public class ProductDependenciesAction
         return required;
     }
 
+    private String getFilter( VersionedName name )
+    {
+        if ( !( name instanceof VersionedName2 ) )
+        {
+            return null;
+        }
+
+        VersionedName2 name2 = (VersionedName2) name;
+        return getFilter( name2.getOs(), name2.getWs(), name2.getArch() );
+    }
+
     private void addNativeRequirements( Set<IRequiredCapability> required, String os, String ws, String arch )
     {
         String filter = getFilter( os, ws, arch );
 
-        if ( Constants.OS_MACOSX.equals( os ) && Constants.WS_CARBON.equals( ws ) )
+        if ( Constants.OS_MACOSX.equals( os ) )
         {
-            addRequiredCapability( required, "org.eclipse.equinox.launcher." + ws + "." + os, null, filter );
+            // macosx is twisted
+            if ( Constants.ARCH_X86.equals( arch ) )
+            {
+                addRequiredCapability( required, "org.eclipse.equinox.launcher." + ws + "." + os, null, filter );
+                return;
+            }
         }
-        else
-        {
-            addRequiredCapability( required, "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, filter );
-        }
+
+        addRequiredCapability( required, "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch, null, filter );
     }
 
 }

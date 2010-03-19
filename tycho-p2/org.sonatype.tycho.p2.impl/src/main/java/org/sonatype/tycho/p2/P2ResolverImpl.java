@@ -252,6 +252,7 @@ public class P2ResolverImpl
             {
                 Set<Explanation> explanation = projector.getExplanation( monitor );
 
+                System.out.println( properties.toString() );
                 System.out.println( explanation );
 
                 throw new RuntimeException( new ProvisionException( s ) );

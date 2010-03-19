@@ -27,7 +27,7 @@ public class GalileoProxyTest
     public GalileoProxyTest()
         throws Exception
     {
-        location = new URI( "http://download.eclipse.org/releases/galileo" );
+        location = new URI( "http://download.eclipse.org/eclipse/updates/3.6-I-builds" );
     }
 
     @Test

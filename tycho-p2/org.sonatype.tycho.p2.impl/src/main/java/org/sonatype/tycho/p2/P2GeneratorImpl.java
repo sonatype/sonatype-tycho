@@ -43,6 +43,7 @@ import org.sonatype.tycho.p2.facade.P2Generator;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
+import org.sonatype.tycho.p2.model.ProductFile2;
 
 @SuppressWarnings( "restriction" )
 public class P2GeneratorImpl
@@ -233,7 +234,7 @@ public class P2GeneratorImpl
             String product = new File( location, id + ".product" ).getAbsolutePath();
             try
             {
-                IProductDescriptor productDescriptor = new ProductFile( product );
+                IProductDescriptor productDescriptor = new ProductFile2( product );
                 if ( dependenciesOnly )
                 {
                     return new IPublisherAction[] { new ProductDependenciesAction( productDescriptor, environments ) };
