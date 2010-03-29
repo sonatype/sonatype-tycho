@@ -8,19 +8,19 @@ import java.util.ArrayList;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.eclipsepackaging.PackagePluginMojo;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 
-	public void testNoDot() throws Exception {
-		File basedir = getBasedir("projects/binIncludes");
+	public void testBinIncludesNoDot() throws Exception {
+		File basedir = getBasedir("projects/binIncludesNoDot");
 		basedir = new File(basedir, "p001");
 		PackagePluginMojo mojo = execMaven(basedir);
 		createDummyClassFile(basedir);
@@ -34,6 +34,25 @@ public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 		} finally {
 			pluginJar.close();
 		}
+	}
+
+	public void testBinIncludesSpaces() throws Exception {
+        File basedir = getBasedir( "projects/binIncludesSpaces" );
+        File classes = new File( basedir, "target/classes" );
+        classes.mkdirs();
+        FileUtils.fileWrite( new File( classes, "foo.bar" ).getCanonicalPath(), "foobar" );
+        PackagePluginMojo mojo = execMaven( basedir );
+        mojo.execute();
+
+        JarFile pluginJar = new JarFile( new File( basedir, "target/test.jar" ) );
+        try
+        {
+            assertNotNull( pluginJar.getEntry( "foo.bar" ) );
+        }
+        finally
+        {
+            pluginJar.close();
+        }
 	}
 
 	public void testNoManifestVersion() throws Exception {

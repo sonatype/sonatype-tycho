@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -52,12 +53,18 @@ public abstract class AbstractTychoPackagingMojo
 
     protected List<String> toFilePattern( String pattern )
     {
-        if ( pattern == null )
+        ArrayList<String> result = new ArrayList<String>();
+
+        if ( pattern != null )
         {
-            return new ArrayList<String>();
+            StringTokenizer st = new StringTokenizer( pattern, "," );
+            while ( st.hasMoreTokens() )
+            {
+                result.add( st.nextToken().trim() );
+            }
         }
 
-        return Arrays.asList( pattern.split( "," ) );
+        return result;
     }
 
     protected FileSet getFileSet( File basedir, List<String> includes, List<String> excludes )
