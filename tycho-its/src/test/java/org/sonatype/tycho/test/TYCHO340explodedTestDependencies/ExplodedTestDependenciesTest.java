@@ -16,6 +16,7 @@ public class ExplodedTestDependenciesTest
         throws Exception
     {
         Verifier v01 = getVerifier( "TYCHO340explodedTestDependencies", false );
+        v01.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
         v01.executeGoal( "install" );
         v01.verifyErrorFreeLog();
 
