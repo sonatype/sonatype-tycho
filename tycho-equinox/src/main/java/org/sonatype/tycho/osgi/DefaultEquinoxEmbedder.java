@@ -61,9 +61,9 @@ public class DefaultEquinoxEmbedder
         // properties.put( "eclipse.p2.data.area", dataArea.getAbsolutePath() );
 
         // debug
-        properties.put( "osgi.console", "" );
-        properties.put( "osgi.debug", "" );
-        properties.put( "eclipse.consoleLog", "true" );
+        //properties.put( "osgi.console", "" );
+        //properties.put( "osgi.debug", "" );
+        //properties.put( "eclipse.consoleLog", "true" );
 
         // TODO switch to org.eclipse.osgi.launch.Equinox
         // EclipseStarter is not helping here
