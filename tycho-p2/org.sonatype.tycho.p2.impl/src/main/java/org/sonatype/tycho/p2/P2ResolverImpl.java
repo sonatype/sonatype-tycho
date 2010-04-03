@@ -1,10 +1,14 @@
 package org.sonatype.tycho.p2;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -72,6 +76,7 @@ import org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMirrorRequest;
+import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
 @SuppressWarnings( "restriction" )
 public class P2ResolverImpl
@@ -87,9 +92,9 @@ public class P2ResolverImpl
     private P2GeneratorImpl generator = new P2GeneratorImpl( true );
 
     private P2RepositoryCache repositoryCache;
-    
+
     /**
-     * All known P2 metadata repositories, including maven local repository 
+     * All known P2 metadata repositories, including maven local repository
      */
     private List<IMetadataRepository> metadataRepositories = new ArrayList<IMetadataRepository>();
 
@@ -156,7 +161,7 @@ public class P2ResolverImpl
         }
     }
 
-	public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
+    public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
     {
         doAddMavenArtifact( location, type, groupId, artifactId, version );
     }
@@ -215,7 +220,7 @@ public class P2ResolverImpl
 
         for ( Properties properties : environments )
         {
-            P2ResolutionResult result = new P2ResolutionResult(); 
+            P2ResolutionResult result = new P2ResolutionResult();
             resolveProject( result, projectLocation, properties );
             results.add( result );
         }
@@ -243,15 +248,14 @@ public class P2ResolverImpl
         if ( slice != null )
         {
             Projector projector = new Projector( slice, newSelectionContext, false );
-            projector.encode( createMetaIU( rootIUs ),
-                              extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
-                              rootIUs.toArray( IU_ARRAY ) /* newRoots */,
-                              monitor );
+            projector.encode( createMetaIU( rootIUs ), extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
+                              rootIUs.toArray( IU_ARRAY ) /* newRoots */, monitor );
             IStatus s = projector.invokeSolver( monitor );
             if ( s.getSeverity() == IStatus.ERROR )
             {
                 Set<Explanation> explanation = projector.getExplanation( monitor );
 
+                System.out.println( properties.toString() );
                 System.out.println( explanation );
 
                 throw new RuntimeException( new ProvisionException( s ) );
@@ -303,7 +307,7 @@ public class P2ResolverImpl
                 StringBuilder msg = new StringBuilder( "Could not download artifacts from any repository\n" );
                 for ( MavenMirrorRequest request : requests )
                 {
-                    msg.append("   ").append( request.getArtifactKey().toExternalForm() ).append( '\n' );
+                    msg.append( "   " ).append( request.getArtifactKey().toExternalForm() ).append( '\n' );
                 }
 
                 throw new RuntimeException( msg.toString() );
@@ -453,7 +457,7 @@ public class P2ResolverImpl
         }
 
         // ignore other/unknown artifacts, like binary blobs for now.
-        //throw new IllegalArgumentException();
+        // throw new IllegalArgumentException();
     }
 
     private void addReactorProject( P2ResolutionResult platform, IInstallableUnit iu, File basedir )
@@ -481,7 +485,7 @@ public class P2ResolverImpl
         }
 
         // we don't care about eclipse-update-site and eclipse-application projects for now
-        //throw new IllegalArgumentException();
+        // throw new IllegalArgumentException();
     }
 
     private String getFeatureId( IInstallableUnit iu )
@@ -572,7 +576,7 @@ public class P2ResolverImpl
                 }
             }
         }
-        result.addAll(createJREIUs());
+        result.addAll( createJREIUs() );
         sub.done();
         return result.toArray( IU_ARRAY );
     }
@@ -580,19 +584,18 @@ public class P2ResolverImpl
     /**
      * these dummy IUs are needed to satisfy Import-Package requirements to packages provided by the JDK.
      */
-	@SuppressWarnings("unchecked")
-	private Collection<IInstallableUnit> createJREIUs() {
-		PublisherResult results = new PublisherResult();
-		// TODO use the appropriate profile name
-		new JREAction((String) null).perform(new PublisherInfo(), results,
-				new NullProgressMonitor());
-		Collector collector = new Collector();
-		results.query(InstallableUnitQuery.ANY, collector,
-				new NullProgressMonitor());
-		return collector.toCollection();
-	}
+    @SuppressWarnings( "unchecked" )
+    private Collection<IInstallableUnit> createJREIUs()
+    {
+        PublisherResult results = new PublisherResult();
+        // TODO use the appropriate profile name
+        new JREAction( (String) null ).perform( new PublisherInfo(), results, new NullProgressMonitor() );
+        Collector collector = new Collector();
+        results.query( InstallableUnitQuery.ANY, collector, new NullProgressMonitor() );
+        return collector.toCollection();
+    }
 
-	private IInstallableUnit createMetaIU( Set<IInstallableUnit> rootIUs )
+    private IInstallableUnit createMetaIU( Set<IInstallableUnit> rootIUs )
     {
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
         String time = Long.toString( System.currentTimeMillis() );
@@ -603,13 +606,9 @@ public class P2ResolverImpl
         for ( IInstallableUnit iu : rootIUs )
         {
             VersionRange range = new VersionRange( iu.getVersion(), true, iu.getVersion(), true );
-            capabilities.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID,
-                                                                        iu.getId(),
-                                                                        range,
-                                                                        iu.getFilter(),
-                                                                        false /* optional */,
-                                                                        !iu.isSingleton() /* multiple */,
-                                                                        true /* greedy */) );
+            capabilities.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, iu.getId(),
+                                                                        range, iu.getFilter(), false /* optional */,
+                                                                        !iu.isSingleton() /* multiple */, true /* greedy */) );
         }
 
         capabilities.addAll( additionalRequirements );
@@ -629,10 +628,10 @@ public class P2ResolverImpl
         {
             TychoRepositoryIndex projectIndex = new LocalTychoRepositoryIndex( location );
             RepositoryReader contentLocator = new LocalRepositoryReader( location );
-    
+
             localRepository = new LocalArtifactRepository( location, projectIndex, contentLocator );
             localMetadataRepository = new LocalMetadataRepository( uri, projectIndex, contentLocator );
-            
+
             repositoryCache.putRepository( uri, localMetadataRepository, localRepository );
         }
 
@@ -649,38 +648,34 @@ public class P2ResolverImpl
     {
         if ( P2Resolver.TYPE_INSTALLABLE_UNIT.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID,
-                                                                                  id,
-                                                                                  new VersionRange( version ),
-                                                                                  null,
-                                                                                  false,
-                                                                                  true ) );
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, id,
+                                                                                  new VersionRange( version ), null,
+                                                                                  false, true ) );
         }
         else if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) )
         {
             // BundlesAction#CAPABILITY_NS_OSGI_BUNDLE
-            additionalRequirements.add( MetadataFactory.createRequiredCapability( "osgi.bundle",
-                                                                                  id,
-                                                                                  new VersionRange( version ),
-                                                                                  null,
-                                                                                  false,
-                                                                                  true ) );
+            additionalRequirements.add( MetadataFactory.createRequiredCapability( "osgi.bundle", id,
+                                                                                  new VersionRange( version ), null,
+                                                                                  false, true ) );
         }
     }
 
     public void addMavenRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
-        MavenMetadataRepository metadataRepository = (MavenMetadataRepository) repositoryCache.getMetadataRepository( location );
-        MavenArtifactRepository artifactRepository = (MavenArtifactRepository) repositoryCache.getArtifactRepository( location );
-        
+        MavenMetadataRepository metadataRepository =
+            (MavenMetadataRepository) repositoryCache.getMetadataRepository( location );
+        MavenArtifactRepository artifactRepository =
+            (MavenArtifactRepository) repositoryCache.getArtifactRepository( location );
+
         if ( metadataRepository == null || artifactRepository == null )
         {
             metadataRepository = new MavenMetadataRepository( location, projectIndex, contentLocator );
             artifactRepository = new MavenArtifactRepository( location, projectIndex, contentLocator );
-            
+
             repositoryCache.putRepository( location, metadataRepository, artifactRepository );
         }
-        
+
         metadataRepositories.add( metadataRepository );
         artifactRepositories.add( artifactRepository );
     }
@@ -766,28 +761,47 @@ public class P2ResolverImpl
             throw new RuntimeException( e );
         }
     }
-    
+
     @SuppressWarnings( "unchecked" )
-    private void dumpInstallableUnits( IQueryable source )
+    private void dumpInstallableUnits( IQueryable source, boolean verbose )
     {
         Collector collector = source.query( InstallableUnitQuery.ANY, new Collector(), monitor );
-        dumpInstallableUnits( collector.toCollection() );
+        dumpInstallableUnits( collector.toCollection(), verbose );
     }
 
-    private void dumpInstallableUnits( Collection<IInstallableUnit> ius )
+    private void dumpInstallableUnits( Collection<IInstallableUnit> ius, boolean verbose )
     {
-        for ( IInstallableUnit iu : ius )
+        if ( verbose )
         {
-            System.out.println( iu.toString() );
+            try
+            {
+                OutputStream os = new FileOutputStream( "/dev/stdout" ); // will this work?
+                try
+                {
+                    new MetadataIO().writeXML( new LinkedHashSet<IInstallableUnit>( ius ), os );
+                }
+                finally
+                {
+                    os.close();
+                }
+            }
+            catch ( IOException e )
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            for ( IInstallableUnit iu : ius )
+            {
+                System.out.println( iu.toString() );
+            }
         }
     }
 
-    private void dumpInstallableUnits( IInstallableUnit[] ius )
+    private void dumpInstallableUnits( IInstallableUnit[] ius, boolean verbose )
     {
-        for ( IInstallableUnit iu : ius )
-        {
-            System.out.println( iu.toString() );
-        }
+        dumpInstallableUnits( Arrays.asList( ius ), verbose );
     }
-    
+
 }

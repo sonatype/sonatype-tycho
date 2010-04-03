@@ -7,8 +7,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.jar.Attributes.Name;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -102,16 +105,17 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			if (pluginFile.exists()) {
 				pluginFile.delete();
 			}
+			Properties buildProperties = pdeProject.getBuildProperties();
+			List<String> binInludesList = toFilePattern(buildProperties.getProperty("bin.includes"));
+			List<String> binExcludesList = toFilePattern(buildProperties.getProperty("bin.excludes"));
 
 			BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
-			if (dotOutputJar != null) {
+			if (dotOutputJar != null && binInludesList.contains(".")) {
 				archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory());
 			}
 
-			String binIncludes = pdeProject.getBuildProperties().getProperty("bin.includes");
-			String binExcludes = pdeProject.getBuildProperties().getProperty("bin.excludes");
-			if (binIncludes != null) {
-				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), toFilePattern(binIncludes), toFilePattern(binExcludes)));
+			if (binInludesList.size() > 0) {
+				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), binInludesList, binExcludesList));
 			}
 
 			File manifest = updateManifest();
@@ -144,6 +148,10 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			is.close();
 		}
 		Attributes attributes = mf.getMainAttributes();
+
+		if (attributes.getValue(Name.MANIFEST_VERSION) == null) {
+		    attributes.put(Name.MANIFEST_VERSION, "1.0");
+		}
 
         attributes.putValue("Bundle-Version", VersioningHelper.getExpandedVersion( project, version.toString()));
 

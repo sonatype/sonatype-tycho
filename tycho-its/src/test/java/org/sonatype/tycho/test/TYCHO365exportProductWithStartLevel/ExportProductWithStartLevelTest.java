@@ -1,6 +1,7 @@
 package org.sonatype.tycho.test.TYCHO365exportProductWithStartLevel;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.Properties;
 
 import junit.framework.Assert;
@@ -8,8 +9,6 @@ import junit.framework.Assert;
 import org.apache.maven.it.Verifier;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
-
-import de.schlichtherle.io.FileInputStream;
 
 public class ExportProductWithStartLevelTest extends AbstractTychoIntegrationTest {
 

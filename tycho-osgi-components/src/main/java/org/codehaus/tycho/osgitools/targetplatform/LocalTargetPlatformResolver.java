@@ -35,8 +35,7 @@ public class LocalTargetPlatformResolver
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
-        DefaultTargetPlatform platform1 = new DefaultTargetPlatform();
-        DefaultTargetPlatform platform = platform1;
+        DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
         BundleManifestReader manifestReader = EquinoxBundleResolutionState.newManifestReader( session.getContainer(), project );
 

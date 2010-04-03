@@ -222,4 +222,11 @@ public class DefaultBundleManifestReader
             throw new RuntimeException( e );
         }
     }
+
+    public boolean isDirectoryShape( Manifest mf )
+    {
+        ManifestElement[] elements = parseHeader( "Eclipse-BundleShape", mf );
+
+        return elements != null && elements.length > 0 && "dir".equals( elements[0].getValue() );
+    }
 }

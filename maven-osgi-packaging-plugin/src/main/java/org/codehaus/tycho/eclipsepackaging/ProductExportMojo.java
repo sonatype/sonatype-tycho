@@ -38,6 +38,7 @@ import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatformConfiguration;
@@ -105,9 +106,8 @@ public class ProductExportMojo
     private boolean separateEnvironments = true;
 
     /**
-     * If true, all included features and bundles will be packed. If false
-     * (the default), all features will be unpacked and bundles will honour
-     * unpack value of <plugin/> element.
+     * If true, all included features and bundles will be packed. If false (the default), all features will be unpacked
+     * and bundles will honour unpack value of <plugin/> element.
      * 
      * @parameter default-value="false"
      */
@@ -154,20 +154,20 @@ public class ProductExportMojo
                 File target = getTarget( environment );
                 File targetEclipse = new File( target, "eclipse" );
                 targetEclipse.mkdirs();
-    
+
                 generateDotEclipseProduct( targetEclipse );
                 generateConfigIni( environment, targetEclipse );
                 includeRootFiles( environment, targetEclipse );
-    
+
                 ProductAssembler assembler = new ProductAssembler( session, manifestReader, targetEclipse, environment );
                 assembler.setIncludeSources( includeSources );
                 getDependencyWalker( environment ).walk( assembler );
-    
+
                 if ( productConfiguration.includeLaunchers() )
                 {
                     copyExecutable( environment, targetEclipse );
                 }
-    
+
                 if ( createProductArchive )
                 {
                     createProductArchive( target, toString( environment ) );
@@ -182,7 +182,7 @@ public class ProductExportMojo
 
             generateDotEclipseProduct( targetEclipse );
             generateConfigIni( null, targetEclipse );
-            
+
             for ( TargetEnvironment environment : getEnvironments() )
             {
                 includeRootFiles( environment, targetEclipse );
@@ -522,7 +522,7 @@ public class ProductExportMojo
     {
         getLog().debug( "Generating config.ini" );
         Properties props = new Properties();
-        String id = productConfiguration.getId();
+        String id = productConfiguration.getProduct();
         if ( id != null )
         {
             String splash = id.split( "\\." )[0];
@@ -597,14 +597,14 @@ public class ProductExportMojo
             {
                 osgiBundles.append( '@' );
 
-                if ( startup.getStartLevel() != -1 )
+                if ( startup.getStartLevel() > 0 )
                 {
                     osgiBundles.append( startup.getStartLevel() );
                 }
 
                 if ( startup.isAutoStart() )
                 {
-                    if ( startup.getStartLevel() != -1 )
+                    if ( startup.getStartLevel() > 0 )
                     {
                         osgiBundles.append( ':' );
                     }
@@ -634,13 +634,15 @@ public class ProductExportMojo
     {
         getLog().debug( "Creating launcher" );
 
-        File location =
+        ArtifactDescription artifact =
             getTargetPlatform().getArtifact( TychoProject.ECLIPSE_FEATURE, "org.eclipse.equinox.executable", null );
 
-        if ( location == null )
+        if ( artifact == null )
         {
-            throw new MojoExecutionException( "RPC delta feature not found!" );
+            throw new MojoExecutionException( "Native launcher is not found for " + environment.toString() );
         }
+
+        File location = artifact.getLocation();
 
         String os = environment.getOs();
         String ws = environment.getWs();
@@ -648,7 +650,7 @@ public class ProductExportMojo
 
         try
         {
-            String launcherRelPath = "bin/" + ws + "/" + os + "/" + arch;
+            String launcherRelPath = "bin/" + ws + "/" + os + "/" + arch + "/";
             String excludes = "**/eclipsec*";
 
             if ( location.isDirectory() )

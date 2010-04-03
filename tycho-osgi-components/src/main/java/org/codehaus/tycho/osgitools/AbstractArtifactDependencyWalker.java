@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
@@ -130,7 +131,7 @@ public abstract class AbstractArtifactDependencyWalker
                 // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
                 // only a org.eclipse.equinox.launcher.carbon.macosx folder.
                 // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
-                if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) && PlatformPropertiesUtils.WS_CARBON.equals( ws ) )
+                if ( PlatformPropertiesUtils.OS_MACOSX.equals( os ) && PlatformPropertiesUtils.ARCH_X86.equals( arch ) )
                 {
                     id = "org.eclipse.equinox.launcher." + ws + "." + os;
                 }
@@ -155,16 +156,16 @@ public abstract class AbstractArtifactDependencyWalker
 
     protected void traverseFeature( FeatureRef ref, ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
     {
-        ArtifactKey key = platform.getArtifactKey( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
+        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
 
-        if ( key != null )
+        if ( artifact != null )
         {
-            if ( visited.containsKey( key ) )
+            if ( visited.containsKey( artifact.getKey() ) )
             {
                 return;
             }
 
-            File location = platform.getArtifact( key );
+            File location = artifact.getLocation();
 
             Feature feature = Feature.loadFeature( location );
             traverseFeature( location, feature, ref, visitor, visited );
@@ -182,16 +183,18 @@ public abstract class AbstractArtifactDependencyWalker
             return;
         }
 
-        ArtifactKey key = platform.getArtifactKey( TychoProject.ECLIPSE_PLUGIN, ref.getId(), ref.getVersion() );
+        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, ref.getId(), ref.getVersion() );
 
-        if ( key != null )
+        if ( artifact != null )
         {
-            File location = platform.getArtifact( key );
+            ArtifactKey key = artifact.getKey();
 
             if ( visited.containsKey( key ) )
             {
                 return;
             }
+
+            File location = artifact.getLocation();
 
             visited.put( key, location );
 

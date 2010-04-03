@@ -50,6 +50,19 @@ public class ProductAssembler
         return manifestReader.parseHeader( "Eclipse-SourceBundle", mf ) != null;
     }
 
+    @Override
+    protected boolean isDirectoryShape( PluginDescription plugin, File location )
+    {
+        if ( super.isDirectoryShape( plugin, location ) )
+        {
+            return true;
+        }
+
+        Manifest mf = manifestReader.loadManifest( location );
+
+        return manifestReader.isDirectoryShape( mf );
+    }
+
     protected boolean matchEntivonment( PluginDescription plugin )
     {
         PluginRef ref = plugin.getPluginRef();

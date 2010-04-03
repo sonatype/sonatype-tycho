@@ -15,26 +15,6 @@ public class BuildQualifierTest
     extends AbstractTychoMojoTestCase
 {
 
-    protected Maven maven;
-    
-    @Override
-    protected void setUp()
-        throws Exception
-    {
-        super.setUp();
-        
-        maven = lookup(Maven.class);
-    }
-    
-    @Override
-    protected void tearDown()
-        throws Exception
-    {
-        maven = null;
-
-        super.tearDown();
-    }
-
     public void testForceContextQualifier()
         throws Exception
     {

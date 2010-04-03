@@ -3,18 +3,20 @@ package org.codehaus.tycho.osgitools.targetplatform;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
-import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.osgitools.DefaultArtifactDescription;
 import org.osgi.framework.Version;
 
 public class DefaultTargetPlatform
@@ -22,48 +24,50 @@ public class DefaultTargetPlatform
 {
     private static final Version VERSION_0_0_0 = new Version( "0.0.0" );
 
-    protected Map<ArtifactKey, File> artifacts = new LinkedHashMap<ArtifactKey, File>();
+    protected Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
 
     protected Map<File, MavenProject> projects = new LinkedHashMap<File, MavenProject>();
 
-    protected Set<File> sites = new LinkedHashSet<File>();
-
-    public List<File> getArtifactFiles( String... artifactTypes )
+    public List<ArtifactDescription> getArtifacts( String type )
     {
-        ArrayList<File> result = new ArrayList<File>();
-        for ( Map.Entry<ArtifactKey, File> entry : artifacts.entrySet() )
+        ArrayList<ArtifactDescription> result = new ArrayList<ArtifactDescription>();
+        for ( Map.Entry<ArtifactKey, ArtifactDescription> entry : artifacts.entrySet() )
         {
-            for ( String type : artifactTypes )
+            if ( type.equals( entry.getKey().getType() ) )
             {
-                if ( type.equals( entry.getKey().getType() ) )
-                {
-                    result.add( entry.getValue() );
-                    break;
-                }
+                result.add( entry.getValue() );
             }
         }
 
         return result;
     }
 
-    public void addArtifactFile( ArtifactKey key, File artifactFile )
+    public void addArtifactFile( ArtifactKey key, File location )
     {
-        artifacts.put( key, artifactFile );
+        addArtifact( new DefaultArtifactDescription( key, location, null ) );
     }
 
+    public void addArtifact( ArtifactDescription artifact )
+    {
+        ArtifactKey key = artifact.getKey();
+        if ( TychoProject.ECLIPSE_TEST_PLUGIN.equals( key.getType() ) )
+        {
+            // normalize eclipse-test-plugin... after all, a bundle is a bundle.
+            key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, key.getId(), key.getVersion() );
+        }
+        artifacts.put( key, artifact );
+    }
+
+    /**
+     * @deprecated get rid of me, I am not used for anything
+     */
     public void addSite( File location )
     {
-        sites.add( location );
-    }
-
-    public List<File> getSites()
-    {
-        return new ArrayList<File>( sites );
     }
 
     public void dump()
     {
-        for ( Map.Entry<ArtifactKey, File> entry : artifacts.entrySet() )
+        for ( Map.Entry<ArtifactKey, ArtifactDescription> entry : artifacts.entrySet() )
         {
             System.out.println( entry.getKey() + "\t" + entry.getValue() );
         }
@@ -74,12 +78,7 @@ public class DefaultTargetPlatform
         return artifacts.isEmpty();
     }
 
-    public File getArtifact( ArtifactKey key )
-    {
-        return getArtifact( key.getType(), key.getId(), key.getVersion() );
-    }
-
-    public ArtifactKey getArtifactKey( String type, String id, String version )
+    public ArtifactDescription getArtifact( String type, String id, String version )
     {
         if ( type == null || id == null )
         {
@@ -88,8 +87,8 @@ public class DefaultTargetPlatform
         }
 
         // features with matching id, sorted by version, highest version first
-        SortedMap<Version, ArtifactKey> relevantArtifacts =
-            new TreeMap<Version, ArtifactKey>( new Comparator<Version>()
+        SortedMap<Version, ArtifactDescription> relevantArtifacts =
+            new TreeMap<Version, ArtifactDescription>( new Comparator<Version>()
             {
                 public int compare( Version o1, Version o2 )
                 {
@@ -97,12 +96,12 @@ public class DefaultTargetPlatform
                 };
             } );
 
-        for ( Map.Entry<ArtifactKey, File> entry : this.artifacts.entrySet() )
+        for ( Map.Entry<ArtifactKey, ArtifactDescription> entry : this.artifacts.entrySet() )
         {
             ArtifactKey key = entry.getKey();
             if ( type.equals( key.getType() ) && id.equals( key.getId() ) )
             {
-                relevantArtifacts.put( Version.parseVersion( key.getVersion() ), key );
+                relevantArtifacts.put( Version.parseVersion( key.getVersion() ), entry.getValue() );
             }
         }
 
@@ -111,7 +110,7 @@ public class DefaultTargetPlatform
             return null;
         }
 
-        if ( version == null || version == TychoConstants.HIGHEST_VERSION ) // == match is intentional
+        if ( version == null )
         {
             return relevantArtifacts.get( relevantArtifacts.firstKey() ); // latest version
         }
@@ -122,29 +121,22 @@ public class DefaultTargetPlatform
             return relevantArtifacts.get( relevantArtifacts.firstKey() ); // latest version
         }
 
-        ArtifactKey perfectMatch = relevantArtifacts.get( parsedVersion );
+        String qualifier = parsedVersion.getQualifier();
 
-        if ( perfectMatch != null )
+        if ( qualifier == null || "".equals( qualifier ) || ANY_QUALIFIER.equals( qualifier ) )
         {
-            return perfectMatch; // perfect match
-        }
-
-        boolean qualified = !"".equals( parsedVersion.getQualifier() );
-
-        if ( qualified )
-        {
-            return null; // must be perfect match for qualified versions
-        }
-
-        for ( Map.Entry<Version, ArtifactKey> entry : relevantArtifacts.entrySet() )
-        {
-            if ( baseVersionEquals( parsedVersion, entry.getKey() ) )
+            // latest qualifier
+            for ( Map.Entry<Version, ArtifactDescription> entry : relevantArtifacts.entrySet() )
             {
-                return entry.getValue();
+                if ( baseVersionEquals( parsedVersion, entry.getKey() ) )
+                {
+                    return entry.getValue();
+                }
             }
         }
 
-        return null;
+        // perfect match or nothing
+        return relevantArtifacts.get( parsedVersion );
     }
 
     private static boolean baseVersionEquals( Version v1, Version v2 )
@@ -154,7 +146,8 @@ public class DefaultTargetPlatform
 
     public void addMavenProject( ArtifactKey key, MavenProject project )
     {
-        addArtifactFile( key, project.getBasedir() );
+        DefaultArtifactDescription artifact = new DefaultArtifactDescription( key, project.getBasedir(), project );
+        addArtifact( artifact );
         projects.put( project.getBasedir(), project );
     }
 
@@ -163,13 +156,16 @@ public class DefaultTargetPlatform
         return projects.get( location );
     }
 
-    public File getArtifact( String type, String id, String version )
+    public void removeAll( String type, String id )
     {
-        ArtifactKey key = getArtifactKey( type, id, version );
-        if ( key == null )
+        Iterator<Entry<ArtifactKey, ArtifactDescription>> iter = artifacts.entrySet().iterator();
+        while ( iter.hasNext() )
         {
-            return null;
+            ArtifactKey key = iter.next().getKey();
+            if ( key.getType().equals( type ) && key.getId().equals( id ) )
+            {
+                iter.remove();
+            }
         }
-        return artifacts.get( key );
     }
 }

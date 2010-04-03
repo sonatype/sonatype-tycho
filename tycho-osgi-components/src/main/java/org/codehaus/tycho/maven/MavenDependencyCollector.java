@@ -62,10 +62,13 @@ public class MavenDependencyCollector
 
     protected void addDependency( ArtifactDescription artifact )
     {
-        Dependency dependency;
+        Dependency dependency = null;
         if ( artifact.getMavenProject() != null )
         {
-            dependency = newProjectDependency( artifact.getMavenProject() );
+            if ( !project.equals( artifact.getMavenProject() ) )
+            {
+                dependency = newProjectDependency( artifact.getMavenProject() );
+            }
         }
         else
         {

@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,10 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 			}
 		}
 
+		List<String> globalExtraClasspath = new ArrayList<String>();
+		if (buildProperties.getProperty("jars.extra.classpath") != null)
+			globalExtraClasspath.addAll(Arrays.asList(buildProperties.getProperty("jars.extra.classpath").split(",")));
+		
 		for (Map.Entry<Object,Object> entry : buildProperties.entrySet()) {
 			String key = (String) entry.getKey();
 			String value = (String) entry.getValue();
@@ -47,7 +52,13 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 					? new File(project.getBuild().getOutputDirectory())
 					: new File(project.getBuild().getDirectory(), jarName + "-classes");
 			List<File> sourceFolders = toFileList(project.getBasedir(), value.split(","));
-			jars.put(jarName, new BuildOutputJar(jarName, outputDirectory, sourceFolders));
+			
+			List<String> extraEntries = new ArrayList<String>();
+			if (buildProperties.getProperty("extra." + jarName) != null) {
+				extraEntries.addAll(Arrays.asList(buildProperties.getProperty("extra." + jarName).split(",")));
+				extraEntries.addAll(globalExtraClasspath);
+			}
+			jars.put(jarName, new BuildOutputJar(jarName, outputDirectory, sourceFolders, extraEntries.size() == 0 ? globalExtraClasspath : extraEntries));
 		}
 
 		this.dotOutputJar = jars.get(".");
@@ -62,7 +73,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 	private List<File> toFileList(File parent, String[] names) throws IOException {
 		ArrayList<File> result = new ArrayList<File>();
 		for (String name : names) {
-			result.add(new File(parent, name).getCanonicalFile());
+			result.add(new File(parent, name.trim()).getCanonicalFile());
 		}
 		return result;
 	}

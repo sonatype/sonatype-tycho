@@ -47,6 +47,13 @@ public class OsgiSurefireBooter {
 				Boolean.TRUE /*trimStackTrace*/
 			}
 		});
+        reports.add(new Object[] {
+            "org.apache.maven.surefire.report.FileReporter",
+            new Object[] {
+                reportsDir,
+                Boolean.TRUE /*trimStackTrace*/
+            }
+        });
 		reports.add(new Object[] {
 			"org.apache.maven.surefire.report.XMLReporter",
 			new Object[] {

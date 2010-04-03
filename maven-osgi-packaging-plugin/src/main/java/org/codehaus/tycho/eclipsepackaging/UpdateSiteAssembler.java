@@ -159,8 +159,7 @@ public class UpdateSiteAssembler
             version = VersioningHelper.getExpandedVersion( bundleProject, version );
         }
 
-        PluginRef pluginRef = plugin.getPluginRef();
-        if ( unpackPlugins && ( ( pluginRef != null && pluginRef.isUnpack() ) || location.isDirectory() ) )
+        if ( unpackPlugins && isDirectoryShape( plugin, location ) )
         {
             // need a directory
             File outputJar = getOutputFile( PLUGINS_DIR, bundleId, version, null );
@@ -193,6 +192,12 @@ public class UpdateSiteAssembler
 //                shipPack200( outputJar );
 //            }
         }
+    }
+
+    protected boolean isDirectoryShape( PluginDescription plugin, File location )
+    {
+        PluginRef pluginRef = plugin.getPluginRef();
+        return ( ( pluginRef != null && pluginRef.isUnpack() ) || location.isDirectory() );
     }
 
     private void unpackJar( File location, File outputJar )

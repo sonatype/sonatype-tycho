@@ -9,7 +9,7 @@ import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 
 public class DefaultFeatureDescription
-    extends AbstractArtifactDescription
+    extends DefaultArtifactDescription
     implements FeatureDescription
 {
     private Feature feature;

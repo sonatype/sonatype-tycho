@@ -180,6 +180,11 @@ public class PackageFeatureMojo
 
                     pluginRef.setVersion( VersioningHelper.getExpandedVersion( bundleProject, pluginRef.getVersion() ) );
                 }
+                else
+                {
+                    // use version from target platform
+                    pluginRef.setVersion( plugin.getKey().getVersion() );
+                }
 
                 long downloadSize = 0;
                 long installSize = 0;

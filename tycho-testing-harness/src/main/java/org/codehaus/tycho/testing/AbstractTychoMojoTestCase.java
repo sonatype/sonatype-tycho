@@ -2,16 +2,36 @@ package org.codehaus.tycho.testing;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.maven.Maven;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
+import org.apache.maven.execution.DefaultMavenExecutionResult;
 import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.execution.MavenExecutionResult;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.FileUtils;
 
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
+
+    protected Maven maven;
+    
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        maven = lookup(Maven.class);
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        maven = null;
+        super.tearDown();
+    }
 
 	protected File getBasedir(String name) throws IOException {
 		File src = new File( getBasedir(), "src/test/resources/" + name );
@@ -29,12 +49,6 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		
 		return dst;
 	}
-
-//	protected void customizeContainerConfiguration(ContainerConfiguration containerConfiguration) {
-//		super.customizeContainerConfiguration(containerConfiguration);
-//		containerConfiguration.addComponentDiscoverer( new MavenPluginDiscoverer() );
-//		containerConfiguration.addComponentDiscoveryListener( new MavenPluginCollector() );
-//	}
 
 	@Override
     protected String getCustomConfigurationName()
@@ -69,4 +83,29 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		return request;
 	}
 
+    protected List<MavenProject> getSortedProjects(File basedir, File platform) throws Exception {
+        File pom = new File(basedir, "pom.xml");
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getProjectBuildingRequest().setProcessPlugins(false);
+        request.setLocalRepository(getLocalRepository());
+        if (platform != null) {
+            request.getUserProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
+        }
+        MavenExecutionResult result = maven.execute( request );
+        if (result.hasExceptions()) {
+            throw new CompoundRuntimeException(result.getExceptions());
+        }
+        return result.getTopologicallySortedProjects();
+    }
+
+    protected MavenSession newMavenSession( MavenProject project, List<MavenProject> projects ) throws Exception
+    {
+        MavenExecutionRequest request = newMavenExecutionRequest( new File( project.getBasedir(), "pom.xml" ) );
+        MavenExecutionResult result = new DefaultMavenExecutionResult();
+        MavenSession session = new MavenSession(getContainer(), request, result);
+        session.setCurrentProject( project );
+        session.setProjects( projects );
+        return session;
+    }
+    
 }

@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Properties;
 
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 
 public interface P2Resolver
@@ -18,6 +19,8 @@ public interface P2Resolver
     public static final String TYPE_ECLIPSE_APPLICATION = TychoProject.ECLIPSE_APPLICATION;
 
     public static final String TYPE_ECLIPSE_UPDATE_SITE = TychoProject.ECLIPSE_UPDATE_SITE;
+
+    public static final String ANY_QUALIFIER = TargetPlatform.ANY_QUALIFIER;
 
     /**
      * Pseudo artifact type used to denote P2 installable unit dependencies

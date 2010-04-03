@@ -22,19 +22,19 @@ public abstract class AbstractTargetPlatformResolver
     protected void addProjects( MavenSession session, DefaultTargetPlatform platform )
     {
         File parentDir = null;
-    
+
         for ( MavenProject project : session.getProjects() )
         {
             try
             {
-                TychoProject dr =
-                    (TychoProject) session.lookup( TychoProject.class.getName(), project.getPackaging() );
-    
+                TychoProject dr = (TychoProject) session.lookup( TychoProject.class.getName(), project.getPackaging() );
+
                 ArtifactKey key = dr.getArtifactKey( project );
-    
-                platform.addArtifactFile( key, project.getBasedir() );
+
+                platform.removeAll( key.getType(), key.getId() );
+
                 platform.addMavenProject( key, project );
-    
+
                 if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
                 {
                     parentDir = project.getBasedir();
@@ -45,7 +45,7 @@ public abstract class AbstractTargetPlatformResolver
                 // fully expected
             }
         }
-    
+
         platform.addSite( parentDir );
     }
 

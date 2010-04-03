@@ -4,7 +4,7 @@
   <parent>
     <artifactId>tycho-p2</artifactId>
     <groupId>org.sonatype.tycho</groupId>
-    <version>0.8.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>tycho-p2-plugin</artifactId>
   <packaging>maven-plugin</packaging>

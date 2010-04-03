@@ -2,6 +2,7 @@ package org.codehaus.tycho.buildversion;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.codehaus.tycho.TychoProject;
 
 /**
  * Validates project Maven and OSGi versions. For SNAPSHOT versions, OSGi version qualifier must be ".qualifier" and
@@ -48,9 +49,30 @@ public class ValidateVersionMojo
     {
         if ( !mavenVersion.equals( osgiVersion ) )
         {
-            fail( "OSGi version " + osgiVersion + " must match Maven version " + mavenVersion
-                + " for RELEASE builds" );
+            fail( "OSGi version " + osgiVersion + " in " + getOSGiMetadataFileName() + " does not match Maven version "
+                + mavenVersion + " in pom.xml" );
         }
+    }
+
+    private String getOSGiMetadataFileName()
+    {
+        // Kinda hack
+
+        String packaging = project.getPackaging();
+
+        if ( TychoProject.ECLIPSE_PLUGIN.equals( packaging ) || TychoProject.ECLIPSE_TEST_PLUGIN.equals( packaging ) )
+        {
+            return "META-INF/MANIFEST.MF";
+        }
+        else if ( TychoProject.ECLIPSE_FEATURE.equals( packaging ) )
+        {
+            return "feature.xml";
+        }
+        else if ( TychoProject.ECLIPSE_APPLICATION.equals( packaging ) )
+        {
+            return project.getArtifactId() + ".product";
+        }
+        return "<unknown packaging=" + packaging + ">";
     }
 
     public void validateSnapshotVersion( String mavenVersion, String osgiVersion )
@@ -62,8 +84,7 @@ public class ValidateVersionMojo
         }
         else
         {
-            String unqualifiedMavenVersion =
-                mavenVersion.substring( 0, mavenVersion.length() - "-SNAPSHOT".length() );
+            String unqualifiedMavenVersion = mavenVersion.substring( 0, mavenVersion.length() - "-SNAPSHOT".length() );
             String unqualifiedOSGiVersion =
                 osgiVersion.substring( 0, osgiVersion.length() - VersioningHelper.QUALIFIER.length() - 1 );
             if ( !unqualifiedMavenVersion.equals( unqualifiedOSGiVersion ) )
