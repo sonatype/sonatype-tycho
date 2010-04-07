@@ -104,7 +104,7 @@ public class P2TargetPlatformResolver
         {
             public void debug( String message )
             {
-                if ( message.length() > 0 )
+                if ( message != null && message.length() > 0 )
                 {
                     getLogger().info( message ); // TODO
                 }
@@ -112,7 +112,10 @@ public class P2TargetPlatformResolver
 
             public void info( String message )
             {
-                getLogger().info( message );
+                if ( message != null && message.length() > 0 )
+                {
+                    getLogger().info( message );
+                }
             }
         } );
         
