@@ -7,21 +7,25 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.apache.maven.ProjectDependenciesResolver;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
 import org.apache.maven.artifact.repository.Authentication;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
+import org.apache.maven.artifact.resolver.MultipleArtifactsNotFoundException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
@@ -147,23 +151,60 @@ public class P2TargetPlatformResolver
 
         if ( POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
         {
+            Set<String> projectIds = new HashSet<String>( session.getProjects().size() * 2 );
+            for ( MavenProject p : session.getProjects() )
+            {
+                String key = ArtifactUtils.key( p.getGroupId(), p.getArtifactId(), p.getVersion() );
+                projectIds.add( key );
+            }
+
             ArrayList<String> scopes = new ArrayList<String>();
             scopes.add( Artifact.SCOPE_COMPILE );
+            Collection<Artifact> artifacts;
             try
             {
-                for ( Artifact a : projectDependenciesResolver.resolve( project, scopes, session ) )
+                artifacts = projectDependenciesResolver.resolve( project, scopes, session );
+            }
+            catch ( MultipleArtifactsNotFoundException e )
+            {
+                Collection<Artifact> missing = new HashSet<Artifact>( e.getMissingArtifacts() );
+
+                for ( Iterator<Artifact> it = missing.iterator(); it.hasNext(); )
                 {
-                    if ( getLogger().isDebugEnabled() )
+                    Artifact a = it.next();
+                    String key = ArtifactUtils.key( a.getGroupId(), a.getArtifactId(), a.getBaseVersion() );
+                    if ( projectIds.contains( key ) )
                     {
-                        getLogger().debug( "P2resolver.addMavenArtifact " + a.toString() );
+                        it.remove();
                     }
-                    resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(),
-                                               a.getVersion() );
                 }
+
+                if ( !missing.isEmpty() )
+                {
+                    throw new RuntimeException( "Could not resolve project dependencies", e );
+                }
+
+                artifacts = e.getResolvedArtifacts();
+                artifacts.removeAll( e.getMissingArtifacts() );
             }
             catch ( AbstractArtifactResolutionException e )
             {
                 throw new RuntimeException( "Could not resolve project dependencies", e );
+            }
+            for ( Artifact a : artifacts )
+            {
+                String key = ArtifactUtils.key( a.getGroupId(), a.getArtifactId(), a.getBaseVersion() );
+                if ( projectIds.contains( key ) )
+                {
+                    // resolved to an older snapshot from the repo, we only want the current project in the reactor
+                    continue;
+                }
+                if ( getLogger().isDebugEnabled() )
+                {
+                    getLogger().debug( "P2resolver.addMavenArtifact " + a.toString() );
+                }
+                resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(),
+                                           a.getVersion() );
             }
         }
 
