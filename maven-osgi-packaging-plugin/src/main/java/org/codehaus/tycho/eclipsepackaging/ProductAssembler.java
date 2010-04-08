@@ -7,7 +7,7 @@ import org.apache.maven.execution.MavenSession;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.model.PluginRef;
-import org.codehaus.tycho.osgitools.BundleManifestReader;
+import org.codehaus.tycho.osgitools.BundleReader;
 
 public class ProductAssembler
     extends UpdateSiteAssembler
@@ -17,9 +17,9 @@ public class ProductAssembler
 
     private boolean includeSources;
 
-    private final BundleManifestReader manifestReader;
+    private final BundleReader manifestReader;
 
-    public ProductAssembler( MavenSession session, BundleManifestReader manifestReader, File target, TargetEnvironment environment )
+    public ProductAssembler( MavenSession session, BundleReader manifestReader, File target, TargetEnvironment environment )
     {
         super( session, target );
         this.manifestReader = manifestReader;

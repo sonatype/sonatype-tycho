@@ -23,8 +23,7 @@ import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.osgitools.BundleManifestReader;
-import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
+import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.eclipse.osgi.framework.adaptor.FrameworkAdaptor;
 import org.eclipse.osgi.util.ManifestElement;
@@ -49,7 +48,7 @@ public class TestEclipseRuntime
 
     private PlexusContainer plexus;
 
-    private BundleManifestReader manifestReader;
+    private BundleReader manifestReader;
 
     static
     {
@@ -249,8 +248,14 @@ public class TestEclipseRuntime
     public void setPlexusContainer( PlexusContainer plexus )
     {
         this.plexus = plexus;
-        this.manifestReader =
-            EquinoxBundleResolutionState.newInstance( plexus, new File( location, ".manifests" ) ).getBundleManifestReader();
+        try
+        {
+            this.manifestReader = plexus.lookup( BundleReader.class );
+        }
+        catch ( ComponentLookupException e )
+        {
+            throw new IllegalStateException( "Could not lookup required component", e );
+        }
     }
 
     public void setBundlesToExplode( List<String> bundlesToExplode )

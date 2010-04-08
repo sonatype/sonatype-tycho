@@ -2,7 +2,14 @@ package org.codehaus.tycho.osgitools;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
@@ -10,17 +17,22 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
+import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
+import org.codehaus.tycho.BundleProject;
 import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.ClasspathEntry;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
+import org.codehaus.tycho.osgitools.project.BuildOutputJar;
+import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.util.ManifestElement;
@@ -30,9 +42,13 @@ import org.osgi.framework.Constants;
 @Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_PLUGIN )
 public class OsgiBundleProject
     extends AbstractTychoProject
+    implements BundleProject
 {
 
     private static final String CTX_ARTIFACT_KEY = TychoConstants.CTX_BASENAME + "/osgiBundle/artifactKey";
+
+    @Requirement
+    private BundleReader bundleReader;
 
     @Requirement
     private DependencyComputer dependencyComputer;
@@ -116,13 +132,10 @@ public class OsgiBundleProject
     @Override
     public void setupProject( MavenSession session, MavenProject project )
     {
-        BundleManifestReader manifestReader =
-            EquinoxBundleResolutionState.newManifestReader( session.getContainer(), project );
+        Manifest mf = bundleReader.loadManifest( project.getBasedir() );
 
-        Manifest mf = manifestReader.loadManifest( project.getBasedir() );
-
-        ManifestElement[] id = manifestReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
-        ManifestElement[] version = manifestReader.parseHeader( Constants.BUNDLE_VERSION, mf );
+        ManifestElement[] id = bundleReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
+        ManifestElement[] version = bundleReader.parseHeader( Constants.BUNDLE_VERSION, mf );
 
         if ( id == null || version == null )
         {
@@ -153,6 +166,187 @@ public class OsgiBundleProject
         {
             throw new RuntimeException( e );
         }
-
     }
+
+    public List<ClasspathEntry> getClasspath( MavenProject project )
+    {
+        TargetPlatform platform = getTargetPlatform( project );
+
+        BundleResolutionState state = getBundleResolutionState( project );
+        BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir() );
+
+        List<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
+
+        // project itself
+        ArtifactDescription artifact = platform.getArtifact( project.getBasedir() );
+        cp.add( new DefaultClasspathEntry( getProjectClasspath( artifact, project, null ), null ) );
+
+        // build.properties/jars.extra.classpath
+        addExtraClasspathEntries( cp, project, platform );
+
+        // dependencies
+        for ( DependencyEntry entry : dependencyComputer.computeDependencies( state, bundleDescription ) )
+        {
+            File location = new File( entry.desc.getLocation() );
+            ArtifactDescription otherArtifact = platform.getArtifact( location );
+            MavenProject otherProject = platform.getMavenProject( location );
+            List<File> locations;
+            if ( otherProject != null )
+            {
+                locations = getProjectClasspath( otherArtifact, otherProject, null );
+            }
+            else
+            {
+                locations = getBundleClasspath( otherArtifact, null );
+            }
+
+            cp.add( new DefaultClasspathEntry( locations, entry.rules ) );
+        }
+
+        return cp;
+    }
+
+    private List<File> getProjectClasspath( ArtifactDescription bundle, MavenProject project, String nestedPath )
+    {
+        LinkedHashSet<File> classpath = new LinkedHashSet<File>();
+
+        EclipsePluginProject pdeProject =
+            (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+
+        Map<String, BuildOutputJar> outputJars = pdeProject.getOutputJarMap();
+        for ( String cp : parseBundleClasspath( bundle ) )
+        {
+            if ( nestedPath == null || nestedPath.equals( cp ) )
+            {
+                if ( outputJars.containsKey( cp ) )
+                {
+                    // add output folder even if it does not exist (yet)
+                    classpath.add( outputJars.get( cp ).getOutputDirectory() );
+                }
+                else
+                {
+                    File jar = new File( project.getBasedir(), cp );
+                    if ( jar.exists() )
+                    {
+                        classpath.add( jar );
+                    }
+                }
+            }
+        }
+
+        if ( nestedPath != null && classpath.isEmpty() )
+        {
+            // TODO ideally, we need to honour build.properties/bin.includes
+            // but for now lets just assume nestedPath is included
+            
+            File jar = new File( project.getBasedir(), nestedPath );
+            if ( jar.exists() )
+            {
+                classpath.add( jar );
+            }
+        }
+
+        return new ArrayList<File>( classpath );
+    }
+
+    private void addExtraClasspathEntries( List<ClasspathEntry> classpath, MavenProject project, TargetPlatform platform )
+    {
+        EclipsePluginProject pdeProject =
+            (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+        Collection<BuildOutputJar> outputJars = pdeProject.getOutputJarMap().values();
+        for ( BuildOutputJar buildOutputJar : outputJars )
+        {
+            List<String> entries = buildOutputJar.getExtraClasspathEntries();
+            for ( String entry : entries )
+            {
+                Pattern platformURL = Pattern.compile( "platform:/(plugin|fragment)/([^/]*)/*(.*)" );
+                Matcher m = platformURL.matcher( entry.trim() );
+                String bundleId = null;
+                String path = null;
+                if ( m.matches() )
+                {
+                    bundleId = m.group( 2 ).trim();
+                    path = m.group( 3 ).trim();
+
+                    if ( path.isEmpty() )
+                    {
+                        path = null;
+                    }
+                }
+                else
+                {
+                    // Log and
+                    continue;
+                }
+                ArtifactDescription matchingBundle = platform.getArtifact( ECLIPSE_PLUGIN, bundleId, null );
+                if ( matchingBundle != null )
+                {
+                    List<File> locations;
+                    if ( matchingBundle.getMavenProject() != null )
+                    {
+                        locations = getProjectClasspath( matchingBundle, matchingBundle.getMavenProject(), path );
+                    }
+                    else
+                    {
+                        locations = getBundleClasspath( matchingBundle, path );
+                    }
+                    classpath.add( new DefaultClasspathEntry( locations, null ) );
+                }
+                else
+                {
+                    getLogger().warn( "Missing extra classpath entry " + entry.trim() );
+                }
+            }
+        }
+    }
+
+    private List<File> getBundleClasspath( ArtifactDescription bundle, String nestedPath )
+    {
+        LinkedHashSet<File> classpath = new LinkedHashSet<File>();
+
+        for ( String cp : parseBundleClasspath( bundle ) )
+        {
+            File entry;
+            if ( nestedPath == null || nestedPath.equals( cp ) )
+            {
+                if ( ".".equals( cp ) )
+                {
+                    entry = bundle.getLocation();
+                }
+                else
+                {
+                    entry = getNestedJar( bundle, cp );
+                }
+    
+                if ( entry != null )
+                {
+                    classpath.add( entry );
+                }
+            }
+        }
+
+        return new ArrayList<File>( classpath );
+    }
+
+    private String[] parseBundleClasspath( ArtifactDescription bundle )
+    {
+        String[] result = new String[] { "." };
+        Manifest mf = bundleReader.loadManifest( bundle.getLocation() );
+        ManifestElement[] classpathEntries = bundleReader.parseHeader( Constants.BUNDLE_CLASSPATH, mf );
+        if ( classpathEntries != null )
+        {
+            result = new String[classpathEntries.length];
+            for ( int i = 0; i < classpathEntries.length; i++ )
+            {
+                result[i] = classpathEntries[i].getValue();
+            }
+        }
+        return result;
+    }
+
+    private File getNestedJar( ArtifactDescription bundle, String cp )
+    {
+        return bundleReader.getEntry( bundle.getLocation(), cp );
+    }
+
 }

@@ -14,11 +14,11 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
@@ -26,12 +26,14 @@ import org.osgi.framework.Constants;
 
 import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 
-@Component( role = BundleManifestReader.class, instantiationStrategy = "per-lookup" )
-public class DefaultBundleManifestReader
+@Component( role = BundleReader.class )
+public class DefaultBundleReader
     extends AbstractLogEnabled
-    implements BundleManifestReader
+    implements BundleReader
 {
-    private File manifestsDir;
+    public static final String CACHE_PATH = ".cache/tycho";
+
+    private File cacheDir;
 
     private static final Map<File, Manifest> manifestCache = new HashMap<File, Manifest>();
 
@@ -151,7 +153,7 @@ public class DefaultBundleManifestReader
         {
             name = name.substring( 0, name.length() - 4 );
         }
-        File manifestFile = new File( manifestsDir, name + "/META-INF/MANIFEST.MF" );
+        File manifestFile = new File( cacheDir, name + "/META-INF/MANIFEST.MF" );
         manifestFile.getParentFile().mkdirs();
         converter.convertManifest( bundleLocation, manifestFile, false /* compatibility */, "3.2" /* target version */,
                                    true /* analyse jars to set export-package */, null /* devProperties */);
@@ -162,33 +164,9 @@ public class DefaultBundleManifestReader
         return null;
     }
 
-    public void setManifestsDir( File manifestsDir )
+    public void setLocationRepository( File basedir )
     {
-        this.manifestsDir = manifestsDir;
-    }
-
-    public File getManifestsDir()
-    {
-        return manifestsDir;
-    }
-
-    public static DefaultBundleManifestReader newInstance( PlexusContainer container, File manifestsDir )
-    {
-        DefaultBundleManifestReader instance;
-        try
-        {
-            instance = (DefaultBundleManifestReader) container.lookup( BundleManifestReader.class );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new IllegalStateException( e );
-        }
-
-        manifestsDir.mkdirs();
-
-        instance.setManifestsDir( manifestsDir );
-
-        return instance;
+        this.cacheDir = new File( basedir, CACHE_PATH );
     }
 
     public Properties toProperties( Manifest mf )
@@ -228,5 +206,44 @@ public class DefaultBundleManifestReader
         ManifestElement[] elements = parseHeader( "Eclipse-BundleShape", mf );
 
         return elements != null && elements.length > 0 && "dir".equals( elements[0].getValue() );
+    }
+
+    public File getEntry( File bundleLocation, String path )
+    {
+        if ( bundleLocation.isDirectory() )
+        {
+            return new File( bundleLocation, path );
+        }
+
+        File file = new File( cacheDir, bundleLocation.getName() + "/" + path );
+
+        try
+        {
+            ZipFile zip = new ZipFile( bundleLocation );
+            try
+            {
+                ZipEntry ze = zip.getEntry( path );
+                if ( ze != null )
+                {
+                    InputStream is = zip.getInputStream( ze );
+                    FileUtils.copyStreamToFile( new RawInputStreamFacade( is ), file );
+                }
+                else
+                {
+                    // TODO log
+                }
+            }
+            finally
+            {
+                zip.close();
+            }
+        }
+        catch ( IOException e )
+        {
+            // XXX log
+            return null;
+        }
+
+        return file;
     }
 }

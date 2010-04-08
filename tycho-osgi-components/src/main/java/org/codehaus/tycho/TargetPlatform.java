@@ -32,4 +32,6 @@ public interface TargetPlatform
     public ArtifactDescription getArtifact( String type, String id, String version );
 
     public MavenProject getMavenProject( File location );
+
+    public ArtifactDescription getArtifact( File location );
 }

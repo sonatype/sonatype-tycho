@@ -8,7 +8,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.apache.maven.it.Verifier;
-import org.codehaus.tycho.osgitools.DefaultBundleManifestReader;
+import org.codehaus.tycho.osgitools.DefaultBundleReader;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
@@ -47,7 +47,7 @@ public class JarDirectoryBundlesTest
         {
             jar.close();
         }
-        DefaultBundleManifestReader reader = new DefaultBundleManifestReader();
+        DefaultBundleReader reader = new DefaultBundleReader();
         Assert.assertEquals( "platform.jar", reader.parseHeader( "Bundle-ClassPath", mf )[0].getValue() );
         Assert.assertEquals( "org.eclipse.platform", reader.parseHeader( "Bundle-SymbolicName", mf )[0].getValue() );
         

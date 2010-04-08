@@ -14,12 +14,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
@@ -44,13 +43,10 @@ import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
-import org.codehaus.tycho.osgitools.BundleManifestReader;
-import org.codehaus.tycho.osgitools.DefaultBundleManifestReader;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 /**
  * @goal generate-poms
@@ -708,8 +704,6 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
         try
         {
             state = (EquinoxBundleResolutionState) plexus.lookup(BundleResolutionState.class);
-            DefaultBundleManifestReader manifestReader = (DefaultBundleManifestReader) plexus.lookup( BundleManifestReader.class );
-            ((EquinoxBundleResolutionState) state).setManifestsReader( manifestReader );
         }
         catch ( ComponentLookupException e )
         {

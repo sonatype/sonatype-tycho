@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -39,28 +40,31 @@ import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.tycho.BundleProject;
+import org.codehaus.tycho.ClasspathEntry;
+import org.codehaus.tycho.ClasspathEntry.AccessRule;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
-import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.utils.MavenArtifactRef;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 
-	private static final Set<String> MATCH_ALL = Collections.singleton("**/*");
+    public static final String RULE_SEPARATOR = File.pathSeparator;
+
+//  public static final String RULE_INCLUDE_ALL = "**/*";
+
+    /**
+     * Exclude all but keep looking for other another match
+     */
+    public static final String RULE_EXCLUDE_ALL = "?**/*";
+
+    private static final Set<String> MATCH_ALL = Collections.singleton("**/*");
 	private static final Set<String> MATCH_JAVA = Collections
 			.singleton("**/*.java");
-
-	/**
-	 * A temporary directory to extract embedded jars
-	 * 
-	 * @parameter expression="${project.build.directory}/plugins"
-	 * @required
-	 * @readonly
-	 */
-	private File storage;
 
 	/**
 	 * @parameter expression="${project}"
@@ -97,16 +101,11 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 */
 	private MavenArtifactRef[] extraClasspathElements;
 
-	/** @component */
-	private DependencyComputer dependencyComputer;
-
 	/** @parameter expression="${session}" */
 	private MavenSession session;
 
 	/** @component */
 	private RepositorySystem repositorySystem;
-
-	private ClasspathComputer classpathComputer;
 
 	/**
 	 * A list of inclusion filters for the compiler.
@@ -127,6 +126,11 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 */
 	private BuildOutputJar outputJar;
 
+	/**
+	 * @component role="org.codehaus.tycho.TychoProject"
+	 */
+	private Map<String, TychoProject> projectTypes;
+	
 	public void execute() throws MojoExecutionException, CompilationFailureException {
         initializeProjectContext();
 
@@ -139,7 +143,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 			this.outputJar.getOutputDirectory().mkdirs();
 			super.execute();
 			copyResources();
-			getClasspathComputer().addOutputDirectory(this.outputJar.getOutputDirectory());
 		}
 
 		// this does not include classes from nested jars
@@ -199,8 +202,18 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	}
 
 	public List<String> getClasspathElements() throws MojoExecutionException {
-		List<String> classpath = getClasspathComputer().computeClasspath();
-		
+	    TychoProject projectType = projectTypes.get(project.getPackaging());
+	    if (!(projectType instanceof BundleProject)) {
+	        throw new MojoExecutionException("Not a bundle project " + project.toString());
+	    }
+		List<String> classpath = new ArrayList<String>();
+		for (ClasspathEntry cpe : ((BundleProject) projectType).getClasspath(project)) {
+		    String rules = toString(cpe.getAccessRules());
+		    for (File location : cpe.getLocations()) {
+		        classpath.add(location.getAbsolutePath() + rules);
+		    }
+		}
+
 		if (extraClasspathElements != null) {
 	    	ArtifactRepository localRepository = session.getLocalRepository();
 	    	List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
@@ -228,14 +241,23 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		return classpath;
 	}
 
-	private ClasspathComputer getClasspathComputer() {
-		if (classpathComputer == null) {
-			classpathComputer = new ClasspathComputer(session, dependencyComputer, project, storage);
-		}
-		return classpathComputer;
-	}
+	private String toString(List<AccessRule> rules) {
+        StringBuilder result = new StringBuilder(); // include all
+        if (rules != null) {
+            result.append("[");
+            for (AccessRule rule : rules) {
+                if (result.length() > 1) result.append(RULE_SEPARATOR);
+                result.append(rule.discouraged? "~": "+");
+                result.append(rule.path);
+            }
+            if (result.length() > 1) result.append(RULE_SEPARATOR);
+            result.append(RULE_EXCLUDE_ALL);
+            result.append("]");
+        }
+        return result.toString();
+    }
 
-	protected final List<String> getCompileSourceRoots() throws MojoExecutionException {
+    protected final List<String> getCompileSourceRoots() throws MojoExecutionException {
 		return usePdeSourceRoots? getPdeCompileSourceRoots(): getConfiguredCompileSourceRoots();
 	}
 

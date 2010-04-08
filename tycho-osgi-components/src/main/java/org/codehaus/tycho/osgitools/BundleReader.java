@@ -7,9 +7,8 @@ import java.util.jar.Manifest;
 import org.eclipse.osgi.util.ManifestElement;
 
 // TODO cleanup and rework to consistently use equinox implementation
-public interface BundleManifestReader
+public interface BundleReader
 {
-
     Manifest loadManifest( File bundleLocation );
 
     Properties toProperties( Manifest mf );
@@ -30,4 +29,5 @@ public interface BundleManifestReader
      */
     boolean isDirectoryShape( Manifest mf );
 
+    File getEntry( File bundleLocation, String path );
 }

@@ -17,6 +17,7 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.ArtifactDescription;
@@ -55,7 +56,8 @@ public class EquinoxBundleResolutionState
 
     private long nextBundleId;
 
-    private BundleManifestReader manifestReader;
+    @Requirement
+    private BundleReader manifestReader;
 
     public BundleDescription addBundle( File bundleLocation, boolean override )
         throws BundleException
@@ -340,8 +342,6 @@ public class EquinoxBundleResolutionState
             throw new RuntimeException( "Could not lookup required component", e1 );
         }
 
-        resolver.setManifestsReader( newManifestReader( plexus, project ) );
-
         TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
         try
         {
@@ -370,37 +370,6 @@ public class EquinoxBundleResolutionState
         }
 
         return resolver;
-    }
-
-    public static DefaultBundleManifestReader newManifestReader( PlexusContainer plexus, MavenProject project )
-    {
-        File manifestsDir = new File( project.getBuild().getDirectory(), "manifests" );
-
-        DefaultBundleManifestReader manifestReader = DefaultBundleManifestReader.newInstance( plexus, manifestsDir );
-        return manifestReader;
-    }
-
-    public static EquinoxBundleResolutionState newInstance( PlexusContainer plexus, File manifestsDir )
-    {
-        EquinoxBundleResolutionState resolver;
-
-        try
-        {
-            resolver = (EquinoxBundleResolutionState) plexus.lookup( BundleResolutionState.class );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new RuntimeException( "Could not lookup required component", e );
-        }
-
-        resolver.setManifestsReader( DefaultBundleManifestReader.newInstance( plexus, manifestsDir ) );
-
-        return resolver;
-    }
-
-    public void setManifestsReader( DefaultBundleManifestReader manifestReader )
-    {
-        this.manifestReader = manifestReader;
     }
 
     public BundleDescription resolve( MavenProject project )
@@ -528,7 +497,7 @@ public class EquinoxBundleResolutionState
         return null;
     }
 
-    public BundleManifestReader getBundleManifestReader()
+    public BundleReader getBundleManifestReader()
     {
         return manifestReader;
     }

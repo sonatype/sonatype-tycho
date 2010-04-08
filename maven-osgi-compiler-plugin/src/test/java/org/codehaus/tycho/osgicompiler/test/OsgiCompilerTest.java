@@ -8,7 +8,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
-import org.codehaus.tycho.osgicompiler.ClasspathComputer;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
@@ -25,7 +24,7 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 	private AbstractOsgiCompilerMojo getMojo(List<MavenProject> projects, MavenProject project) throws Exception {
 		AbstractOsgiCompilerMojo mojo = (AbstractOsgiCompilerMojo) lookupMojo("compile", project.getFile());
 		setVariableValueToObject(mojo, "project", project);
-		setVariableValueToObject(mojo, "storage", storage);
+//		setVariableValueToObject(mojo, "storage", storage);
 		setVariableValueToObject(mojo, "outputDirectory", new File(project.getBuild().getOutputDirectory()).getAbsoluteFile());
         setVariableValueToObject(mojo, "session", newMavenSession(project, projects));
 		
@@ -102,12 +101,12 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertEquals(3, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
 		assertEquals(getClasspathElement(new File(getBasedir()), "src/test/resources/projects/classpath/platform/plugins/p003_0.0.1.jar", "[?**/*]"), cp.get(1));
-		assertEquals(getClasspathElement(new File(getBasedir()), "target/storage/p003_1.0.0/lib/lib.jar", "[?**/*]"), cp.get(2));
+		assertEquals(getClasspathElement(new File(getBasedir()), "target/local-repo/.cache/tycho/p003_0.0.1.jar/lib/lib.jar", "[?**/*]"), cp.get(2));
 	}
 
 	private String getClasspathElement(File base, String path, String accessRules) throws IOException {
 		String file = new File(base, path).getCanonicalPath();
-		return file + accessRules.replace(":", ClasspathComputer.ACCESS_RULE_SEPARATOR);
+		return file + accessRules.replace(":", AbstractOsgiCompilerMojo.RULE_SEPARATOR);
 	}
 
 	public void test_multisourceP001_viaMojoConfiguration() throws Exception {

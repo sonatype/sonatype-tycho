@@ -8,6 +8,7 @@ import java.util.Properties;
 import junit.framework.Assert;
 
 import org.codehaus.plexus.PlexusTestCase;
+import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.osgitest.TestFramework;
 import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
@@ -112,10 +113,9 @@ public class TestFrameworkTest
     }
 
     protected EquinoxBundleResolutionState newResolutionState()
-        throws BundleException
+        throws Exception
     {
-        EquinoxBundleResolutionState state =
-            EquinoxBundleResolutionState.newInstance( getContainer(), new File( "target/manifests" ) );
+        EquinoxBundleResolutionState state = (EquinoxBundleResolutionState) lookup( BundleResolutionState.class );
         state.addBundle( new File( "src/test/resources/org.junit_3.8.2.v20090203-1005" ), false );
         state.addBundle( new File( "src/test/resources/org.junit_4.8.1.v4_8_1_v20100114-1600" ), false );
         state.addBundle( new File( "src/test/resources/org.junit4_4.7.0.v20100104" ), false );

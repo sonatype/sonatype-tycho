@@ -16,7 +16,7 @@ public class MultiEnvironmentTargetPlatform
         platforms.put( environment, platform );
 
         artifacts.putAll( platform.artifacts );
-        projects.putAll( platform.projects );
+        locations.putAll( platform.locations );
     }
 
     public TargetPlatform getPlatform( TargetEnvironment environment )

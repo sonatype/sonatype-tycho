@@ -37,6 +37,8 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
+import org.codehaus.tycho.osgitools.BundleReader;
+import org.codehaus.tycho.osgitools.DefaultBundleReader;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.codehaus.tycho.utils.TychoVersion;
@@ -69,6 +71,9 @@ public class TychoMavenLifecycleParticipant
     @Requirement
     private EquinoxEmbedder equinoxEmbedder;
 
+    @Requirement
+    private BundleReader bundleReader;
+
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
     {
@@ -81,6 +86,9 @@ public class TychoMavenLifecycleParticipant
         {
             return;
         }
+
+        File localRepository = new File( session.getLocalRepository().getBasedir() );
+        ( (DefaultBundleReader) bundleReader ).setLocationRepository( localRepository );
 
         File p2Directory = resolveEquinoxRuntime( session );
         if ( p2Directory != null )

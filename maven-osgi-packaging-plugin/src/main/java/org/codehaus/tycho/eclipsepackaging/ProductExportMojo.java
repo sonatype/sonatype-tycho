@@ -17,10 +17,10 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -46,8 +46,7 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.BundleConfiguration;
 import org.codehaus.tycho.model.ProductConfiguration;
-import org.codehaus.tycho.osgitools.BundleManifestReader;
-import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
+import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.pde.internal.swt.tools.IconExe;
 
@@ -113,6 +112,11 @@ public class ProductExportMojo
      */
     private boolean forcePackedDependencies;
 
+    /**
+     * @component
+     */
+    private BundleReader manifestReader;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -142,10 +146,6 @@ public class ProductExportMojo
         {
             throw new MojoFailureException( "Product includes native launcher but no target environment was specified" );
         }
-
-        // expandVersion();
-
-        BundleManifestReader manifestReader = EquinoxBundleResolutionState.newManifestReader( plexus, project );
 
         if ( separateEnvironments )
         {

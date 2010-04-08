@@ -1,7 +1,6 @@
 package org.codehaus.tycho.osgitools;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.TreeMap;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.ClasspathEntry.AccessRule;
 import org.eclipse.osgi.service.resolver.BaseDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -30,30 +30,24 @@ import org.eclipse.osgi.service.resolver.StateHelper;
 @Component( role = DependencyComputer.class )
 public class DependencyComputer {
 
-	public static class AccessRule {
-		public String path;
-		public boolean discouraged;
-
-		public boolean equals(Object other) {
-			if (!(other instanceof AccessRule))
-				return false;
-			return discouraged == ((AccessRule) other).discouraged && path.equals(((AccessRule) other).path);
-		}
-	}
-
 	public static class DependencyEntry {
 		public final BundleDescription desc;
-		public final AccessRule[] rules;
+		public final List<AccessRule> rules;
 
-		public DependencyEntry(BundleDescription desc, AccessRule[] rules) {
+		public DependencyEntry(BundleDescription desc, List<AccessRule> rules) {
 			this.desc = desc;
 			this.rules = rules;
 		}
 
-		public boolean equals(Object other) {
-			if (!(other instanceof DependencyEntry))
+		public boolean equals(Object obj) {
+		    if (this == obj) {
+		        return true;
+		    }
+			if (!(obj instanceof DependencyEntry)) {
 				return false;
-			return desc.equals(((DependencyEntry) other).desc) && Arrays.equals(rules, ((DependencyEntry) other).rules);
+			}
+			DependencyEntry other = (DependencyEntry) obj;
+            return desc.equals(other.desc) && rules.equals(other.rules);
 		}
 	}
 
@@ -130,11 +124,10 @@ public class DependencyComputer {
 	}
 
 	private AccessRule getRule(StateHelper helper, BundleDescription desc, ExportPackageDescription export) {
-		AccessRule rule = new AccessRule();
-		rule.discouraged = helper.getAccessCode(desc, export) == StateHelper.ACCESS_DISCOURAGED;
+		boolean discouraged = helper.getAccessCode(desc, export) == StateHelper.ACCESS_DISCOURAGED;
 		String name = export.getName();
-		rule.path = (name.equals(".")) ? "*" : name.replaceAll("\\.", "/") + "/*";
-		return rule;
+		String path = (name.equals(".")) ? "*" : name.replaceAll("\\.", "/") + "/*";
+		return new AccessRule(path, discouraged);
 	}
 
 	protected void addDependencyViaImportPackage(BundleDescription desc, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
@@ -191,14 +184,14 @@ public class DependencyComputer {
 	}
 
 	private boolean addPlugin(BundleDescription desc, boolean useInclusions, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
-		AccessRule[] rules = useInclusions ? getInclusions(map, desc) : null;
+		List<AccessRule> rules = useInclusions ? getInclusions(map, desc) : null;
 		DependencyEntry entry = new DependencyEntry(desc, rules);
 		if (!entries.contains(entry))
 			entries.add(entry);
 		return true;
 	}
 
-	private AccessRule[] getInclusions(Map<BundleDescription, ArrayList<AccessRule>> map, BundleDescription desc) {
+	private List<AccessRule> getInclusions(Map<BundleDescription, ArrayList<AccessRule>> map, BundleDescription desc) {
 		ArrayList<AccessRule> rules;
 
 		if (desc.getHost() != null)
@@ -206,7 +199,7 @@ public class DependencyComputer {
 		else
 			rules = map.get(desc);
 
-		return (rules == null || rules.size() == 0) ? new AccessRule[0] : rules.toArray(new AccessRule[rules.size()]);
+		return rules != null? rules : new ArrayList<AccessRule>();
 	}
 
 	private void addHostPlugin(HostSpecification hostSpec, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {

@@ -7,9 +7,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDescription;
@@ -26,7 +26,7 @@ public class DefaultTargetPlatform
 
     protected Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
 
-    protected Map<File, MavenProject> projects = new LinkedHashMap<File, MavenProject>();
+    protected Map<File, ArtifactDescription> locations = new LinkedHashMap<File, ArtifactDescription>();
 
     public List<ArtifactDescription> getArtifacts( String type )
     {
@@ -56,6 +56,7 @@ public class DefaultTargetPlatform
             key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, key.getId(), key.getVersion() );
         }
         artifacts.put( key, artifact );
+        locations.put( artifact.getLocation(), artifact );
     }
 
     /**
@@ -148,12 +149,17 @@ public class DefaultTargetPlatform
     {
         DefaultArtifactDescription artifact = new DefaultArtifactDescription( key, project.getBasedir(), project );
         addArtifact( artifact );
-        projects.put( project.getBasedir(), project );
     }
 
     public MavenProject getMavenProject( File location )
     {
-        return projects.get( location );
+        ArtifactDescription artifact = getArtifact( location );
+        return artifact != null? artifact.getMavenProject(): null;
+    }
+
+    public ArtifactDescription getArtifact( File location )
+    {
+        return locations.get( location );
     }
 
     public void removeAll( String type, String id )

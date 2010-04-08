@@ -14,8 +14,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
-import org.codehaus.tycho.osgitools.BundleManifestReader;
-import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
+import org.codehaus.tycho.osgitools.BundleReader;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.Constants;
 
@@ -33,11 +32,12 @@ public class LocalTargetPlatformResolver
     @Requirement
     private EclipseInstallationLayout layout;
 
+    @Requirement
+    private BundleReader manifestReader;
+
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
-
-        BundleManifestReader manifestReader = EquinoxBundleResolutionState.newManifestReader( session.getContainer(), project );
 
         for ( File site : layout.getSites() )
         {
@@ -52,7 +52,8 @@ public class LocalTargetPlatformResolver
 
                 if ( id != null && version != null )
                 {
-                    platform.addArtifactFile( new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() ), plugin );
+                    platform.addArtifactFile( new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(),
+                                                               version[0].getValue() ), plugin );
                 }
             }
 

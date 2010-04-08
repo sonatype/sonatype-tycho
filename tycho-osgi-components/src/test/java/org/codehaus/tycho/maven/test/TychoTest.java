@@ -3,7 +3,6 @@ package org.codehaus.tycho.maven.test;
 import java.io.File;
 import java.util.List;
 
-import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.model.Dependency;
@@ -12,6 +11,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.osgitools.DefaultBundleReader;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.codehaus.tycho.testing.CompoundRuntimeException;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -175,8 +175,10 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertNotNull(state.getBundle("testjar", "1.0.0"));
 		assertNotNull(state.getBundle("testdir", "1.0.0"));
 
-		assertTrue(new File(project.getBuild().getDirectory(), "manifests/testdir_1.0.0/META-INF/MANIFEST.MF").canRead());
-		assertTrue(new File(project.getBuild().getDirectory(), "manifests/testjar_1.0.0/META-INF/MANIFEST.MF").canRead());
+		File cacheDir = new File( request.getLocalRepository().getBasedir(), DefaultBundleReader.CACHE_PATH );
+
+		assertTrue(new File(cacheDir, "testdir_1.0.0/META-INF/MANIFEST.MF").canRead());
+		assertTrue(new File(cacheDir, "testjar_1.0.0/META-INF/MANIFEST.MF").canRead());
 	}
 
 	public void testMNGECLIPSE942() throws Exception {
