@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -27,6 +28,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.URIUtil;
+import org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepository;
+import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
+import org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties;
 import org.eclipse.equinox.internal.p2.core.helpers.ServiceHelper;
 import org.eclipse.equinox.internal.p2.director.DirectorActivator;
 import org.eclipse.equinox.internal.p2.director.Explanation;
@@ -53,6 +57,7 @@ import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadata
 import org.eclipse.equinox.internal.provisional.p2.query.Collector;
 import org.eclipse.equinox.internal.provisional.p2.query.IQueryable;
 import org.eclipse.equinox.internal.provisional.p2.repository.IRepository;
+import org.eclipse.equinox.internal.provisional.spi.p2.repository.AbstractRepository;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
 import org.eclipse.equinox.p2.publisher.actions.JREAction;
@@ -205,12 +210,57 @@ public class P2ResolverImpl
             metadataRepositories.add( metadataRepository );
             artifactRepositories.add( artifactRepository );
 
+            forceSingleThreadedDownload( artifactRepositoryManager, artifactRepository );
+
             // processPartialIUs( metadataRepository, artifactRepository );
         }
         catch ( ProvisionException e )
         {
             throw new RuntimeException( e );
         }
+    }
+
+    protected void forceSingleThreadedDownload( IArtifactRepositoryManager artifactRepositoryManager,
+                                                IArtifactRepository artifactRepository )
+    {
+        try
+        {
+            if ( artifactRepository instanceof SimpleArtifactRepository )
+            {
+                forceSingleThreadedDownload( (SimpleArtifactRepository) artifactRepository );
+            }
+            else if ( artifactRepository instanceof CompositeArtifactRepository )
+            {
+                forceSingleThreadedDownload( artifactRepositoryManager,
+                                             (CompositeArtifactRepository) artifactRepository );
+            }
+        }
+        catch ( Exception e )
+        {
+            // we've tried
+        }
+    }
+
+    protected void forceSingleThreadedDownload( IArtifactRepositoryManager artifactRepositoryManager,
+                                                CompositeArtifactRepository artifactRepository )
+        throws ProvisionException
+    {
+        List<URI> children = (List<URI>) artifactRepository.getChildren();
+        for ( URI child : children )
+        {
+            forceSingleThreadedDownload( artifactRepositoryManager, artifactRepositoryManager.loadRepository( child,
+                                                                                                              monitor ) );
+        }
+    }
+
+    protected void forceSingleThreadedDownload( SimpleArtifactRepository artifactRepository )
+        throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException
+    {
+        Field field = AbstractRepository.class.getDeclaredField( "properties" );
+        field.setAccessible( true );
+        OrderedProperties p = (OrderedProperties) field.get( artifactRepository );
+        p.put( org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository.PROP_MAX_THREADS,
+               "1" );
     }
 
     @SuppressWarnings( "unchecked" )

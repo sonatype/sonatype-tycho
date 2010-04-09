@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDescription;
@@ -23,6 +24,11 @@ public class DefaultTargetPlatform
     implements TargetPlatform
 {
     private static final Version VERSION_0_0_0 = new Version( "0.0.0" );
+
+    private static final WeakHashMap<ArtifactKey, ArtifactKey> KEY_CACHE = new WeakHashMap<ArtifactKey, ArtifactKey>();
+
+    private static final WeakHashMap<ArtifactKey, ArtifactDescription> ARTIFACT_CACHE =
+        new WeakHashMap<ArtifactKey, ArtifactDescription>();
 
     protected Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
 
@@ -55,6 +61,27 @@ public class DefaultTargetPlatform
             // normalize eclipse-test-plugin... after all, a bundle is a bundle.
             key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, key.getId(), key.getVersion() );
         }
+
+        ArtifactKey cachedKey = KEY_CACHE.get( key );
+        if ( cachedKey != null )
+        {
+            key = cachedKey;
+        }
+        else
+        {
+            KEY_CACHE.put( key, key );
+        }
+
+        ArtifactDescription cachedArtifact = ARTIFACT_CACHE.get( key );
+        if ( cachedArtifact != null && cachedArtifact.getLocation().equals( artifact.getLocation() ) )
+        {
+            artifact = cachedArtifact;
+        }
+        else
+        {
+            ARTIFACT_CACHE.put( key, artifact );
+        }
+
         artifacts.put( key, artifact );
         locations.put( artifact.getLocation(), artifact );
     }
