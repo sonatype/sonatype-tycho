@@ -20,7 +20,6 @@ import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.BundleProject;
-import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.ClasspathEntry;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
@@ -35,6 +34,7 @@ import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProjectImpl;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
@@ -51,6 +51,9 @@ public class OsgiBundleProject
     private BundleReader bundleReader;
 
     @Requirement
+    private EquinoxResolver resolver;
+
+    @Requirement
     private DependencyComputer dependencyComputer;
 
     public ArtifactDependencyWalker getDependencyWalker( MavenProject project, TargetEnvironment environment )
@@ -61,24 +64,20 @@ public class OsgiBundleProject
     public ArtifactDependencyWalker getDependencyWalker( MavenProject project )
     {
         final TargetPlatform platform = getTargetPlatform( project );
-        final BundleResolutionState state = getBundleResolutionState( project );
-        final BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir() );
+
+        final List<ClasspathEntry> cp = getClasspath( project );
 
         return new ArtifactDependencyWalker()
         {
             public void walk( ArtifactDependencyVisitor visitor )
             {
-                for ( DependencyEntry entry : dependencyComputer.computeDependencies( state, bundleDescription ) )
+                for ( ClasspathEntry entry : cp )
                 {
-                    BundleDescription supplier = entry.desc;
+                    ArtifactDescription artifact = platform.getArtifact( entry.getArtifactKey() );
 
-                    String artifactId = supplier.getSymbolicName();
-                    String version = supplier.getVersion().toString();
-                    File location = new File( supplier.getLocation() );
-                    MavenProject project = platform.getMavenProject( location );
-
-                    String type = project != null ? project.getPackaging() : TychoProject.ECLIPSE_PLUGIN;
-                    ArtifactKey key = new ArtifactKey( type, artifactId, version );
+                    ArtifactKey key = artifact.getKey();
+                    File location = artifact.getLocation();
+                    MavenProject project = artifact.getMavenProject();
 
                     PluginDescription plugin = new DefaultPluginDescription( key, location, project, null );
 
@@ -98,24 +97,6 @@ public class OsgiBundleProject
             {
             }
         };
-    }
-
-    @Override
-    public void setTargetPlatform( MavenSession session, MavenProject project, TargetPlatform targetPlatform )
-    {
-        super.setTargetPlatform( session, project, targetPlatform );
-
-        EquinoxBundleResolutionState resolver =
-            EquinoxBundleResolutionState.newInstance( session.getContainer(), session, project );
-
-        project.setContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE, resolver );
-    }
-
-    protected EquinoxBundleResolutionState getBundleResolutionState( MavenProject project )
-    {
-        EquinoxBundleResolutionState resolver =
-            (EquinoxBundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-        return resolver;
     }
 
     public ArtifactKey getArtifactKey( MavenProject project )
@@ -150,46 +131,36 @@ public class OsgiBundleProject
     @Override
     public void resolve( MavenProject project )
     {
-        EquinoxBundleResolutionState state = getBundleResolutionState( project );
-        BundleDescription bundle = state.resolve( project );
+        TargetPlatform platform = getTargetPlatform( project );
+
+        State state;
         try
         {
-            state.assertResolved( bundle );
-            project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT, new EclipsePluginProjectImpl( project,
-                                                                                                              bundle ) );
+            state = resolver.newResolvedState( project, platform );
         }
         catch ( BundleException e )
         {
             throw new RuntimeException( e );
         }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
-    }
 
-    public List<ClasspathEntry> getClasspath( MavenProject project )
-    {
-        TargetPlatform platform = getTargetPlatform( project );
+        BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
 
-        BundleResolutionState state = getBundleResolutionState( project );
-        BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir() );
-
-        List<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
+        List<ClasspathEntry> classpath = new ArrayList<ClasspathEntry>();
 
         // project itself
         ArtifactDescription artifact = platform.getArtifact( project.getBasedir() );
-        cp.add( new DefaultClasspathEntry( getProjectClasspath( artifact, project, null ), null ) );
+        classpath.add( new DefaultClasspathEntry( artifact.getKey(), getProjectClasspath( artifact, project, null ),
+                                                  null ) );
 
         // build.properties/jars.extra.classpath
-        addExtraClasspathEntries( cp, project, platform );
+        addExtraClasspathEntries( classpath, project, platform );
 
         // dependencies
-        for ( DependencyEntry entry : dependencyComputer.computeDependencies( state, bundleDescription ) )
+        for ( DependencyEntry entry : dependencyComputer.computeDependencies( state.getStateHelper(), bundleDescription ) )
         {
             File location = new File( entry.desc.getLocation() );
             ArtifactDescription otherArtifact = platform.getArtifact( location );
-            MavenProject otherProject = platform.getMavenProject( location );
+            MavenProject otherProject = otherArtifact.getMavenProject();
             List<File> locations;
             if ( otherProject != null )
             {
@@ -200,23 +171,52 @@ public class OsgiBundleProject
                 locations = getBundleClasspath( otherArtifact, null );
             }
 
-            cp.add( new DefaultClasspathEntry( locations, entry.rules ) );
+            classpath.add( new DefaultClasspathEntry( otherArtifact.getKey(), locations, entry.rules ) );
         }
+        project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_CLASSPATH, classpath );
 
-        return cp;
+    }
+
+    public EclipsePluginProjectImpl getEclipsePluginProject( MavenProject project )
+    {
+        EclipsePluginProjectImpl pdeProject =
+            (EclipsePluginProjectImpl) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+        if ( pdeProject == null )
+        {
+            try
+            {
+                pdeProject = new EclipsePluginProjectImpl( project );
+                project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT, pdeProject );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( e );
+            }
+        }
+        return pdeProject;
+    }
+
+    public List<ClasspathEntry> getClasspath( MavenProject project )
+    {
+        List<ClasspathEntry> classpath =
+            (List<ClasspathEntry>) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_CLASSPATH );
+        if ( classpath == null )
+        {
+            throw new IllegalStateException();
+        }
+        return classpath;
     }
 
     private List<File> getProjectClasspath( ArtifactDescription bundle, MavenProject project, String nestedPath )
     {
         LinkedHashSet<File> classpath = new LinkedHashSet<File>();
 
-        EclipsePluginProject pdeProject =
-            (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+        EclipsePluginProject pdeProject = getEclipsePluginProject( project );
 
         Map<String, BuildOutputJar> outputJars = pdeProject.getOutputJarMap();
-        for ( String cp : parseBundleClasspath( bundle ) )
+        if ( nestedPath == null )
         {
-            if ( nestedPath == null || nestedPath.equals( cp ) )
+            for ( String cp : parseBundleClasspath( bundle ) )
             {
                 if ( outputJars.containsKey( cp ) )
                 {
@@ -230,19 +230,26 @@ public class OsgiBundleProject
                     {
                         classpath.add( jar );
                     }
+                    else
+                    {
+                        getLogger().warn( "Missing classpath entry " + cp + " " + project.toString() );
+                    }
                 }
             }
         }
-
-        if ( nestedPath != null && classpath.isEmpty() )
+        else /* nestedPath != null */
         {
+            File jar = new File( project.getBasedir(), nestedPath );
+
             // TODO ideally, we need to honour build.properties/bin.includes
             // but for now lets just assume nestedPath is included
-            
-            File jar = new File( project.getBasedir(), nestedPath );
-            if ( jar.exists() )
+            if ( jar.exists() || outputJars.containsKey( nestedPath ) )
             {
                 classpath.add( jar );
+            }
+            else
+            {
+                getLogger().warn( "Missing classpath entry " + nestedPath + " " + project.toString() );
             }
         }
 
@@ -251,8 +258,7 @@ public class OsgiBundleProject
 
     private void addExtraClasspathEntries( List<ClasspathEntry> classpath, MavenProject project, TargetPlatform platform )
     {
-        EclipsePluginProject pdeProject =
-            (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+        EclipsePluginProject pdeProject = getEclipsePluginProject( project );
         Collection<BuildOutputJar> outputJars = pdeProject.getOutputJarMap().values();
         for ( BuildOutputJar buildOutputJar : outputJars )
         {
@@ -290,7 +296,7 @@ public class OsgiBundleProject
                     {
                         locations = getBundleClasspath( matchingBundle, path );
                     }
-                    classpath.add( new DefaultClasspathEntry( locations, null ) );
+                    classpath.add( new DefaultClasspathEntry( matchingBundle.getKey(), locations, null ) );
                 }
                 else
                 {
@@ -317,7 +323,7 @@ public class OsgiBundleProject
                 {
                     entry = getNestedJar( bundle, cp );
                 }
-    
+
                 if ( entry != null )
                 {
                     classpath.add( entry );

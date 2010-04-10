@@ -14,9 +14,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
@@ -41,7 +41,6 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.utils.MavenArtifactRef;
 
 import aQute.lib.osgi.Instruction;
@@ -295,13 +294,6 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 			}
 		}
 
-		attributes.putValue(TychoConstants.ATTR_GROUP_ID, project.getGroupId());
-		attributes.putValue(TychoConstants.ATTR_ARTIFACT_ID, project.getArtifactId());
-		attributes.putValue(TychoConstants.ATTR_BASE_VERSION, artifact.getBaseVersion());
-		// XXX deal with different plugin packaging
-//		attributes.putValue("MavenArtifact-Type", TYPE_DIRECTORY_PLUGIN);
-//		attributes.putValue("MavenArtifact-Classifier", CLASSIFIER_DIRECTORY_PLUGIN);
-		
 		return m;
 	}
 

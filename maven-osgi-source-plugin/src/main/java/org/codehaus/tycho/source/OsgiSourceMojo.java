@@ -7,14 +7,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.TychoConstants;
-import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.codehaus.tycho.ArtifactKey;
+import org.codehaus.tycho.TychoProject;
 import org.osgi.framework.Version;
 
 /**
@@ -62,6 +62,10 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
      */
     private String qualifier;
 
+    /**
+     * @component role="org.codehaus.tycho.TychoProject"
+     */
+    private Map<String, TychoProject> projectTypes;
 
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
@@ -139,22 +143,23 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 
     private void addSourceBundleManifestEntries(MavenArchiveConfiguration mavenArchiveConfiguration)
     {
-        BundleDescription bundleDescription = getProjectBundleManifest();
+        TychoProject projectType = projectTypes.get( project.getPackaging() );
+        ArtifactKey artifactKey = projectType.getArtifactKey( project );
+        String symbolicName = artifactKey.getId();
+        String version = artifactKey.getVersion();
 
-        if ( bundleDescription != null
-        	    && bundleDescription.getSymbolicName() != null
-        	    && bundleDescription.getVersion() != null )
+        if ( symbolicName != null && version != null )
         {
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_MANIFEST_VERSION, "2" );
 
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_SYMBOLIC_NAME,
-            	    bundleDescription.getSymbolicName() + BUNDLE_SYMBOLIC_NAME_SUFFIX );
+            	    symbolicName + BUNDLE_SYMBOLIC_NAME_SUFFIX );
 
-            Version expandedVersion = getExpandedVersion(bundleDescription.getVersion());
+            Version expandedVersion = getExpandedVersion(version);
 
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_VERSION, expandedVersion.toString() );
 
-            mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_ECLIPSE_SOURCE_BUNDLE, bundleDescription.getSymbolicName()
+            mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_ECLIPSE_SOURCE_BUNDLE, symbolicName
             	    + ";version=\"" + expandedVersion + '"' );
         }
         else
@@ -163,26 +168,14 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
         }
     }
 
-    private Version getExpandedVersion(Version version)
+    private Version getExpandedVersion(String versionStr)
     {
+        Version version = Version.parseVersion( versionStr );
         if ( VERSION_QUALIFIER.equals(version.getQualifier()) )
         {
             return new Version(version.getMajor(), version.getMinor(), version.getMicro(), qualifier);
         }
         return version;
-    }
-
-    private BundleDescription getProjectBundleManifest()
-    {
-        BundleResolutionState bundleResolutionState =
-            (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-
-        if ( bundleResolutionState != null )
-        {
-            return bundleResolutionState.getBundleByLocation( project.getBasedir() );
-        }
-
-        return null;
     }
 
 }

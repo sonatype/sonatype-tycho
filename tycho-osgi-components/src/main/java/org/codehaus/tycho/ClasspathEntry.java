@@ -32,10 +32,13 @@ public interface ClasspathEntry
         }
     }
 
+    public ArtifactKey getArtifactKey();
+
     public List<File> getLocations();
 
     /**
      * <code>null</code> means "no access restrictions"
      */
     public List<AccessRule> getAccessRules();
+
 }

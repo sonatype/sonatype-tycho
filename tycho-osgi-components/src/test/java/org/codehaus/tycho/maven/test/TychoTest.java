@@ -9,12 +9,11 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.testing.SilentLog;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.DefaultBundleReader;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.codehaus.tycho.testing.CompoundRuntimeException;
-import org.eclipse.osgi.service.resolver.BundleDescription;
 
 public class TychoTest extends AbstractTychoMojoTestCase {
 
@@ -170,10 +169,11 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 
         MavenProject project = getSortedProjects(request).get(0);
 
-        BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
+        TychoProject projectType = lookup( TychoProject.class, project.getPackaging() );
+        TargetPlatform platform = projectType.getTargetPlatform( project );
 
-		assertNotNull(state.getBundle("testjar", "1.0.0"));
-		assertNotNull(state.getBundle("testdir", "1.0.0"));
+		assertNotNull(platform.getArtifact(TychoProject.ECLIPSE_PLUGIN, "testjar", "1.0.0"));
+		assertNotNull(platform.getArtifact(TychoProject.ECLIPSE_PLUGIN, "testdir", "1.0.0"));
 
 		File cacheDir = new File( request.getLocalRepository().getBasedir(), DefaultBundleReader.CACHE_PATH );
 
@@ -188,13 +188,11 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         request.getUserProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/MNGECLIPSE-942").getCanonicalPath());
 
         MavenProject project = getSortedProjects(request).get(0);
+        TychoProject projectType = lookup( TychoProject.class, project.getPackaging() );
+        TargetPlatform platform = projectType.getTargetPlatform( project );
 
-        BundleResolutionState state = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-
-		List<BundleDescription> bundles = state.getBundles();
-
-		assertEquals(3, bundles.size());
-		assertNotNull(state.getBundle( "org.junit4.nl_ru", null));
+		assertEquals(2, platform.getArtifacts( TychoProject.ECLIPSE_PLUGIN ).size());
+		assertNotNull(platform.getArtifact(TychoProject.ECLIPSE_PLUGIN, "org.junit4.nl_ru", null));
 	}
 	
 }

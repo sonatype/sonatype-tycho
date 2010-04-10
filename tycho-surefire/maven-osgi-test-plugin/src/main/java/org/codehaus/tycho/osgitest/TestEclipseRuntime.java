@@ -365,4 +365,9 @@ public class TestEclipseRuntime
         bundles.addArtifact( artifact );
     }
 
+    public void addBundle( ArtifactKey key, File file )
+    {
+        bundles.addArtifactFile( key, file );
+    }
+
 }

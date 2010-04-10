@@ -4,17 +4,18 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.maven.Maven;
 import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
+import org.codehaus.tycho.osgitools.EquinoxResolver;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.codehaus.tycho.utils.MavenSessionUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.State;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,14 +49,17 @@ public class DependencyComputerTest
         request.getProjectBuildingRequest().setProcessPlugins( false );
         MavenExecutionResult result = maven.execute( request );
 
+        EquinoxResolver resolver = lookup( EquinoxResolver.class );
+
         Map<File, MavenProject> basedirMap = MavenSessionUtils.getBasedirMap( result.getTopologicallySortedProjects() );
 
         MavenProject project = basedirMap.get( new File( basedir, "bundle" ) );
-        BundleResolutionState bundleResolutionState =
-            (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
+        TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
+        
+        State state = resolver.newResolvedState( project, platform );
+        BundleDescription bundle = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
 
-        BundleDescription bundle = bundleResolutionState.getBundleByLocation( project.getBasedir() );
-        List<DependencyEntry> dependencies = dependencyComputer.computeDependencies( bundleResolutionState, bundle );
+        List<DependencyEntry> dependencies = dependencyComputer.computeDependencies( state.getStateHelper(), bundle );
         Assert.assertEquals( 2, dependencies.size() );
         Assert.assertEquals( "dep", dependencies.get( 0 ).desc.getSymbolicName() );
         Assert.assertEquals( "dep2", dependencies.get( 1 ).desc.getSymbolicName() );

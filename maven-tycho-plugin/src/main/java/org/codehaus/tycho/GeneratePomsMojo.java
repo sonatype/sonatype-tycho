@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.jar.Manifest;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Build;
@@ -28,12 +29,6 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.ReaderFactory;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -43,16 +38,22 @@ import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
-import org.codehaus.tycho.osgitools.EquinoxBundleResolutionState;
+import org.codehaus.tycho.osgitools.BundleReader;
+import org.codehaus.tycho.osgitools.DependencyComputer;
+import org.codehaus.tycho.osgitools.EquinoxResolver;
+import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.State;
+import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 
 /**
  * @goal generate-poms
  * @requiresProject false
  */
-public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
+public class GeneratePomsMojo extends AbstractMojo {
 
 	/** reference to real pom.xml in aggregator poma.xml */
 	private static final String THIS_MODULE = ".";
@@ -127,14 +128,27 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 	 */
 	private String rootProjects;
 
+	/**
+	 * @component role="org.codehaus.tycho.osgitools.BundleReader"
+	 */
+	private BundleReader bundleReader;
+
+	/**
+	 * @component role="org.codehaus.tycho.osgitools.EquinoxResolver"
+	 */
+	private EquinoxResolver resolver;
+
+	/**
+	 * @component role="org.codehaus.tycho.osgitools.DependencyComputer"
+	 */
+	private DependencyComputer dependencyComputer;
+
 	MavenXpp3Reader modelReader = new MavenXpp3Reader();
 	MavenXpp3Writer modelWriter = new MavenXpp3Writer();
 
 	private Map<File, Model> updateSites = new LinkedHashMap<File, Model>();
 
-    private PlexusContainer plexus;
-
-    private EquinoxBundleResolutionState state;
+	private DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		List<File> baseDirs = getBaseDirs();
@@ -180,24 +194,34 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 
 		for (File dir : candidateDirs) {
 			if (isPluginProject(dir)) {
-				try {
-				    state.addBundle( dir, false );
-				} catch (BundleException e) {
-					getLog().debug("Exception prescanning OSGi bundles", e);
-				}
+			    Manifest mf = bundleReader.loadManifest(dir);
+                if ( mf != null )
+			    {
+                    ManifestElement[] id = bundleReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
+                    ManifestElement[] version = bundleReader.parseHeader( Constants.BUNDLE_VERSION, mf );
+                    if ( id != null && version != null )
+                    {
+                        ArtifactKey key = new ArtifactKey(TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue());
+    			        platform.addArtifactFile( key, dir );
+                    }
+                    else
+                    {
+                        getLog().debug("Invalid bundle manifest " + dir.getAbsolutePath() );
+                    }
+			    }
+                else
+                {
+                    getLog().debug("Could not read bundle manifest " + dir.getAbsolutePath() );
+                }
 			}
 		}
 
 		// testSuite
 		File testSuiteLocation = null;
 		if (testSuite != null) {
-			BundleDescription bundle = state.getBundle(testSuite, null);
+			ArtifactDescription bundle = platform.getArtifact(TychoProject.ECLIPSE_PLUGIN, testSuite, null);
 			if (bundle != null) {
-				try {
-					testSuiteLocation = new File(bundle.getLocation()).getCanonicalFile();
-				} catch (IOException e) {
-					throw new MojoExecutionException("Unexpected IOException", e);
-				}
+				testSuiteLocation = bundle.getLocation();
 			}
 		}
 		
@@ -520,28 +544,28 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 
 	private void addPluginImpl(Set<File> result, File basedir) throws MojoExecutionException {
 		if (result.add(basedir)) {
-			BundleDescription bundle = state.getBundleByLocation(basedir);
-			if (bundle != null) { 
-				try {
-					state.assertResolved(bundle);
-					List<BundleDescription> requiredBundles = state.getDependencies(bundle);
-					for (int i = 0; i < requiredBundles.size(); i++) {
-						BundleDescription supplier = requiredBundles.get(i).getSupplier().getSupplier();
-						File suppliedDir = new File(supplier.getLocation());
-						if (supplier.getHost() == null && isModuleDir(suppliedDir)) {
-							addPlugin(result, suppliedDir.getName());
-						}
-					}
-				} catch (BundleException e) {
-					if (getLog().isDebugEnabled()) {
-						getLog().warn("Could not determine bundle dependencies", e);
-					} else {
-						getLog().warn("Could not determine bundle dependencies: " + e.getMessage());
-					}
-				}
-			} else {
-				getLog().warn("Not an OSGi bundle " + basedir.toString());
-			}
+		    try {
+    		    State state = resolver.newResolvedState( basedir, platform );
+    		    BundleDescription bundle = state.getBundleByLocation(basedir.getAbsolutePath());
+    			if (bundle != null) { 
+					for (DependencyComputer.DependencyEntry entry : dependencyComputer.computeDependencies( state.getStateHelper(), bundle ) )
+	                {
+                        BundleDescription supplier = entry.desc;
+                        File suppliedDir = new File(supplier.getLocation());
+                        if (supplier.getHost() == null && isModuleDir(suppliedDir)) {
+                            addPlugin(result, suppliedDir.getName());
+                        }
+	                }
+    			} else {
+    				getLog().warn("Not an OSGi bundle " + basedir.toString());
+    			}
+            } catch (BundleException e) {
+                if (getLog().isDebugEnabled()) {
+                    getLog().warn("Could not determine bundle dependencies", e);
+                } else {
+                    getLog().warn("Could not determine bundle dependencies: " + e.getMessage());
+                }
+            }
 		}
 	}
 
@@ -614,32 +638,25 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 	}
 
 	private void generatePluginPom(Model parent, File basedir) throws MojoExecutionException {
-		try {
-			BundleDescription bundleDescription = state.addBundle(basedir, false);
-			String groupId = state.getManifestAttribute( bundleDescription, TychoConstants.ATTR_GROUP_ID );
-
-			Model model;
-			if ( (testSuffix != null && basedir.getName().endsWith(testSuffix)) 
-					|| (testSuite != null && bundleDescription.getSymbolicName().equals(testSuite))) {
-				model = readPomTemplate("test-plugin-pom.xml");
-			} else {
-				model = readPomTemplate("plugin-pom.xml");
-			}
-			setParent(basedir, model, parent);
-			if (groupId == null) {
-				groupId = this.groupId;
-			}
-			if (groupId == null) {
-				groupId = bundleDescription.getSymbolicName();
-			}
-			model.setGroupId(groupId);
-			model.setArtifactId(bundleDescription.getSymbolicName());
-			model.setVersion(toMavenVersion(bundleDescription.getVersion().toString()));
-
-			writePom(basedir, model);
-		} catch (BundleException e) {
-			throw new MojoExecutionException("Can't generate pom.xml", e);
+	    ArtifactDescription bundle = platform.getArtifact( basedir );
+        ArtifactKey key = bundle.getKey();
+		Model model;
+        if ( (testSuffix != null && basedir.getName().endsWith(testSuffix)) 
+				|| (testSuite != null && key.getId().equals(testSuite))) {
+			model = readPomTemplate("test-plugin-pom.xml");
+		} else {
+			model = readPomTemplate("plugin-pom.xml");
 		}
+        String groupId = this.groupId;
+        if (groupId == null) {
+            groupId = key.getId();
+        }
+		setParent(basedir, model, parent);
+		model.setGroupId(groupId);
+		model.setArtifactId(key.getId());
+		model.setVersion(toMavenVersion(key.getVersion().toString()));
+
+		writePom(basedir, model);
 	}
 
 	private static String toMavenVersion(String osgiVersion) {
@@ -698,17 +715,5 @@ public class GeneratePomsMojo extends AbstractMojo implements Contextualizable {
 			throw new MojoExecutionException("Can't read pom.xml template " + name, e);
 		}
 	}
-
-	public void contextualize(Context ctx) throws ContextException {
-        plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
-        try
-        {
-            state = (EquinoxBundleResolutionState) plexus.lookup(BundleResolutionState.class);
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new ContextException("Could not lookup required component", e);
-        }
-    }
 
 }

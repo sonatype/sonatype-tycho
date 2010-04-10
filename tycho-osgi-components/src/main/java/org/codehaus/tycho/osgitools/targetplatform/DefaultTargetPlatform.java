@@ -55,12 +55,7 @@ public class DefaultTargetPlatform
 
     public void addArtifact( ArtifactDescription artifact )
     {
-        ArtifactKey key = artifact.getKey();
-        if ( TychoProject.ECLIPSE_TEST_PLUGIN.equals( key.getType() ) )
-        {
-            // normalize eclipse-test-plugin... after all, a bundle is a bundle.
-            key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, key.getId(), key.getVersion() );
-        }
+        ArtifactKey key = normalizeBundleKey( artifact.getKey() );
 
         ArtifactKey cachedKey = KEY_CACHE.get( key );
         if ( cachedKey != null )
@@ -73,7 +68,8 @@ public class DefaultTargetPlatform
         }
 
         ArtifactDescription cachedArtifact = ARTIFACT_CACHE.get( key );
-        if ( cachedArtifact != null && cachedArtifact.getLocation().equals( artifact.getLocation() ) )
+        if ( cachedArtifact != null && eq( cachedArtifact.getLocation(), artifact.getLocation() )
+            && eq( cachedArtifact.getMavenProject(), artifact.getMavenProject() ) )
         {
             artifact = cachedArtifact;
         }
@@ -84,6 +80,21 @@ public class DefaultTargetPlatform
 
         artifacts.put( key, artifact );
         locations.put( artifact.getLocation(), artifact );
+    }
+
+    protected ArtifactKey normalizeBundleKey( ArtifactKey key )
+    {
+        if ( TychoProject.ECLIPSE_TEST_PLUGIN.equals( key.getType() ) )
+        {
+            // normalize eclipse-test-plugin... after all, a bundle is a bundle.
+            key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, key.getId(), key.getVersion() );
+        }
+        return key;
+    }
+
+    private static <T> boolean eq( T a, T b )
+    {
+        return a != null ? a.equals( b ) : b == null;
     }
 
     /**
@@ -181,12 +192,17 @@ public class DefaultTargetPlatform
     public MavenProject getMavenProject( File location )
     {
         ArtifactDescription artifact = getArtifact( location );
-        return artifact != null? artifact.getMavenProject(): null;
+        return artifact != null ? artifact.getMavenProject() : null;
     }
 
     public ArtifactDescription getArtifact( File location )
     {
         return locations.get( location );
+    }
+
+    public ArtifactDescription getArtifact( ArtifactKey key )
+    {
+        return artifacts.get( normalizeBundleKey( key ) );
     }
 
     public void removeAll( String type, String id )

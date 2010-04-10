@@ -34,4 +34,6 @@ public interface TargetPlatform
     public MavenProject getMavenProject( File location );
 
     public ArtifactDescription getArtifact( File location );
+
+    public ArtifactDescription getArtifact( ArtifactKey key );
 }

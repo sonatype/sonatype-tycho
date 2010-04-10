@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.ClasspathEntry.AccessRule;
 import org.eclipse.osgi.service.resolver.BaseDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -51,13 +50,13 @@ public class DependencyComputer {
 		}
 	}
 
-	public List<DependencyEntry> computeDependencies(BundleResolutionState bundleResolutionState, BundleDescription desc) {
+	public List<DependencyEntry> computeDependencies(StateHelper helper, BundleDescription desc) {
 		ArrayList<DependencyEntry> entries = new ArrayList<DependencyEntry>();
 
 		if (desc == null)
 			return entries;
 
-		Map<BundleDescription, ArrayList<AccessRule>> map = retrieveVisiblePackagesFromState(bundleResolutionState, desc);
+		Map<BundleDescription, ArrayList<AccessRule>> map = retrieveVisiblePackagesFromState(helper, desc);
 
 		HashSet<BundleDescription> added = new HashSet<BundleDescription>();
 
@@ -96,9 +95,8 @@ public class DependencyComputer {
 		return entries;
 	}
 
-	private Map<BundleDescription, ArrayList<AccessRule>> retrieveVisiblePackagesFromState(BundleResolutionState bundleResolutionState, BundleDescription desc) {
+	private Map<BundleDescription, ArrayList<AccessRule>> retrieveVisiblePackagesFromState(StateHelper helper, BundleDescription desc) {
 		Map<BundleDescription, ArrayList<AccessRule>> visiblePackages = new HashMap<BundleDescription, ArrayList<AccessRule>>();
-		StateHelper helper = bundleResolutionState.getStateHelper();
 		addVisiblePackagesFromState(helper, desc, visiblePackages);
 		if (desc.getHost() != null)
 			addVisiblePackagesFromState(helper, (BundleDescription) desc.getHost().getSupplier(), visiblePackages);
@@ -184,6 +182,9 @@ public class DependencyComputer {
 	}
 
 	private boolean addPlugin(BundleDescription desc, boolean useInclusions, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {
+	    if (EquinoxResolver.SYSTEM_BUNDLE_SYMBOLIC_NAME.equals(desc.getSymbolicName())) {
+	        return false;
+	    }
 		List<AccessRule> rules = useInclusions ? getInclusions(map, desc) : null;
 		DependencyEntry entry = new DependencyEntry(desc, rules);
 		if (!entries.contains(entry))

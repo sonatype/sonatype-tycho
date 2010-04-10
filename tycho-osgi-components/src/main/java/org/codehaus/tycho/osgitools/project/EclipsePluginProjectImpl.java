@@ -17,15 +17,13 @@ import org.eclipse.osgi.service.resolver.BundleDescription;
 public class EclipsePluginProjectImpl implements EclipsePluginProject {
 
 	private final MavenProject project;
-	private final BundleDescription bundleDescription;
 	private final Properties buildProperties;
 
 	private final LinkedHashMap<String, BuildOutputJar> outputJars = new LinkedHashMap<String, BuildOutputJar>();
 	private final BuildOutputJar dotOutputJar;
 
-	public EclipsePluginProjectImpl(MavenProject project, BundleDescription desc) throws IOException {
+	public EclipsePluginProjectImpl(MavenProject project) throws IOException {
 		this.project = project;
-		this.bundleDescription = desc;
 		this.buildProperties = loadProperties(project);
 
 		//
@@ -99,10 +97,6 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 
 	public Properties getBuildProperties() {
 		return buildProperties;
-	}
-
-	public BundleDescription getBundleDescription() {
-		return bundleDescription;
 	}
 
 	public MavenProject getMavenProject() {

@@ -10,20 +10,17 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 import java.util.jar.Attributes.Name;
+import java.util.jar.Manifest;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
-import org.codehaus.tycho.BundleResolutionState;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
-import org.eclipse.osgi.service.resolver.BundleDescription;
-import org.osgi.framework.Version;
 
 /**
  * Creates a jar-based plugin and attaches it as an artifact
@@ -135,9 +132,6 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 
 	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 
 	{
-		BundleDescription bundle = getResolutionState().getBundleByLocation( project.getBasedir() );
-		Version version = bundle.getVersion();
-
 		File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
 
 		InputStream is = new FileInputStream(mfile);
@@ -153,10 +147,8 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		    attributes.put(Name.MANIFEST_VERSION, "1.0");
 		}
 
-        attributes.putValue("Bundle-Version", VersioningHelper.getExpandedVersion( project, version.toString()));
-
-		attributes.putValue(TychoConstants.ATTR_GROUP_ID, project.getGroupId());
-		attributes.putValue(TychoConstants.ATTR_BASE_VERSION, project.getVersion());
+		String originalVersion = getTychoProjectFacet().getArtifactKey( project ).getVersion();
+        attributes.putValue("Bundle-Version", VersioningHelper.getExpandedVersion( project, originalVersion));
 
 		mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
 		mfile.getParentFile().mkdirs();
@@ -168,10 +160,5 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		}
 
 		return mfile;
-	}
-
-	private BundleResolutionState getResolutionState()
-	{
-	    return (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
 	}
 }

@@ -36,15 +36,13 @@ import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.codehaus.tycho.ArtifactDescription;
-import org.codehaus.tycho.BundleResolutionState;
+import org.codehaus.tycho.BundleProject;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.TychoMavenLifecycleParticipant;
-import org.codehaus.tycho.utils.MavenSessionUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
-import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.osgi.framework.Version;
 
 /**
@@ -170,8 +168,6 @@ public class TestMojo extends AbstractMojo {
 	 */
 	private String product;
 
-	private BundleResolutionState bundleResolutionState;
-
 	/**
 	* @parameter expression="${session}"
 	* @readonly
@@ -291,6 +287,11 @@ public class TestMojo extends AbstractMojo {
     /** @component */
     private Logger logger;
 
+    /**
+     * @component role="org.codehaus.tycho.TychoProject"
+     */
+    private Map<String, TychoProject> projectTypes;
+
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			getLog().info("Skipping tests");
@@ -302,15 +303,12 @@ public class TestMojo extends AbstractMojo {
 			return;
 		}
 
-        bundleResolutionState = (BundleResolutionState) project.getContextValue( TychoConstants.CTX_BUNDLE_RESOLUTION_STATE );
-
 		if (testSuite != null || testClass != null) {
 			if (testSuite == null || testClass == null) {
 				throw new MojoExecutionException("Both testSuite and testClass must be provided or both should be null");
 			}
 
-			BundleDescription desc = bundleResolutionState.getBundle(testSuite, null);
-			MavenProject suite = MavenSessionUtils.getMavenProject(session, desc.getLocation());
+			MavenProject suite = getTestSuite(testSuite);
 
 			if (suite == null) {
 				throw new MojoExecutionException("Cannot find test suite project with Bundle-SymbolicName " + testSuite);
@@ -333,9 +331,9 @@ public class TestMojo extends AbstractMojo {
 
 		dependencies.addAll( getTestDependencies() );
 
-		TargetPlatform targetPlatform = platformResolver.resolvePlatform( session, project, dependencies );
+		TargetPlatform testTargetPlatform = platformResolver.resolvePlatform( session, project, dependencies );
 
-		if (targetPlatform == null) {
+		if (testTargetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
 		}
 
@@ -353,12 +351,23 @@ public class TestMojo extends AbstractMojo {
             }
         }
 
-		BundleDescription bundle = bundleResolutionState.getBundleByLocation(project.getBasedir());
-		String testFramework = new TestFramework().getTestFramework(bundleResolutionState, bundle);
+        BundleProject projectType = (BundleProject) projectTypes.get(project.getPackaging());
+		String testFramework = new TestFramework().getTestFramework(projectType.getClasspath(project));
+		if (testFramework == null) {
+		    throw new MojoExecutionException("Could not determine test framework used by test bundle " + project.toString());
+		}
 		getLog().debug("Using test framework " + testFramework);
 
-		for (ArtifactDescription artifact : targetPlatform.getArtifacts(TychoProject.ECLIPSE_PLUGIN)) {
-		    testRuntime.addBundle(artifact);
+		for (ArtifactDescription artifact : testTargetPlatform.getArtifacts(TychoProject.ECLIPSE_PLUGIN)) {
+		    MavenProject otherProject = artifact.getMavenProject();
+		    if (otherProject != null) {
+                File file = otherProject.getArtifact().getFile();
+                if (file != null) {
+                    testRuntime.addBundle(artifact.getKey(), file);
+                    continue;
+                } 
+		    }
+            testRuntime.addBundle(artifact);
 		}
 
 		Set<File> surefireBundles = getSurefirePlugins(testFramework);
@@ -366,15 +375,10 @@ public class TestMojo extends AbstractMojo {
 		    testRuntime.addBundle(file, true);
 		}
 
-		Set<File> testBundles = getTestBundles();
-        for (File file : testBundles) {
-            testRuntime.addBundle(file, true);
-        }
-
         testRuntime.create();
 
 		createDevProperties();
-		createSurefireProperties(bundle, testFramework);
+		createSurefireProperties(projectType.getArtifactKey(project).getId(), testFramework);
 
 		reportsDirectory.mkdirs();
 
@@ -388,7 +392,20 @@ public class TestMojo extends AbstractMojo {
 		}
 	}
 
-	private List<Dependency> getTestDependencies()
+    private MavenProject getTestSuite( String symbolicName )
+    {
+        for ( MavenProject otherProject : session.getProjects() )
+        {
+            TychoProject projectType = projectTypes.get( otherProject.getPackaging() );
+            if ( projectType != null && projectType.getArtifactKey( otherProject ).getId().equals( symbolicName ) )
+            {
+                return otherProject;
+            }
+        }
+        return null;
+    }
+
+    private List<Dependency> getTestDependencies()
     {
 	    ArrayList<Dependency> result = new ArrayList<Dependency>();
 
@@ -414,31 +431,10 @@ public class TestMojo extends AbstractMojo {
         return ideapp;
     }
 
-    private Set<File> getTestBundles() throws MojoExecutionException {
-		Set<File> testBundles = new LinkedHashSet<File>(); 
-		for (BundleDescription bundle : getReactorBundles()) {
-			addBundle(testBundles, bundle);
-			// TODO why do we need this here?
-			for (BundleDescription fragment: bundle.getFragments()) {
-				addBundle(testBundles, fragment);
-			}
-		}
-		return testBundles;
-	}
-
-	private void addBundle(Set<File> testBundles, BundleDescription bundle) {
-		MavenProject project = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
-		if ("eclipse-test-plugin".equals(project.getPackaging())) {
-			testBundles.add(project.getBasedir());
-		} else if (project.getArtifact().getFile() != null) {
-			testBundles.add(project.getArtifact().getFile());
-		}
-	}
-
-	private void createSurefireProperties(BundleDescription bundle, String testFramework) throws MojoExecutionException {
+	private void createSurefireProperties(String symbolicName, String testFramework) throws MojoExecutionException {
 		Properties p = new Properties();
 
-		p.put("testpluginname", bundle.getSymbolicName());
+		p.put("testpluginname", symbolicName);
 		p.put("testclassesdirectory", testClassesDirectory.getAbsolutePath());
 		p.put("reportsdirectory", reportsDirectory.getAbsolutePath());
 		p.put("testrunner", getTestRunner(testFramework));
@@ -669,14 +665,15 @@ public class TestMojo extends AbstractMojo {
 	private void createDevProperties() throws MojoExecutionException {
 		Properties dev = new Properties();
 //		dev.put("@ignoredot@", "true");
-		for (BundleDescription bundle : getReactorBundles()) {
-			MavenProject project = MavenSessionUtils.getMavenProject(session, bundle.getLocation());
-			if ("eclipse-test-plugin".equals(project.getPackaging())) {
-				dev.put(bundle.getSymbolicName(), getBuildOutputDirectories(project));
-			} else if ("eclipse-plugin".equals(project.getPackaging())) {
-				File file = project.getArtifact().getFile();
+		for (MavenProject otherProject : session.getProjects()) {
+			if ("eclipse-test-plugin".equals(otherProject.getPackaging())) {
+	            TychoProject projectType = projectTypes.get(otherProject.getPackaging());
+				dev.put(projectType.getArtifactKey(otherProject).getId(), getBuildOutputDirectories(otherProject));
+			} else if ("eclipse-plugin".equals(otherProject.getPackaging())) {
+                TychoProject projectType = projectTypes.get(otherProject.getPackaging());
+				File file = otherProject.getArtifact().getFile();
 				if (file == null || file.isDirectory()) {
-					dev.put(bundle.getSymbolicName(), getBuildOutputDirectories(project));
+					dev.put(projectType.getArtifactKey(otherProject).getId(), getBuildOutputDirectories(otherProject));
 				}
 			}
 		}
@@ -736,19 +733,6 @@ public class TestMojo extends AbstractMojo {
 		}
 
 		return sb.toString();
-	}
-
-	private Set<BundleDescription> getReactorBundles() {
-		Set<BundleDescription> reactorBundles = new LinkedHashSet<BundleDescription>();
-		reactorBundles.add(bundleResolutionState.getBundleByLocation(project.getBasedir()));
-		Map<File, MavenProject> basedirMap = MavenSessionUtils.getBasedirMap( session );
-		for (BundleDescription desc : bundleResolutionState.getBundles()) {
-			MavenProject project = basedirMap.get(new File(desc.getLocation()));
-			if (project != null) {
-				reactorBundles.add(desc);
-			}
-		}
-		return reactorBundles;
 	}
 
 	private List<String> getBundlesToExplode() {

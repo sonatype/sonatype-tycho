@@ -3,10 +3,9 @@ package org.codehaus.tycho.osgitest;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.tycho.BundleResolutionState;
-import org.codehaus.tycho.osgitools.DependencyComputer;
-import org.codehaus.tycho.osgitools.DependencyComputer.DependencyEntry;
-import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.codehaus.tycho.ArtifactKey;
+import org.codehaus.tycho.ClasspathEntry;
+import org.osgi.framework.Version;
 
 public class TestFramework
 {
@@ -15,15 +14,14 @@ public class TestFramework
 
     public static final String TEST_JUNIT4 = "org.junit4";
 
-    public String getTestFramework( BundleResolutionState bundleResolutionState, BundleDescription bundle )
+    public String getTestFramework( List<ClasspathEntry> classpath )
         throws MojoExecutionException
     {
-        List<DependencyEntry> dependencies =
-            new DependencyComputer().computeDependencies( bundleResolutionState, bundle );
         String result = null;
-        for ( DependencyEntry dependencyEntry : dependencies )
+        for ( ClasspathEntry entry : classpath )
         {
-            String testFramework = getTestFramework( dependencyEntry.desc, result );
+            ArtifactKey key = entry.getArtifactKey();
+            String testFramework = getTestFramework( key.getId(), key.getVersion(), result );
             if ( testFramework != null )
             {
                 result = testFramework;
@@ -33,15 +31,15 @@ public class TestFramework
         {
             return result;
         }
-        throw new MojoExecutionException( "Could not determine test framework used by test bundle " + bundle.toString() );
+        return null;
     }
 
-    private static String getTestFramework( BundleDescription bundleDesc, String currentTestFramework )
+    private static String getTestFramework( String symbolicName, String versionStr, String currentTestFramework )
     {
-        String symbolicName = bundleDesc.getSymbolicName();
         if ( TestFramework.TEST_JUNIT.equals( symbolicName ) )
         {
-            if ( bundleDesc.getVersion().getMajor() < 4 )
+            Version version = Version.parseVersion( versionStr );
+            if ( version.getMajor() < 4 )
             {
                 // junit4 has precedence over junit3 if both are present
                 if ( !TestFramework.TEST_JUNIT4.equals( currentTestFramework ) )

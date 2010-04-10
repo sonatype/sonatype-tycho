@@ -6,7 +6,7 @@ import java.util.Properties;
 
 public class TychoVersion {
 
-	private static final String DEFAULT_TYCHO_VERSION = "0.8.0-SNAPSHOT";
+	private static final String DEFAULT_TYCHO_VERSION = "0.9.0-SNAPSHOT";
 
 	public static String getTychoVersion() {
 		ClassLoader cl = TychoVersion.class.getClassLoader();
