@@ -70,6 +70,7 @@ public abstract class AbstractDependenciesAction
         iud.setVersion( getVersion() );
 
         Set<IProvidedCapability> provided = new LinkedHashSet<IProvidedCapability>();
+        addProvidedCapabilities( provided );
         provided.add( MetadataFactory.createProvidedCapability( IInstallableUnit.NAMESPACE_IU_ID, iud.getId(),
                                                                 iud.getVersion() ) );
         iud.addProvidedCapabilities( provided );
@@ -82,6 +83,11 @@ public abstract class AbstractDependenciesAction
     }
 
     protected abstract Set<IRequiredCapability> getRequiredCapabilities();
+
+    protected void addProvidedCapabilities( Set<IProvidedCapability> provided )
+    {
+
+    }
 
     protected abstract Version getVersion();
 

@@ -122,7 +122,7 @@ public class P2TargetPlatformResolver
                 }
             }
         } );
-        
+
         Map<File, MavenProject> projects = new HashMap<File, MavenProject>();
 
         resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
@@ -203,8 +203,7 @@ public class P2TargetPlatformResolver
                 {
                     getLogger().debug( "P2resolver.addMavenArtifact " + a.toString() );
                 }
-                resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(),
-                                           a.getVersion() );
+                resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(), a.getVersion() );
             }
         }
 
@@ -262,18 +261,20 @@ public class P2TargetPlatformResolver
                             MavenRepositoryReader reader = plexus.lookup( MavenRepositoryReader.class );
                             reader.setArtifactRepository( repository );
                             reader.setLocalRepository( session.getLocalRepository() );
-    
+
                             String repositoryKey = getRepositoryKey( repository );
                             TychoRepositoryIndex index = repositoryCache.getRepositoryIndex( repositoryKey );
                             if ( index == null )
                             {
                                 index = new DefaultTychoRepositoryIndex( reader );
-                                
+
                                 repositoryCache.putRepositoryIndex( repositoryKey, index );
                             }
-    
+
                             resolver.addMavenRepository( uri, index, reader );
-                            getLogger().debug("Added Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
+                            getLogger().debug(
+                                               "Added Maven repository " + repository.getId() + " ("
+                                                   + repository.getUrl() + ")" );
                         }
                         catch ( FileNotFoundException e )
                         {
@@ -286,7 +287,9 @@ public class P2TargetPlatformResolver
                     }
                     else
                     {
-                        getLogger().debug( "Ignoring Maven repository " + repository.getId() + " (" + repository.getUrl() + ")" );
+                        getLogger().debug(
+                                           "Ignoring Maven repository " + repository.getId() + " ("
+                                               + repository.getUrl() + ")" );
                     }
                 }
             }
@@ -372,29 +375,31 @@ public class P2TargetPlatformResolver
         List<P2ResolutionResult> results = resolver.resolveProject( project.getBasedir() );
 
         MultiEnvironmentTargetPlatform multiPlatform = new MultiEnvironmentTargetPlatform();
-        
+
         // FIXME this is just wrong
         for ( int i = 0; i < configuration.getEnvironments().size(); i++ )
         {
             TargetEnvironment environment = configuration.getEnvironments().get( i );
-            P2ResolutionResult result = results.get( i ); 
+            P2ResolutionResult result = results.get( i );
 
             DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
             platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
-    
+
             for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
             {
-                platform.addArtifactFile( entry.getKey(), entry.getValue() );
-                
-    //            MavenProject otherProject = projects.get( entry.getValue() );
-    //            if ( otherProject != null )
-    //            {
-    //                platform.addMavenProject( entry.getKey(), otherProject );
-    //            }
+                MavenProject otherProject = projects.get( entry.getValue() );
+                if ( otherProject != null )
+                {
+                    platform.addMavenProject( entry.getKey(), otherProject );
+                }
+                else
+                {
+                    platform.addArtifactFile( entry.getKey(), entry.getValue() );
+                }
             }
 
-            addProjects( session, platform );
+            // addProjects( session, platform );
 
             multiPlatform.addPlatform( environment, platform );
         }
@@ -416,7 +421,7 @@ public class P2TargetPlatformResolver
 
             // TODO does not belong here
             properties.put( "org.eclipse.update.install.features", "true" );
-    
+
             environments.add( properties );
         }
 

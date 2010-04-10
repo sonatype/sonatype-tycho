@@ -6,10 +6,12 @@ import java.util.Set;
 import org.eclipse.equinox.internal.provisional.p2.core.Version;
 import org.eclipse.equinox.internal.provisional.p2.core.VersionRange;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.internal.provisional.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.internal.provisional.p2.metadata.IRequiredCapability;
 import org.eclipse.equinox.internal.provisional.p2.metadata.MetadataFactory;
 import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeatureEntry;
+import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 
 @SuppressWarnings( "restriction" )
 public class FeatureDependenciesAction
@@ -104,4 +106,10 @@ public class FeatureDependenciesAction
         return feature.getId() + FEATURE_GROUP_IU_SUFFIX;
     }
 
+    @Override
+    protected void addProvidedCapabilities( Set<IProvidedCapability> provided )
+    {
+        provided.add( MetadataFactory.createProvidedCapability( PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE,
+                                                                feature.getId(), getVersion() ) );
+    }
 }
