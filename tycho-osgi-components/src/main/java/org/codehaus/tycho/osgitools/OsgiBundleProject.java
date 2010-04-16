@@ -274,7 +274,7 @@ public class OsgiBundleProject
                     bundleId = m.group( 2 ).trim();
                     path = m.group( 3 ).trim();
 
-                    if ( path.isEmpty() )
+                    if ( path != null && path.length() <= 0 )
                     {
                         path = null;
                     }
