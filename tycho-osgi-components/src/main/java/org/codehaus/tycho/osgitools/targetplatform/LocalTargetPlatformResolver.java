@@ -1,6 +1,7 @@
 package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.jar.Manifest;
 
@@ -70,14 +71,15 @@ public class LocalTargetPlatformResolver
 
         if ( platform.isEmpty() )
         {
-            getLogger().warn( "Could not find any bundles or features in " + layout.getLocation().getAbsolutePath() );
+            getLogger().warn( "Could not find any bundles or features in " + layout.getLocation() );
         }
 
         return platform;
     }
 
     public void setLocation( File location )
+        throws IOException
     {
-        layout.setLocation( location );
+        layout.setLocation( location.getCanonicalFile() );
     }
 }

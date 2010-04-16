@@ -411,7 +411,14 @@ public class TychoMavenLifecycleParticipant
                 throw new RuntimeException( "Could not instantiate required component", e );
             }
 
-            ( (LocalTargetPlatformResolver) resolver ).setLocation( new File( property ) );
+            try
+            {
+                ( (LocalTargetPlatformResolver) resolver ).setLocation( new File( property ) );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( "Could not create target platform", e );
+            }
 
             return resolver;
         }

@@ -1,6 +1,7 @@
 package org.codehaus.tycho.maven.test;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
@@ -30,7 +31,7 @@ public class DefaultTargetPlatformTest
         // 0.0.0 or null match the latest version
         Assert.assertEquals( "5.6.7.zzz", tp.getArtifact( type, id, null ).getKey().getVersion() );
         Assert.assertEquals( "5.6.7.zzz", tp.getArtifact( type, id, "0.0.0" ).getKey().getVersion() );
-        
+
         // 1.2.3 matches the latest qualifier
         Assert.assertEquals( "1.1.0", tp.getArtifact( type, id, "1.1.0" ).getKey().getVersion() );
         Assert.assertEquals( "1.2.3.zzz", tp.getArtifact( type, id, "1.2.3" ).getKey().getVersion() );
@@ -56,5 +57,20 @@ public class DefaultTargetPlatformTest
     {
         ArtifactKey key = new ArtifactKey( type, id, version );
         tp.addArtifactFile( key, new File( version ) );
+    }
+
+    public void testRelativePath()
+        throws IOException
+    {
+        DefaultTargetPlatform tp = new DefaultTargetPlatform();
+
+        File relative = new File( "relative.xml" );
+        File canonical = new File( "canonical.xml" );
+
+        tp.addArtifactFile( new ArtifactKey( "foo", "relative", "1" ), relative );
+        tp.addArtifactFile( new ArtifactKey( "foo", "canonical", "1" ), canonical.getCanonicalFile() );
+
+        Assert.assertNotNull( tp.getArtifact( relative.getCanonicalFile() ) );
+        Assert.assertNotNull( tp.getArtifact( canonical ) );
     }
 }

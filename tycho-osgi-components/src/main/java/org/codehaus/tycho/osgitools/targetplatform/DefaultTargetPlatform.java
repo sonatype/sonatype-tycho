@@ -1,6 +1,7 @@
 package org.codehaus.tycho.osgitools.targetplatform;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -55,7 +56,7 @@ public class DefaultTargetPlatform
 
     public void addArtifact( ArtifactDescription artifact )
     {
-        ArtifactKey key = normalizeBundleKey( artifact.getKey() );
+        ArtifactKey key = normalizeKey( artifact.getKey() );
 
         ArtifactKey cachedKey = KEY_CACHE.get( key );
         if ( cachedKey != null )
@@ -66,6 +67,8 @@ public class DefaultTargetPlatform
         {
             KEY_CACHE.put( key, key );
         }
+
+        artifact = normalizeArtifact( artifact );
 
         ArtifactDescription cachedArtifact = ARTIFACT_CACHE.get( key );
         if ( cachedArtifact != null && eq( cachedArtifact.getLocation(), artifact.getLocation() )
@@ -82,7 +85,25 @@ public class DefaultTargetPlatform
         locations.put( artifact.getLocation(), artifact );
     }
 
-    protected ArtifactKey normalizeBundleKey( ArtifactKey key )
+    private ArtifactDescription normalizeArtifact( ArtifactDescription artifact )
+    {
+        try
+        {
+            File location = artifact.getLocation().getCanonicalFile();
+            if ( !location.equals( artifact.getLocation() ) )
+            {
+                return new DefaultArtifactDescription( artifact.getKey(), location, artifact.getMavenProject() );
+            }
+            return artifact;
+        }
+        catch ( IOException e )
+        {
+            // not sure what good this will do to the caller
+            return artifact;
+        }
+    }
+
+    protected ArtifactKey normalizeKey( ArtifactKey key )
     {
         if ( TychoProject.ECLIPSE_TEST_PLUGIN.equals( key.getType() ) )
         {
@@ -197,12 +218,20 @@ public class DefaultTargetPlatform
 
     public ArtifactDescription getArtifact( File location )
     {
-        return locations.get( location );
+        try
+        {
+            location = location.getCanonicalFile();
+            return locations.get( location );
+        }
+        catch ( IOException e )
+        {
+            return null;
+        }
     }
 
     public ArtifactDescription getArtifact( ArtifactKey key )
     {
-        return artifacts.get( normalizeBundleKey( key ) );
+        return artifacts.get( normalizeKey( key ) );
     }
 
     public void removeAll( String type, String id )

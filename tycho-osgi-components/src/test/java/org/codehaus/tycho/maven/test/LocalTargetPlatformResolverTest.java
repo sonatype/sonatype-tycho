@@ -1,6 +1,7 @@
 package org.codehaus.tycho.maven.test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.maven.execution.DefaultMavenExecutionRequest;
@@ -23,6 +24,20 @@ public class LocalTargetPlatformResolverTest
     public void testBundleIdParsing()
         throws Exception
     {
+        TargetPlatform platform = getTargetPlatform( new File( "src/test/resources/targetplatforms/basic" ) );
+
+        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, "bundle01", null );
+        ArtifactKey key = artifact.getKey();
+        assertEquals( "bundle01", key.getId() );
+        assertEquals( "0.0.1", key.getVersion() );
+
+        File file = artifact.getLocation();
+        assertEquals( "bundle01_0.0.1", file.getName() );
+    }
+
+    protected TargetPlatform getTargetPlatform( File location )
+        throws Exception, IOException
+    {
         LocalTargetPlatformResolver resolver = (LocalTargetPlatformResolver) lookup( TargetPlatformResolver.class );
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
@@ -32,16 +47,39 @@ public class LocalTargetPlatformResolverTest
 
         MavenProject project = new MavenProject();
 
-        resolver.setLocation( new File( "src/test/resources/targetplatforms/basic" ) );
+        resolver.setLocation( location );
 
         TargetPlatform platform = resolver.resolvePlatform( session, project, null );
+        return platform;
+    }
 
-        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, "bundle01", null );
-        ArtifactKey key = artifact.getKey();
-        assertEquals( "bundle01", key.getId() );
-        assertEquals( "0.0.1", key.getVersion() );
+    public void testPlatformRelativePath()
+        throws Exception
+    {
+        File platformPath = new File( "src/test/resources/targetplatforms/basic" );
+        TargetPlatform platform = getTargetPlatform( platformPath );
 
-        File file = artifact.getLocation();
-        assertEquals( "bundle01_0.0.1", file.getName() );
+        // canonical path to a bundle
+        File bundlePath =
+            new File( platformPath, "plugins/org.eclipse.equinox.launcher_1.0.101.R34x_v20081125.jar" ).getCanonicalFile();
+
+        ArtifactDescription artifact = platform.getArtifact( bundlePath );
+
+        assertNotNull( artifact );
+    }
+
+    public void testBundleRelativePath()
+        throws Exception
+    {
+        File platformPath = new File( "src/test/resources/targetplatforms/basic" ).getCanonicalFile();
+        TargetPlatform platform = getTargetPlatform( platformPath );
+
+        File bundlePath =
+            new File(
+                      "src/test/resources/targetplatforms/basic/plugins/org.eclipse.equinox.launcher_1.0.101.R34x_v20081125.jar" );
+
+        ArtifactDescription artifact = platform.getArtifact( bundlePath );
+
+        assertNotNull( artifact );
     }
 }
