@@ -86,6 +86,8 @@ public class TychoMavenLifecycleParticipant
         {
             return;
         }
+        
+        System.setProperty( "osgi.framework.useSystemProperties", "false" ); //$NON-NLS-1$ //$NON-NLS-2$
 
         File localRepository = new File( session.getLocalRepository().getBasedir() );
         ( (DefaultBundleReader) bundleReader ).setLocationRepository( localRepository );
