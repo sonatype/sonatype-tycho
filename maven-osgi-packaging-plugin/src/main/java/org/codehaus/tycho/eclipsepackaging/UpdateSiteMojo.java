@@ -78,8 +78,6 @@ public class UpdateSiteMojo
 
             File file = new File( target, "site.xml" );
             UpdateSite.write( site, file );
-
-            project.getArtifact().setFile( file );
         }
         catch ( Exception e )
         {

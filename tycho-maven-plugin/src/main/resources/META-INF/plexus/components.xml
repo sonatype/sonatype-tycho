@@ -196,7 +196,8 @@
               </validate>
               <package>
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:update-site,
-                org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-site-p2-metadata
+                org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-site-p2-metadata,
+                org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:update-site-packaging
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:install
@@ -217,7 +218,7 @@
       </implementation>
       <configuration>
         <classifier></classifier>
-        <extension>jar</extension>
+        <extension>zip</extension>
         <type>eclipse-update-site</type>
         <packaging>eclipse-update-site</packaging>
         <language>java</language>
