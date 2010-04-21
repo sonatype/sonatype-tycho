@@ -47,11 +47,11 @@
 
   <distributionManagement>
     <repository>
-      <id>local</id>
+      <id>tycho-its.local</id>
       <url>${repo.releases}</url>
     </repository>
     <snapshotRepository>
-      <id>local</id>
+      <id>tycho-its.local</id>
       <url>${repo.snapshots}</url>
     </snapshotRepository>
   </distributionManagement>
