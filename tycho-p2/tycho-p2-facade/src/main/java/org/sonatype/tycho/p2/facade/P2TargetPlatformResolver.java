@@ -69,8 +69,6 @@ public class P2TargetPlatformResolver
 
     public static final String ROLE_HINT = "p2";
 
-    public static final String POM_DEPENDENCIES_CONSIDER = "consider";
-
     @Requirement
     private EquinoxEmbedder equinox;
 
@@ -149,7 +147,7 @@ public class P2TargetPlatformResolver
             }
         }
 
-        if ( POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
+        if ( TargetPlatformConfiguration.POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
         {
             Set<String> projectIds = new HashSet<String>( session.getProjects().size() * 2 );
             for ( MavenProject p : session.getProjects() )

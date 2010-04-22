@@ -7,6 +7,9 @@ import org.codehaus.tycho.model.Target;
 
 public class TargetPlatformConfiguration
 {
+	
+    public static final String POM_DEPENDENCIES_CONSIDER = "consider";
+    
     private String resolver;
 
     private List<TargetEnvironment> environments = new ArrayList<TargetEnvironment>();
