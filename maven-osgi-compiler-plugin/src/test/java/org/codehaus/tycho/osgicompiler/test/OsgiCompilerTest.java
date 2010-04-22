@@ -8,6 +8,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
+import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
@@ -149,6 +150,34 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		getMojo(projects, project).execute();
 		assertTrue(new File(project.getBasedir(), "target/classes/testresources/Test.class").canRead());
 		assertTrue(new File(project.getBasedir(), "target/classes/testresources/test.properties").canRead());
+	}
+
+	public void testExecutionEnvironment() throws Exception {
+		File basedir = getBasedir("projects/executionEnvironment");
+		List<MavenProject> projects = getSortedProjects(basedir, null);
+		MavenProject project;
+		// project which compiles with source level 1.6 only
+		project = projects.get(1);
+		getMojo(projects, project).execute();
+		assertTrue(new File(project.getBasedir(),
+				"target/classes/TestRunnable.class").canRead());
+		// project with multiple execution envs.
+		// Minimum source and target level must be taken
+		project = projects.get(2);
+		try {
+			getMojo(projects, project).execute();
+			fail("compilation failure due to assert keyword expected");
+		} catch (CompilationFailureException e) {
+			// expected
+		}
+		// project with both compiler configuration in pom.xml
+		// and Bundle-RequiredExecutionEnvironment. Latter should win.
+		// build will produce a warning that source/target level was overridden
+		// from MANIFEST
+		project = projects.get(3);
+		getMojo(projects, project).execute();
+		assertTrue(new File(project.getBasedir(),
+				"target/classes/TestRunnable.class").canRead());
 	}
 	
 }

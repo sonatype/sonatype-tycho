@@ -128,6 +128,11 @@ public class OsgiBundleProject
         project.setContextValue( CTX_ARTIFACT_KEY, key );
     }
 
+    public String getManifestValue(String key, MavenProject project) {
+        Manifest mf = bundleReader.loadManifest( project.getBasedir() );
+    	return mf.getMainAttributes().getValue(key);
+    }
+    
     @Override
     public void resolve( MavenProject project )
     {

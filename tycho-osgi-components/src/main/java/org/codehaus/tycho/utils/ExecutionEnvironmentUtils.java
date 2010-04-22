@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import org.codehaus.tycho.UnknownEnvironmentException;
 import org.eclipse.osgi.framework.internal.core.Constants;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
 import org.eclipse.osgi.util.ManifestElement;
@@ -24,6 +27,61 @@ public class ExecutionEnvironmentUtils {
 	private static String J2SE = "J2SE-"; //$NON-NLS-1$
 	private static String JAVASE = "JavaSE-"; //$NON-NLS-1$
 	private static String PROFILE_EXT = ".profile"; //$NON-NLS-1$
+    private static Map<String, ExecutionEnvironment> executionEnvironmentsMap = fillEnvironmentsMap();
+
+	private static Map<String, ExecutionEnvironment> fillEnvironmentsMap() {
+		Properties listProps = readProperties(findInSystemBundle("profile.list"));
+		String[] profileFiles = listProps.getProperty("java.profiles").split(
+				",");
+		Map<String, ExecutionEnvironment> envMap = new HashMap<String, ExecutionEnvironment>();
+		for (String profileFile : profileFiles) {
+			Properties props = readProperties(findInSystemBundle(profileFile
+					.trim()));
+			envMap.put(props.getProperty("osgi.java.profile.name").trim(),
+					new ExecutionEnvironment(props));
+		}
+		return envMap;
+	}
+
+	private static Properties readProperties(final URL url) {
+		Properties listProps = new Properties();
+		InputStream stream = null;
+		try {
+			stream = url.openStream();
+			listProps.load(stream);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				if (stream != null) {
+					stream.close();
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return listProps;
+	}
+
+	/**
+	 * Get the execution environment for the specified OSGi profile name.
+	 * 
+	 * @param profileName
+	 *            profile name value as specified for key
+	 *            "Bundle-RequiredExecutionEnvironment" in MANIFEST.MF
+	 * @return the corresponding {@link ExecutionEnvironment}.
+	 * @throws UnknownEnvironmentException
+	 *             if profileName is unknown.
+	 */
+	public static ExecutionEnvironment getExecutionEnvironment(
+			String profileName) throws UnknownEnvironmentException {
+		ExecutionEnvironment executionEnvironment = executionEnvironmentsMap
+				.get(profileName);
+		if (executionEnvironment == null) {
+			throw new UnknownEnvironmentException(profileName);
+		}
+		return executionEnvironment;
+	}
 
 	public static void loadVMProfile(Properties properties) {
 		Properties profileProps = findVMProfile(properties);

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.ArtifactRepository;
@@ -42,13 +43,16 @@ import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleProject;
 import org.codehaus.tycho.ClasspathEntry;
-import org.codehaus.tycho.ClasspathEntry.AccessRule;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.UnknownEnvironmentException;
+import org.codehaus.tycho.ClasspathEntry.AccessRule;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
+import org.codehaus.tycho.utils.ExecutionEnvironment;
+import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.MavenArtifactRef;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
@@ -65,6 +69,9 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
     private static final Set<String> MATCH_ALL = Collections.singleton("**/*");
 	private static final Set<String> MATCH_JAVA = Collections
 			.singleton("**/*.java");
+	private static final String MANIFEST_HEADER_BUNDLE_REQ_EXEC_ENV = "Bundle-RequiredExecutionEnvironment";
+	private static final Pattern COMMA_SEP_INCLUDING_WHITESPACE = Pattern
+			.compile("\\s*,\\s*");
 
 	/**
 	 * @parameter expression="${project}"
@@ -130,7 +137,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * @component role="org.codehaus.tycho.TychoProject"
 	 */
 	private Map<String, TychoProject> projectTypes;
-	
+
 	public void execute() throws MojoExecutionException, CompilationFailureException {
         initializeProjectContext();
 
@@ -202,10 +209,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	}
 
 	public List<String> getClasspathElements() throws MojoExecutionException {
-	    TychoProject projectType = projectTypes.get(project.getPackaging());
-	    if (!(projectType instanceof BundleProject)) {
-	        throw new MojoExecutionException("Not a bundle project " + project.toString());
-	    }
+	    TychoProject projectType = getBundleProject();
 		List<String> classpath = new ArrayList<String>();
 		for (ClasspathEntry cpe : ((BundleProject) projectType).getClasspath(project)) {
 		    String rules = toString(cpe.getAccessRules());
@@ -239,6 +243,14 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		}
 		
 		return classpath;
+	}
+
+	private BundleProject getBundleProject() throws MojoExecutionException {
+		TychoProject projectType = projectTypes.get(project.getPackaging());
+	    if (!(projectType instanceof BundleProject)) {
+	        throw new MojoExecutionException("Not a bundle project " + project.toString());
+	    }
+		return (BundleProject) projectType;
 	}
 
 	private String toString(List<AccessRule> rules) {
@@ -317,6 +329,90 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 				compilerConfiguration.setSourceEncoding(encoding);
 			}
 		}
+		configureSourceAndTargetLevel(compilerConfiguration);
+		// TODO how to set target JRE? 
+		// https://issues.sonatype.org/browse/TYCHO-9
 		return compilerConfiguration;
+	}
+
+	private void configureSourceAndTargetLevel(
+			CompilerConfiguration compilerConfiguration)
+			throws MojoExecutionException {
+		String[] executionEnvironments = getExecutionEnvironments();
+		if (executionEnvironments.length == 0) {
+			return;
+		}
+		try {
+			String sourceVersion = getMinimalSourceVersion(executionEnvironments);
+			String pomSourceVersion = compilerConfiguration.getSourceVersion();
+			if (pomSourceVersion != null
+					&& !sourceVersion.equals(pomSourceVersion)) {
+				getLog().warn(
+						"Overriding compiler source level " + pomSourceVersion
+								+ " from POM with source level "
+								+ sourceVersion + " from MANIFEST.MF");
+			}
+			compilerConfiguration.setSourceVersion(sourceVersion);
+			String targetVersion = getMinimalTargetVersion(executionEnvironments);
+			String pomTargetVersion = compilerConfiguration.getTargetVersion();
+			if (pomTargetVersion != null
+					&& !targetVersion.equals(pomTargetVersion)) {
+				getLog().warn(
+						"Overriding compiler target level " + pomTargetVersion
+								+ " from POM with target level "
+								+ targetVersion + " from MANIFEST.MF");
+			}
+			compilerConfiguration.setTargetVersion(targetVersion);
+			getLog().debug(
+					"Using compiler source level: " + sourceVersion
+							+ ", target level: " + targetVersion);
+		} catch (UnknownEnvironmentException e) {
+			// fail-fast, ignoring any other environments
+			getLog()
+					.warn(
+							"Compiler source and target level not set due to unknown Bundle-RequiredExecutionEnvironment: '"
+									+ e.getEnvironmentName() + "'");
+		}
+	}
+
+	private String[] getExecutionEnvironments() throws MojoExecutionException {
+		String requiredExecEnvs = getBundleProject().getManifestValue(
+				MANIFEST_HEADER_BUNDLE_REQ_EXEC_ENV, project);
+		if (requiredExecEnvs == null) {
+			return new String[0];
+		}
+		return COMMA_SEP_INCLUDING_WHITESPACE.split(requiredExecEnvs.trim());
+	}
+
+	private String getMinimalTargetVersion(String[] executionEnvironments)
+			throws UnknownEnvironmentException {
+		if (executionEnvironments.length == 1) {
+			ExecutionEnvironment executionEnvironment = ExecutionEnvironmentUtils
+					.getExecutionEnvironment(executionEnvironments[0]);
+			return executionEnvironment.getCompilerTargetLevel();
+		}
+		List<String> targetLevels = new ArrayList<String>(
+				executionEnvironments.length);
+		for (String executionEnvironment : executionEnvironments) {
+			targetLevels.add(ExecutionEnvironmentUtils
+					.getExecutionEnvironment(executionEnvironment).getCompilerTargetLevel());
+		}
+		return Collections.min(targetLevels);
+	}
+
+	private String getMinimalSourceVersion(String[] executionEnvironments)
+			throws UnknownEnvironmentException {
+		if (executionEnvironments.length == 1) {
+			ExecutionEnvironment executionEnvironment = ExecutionEnvironmentUtils
+					.getExecutionEnvironment(executionEnvironments[0]);
+			return executionEnvironment.getCompilerSourceLevel();
+		}
+		List<String> sourceLevels = new ArrayList<String>(
+				executionEnvironments.length);
+		for (String executionEnvironment : executionEnvironments) {
+			sourceLevels.add(ExecutionEnvironmentUtils.getExecutionEnvironment(
+					executionEnvironment).getCompilerSourceLevel());
+		}
+		return Collections.min(sourceLevels);
 	}
 }
