@@ -2,6 +2,7 @@ package org.codehaus.tycho.testing;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -80,6 +81,9 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 		request.setSystemProperties(systemProps);
 		request.setUserProperties(userProps);
 		request.setLocalRepository(getLocalRepository());
+
+        request.setGoals( Arrays.asList( "validate" ) );
+
 		return request;
 	}
 
@@ -107,5 +111,18 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
         session.setProjects( projects );
         return session;
     }
-    
+
+    protected MavenProject getProject( List<MavenProject> projects, String artifactId )
+    {
+        for ( MavenProject project : projects )
+        {
+            if ( artifactId.equals( project.getArtifactId() ) )
+            {
+                return project;
+            }
+        }
+
+        throw new IllegalArgumentException( "No project with artifactId " + artifactId );
+    }
+
 }

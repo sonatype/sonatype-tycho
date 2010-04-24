@@ -18,7 +18,7 @@ public class PackageFeatureMojoTest
         File platform = new File( "src/test/resources/eclipse" );
         List<MavenProject> projects = getSortedProjects( basedir, platform );
 
-        MavenProject project = projects.get( 1 );
+        MavenProject project = getProject( projects, "featureXml.feature" );
 
         PackageFeatureMojo mojo = (PackageFeatureMojo) lookupMojo( "package-feature", project.getFile() );
         setVariableValueToObject( mojo, "project", project );

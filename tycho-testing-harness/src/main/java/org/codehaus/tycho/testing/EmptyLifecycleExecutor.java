@@ -19,20 +19,24 @@ package org.codehaus.tycho.testing;
  * under the License.
  */
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.repository.RepositoryRequest;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.lifecycle.DefaultLifecycles;
 import org.apache.maven.lifecycle.LifecycleExecutor;
+import org.apache.maven.lifecycle.LifecycleNotFoundException;
+import org.apache.maven.lifecycle.LifecyclePhaseNotFoundException;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.apache.maven.plugin.InvalidPluginDescriptorException;
+import org.apache.maven.plugin.MojoNotFoundException;
+import org.apache.maven.plugin.PluginDescriptorParsingException;
+import org.apache.maven.plugin.PluginManagerException;
+import org.apache.maven.plugin.PluginNotFoundException;
+import org.apache.maven.plugin.PluginResolutionException;
+import org.apache.maven.plugin.prefix.NoPluginFoundForPrefixException;
+import org.apache.maven.plugin.version.PluginVersionResolutionException;
 
 /**
  * A stub implementation that assumes an empty lifecycle to bypass interaction with the plugin manager and to avoid
@@ -44,49 +48,22 @@ public class EmptyLifecycleExecutor
     implements LifecycleExecutor
 {
 
-    public MavenExecutionPlan calculateExecutionPlan( MavenSession session, String... tasks )
+    public Set<Plugin> getPluginsBoundByDefaultToAllLifecycles( String packaging )
     {
-        return new MavenExecutionPlan( Collections.<MojoExecution> emptyList(), null, null );
+        return Collections.emptySet();
+    }
+
+    public MavenExecutionPlan calculateExecutionPlan( MavenSession session, String... tasks )
+        throws PluginNotFoundException, PluginResolutionException, PluginDescriptorParsingException,
+        MojoNotFoundException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException,
+        PluginManagerException, LifecyclePhaseNotFoundException, LifecycleNotFoundException,
+        PluginVersionResolutionException
+    {
+        return new MavenExecutionPlan(null, null, null, null );
     }
 
     public void execute( MavenSession session )
     {
     }
 
-    public Xpp3Dom getDefaultPluginConfiguration( String groupId, String artifactId, String version, String goal,
-                                                  MavenProject project, ArtifactRepository localRepository )
-    {
-        return null;
-    }
-
-    public List<String> getLifecyclePhases()
-    {
-        return Collections.emptyList();
-    }
-
-    public Set<Plugin> getPluginsBoundByDefaultToAllLifecycles( String packaging )
-    {
-        return Collections.emptySet();
-    }
-
-    public void populateDefaultConfigurationForPlugins( Collection<Plugin> plugins, RepositoryRequest repositoryRequest )
-    {
-    }
-
-    public void populateDefaultConfigurationForPlugin( Plugin plugin, RepositoryRequest repositoryRequest )
-    {
-    }
-
-    public void resolvePluginVersion( Plugin plugin, RepositoryRequest repositoryRequest )
-    {
-    }
-
-    public void calculateForkedExecutions( MojoExecution mojoExecution, MavenSession session )
-    {
-    }
-
-    public List<MavenProject> executeForkedExecutions( MojoExecution mojoExecution, MavenSession session )
-    {
-        return Collections.emptyList();
-    }
 }
