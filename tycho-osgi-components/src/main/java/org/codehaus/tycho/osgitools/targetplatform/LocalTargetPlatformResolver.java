@@ -96,15 +96,39 @@ public class LocalTargetPlatformResolver
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
 
-        if ( configuration != null && TargetPlatformConfiguration.POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
+        if ( configuration != null
+            && TargetPlatformConfiguration.POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
         {
             Map<String, MavenProject> projectIds = new HashMap<String, MavenProject>( session.getProjects().size() * 2 );
+            // make a list of reactor projects
             for ( MavenProject p : session.getProjects() )
             {
                 String key = ArtifactUtils.key( p.getGroupId(), p.getArtifactId(), p.getVersion() );
                 projectIds.put( key, p );
             }
-
+            // handle dependencies that are in reactor
+            for ( Dependency dependency : project.getDependencies() )
+            {
+                if ( Artifact.SCOPE_COMPILE.equals( dependency.getScope() ) )
+                {
+                    String key = ArtifactUtils.key( dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion() );
+                    if ( projectIds.containsKey( key ) )
+                    {
+                        MavenProject dependent = projectIds.get( key );
+                        ArtifactKey artifactKey = getArtifactKey( session, dependent );
+                        if ( artifactKey != null )
+                        {
+                            platform.removeAll( artifactKey.getType(), artifactKey.getId() );
+                            platform.addMavenProject( artifactKey, dependent );
+                            if ( getLogger().isDebugEnabled() )
+                            {
+                                getLogger().debug( "Add Maven project " + artifactKey );
+                            }
+                        }
+                    }                    
+                }
+            }
+            // handle rest of dependencies
             ArrayList<String> scopes = new ArrayList<String>();
             scopes.add( Artifact.SCOPE_COMPILE );
             Collection<Artifact> artifacts;
@@ -142,21 +166,7 @@ public class LocalTargetPlatformResolver
             {
                 String key =
                     ArtifactUtils.key( artifact.getGroupId(), artifact.getArtifactId(), artifact.getBaseVersion() );
-                if ( projectIds.containsKey( key ) )
-                {
-                    MavenProject dependent = projectIds.get( key );
-                    ArtifactKey artifactKey = getArtifactKey( session, dependent );
-                    if ( artifactKey != null )
-                    {
-                        platform.removeAll( artifactKey.getType(), artifactKey.getId() );
-                        platform.addMavenProject( artifactKey, dependent );
-                        if ( getLogger().isDebugEnabled() )
-                        {
-                            getLogger().debug( "Add Maven Project " + artifactKey );
-                        }                        
-                    }
-                }
-                else
+                if ( !projectIds.containsKey( key ) )
                 {
                     File plugin = artifact.getFile();
                     ArtifactKey artifactKey = getArtifactKey( session, plugin );
@@ -166,7 +176,7 @@ public class LocalTargetPlatformResolver
                         platform.addArtifactFile( artifactKey, plugin );
                         if ( getLogger().isDebugEnabled() )
                         {
-                            getLogger().debug( "Add Maven Project " + artifactKey );
+                            getLogger().debug( "Add Maven artifact " + artifactKey );
                         }
                     }
                 }
@@ -177,8 +187,8 @@ public class LocalTargetPlatformResolver
     public ArtifactKey getArtifactKey( MavenSession session, MavenProject project )
     {
         Manifest mf = manifestReader.loadManifest( project.getBasedir() );
-        
-        if( mf == null)
+
+        if ( mf == null )
         {
             return null;
         }
@@ -194,12 +204,12 @@ public class LocalTargetPlatformResolver
         ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
         return key;
     }
-    
+
     public ArtifactKey getArtifactKey( MavenSession session, File plugin )
     {
         Manifest mf = manifestReader.loadManifest( plugin );
-        
-        if( mf == null)
+
+        if ( mf == null )
         {
             return null;
         }
@@ -214,8 +224,8 @@ public class LocalTargetPlatformResolver
 
         ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
         return key;
-    }    
-    
+    }
+
     public void setLocation( File location )
         throws IOException
     {
