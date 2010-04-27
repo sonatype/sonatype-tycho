@@ -70,6 +70,16 @@ public class Target
             // this is Maven specific, used to match credentials and mirrors
             return repositoryDom.getAttribute( "id" );
         }
+
+        public String getType()
+        {
+            return dom.getAttribute( "type" );
+        }
+
+        public void setType( String type )
+        {
+            dom.setAttribute( "type" , type );
+        }
     }
 
     public static class Unit

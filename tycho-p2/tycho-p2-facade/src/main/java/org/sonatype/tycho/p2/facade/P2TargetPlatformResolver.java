@@ -309,6 +309,13 @@ public class P2TargetPlatformResolver
 
             for ( Target.Location location : target.getLocations() )
             {
+                String type = location.getType();
+                if ( !"InstallableUnit".equalsIgnoreCase( type ) )
+                {
+                    getLogger().warn( "Target location type: " + type + " is not supported" );
+                    continue;
+                }
+
                 try
                 {
                     URI uri = new URI( getMirror( location, session.getRequest().getMirrors() ) );
