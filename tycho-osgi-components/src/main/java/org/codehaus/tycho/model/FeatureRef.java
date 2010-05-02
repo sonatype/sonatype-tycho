@@ -1,25 +1,30 @@
 package org.codehaus.tycho.model;
 
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import de.pdark.decentxml.Element;
 
-public class FeatureRef {
+public class FeatureRef
+{
 
-    protected final Xpp3Dom dom;
+    protected final Element dom;
 
-    public FeatureRef(Xpp3Dom dom) {
+    public FeatureRef( Element dom )
+    {
         this.dom = dom;
     }
 
-    public String getId() {
-        return dom.getAttribute("id");
+    public String getId()
+    {
+        return dom.getAttributeValue( "id" );
     }
 
-    public String getVersion() {
-        return dom.getAttribute("version");
+    public String getVersion()
+    {
+        return dom.getAttributeValue( "version" );
     }
 
-    public void setVersion(String version) {
-        dom.setAttribute("version", version);
+    public void setVersion( String version )
+    {
+        dom.setAttribute( "version", version );
     }
 
     @Override
@@ -28,9 +33,9 @@ public class FeatureRef {
         return getId() + "_" + getVersion();
     }
 
-    public Xpp3Dom getDom()
+    public Element getDom()
     {
         return dom;
     }
-    
+
 }

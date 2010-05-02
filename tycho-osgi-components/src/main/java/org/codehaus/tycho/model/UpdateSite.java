@@ -1,10 +1,13 @@
 package org.codehaus.tycho.model;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -13,100 +16,133 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.plexus.util.ReaderFactory;
-import org.codehaus.plexus.util.xml.XmlStreamReader;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.Xpp3DomWriter;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.plexus.util.IOUtil;
+
+import de.pdark.decentxml.Document;
+import de.pdark.decentxml.Element;
+import de.pdark.decentxml.XMLIOSource;
+import de.pdark.decentxml.XMLParser;
+import de.pdark.decentxml.XMLWriter;
 
 /**
  * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/update_sitemap.html
  */
-public class UpdateSite {
-
+public class UpdateSite
+{
     public static final String SITE_XML = "site.xml";
 
-	final Xpp3Dom dom;
+    private static XMLParser parser = new XMLParser();
 
-	public UpdateSite(Xpp3Dom dom) {
-		this.dom = dom;
-	}
+    private final Element dom;
 
-	public List<SiteFeatureRef> getFeatures() {
-		ArrayList<SiteFeatureRef> features = new ArrayList<SiteFeatureRef>();
-		for (Xpp3Dom featureDom : dom.getChildren("feature")) {
-			features.add(new SiteFeatureRef(featureDom));
-		}
-		return Collections.unmodifiableList(features);
-	}
+    private final Document document;
 
-	public Map<String, String> getArchives() {
-		Map<String, String> archives = new HashMap<String, String>();
-		for (Xpp3Dom archiveDom : dom.getChildren("archive")) {
-			String path = archiveDom.getAttribute("path");
-			String url = archiveDom.getAttribute("url");
-			archives.put(path, url);
-		}
-		return Collections.unmodifiableMap(archives);
-	}
-
-	public void removeArchives() {
-		int i = 0;
-		while (i < dom.getChildCount()) {
-			Xpp3Dom child = dom.getChild(i);
-			if ("archive".equals(child.getName())) {
-				dom.removeChild(i);
-			} else {
-				i++;
-			}
-		}
-	}
-
-	public static class SiteFeatureRef extends FeatureRef {
-
-		public SiteFeatureRef(Xpp3Dom dom) {
-			super(dom);
-		}
-
-		public void setUrl(String url) {
-			dom.setAttribute("url", url);
-		}
-
-		public String getUrl()
-		{
-		    return dom.getAttribute("url");
-		}
-
-	}
-
-	public static UpdateSite read(File file) throws IOException, XmlPullParserException {
-	    return read(new FileInputStream(file));
-	}
-
-    @SuppressWarnings("deprecation")
-    public static UpdateSite read(InputStream is)
-        throws IOException, XmlPullParserException
+    public UpdateSite( Document document )
     {
-        XmlStreamReader reader = ReaderFactory.newXmlReader(is);
-		try {
-			return new UpdateSite(Xpp3DomBuilder.build(reader));
-		} finally {
-			reader.close();
-		}
+        this.document = document;
+        this.dom = document.getRootElement();
     }
 
-	public static void write(UpdateSite site, File file) throws IOException {
-		Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-		try {
-			Xpp3DomWriter.write(writer, site.dom);
-		} finally {
-			writer.close();
-		}
-	}
-	
-	public boolean isPack200() {
-	    String pack200 = dom.getAttribute( "pack200" );
-	    return "true".equals(pack200);
-	}
+    public List<SiteFeatureRef> getFeatures()
+    {
+        ArrayList<SiteFeatureRef> features = new ArrayList<SiteFeatureRef>();
+        for ( Element featureDom : dom.getChildren( "feature" ) )
+        {
+            features.add( new SiteFeatureRef( featureDom ) );
+        }
+        return Collections.unmodifiableList( features );
+    }
+
+    public Map<String, String> getArchives()
+    {
+        Map<String, String> archives = new HashMap<String, String>();
+        for ( Element archiveDom : dom.getChildren( "archive" ) )
+        {
+            String path = archiveDom.getAttributeValue( "path" );
+            String url = archiveDom.getAttributeValue( "url" );
+            archives.put( path, url );
+        }
+        return Collections.unmodifiableMap( archives );
+    }
+
+    public void removeArchives()
+    {
+        for ( Element archive : dom.getChildren( "archive" ) )
+        {
+            dom.removeNode( archive );
+        }
+    }
+
+    public static class SiteFeatureRef
+        extends FeatureRef
+    {
+
+        public SiteFeatureRef( Element dom )
+        {
+            super( dom );
+        }
+
+        public void setUrl( String url )
+        {
+            dom.setAttribute( "url", url );
+        }
+
+        public String getUrl()
+        {
+            return dom.getAttributeValue( "url" );
+        }
+
+    }
+
+    public static UpdateSite read( File file )
+        throws IOException
+    {
+        return read( new BufferedInputStream( new FileInputStream( file ) ) );
+    }
+
+    public static UpdateSite read( InputStream is )
+        throws IOException
+    {
+        try
+        {
+            return new UpdateSite( parser.parse( new XMLIOSource( is ) ) );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
+    }
+
+    public static void write( UpdateSite site, File file )
+        throws IOException
+    {
+        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
+
+        Document document = site.document;
+        try
+        {
+            Writer w =
+                document.getEncoding() != null ? new OutputStreamWriter( os, document.getEncoding() )
+                                : new OutputStreamWriter( os );
+            XMLWriter xw = new XMLWriter( w );
+            try
+            {
+                document.toXML( xw );
+            }
+            finally
+            {
+                xw.flush();
+            }
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
+    }
+
+    public boolean isPack200()
+    {
+        String pack200 = dom.getAttributeValue( "pack200" );
+        return "true".equals( pack200 );
+    }
 }

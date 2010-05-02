@@ -5,12 +5,11 @@ import java.io.IOException;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactKey;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.UpdateSite;
 
 @Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_UPDATE_SITE )
@@ -39,10 +38,6 @@ public class UpdateSiteProject
             return UpdateSite.read( file );
         }
         catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not read site.xml " + file.getAbsolutePath(), e );
-        }
-        catch ( XmlPullParserException e )
         {
             throw new RuntimeException( "Could not read site.xml " + file.getAbsolutePath(), e );
         }

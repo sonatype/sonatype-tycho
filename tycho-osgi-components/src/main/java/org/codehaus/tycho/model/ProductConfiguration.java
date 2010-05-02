@@ -1,9 +1,13 @@
 package org.codehaus.tycho.model;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -12,191 +16,245 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.plexus.util.ReaderFactory;
-import org.codehaus.plexus.util.xml.XmlStreamReader;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.Xpp3DomWriter;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.plexus.util.IOUtil;
+
+import de.pdark.decentxml.Attribute;
+import de.pdark.decentxml.Document;
+import de.pdark.decentxml.Element;
+import de.pdark.decentxml.XMLIOSource;
+import de.pdark.decentxml.XMLParser;
+import de.pdark.decentxml.XMLWriter;
 
 /**
- * As of eclipse 3.5.1, file format does not seem to be documented. There are
- * most likely multiple parser implementations.
- * 
- * org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile
+ * As of eclipse 3.5.1, file format does not seem to be documented. There are most likely multiple parser
+ * implementations. org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile
  */
-public class ProductConfiguration {
+public class ProductConfiguration
+{
+    private static XMLParser parser = new XMLParser();
 
-	@SuppressWarnings("deprecation")
-	public static ProductConfiguration read(File file) throws IOException,
-			XmlPullParserException {
-		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
-		try {
-			return new ProductConfiguration(Xpp3DomBuilder.build(reader));
-		} finally {
-			reader.close();
-		}
-	}
+    public static ProductConfiguration read( File file )
+        throws IOException
+    {
+        InputStream is = new BufferedInputStream( new FileInputStream( file ) );
+        return read( is ); // closes the stream
+    }
 
-	@SuppressWarnings("deprecation")
-	public static ProductConfiguration read(InputStream inputStream)
-			throws IOException, XmlPullParserException {
-		XmlStreamReader reader = ReaderFactory.newXmlReader(inputStream);
-		try {
-			return new ProductConfiguration(Xpp3DomBuilder.build(reader));
-		} finally {
-			reader.close();
-		}
-	}
-
-	public static void write(ProductConfiguration product, File file) throws IOException {
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-        try {
-            Xpp3DomWriter.write(writer, product.dom);
-        } finally {
-            writer.close();
+    public static ProductConfiguration read( InputStream input )
+        throws IOException
+    {
+        try
+        {
+            return new ProductConfiguration( parser.parse( new XMLIOSource( input ) ) );
+        }
+        finally
+        {
+            IOUtil.close( input );
         }
     }
 
-	private Xpp3Dom dom;
+    public static void write( ProductConfiguration product, File file )
+        throws IOException
+    {
+        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
 
-	public ProductConfiguration(Xpp3Dom dom) {
-		this.dom = dom;
-	}
-
-    public String getProduct() {
-        return dom.getAttribute("id");
+        Document document = product.document;
+        try
+        {
+            Writer w =
+                document.getEncoding() != null ? new OutputStreamWriter( os, document.getEncoding() )
+                                : new OutputStreamWriter( os );
+            XMLWriter xw = new XMLWriter( w );
+            try
+            {
+                document.toXML( xw );
+            }
+            finally
+            {
+                xw.flush();
+            }
+        }
+        finally
+        {
+            IOUtil.close( os );
+        }
     }
 
-	public String getApplication() {
-		return dom.getAttribute("application");
-	}
+    private Element dom;
 
-	public List<FeatureRef> getFeatures() {
-		Xpp3Dom featuresDom = dom.getChild("features");
-		if (featuresDom == null) {
-			return Collections.emptyList();
-		}
+    private Document document;
 
-		ArrayList<FeatureRef> features = new ArrayList<FeatureRef>();
-		for (Xpp3Dom pluginDom : featuresDom.getChildren("feature")) {
-			features.add(new FeatureRef(pluginDom));
-		}
-		return Collections.unmodifiableList(features);
-	}
+    public ProductConfiguration( Document document )
+    {
+        this.document = document;
+        this.dom = document.getRootElement();
+    }
 
-	public String getId() {
-		return dom.getAttribute("uid");
-	}
+    public String getProduct()
+    {
+        return dom.getAttributeValue( "id" );
+    }
 
-	public Launcher getLauncher() {
-		Xpp3Dom domLauncher = dom.getChild("launcher");
-		if (domLauncher == null) {
-			return null;
-		}
-		return new Launcher(domLauncher);
-	}
+    public String getApplication()
+    {
+        return dom.getAttributeValue( "application" );
+    }
 
-	public String getName() {
-		return dom.getAttribute("name");
-	}
+    public List<FeatureRef> getFeatures()
+    {
+        Element featuresDom = dom.getChild( "features" );
+        if ( featuresDom == null )
+        {
+            return Collections.emptyList();
+        }
 
-	public List<PluginRef> getPlugins() {
-		Xpp3Dom pluginsDom = dom.getChild("plugins");
-		if (pluginsDom == null) {
-			return Collections.emptyList();
-		}
+        ArrayList<FeatureRef> features = new ArrayList<FeatureRef>();
+        for ( Element pluginDom : featuresDom.getChildren( "feature" ) )
+        {
+            features.add( new FeatureRef( pluginDom ) );
+        }
+        return Collections.unmodifiableList( features );
+    }
 
-		ArrayList<PluginRef> plugins = new ArrayList<PluginRef>();
-		for (Xpp3Dom pluginDom : pluginsDom.getChildren("plugin")) {
-			plugins.add(new PluginRef(pluginDom));
-		}
-		return Collections.unmodifiableList(plugins);
-	}
+    public String getId()
+    {
+        return dom.getAttributeValue( "uid" );
+    }
 
-	public boolean useFeatures() {
-		return Boolean.parseBoolean(dom.getAttribute("useFeatures"));
-	}
+    public Launcher getLauncher()
+    {
+        Element domLauncher = dom.getChild( "launcher" );
+        if ( domLauncher == null )
+        {
+            return null;
+        }
+        return new Launcher( domLauncher );
+    }
 
-	public boolean includeLaunchers() {
-        String attribute = dom.getAttribute("includeLaunchers");
-        return attribute == null? true: Boolean.parseBoolean(attribute);
-	}
+    public String getName()
+    {
+        return dom.getAttributeValue( "name" );
+    }
 
-	public String getVersion() {
-		return dom.getAttribute("version");
-	}
+    public List<PluginRef> getPlugins()
+    {
+        Element pluginsDom = dom.getChild( "plugins" );
+        if ( pluginsDom == null )
+        {
+            return Collections.emptyList();
+        }
 
-	public void setVersion(String version) {
-	    dom.setAttribute("version", version);
-	}
-	
-	public List<String> getW32Icons() {
-		Xpp3Dom domLauncher = dom.getChild("launcher");
-		if (domLauncher == null) {
-			
-			return null;
-		}
-		Xpp3Dom win = domLauncher.getChild("win");
-		if (win == null) {
-			return null;
-		}
-		List<String> icons = new ArrayList<String>();
-		String useIco = win.getAttribute("useIco");
-		if (Boolean.valueOf(useIco)) {
-			//for (Xpp3Dom ico : win.getChildren("ico"))
-			{
-				Xpp3Dom ico = win.getChild("ico");
-				//should be only 1	
-				icons.add(ico.getAttribute("path"));
-			}
-		} else {
-			for (Xpp3Dom bmp : win.getChildren("bmp")) {
-				String[] attibuteNames = bmp.getAttributeNames();
-				if (attibuteNames != null && attibuteNames.length > 0)
-					icons.add(bmp.getAttribute(bmp.getAttributeNames()[0]));
-			}
-		}
-		return icons;
-	}
+        ArrayList<PluginRef> plugins = new ArrayList<PluginRef>();
+        for ( Element pluginDom : pluginsDom.getChildren( "plugin" ) )
+        {
+            plugins.add( new PluginRef( pluginDom ) );
+        }
+        return Collections.unmodifiableList( plugins );
+    }
 
-	public String getLinuxIcon(){
-		Xpp3Dom domLauncher = dom.getChild("launcher");
-		if (domLauncher == null) {
-			
-			return null;
-		}
-		Xpp3Dom linux = domLauncher.getChild("linux");
-		if (linux == null) {
-			return null;
-		}
-		
-		return linux.getAttribute("icon");
-	}
-	
-	public Map<String, BundleConfiguration> getPluginConfiguration() {
-		Xpp3Dom configurationsDom = dom.getChild("configurations");
-		if (configurationsDom == null) {
-			return null;
-		}
+    public boolean useFeatures()
+    {
+        return Boolean.parseBoolean( dom.getAttributeValue( "useFeatures" ) );
+    }
 
-		Map<String, BundleConfiguration> configs = new HashMap<String, BundleConfiguration>(configurationsDom.getChildCount());
-		for (Xpp3Dom pluginDom : configurationsDom.getChildren("plugin")) {
-			configs.put(pluginDom.getAttribute("id"), new BundleConfiguration(pluginDom));
-		}
-		return Collections.unmodifiableMap(configs);
-	}
-	
-	public String getMacIcon(){
-		Xpp3Dom domLauncher = dom.getChild("launcher");
-		if (domLauncher == null) {
-			
-			return null;
-		}
-		Xpp3Dom linux = domLauncher.getChild("macosx");
-		if (linux == null) {
-			return null;
-		}
-		return linux.getAttribute("icon");
-	}
+    public boolean includeLaunchers()
+    {
+        String attribute = dom.getAttributeValue( "includeLaunchers" );
+        return attribute == null ? true : Boolean.parseBoolean( attribute );
+    }
+
+    public String getVersion()
+    {
+        return dom.getAttributeValue( "version" );
+    }
+
+    public void setVersion( String version )
+    {
+        dom.setAttribute( "version", version );
+    }
+
+    public List<String> getW32Icons()
+    {
+        Element domLauncher = dom.getChild( "launcher" );
+        if ( domLauncher == null )
+        {
+
+            return null;
+        }
+        Element win = domLauncher.getChild( "win" );
+        if ( win == null )
+        {
+            return null;
+        }
+        List<String> icons = new ArrayList<String>();
+        String useIco = win.getAttributeValue( "useIco" );
+        if ( Boolean.valueOf( useIco ) )
+        {
+            // for (Element ico : win.getChildren("ico"))
+            {
+                Element ico = win.getChild( "ico" );
+                // should be only 1
+                icons.add( ico.getAttributeValue( "path" ) );
+            }
+        }
+        else
+        {
+            for ( Element bmp : win.getChildren( "bmp" ) )
+            {
+                List<Attribute> attibuteNames = bmp.getAttributes();
+                if ( attibuteNames != null && attibuteNames.size() > 0 )
+                    icons.add( attibuteNames.get( 0 ).getValue() );
+            }
+        }
+        return icons;
+    }
+
+    public String getLinuxIcon()
+    {
+        Element domLauncher = dom.getChild( "launcher" );
+        if ( domLauncher == null )
+        {
+
+            return null;
+        }
+        Element linux = domLauncher.getChild( "linux" );
+        if ( linux == null )
+        {
+            return null;
+        }
+
+        return linux.getAttributeValue( "icon" );
+    }
+
+    public Map<String, BundleConfiguration> getPluginConfiguration()
+    {
+        Element configurationsDom = dom.getChild( "configurations" );
+        if ( configurationsDom == null )
+        {
+            return null;
+        }
+
+        Map<String, BundleConfiguration> configs = new HashMap<String, BundleConfiguration>();
+        for ( Element pluginDom : configurationsDom.getChildren( "plugin" ) )
+        {
+            configs.put( pluginDom.getAttributeValue( "id" ), new BundleConfiguration( pluginDom ) );
+        }
+        return Collections.unmodifiableMap( configs );
+    }
+
+    public String getMacIcon()
+    {
+        Element domLauncher = dom.getChild( "launcher" );
+        if ( domLauncher == null )
+        {
+
+            return null;
+        }
+        Element linux = domLauncher.getChild( "macosx" );
+        if ( linux == null )
+        {
+            return null;
+        }
+        return linux.getAttributeValue( "icon" );
+    }
 }

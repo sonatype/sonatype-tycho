@@ -5,12 +5,11 @@ import java.io.IOException;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactKey;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.ProductConfiguration;
 
 @Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_APPLICATION )
@@ -41,10 +40,6 @@ public class EclipseApplicationProject
         catch ( IOException e )
         {
             throw new RuntimeException( "Could not read product configuration file " + file.getAbsolutePath(), e );
-        }
-        catch ( XmlPullParserException e )
-        {
-            throw new RuntimeException( "Could not parse product configuration file " + file.getAbsolutePath(), e );
         }
     }
 

@@ -1,6 +1,6 @@
 package org.codehaus.tycho.model;
 
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import de.pdark.decentxml.Element;
 
 /**
  * This object represents information of a bundle. This class is a copy of the BundleInfo class in
@@ -10,23 +10,23 @@ public class BundleConfiguration
 {
     public static int NO_STARTLEVEL = -1;
 
-    Xpp3Dom configuration = null;
+    Element configuration = null;
 
-    public BundleConfiguration( Xpp3Dom config )
+    public BundleConfiguration( Element pluginDom )
     {
-        configuration = config;
+        configuration = pluginDom;
     }
 
     public BundleConfiguration( String id, int startLevel, boolean autoStart )
     {
-        this.configuration = new Xpp3Dom( "plugin" );
+        this.configuration = new Element( "plugin" );
 
         setAutoStart( autoStart );
     }
 
     public boolean isAutoStart()
     {
-        return Boolean.parseBoolean( configuration.getAttribute( "autoStart" ) );
+        return Boolean.parseBoolean( configuration.getAttributeValue( "autoStart" ) );
     }
 
     public void setAutoStart( boolean autoStart )
@@ -36,7 +36,7 @@ public class BundleConfiguration
 
     public String getId()
     {
-        return configuration.getAttribute( "id" );
+        return configuration.getAttributeValue( "id" );
     }
 
     public void setId( String id )
@@ -46,7 +46,7 @@ public class BundleConfiguration
 
     public int getStartLevel()
     {
-        String sl = configuration.getAttribute( "startLevel" );
+        String sl = configuration.getAttributeValue( "startLevel" );
         if ( sl != null )
         {
             return Integer.decode( sl ).intValue();

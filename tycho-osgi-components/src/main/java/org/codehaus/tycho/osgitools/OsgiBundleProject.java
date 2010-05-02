@@ -138,15 +138,7 @@ public class OsgiBundleProject
     {
         TargetPlatform platform = getTargetPlatform( project );
 
-        State state;
-        try
-        {
-            state = resolver.newResolvedState( project, platform );
-        }
-        catch ( BundleException e )
-        {
-            throw new RuntimeException( e );
-        }
+        State state = getResolverState( project, platform );
 
         BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
 
@@ -180,6 +172,25 @@ public class OsgiBundleProject
         }
         project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_CLASSPATH, classpath );
 
+    }
+
+    public State getResolverState( MavenProject project )
+    {
+        TargetPlatform platform = getTargetPlatform( project );
+
+        return getResolverState( project, platform );
+    }
+
+    protected State getResolverState( MavenProject project, TargetPlatform platform )
+    {
+        try
+        {
+            return resolver.newResolvedState( project, platform );
+        }
+        catch ( BundleException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     public EclipsePluginProjectImpl getEclipsePluginProject( MavenProject project )

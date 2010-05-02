@@ -46,6 +46,22 @@ public class DefaultEquinoxEmbedder
             throw new IllegalStateException( "Nested Equinox instance is not supported" );
         }
 
+        // https://bugs.eclipse.org/bugs/show_bug.cgi?id=308949
+        // restore TCCL to make sure equinox classloader does not leak into our clients
+        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+        try
+        {
+            doStart();
+        }
+        finally
+        {
+            Thread.currentThread().setContextClassLoader( tccl );
+        }
+    }
+
+    protected void doStart()
+        throws Exception
+    {
         String p2RuntimeLocation = getRuntimeLocation().getAbsolutePath();
 
         System.setProperty( "osgi.framework.useSystemProperties", "false" ); //$NON-NLS-1$ //$NON-NLS-2$
@@ -61,9 +77,9 @@ public class DefaultEquinoxEmbedder
         // properties.put( "eclipse.p2.data.area", dataArea.getAbsolutePath() );
 
         // debug
-        //properties.put( "osgi.console", "" );
-        //properties.put( "osgi.debug", "" );
-        //properties.put( "eclipse.consoleLog", "true" );
+        // properties.put( "osgi.console", "" );
+        // properties.put( "osgi.debug", "" );
+        // properties.put( "eclipse.consoleLog", "true" );
 
         // TODO switch to org.eclipse.osgi.launch.Equinox
         // EclipseStarter is not helping here

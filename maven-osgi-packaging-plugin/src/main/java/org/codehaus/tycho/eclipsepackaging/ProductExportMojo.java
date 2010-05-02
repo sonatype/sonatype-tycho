@@ -35,7 +35,6 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactDescription;
@@ -134,10 +133,6 @@ public class ProductExportMojo
         catch ( IOException e )
         {
             throw new MojoExecutionException( "Error reading product configuration file", e );
-        }
-        catch ( XmlPullParserException e )
-        {
-            throw new MojoExecutionException( "Error parsing product configuration file", e );
         }
 
         // build results will vary from system to system without explicit target environment configuration

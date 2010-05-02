@@ -16,7 +16,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
-import org.codehaus.plexus.util.FileUtils;
 
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 
@@ -33,23 +32,6 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
         maven = null;
         super.tearDown();
     }
-
-	protected File getBasedir(String name) throws IOException {
-		File src = new File( getBasedir(), "src/test/resources/" + name );
-		File dst = new File( getBasedir(), "target/" + name);
-	
-		if (dst.isDirectory()) {
-			FileUtils.deleteDirectory(dst);
-		} else if (dst.isFile()) {
-			if (!dst.delete()) {
-				throw new IOException("Can't delete file " + dst.toString());
-			}
-		}
-	
-		FileUtils.copyDirectoryStructure(src, dst);
-		
-		return dst;
-	}
 
 	@Override
     protected String getCustomConfigurationName()
@@ -123,6 +105,12 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
         }
 
         throw new IllegalArgumentException( "No project with artifactId " + artifactId );
+    }
+
+    protected static File getBasedir( String name )
+        throws IOException
+    {
+        return TestUtil.getBasedir( name );
     }
 
 }

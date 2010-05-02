@@ -170,6 +170,12 @@
       </dependency>
 
       <dependency>
+        <groupId>de.pdark</groupId>
+        <artifactId>decentxml</artifactId>
+        <version>1.3</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>org.apache.ant</artifactId>
         <version>1.6.5</version>
@@ -422,6 +428,9 @@
 
         <!--  surefire -->
         <module>tycho-surefire</module>
+
+        <!--  release -->
+        <module>tycho-release</module>
 
         <!-- tycho-p2 -->
         <module>tycho-p2</module>
