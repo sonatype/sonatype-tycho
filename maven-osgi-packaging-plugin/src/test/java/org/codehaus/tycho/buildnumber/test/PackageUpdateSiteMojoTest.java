@@ -1,11 +1,14 @@
 package org.codehaus.tycho.buildnumber.test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import junit.framework.Assert;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.eclipsepackaging.PackageUpdateSiteMojo;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
@@ -48,49 +51,45 @@ public class PackageUpdateSiteMojoTest
         setVariableValueToObject( packagemojo, "target", siteFolder );
     }
 
-    public void testArchiveSite()
-        throws Exception
-    {
-        setVariableValueToObject( packagemojo, "archiveSite", Boolean.TRUE );
+    public void testArchiveSite() throws Exception {
+        setVariableValueToObject(packagemojo, "archiveSite", Boolean.TRUE);
 
         packagemojo.execute();
+        checkSiteZip();
 
-        File resultzip = new File( targetFolder, "site.zip" );
-        Assert.assertTrue( resultzip.exists() );
-        Assert.assertEquals( project.getArtifact().getFile(), resultzip );
-
-        ZipFile zip = new ZipFile( resultzip );
-        try
-        {
-            assertNotNull( zip.getEntry( "site.xml" ) );
-            assertNotNull( zip.getEntry( "content.xml" ) );
-        }
-        finally
-        {
+        File assemblyZip = new File(targetFolder, "site_assembly.zip");
+        Assert.assertTrue(assemblyZip.exists());
+        List<Artifact> attachedArtifacts = project.getAttachedArtifacts();
+        Assert.assertTrue(attachedArtifacts.size()==1);
+        Assert.assertTrue(attachedArtifacts.get(0).getFile().equals(assemblyZip));
+        Assert.assertTrue(attachedArtifacts.get(0).getClassifier().equals("assembly"));
+        Assert.assertTrue(attachedArtifacts.get(0).getType().equals("zip"));
+        ZipFile zip = new ZipFile(assemblyZip);
+        try {
+            assertNotNull(zip.getEntry("site.xml"));
+            assertNotNull(zip.getEntry("content.xml"));
+        } finally {
             zip.close();
         }
     }
 
-    public void testNoArchiveSite()
-        throws Exception
-    {
+    public void testNoArchiveSite() throws Exception {
         // this is the default
         // setVariableValueToObject( packagemojo, "archiveSite", Boolean.FALSE );
-
         packagemojo.execute();
+        checkSiteZip();
+    }
 
-        File resultzip = new File( targetFolder, "site.zip" );
-        Assert.assertTrue( resultzip.exists() );
-        Assert.assertEquals( project.getArtifact().getFile(), resultzip );
+    private void checkSiteZip() throws ZipException, IOException {
+        File resultzip = new File(targetFolder, "site.zip");
+        Assert.assertTrue(resultzip.exists());
+        Assert.assertEquals(project.getArtifact().getFile(), resultzip);
 
-        ZipFile zip = new ZipFile( resultzip );
-        try
-        {
-            assertNotNull( zip.getEntry( "site.xml" ) );
-            assertNull( zip.getEntry( "content.xml" ) );
-        }
-        finally
-        {
+        ZipFile zip = new ZipFile(resultzip);
+        try {
+            assertNotNull(zip.getEntry("site.xml"));
+            assertNull(zip.getEntry("content.xml"));
+        } finally {
             zip.close();
         }
     }
