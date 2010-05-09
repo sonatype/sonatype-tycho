@@ -41,32 +41,44 @@
     <maven-version>3.0-beta-1</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.5.2
+      Version corresponds to Eclipse 3.6M7
 
-      /opt/apache-maven-2.2.1/bin/mvn install:install-file -Dfile=org.eclipse.osgi_3.5.2.R35x_v20100126.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=3.5.2.R35x_v20100126 -Dpackaging=jar
+      EQUINOX_VERSION=3.6.0.v20100422-1745
 
-      /opt/apache-maven-2.2.1/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi_3.5.1.R35x_v20090827.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=3.5.1.R35x_v20090827 -Dpackaging=jar \
+      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.osgi_$EQUINOX_VERSION.jar -Dsources=org.eclipse.osgi.source_$EQUINOX_VERSION.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar
+
+      /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi_$EQUINOX_VERSION.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
+        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
+
+      /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi.source_$EQUINOX_VERSION.jar -Dclassifier=sources \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <equinoxVersion>3.5.2.R35x_v20100126</equinoxVersion>
+    <equinoxVersion>3.6.0.v20100422-1745</equinoxVersion>
 
     <!-- 
-      Version corresponds to Eclipse 3.5.2
+      Version corresponds to Eclipse 3.6M7
       
-      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_3.5.2.v_981_R35x.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.5.2.v_981_R35x -Dpackaging=jar
+      JDT_VERSION=3.6.0.v_A48
+      
+      /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar -Dsources=org.eclipse.jdt.core.source_$JDT_VERSION.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.6.0.v_A48 -Dpackaging=jar
 
-      /opt/apache-maven-2.2.1/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_3.5.2.v_981_R35x.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.5.2.v_981_R35x -Dpackaging=jar \
+      /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
+        -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
+
+      /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core.source_$JDT_VERSION.jar -Dclassifier=sources \
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <jdtVersion>3.5.2.v_981_R35x</jdtVersion>
+    <jdtVersion>3.6.0.v_A48</jdtVersion>
   </properties>
 
   <dependencyManagement>
@@ -335,13 +347,18 @@
           <artifactId>maven-resources-plugin</artifactId>
           <version>2.4</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>2.0.1</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
 
   <scm>
-    <connection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</connection>
-    <developerConnection>scm:svn:http://svn.sonatype.org/m2eclipse/tycho/trunk</developerConnection>
+    <connection>scm:git:git://github.com/sonatype/sonatype-tycho.git</connection>
+    <developerConnection>scm:git:git@github.com:sonatype/sonatype-tycho.git</developerConnection>
   </scm>
 
   <repositories>
@@ -378,6 +395,7 @@
                 <configurator id="org.maven.ide.eclipse.modello.modelloConfigurator" />
                 <configurator id="org.maven.ide.eclipse.plexus.annotations.plexusConfigurator" />
                 <configurator id="org.maven.ide.eclipse.mavenarchiver.pomProperties" />
+                <configurator id="maven-bundle-plugin" />
               </configurators>
               <mojoExecutions>
                 <mojoExecution>org.apache.maven.plugins:maven-resources-plugin::</mojoExecution>

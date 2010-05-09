@@ -4,9 +4,10 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.artifact.repository.MirrorRequest;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
-import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
-import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 
@@ -29,8 +30,10 @@ public class MavenMirrorRequest
     }
 
     @Override
-    public void perform( IProgressMonitor monitor )
+    public void perform( IArtifactRepository sourceRepository, IProgressMonitor monitor )
     {
+        setSourceRepository(sourceRepository);
+
         IArtifactDescriptor descriptor = getArtifactDescriptor();
 
         if ( source instanceof AbstractMavenArtifactRepository )
@@ -70,7 +73,7 @@ public class MavenMirrorRequest
 
         // not a maven repo and not in maven local repo, delegate to p2 implementation
 
-        super.perform( monitor );
+        super.perform( sourceRepository, monitor );
 
         if ( getResult().isOK() )
         {

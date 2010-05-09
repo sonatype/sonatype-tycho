@@ -2,17 +2,10 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         id="org.sonatype.tycho.p2.TemporaryMetadataRepository"
-         point="org.eclipse.equinox.p2.metadata.repository.metadataRepositories">
-      <factory
-            class="org.sonatype.tycho.p2.TransientMetadataRepositoryFactory">
-      </factory>
-   </extension>
-   <extension
          id="id1"
          point="org.eclipse.equinox.security.secureStorage">
       <provider
-            class="org.sonatype.tycho.p2.TychoPasswordProvider"
+            class="org.sonatype.tycho.security.storage.TychoPasswordProvider"
             priority="0">
       </provider>
    </extension>

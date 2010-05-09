@@ -12,12 +12,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
-import org.eclipse.equinox.internal.p2.artifact.repository.Activator;
 import org.eclipse.equinox.internal.p2.artifact.repository.ArtifactRequest;
 import org.eclipse.equinox.internal.p2.core.helpers.FileUtils;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRequest;
-import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
+import org.eclipse.equinox.p2.core.ProvisionException;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
@@ -112,8 +111,7 @@ public class MavenArtifactRepository
 
     private IStatus getArtifact( ArtifactRequest request, IProgressMonitor monitor )
     {
-        request.setSourceRepository( this );
-        request.perform( monitor );
+        request.perform( this, monitor );
         return request.getResult();
     }
 
@@ -150,7 +148,7 @@ public class MavenArtifactRepository
     public URI getLocation( IArtifactDescriptor descriptor )
     {
         String relativePath = getRelativePath( descriptor );
-        String baseURI = location.toString();
+        String baseURI = getLocation().toString();
         if ( !baseURI.endsWith( "/" ) && !relativePath.startsWith( "/" ) )
         {
             baseURI += "/";

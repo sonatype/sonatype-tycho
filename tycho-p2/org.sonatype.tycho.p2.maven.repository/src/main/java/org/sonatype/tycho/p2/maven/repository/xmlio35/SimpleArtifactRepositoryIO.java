@@ -1,10 +1,25 @@
 package org.sonatype.tycho.p2.maven.repository.xmlio35;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import javax.xml.parsers.ParserConfigurationException;
-import org.eclipse.core.runtime.*;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.artifact.repository.Activator;
 import org.eclipse.equinox.internal.p2.artifact.repository.Messages;
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
@@ -13,14 +28,19 @@ import org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties;
 import org.eclipse.equinox.internal.p2.metadata.ArtifactKey;
 import org.eclipse.equinox.internal.p2.persistence.XMLParser;
 import org.eclipse.equinox.internal.p2.persistence.XMLWriter;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.ArtifactDescriptor;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRepository;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.processing.ProcessingStepDescriptor;
-import org.eclipse.equinox.internal.provisional.p2.core.*;
-import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.p2.core.ProvisionException;
+import org.eclipse.equinox.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.p2.metadata.Version;
+import org.eclipse.equinox.p2.metadata.VersionRange;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
+import org.eclipse.equinox.p2.repository.artifact.IProcessingStepDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.spi.ProcessingStepDescriptor;
 import org.eclipse.osgi.util.NLS;
 import org.osgi.framework.BundleContext;
-import org.xml.sax.*;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * This class reads and writes artifact repository metadata
@@ -98,9 +118,9 @@ public class SimpleArtifactRepositoryIO {
 		// Constants defining the structure of the XML for a SimpleArtifactRepository
 
 		// A format version number for simple artifact repository XML.
-		public static final Version COMPATIBLE_VERSION = new Version(1, 0, 0);
-		public static final Version CURRENT_VERSION = new Version(1, 1, 0);
-		public static final VersionRange XML_TOLERANCE = new VersionRange(COMPATIBLE_VERSION, true, new Version(2, 0, 0), false);
+		public static final Version COMPATIBLE_VERSION = Version.createOSGi( 1, 0, 0);
+		public static final Version CURRENT_VERSION = Version.createOSGi(1, 1, 0);
+		public static final VersionRange XML_TOLERANCE = new VersionRange(COMPATIBLE_VERSION, true, Version.createOSGi(2, 0, 0), false);
 
 		// Constants for processing instructions
 		public static final String PI_REPOSITORY_TARGET = "artifactRepository"; //$NON-NLS-1$
@@ -177,13 +197,13 @@ public class SimpleArtifactRepositoryIO {
 				attribute(VERSION_ATTRIBUTE, key.getVersion());
 				writeProcessingSteps(descriptor.getProcessingSteps());
 				writeProperties(descriptor.getProperties());
-				writeProperties(REPOSITORY_PROPERTIES_ELEMENT, descriptor.getRepositoryProperties());
+				//writeProperties(REPOSITORY_PROPERTIES_ELEMENT, descriptor.getRepositoryProperties());
 				end(ARTIFACT_ELEMENT);
 			}
 			end(ARTIFACTS_ELEMENT);
 		}
 
-		private void writeProcessingSteps(ProcessingStepDescriptor[] processingSteps) {
+		private void writeProcessingSteps(IProcessingStepDescriptor[] processingSteps) {
 			if (processingSteps.length > 0) {
 				start(PROCESSING_STEPS_ELEMENT);
 				attribute(COLLECTION_SIZE_ATTRIBUTE, processingSteps.length);
@@ -438,7 +458,7 @@ public class SimpleArtifactRepositoryIO {
 					currentArtifact.addProperties(properties);
 
 					properties = (repositoryPropertiesHandler == null ? new OrderedProperties(0) : repositoryPropertiesHandler.getProperties());
-					currentArtifact.addRepositoryProperties(properties);
+					//currentArtifact.addRepositoryProperties(properties);
 
 					ProcessingStepDescriptor[] processingSteps = (processingStepsHandler == null ? new ProcessingStepDescriptor[0] //
 							: processingStepsHandler.getProcessingSteps());

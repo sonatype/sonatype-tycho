@@ -12,11 +12,11 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.ArtifactDescriptor;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRequest;
-import org.eclipse.equinox.internal.provisional.p2.core.ProvisionException;
-import org.eclipse.equinox.internal.provisional.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.p2.core.ProvisionException;
+import org.eclipse.equinox.p2.metadata.IArtifactKey;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
+import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
@@ -25,7 +25,6 @@ import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 
-@SuppressWarnings( "restriction" )
 public class LocalArtifactRepository
     extends AbstractMavenArtifactRepository
 {

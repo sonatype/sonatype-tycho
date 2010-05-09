@@ -3,23 +3,24 @@ package org.sonatype.tycho.p2.maven.repository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
-import org.eclipse.equinox.internal.provisional.p2.query.Collector;
-import org.eclipse.equinox.internal.provisional.p2.query.Query;
-import org.eclipse.equinox.internal.provisional.spi.p2.metadata.repository.AbstractMetadataRepository;
+import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.query.IQuery;
+import org.eclipse.equinox.p2.query.IQueryResult;
+import org.eclipse.equinox.p2.repository.IRepositoryReference;
+import org.eclipse.equinox.p2.repository.metadata.spi.AbstractMetadataRepository;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
-@SuppressWarnings( "restriction" )
 public abstract class AbstractMavenMetadataRepository
     extends AbstractMetadataRepository
 {
@@ -33,16 +34,20 @@ public abstract class AbstractMavenMetadataRepository
 
     protected Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
-    protected Map<GAV, Set<IInstallableUnit>> unitsMap = new HashMap<GAV, Set<IInstallableUnit>>();
+    protected Map<GAV, Set<IInstallableUnit>> unitsMap = new LinkedHashMap<GAV, Set<IInstallableUnit>>();
 
-    public AbstractMavenMetadataRepository( URI location, Map properties, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
+    public AbstractMavenMetadataRepository( URI location, TychoRepositoryIndex projectIndex,
+                                            RepositoryReader contentLocator )
     {
-        super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, properties );
+        // super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, properties );
+        super( Activator.getProvisioningAgent() );
+
+        setLocation( location );
 
         this.projectIndex = projectIndex;
         this.contentLocator = contentLocator;
 
-        if ( projectIndex != null && contentLocator != null)
+        if ( projectIndex != null && contentLocator != null )
         {
             load();
         }
@@ -56,10 +61,9 @@ public abstract class AbstractMavenMetadataRepository
         {
             try
             {
-                InputStream is = contentLocator.getContents(
-                    gav,
-                    RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                    RepositoryLayoutHelper.EXTENSION_P2_METADATA );
+                InputStream is =
+                    contentLocator.getContents( gav, RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
+                                                RepositoryLayoutHelper.EXTENSION_P2_METADATA );
                 try
                 {
                     Set<IInstallableUnit> gavUnits = io.readXML( is );
@@ -85,16 +89,22 @@ public abstract class AbstractMavenMetadataRepository
     {
     }
 
-    public Collector query( Query query, Collector collector, IProgressMonitor monitor )
+    public IQueryResult<IInstallableUnit> query( IQuery<IInstallableUnit> query, IProgressMonitor monitor )
     {
-        return query.perform( units.iterator(), collector );
+        return query.perform( units.iterator() );
     }
 
     /**
-     * For testing purposes only 
+     * For testing purposes only
      */
     public Map<GAV, Set<IInstallableUnit>> getGAVs()
     {
         return unitsMap;
+    }
+
+    public Collection<IRepositoryReference> getReferences()
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

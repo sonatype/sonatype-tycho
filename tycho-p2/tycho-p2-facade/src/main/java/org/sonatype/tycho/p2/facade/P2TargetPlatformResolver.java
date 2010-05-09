@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -412,9 +413,9 @@ public class P2TargetPlatformResolver
         return multiPlatform;
     }
 
-    private List<Properties> getEnvironments( TargetPlatformConfiguration configuration )
+    private List<Map<String,String>> getEnvironments( TargetPlatformConfiguration configuration )
     {
-        ArrayList<Properties> environments = new ArrayList<Properties>();
+        ArrayList<Map<String,String>> environments = new ArrayList<Map<String,String>>();
 
         for ( TargetEnvironment environment : configuration.getEnvironments() )
         {
@@ -427,7 +428,12 @@ public class P2TargetPlatformResolver
             // TODO does not belong here
             properties.put( "org.eclipse.update.install.features", "true" );
 
-            environments.add( properties );
+            Map<String,String> map = new LinkedHashMap<String, String>();
+            for ( Object key : properties.keySet() )
+            {
+                map.put( key.toString(), properties.getProperty( key.toString() ) );
+            }
+            environments.add( map );
         }
 
         return environments;

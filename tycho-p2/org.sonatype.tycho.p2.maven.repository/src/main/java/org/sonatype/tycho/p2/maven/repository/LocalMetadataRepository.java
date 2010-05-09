@@ -3,11 +3,12 @@ package org.sonatype.tycho.p2.maven.repository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
@@ -15,19 +16,18 @@ import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 
-@SuppressWarnings( "restriction" )
 public class LocalMetadataRepository
     extends AbstractMavenMetadataRepository
 {
-    
-    private Set<GAV> changedGAVs = new HashSet<GAV>();
+
+    private Set<GAV> changedGAVs = new LinkedHashSet<GAV>();
 
     /**
      * Create new repository
      */
-    public LocalMetadataRepository( URI location, String name, Map properties )
+    public LocalMetadataRepository( URI location, String name )
     {
-        super( location, properties, null, null );
+        super( location, null, null );
         if ( !location.getScheme().equals( "file" ) )
         {
             throw new IllegalArgumentException( "Invalid local repository location: " + location ); //$NON-NLS-1$
@@ -40,13 +40,14 @@ public class LocalMetadataRepository
     /**
      * Local existing repository
      */
-    public LocalMetadataRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
+    public LocalMetadataRepository( URI location, TychoRepositoryIndex projectIndex,
+                                    RepositoryReader contentLocator )
     {
-        super( location, null, projectIndex, contentLocator );
+        super( location, projectIndex, contentLocator );
     }
 
     @Override
-    public void addInstallableUnits( IInstallableUnit[] newUnits )
+    public void addInstallableUnits( Collection<IInstallableUnit> newUnits )
     {
         for ( IInstallableUnit unit : newUnits )
         {
@@ -65,7 +66,7 @@ public class LocalMetadataRepository
         Set<IInstallableUnit> gavUnits = unitsMap.get( gav );
         if ( gavUnits == null )
         {
-            gavUnits = new HashSet<IInstallableUnit>();
+            gavUnits = new LinkedHashSet<IInstallableUnit>();
             unitsMap.put( gav, gavUnits );
         }
         gavUnits.add( unit );
@@ -88,10 +89,9 @@ public class LocalMetadataRepository
 
             if ( gavUnits != null && !gavUnits.isEmpty() )
             {
-                String relpath = RepositoryLayoutHelper.getRelativePath(
-                    gav,
-                    RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                    RepositoryLayoutHelper.EXTENSION_P2_METADATA );
+                String relpath =
+                    RepositoryLayoutHelper.getRelativePath( gav, RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
+                                                            RepositoryLayoutHelper.EXTENSION_P2_METADATA );
 
                 File file = new File( basedir, relpath );
                 file.getParentFile().mkdirs();
@@ -99,7 +99,7 @@ public class LocalMetadataRepository
                 try
                 {
                     io.writeXML( gavUnits, file );
-    
+
                     index.addProject( gav );
                 }
                 catch ( IOException e )
@@ -117,7 +117,7 @@ public class LocalMetadataRepository
         {
             throw new RuntimeException( e );
         }
-        
+
         changedGAVs.clear();
     }
 

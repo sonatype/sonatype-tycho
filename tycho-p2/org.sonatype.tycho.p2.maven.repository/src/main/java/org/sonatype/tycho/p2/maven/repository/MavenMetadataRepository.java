@@ -11,6 +11,6 @@ public class MavenMetadataRepository
 
     public MavenMetadataRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
-        super( location, null, projectIndex, contentLocator );
+        super( location, projectIndex, contentLocator );
     }
 }

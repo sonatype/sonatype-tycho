@@ -3,7 +3,7 @@ package org.sonatype.tycho.p2.facade.internal;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
@@ -37,7 +37,7 @@ public interface P2Resolver
 
     public void setLocalRepositoryLocation( File location );
 
-    public void setEnvironments( List<Properties> properties );
+    public void setEnvironments( List<Map<String, String>> properties );
 
     public List<P2ResolutionResult> resolveProject( File location );
 

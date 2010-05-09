@@ -11,7 +11,7 @@ import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.osgi.framework.BundleContext;
 import org.sonatype.tycho.p2.maven.repository.Activator;
 import org.sonatype.tycho.p2.maven.repository.xmlio35.SimpleArtifactRepositoryIO;
