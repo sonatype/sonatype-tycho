@@ -17,7 +17,7 @@
    </license>
 
    <includes
-         id="org.eclipse.platform"
+         id="org.eclipse.rcp"
          version="0.0.0"/>
 
    <plugin
