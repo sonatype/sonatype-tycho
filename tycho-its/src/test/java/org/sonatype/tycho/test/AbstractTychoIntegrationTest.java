@@ -9,12 +9,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import org.apache.maven.it.Verifier;
 import org.apache.maven.it.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
+import org.osgi.framework.Version;
 import org.sonatype.tycho.test.util.EnvironmentUtil;
 
 public abstract class AbstractTychoIntegrationTest {
@@ -158,6 +161,29 @@ public abstract class AbstractTychoIntegrationTest {
         {
             IOUtil.close( is );
         }
+    }
+    
+    /**
+     * Returns approximate target platform version.
+     */
+    public static Version getEclipseVersion()
+    {
+        String location = EnvironmentUtil.getTargetPlatforn();
+
+        DirectoryScanner ds = new DirectoryScanner();
+        ds.setBasedir( new File( location, "plugins" ) );
+        ds.setIncludes( new String[] { "org.eclipse.osgi_*.jar" } );
+        ds.scan();
+
+        String[] files = ds.getIncludedFiles();
+        if ( files == null || files.length < 1 )
+        {
+            throw new IllegalStateException( "Unable to determine version of the test target platform " + location );
+        }
+
+        String version = files[0].substring( "org.eclipse.osgi_".length(), files[0].length() - ".jar".length() );
+
+        return Version.parseVersion( version );
     }
     
 }
