@@ -38,17 +38,18 @@ public class PomManipulator
         MutablePomFile pom = project.getMetadata( MutablePomFile.class );
         Parent parent = pom.getParent();
 
+        String version = VersionsEngine.toMavenVersion( change.getVersion() );
         String newVersion = VersionsEngine.toMavenVersion( change.getNewVersion() );
         if ( isGavEquals( pom, change ) )
         {
-            logger.info( "  pom.xml//project/version: " + change.getVersion() + " => " + newVersion );
+            logger.info( "  pom.xml//project/version: " + version + " => " + newVersion );
             pom.setVersion( newVersion );
         }
         else
         {
             if ( parent != null && isGavEquals( parent, change ) )
             {
-                logger.info( "  pom.xml//project/parent/version: " + change.getVersion() + " => "
+                logger.info( "  pom.xml//project/parent/version: " + version + " => "
                     + newVersion );
                 parent.setVersion( newVersion );
             }
