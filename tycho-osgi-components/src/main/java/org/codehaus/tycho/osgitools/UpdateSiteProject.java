@@ -3,6 +3,7 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
@@ -16,6 +17,7 @@ import org.codehaus.tycho.model.UpdateSite;
 public class UpdateSiteProject
     extends AbstractArtifactBasedProject
 {
+
     @Override
     protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
     {
@@ -45,7 +47,6 @@ public class UpdateSiteProject
 
     public ArtifactKey getArtifactKey( MavenProject project )
     {
-        return new ArtifactKey( TychoProject.ECLIPSE_UPDATE_SITE, project.getArtifactId(), project.getVersion() );
+        return new ArtifactKey( TychoProject.ECLIPSE_UPDATE_SITE, project.getArtifactId(), getOsgiVersion( project ) );
     }
-
 }

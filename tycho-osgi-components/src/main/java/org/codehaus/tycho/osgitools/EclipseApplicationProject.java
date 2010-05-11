@@ -47,7 +47,7 @@ public class EclipseApplicationProject
     {
         ProductConfiguration product = loadProduct( project );
         String id = product.getId() != null ? product.getId() : project.getArtifactId();
-        String version = product.getVersion() != null ? product.getVersion() : project.getVersion();
+        String version = product.getVersion() != null ? product.getVersion() : getOsgiVersion( project );
 
         return new ArtifactKey( TychoProject.ECLIPSE_APPLICATION, id, version );
     }

@@ -1,10 +1,9 @@
 package org.codehaus.tycho.buildversion;
 
-import org.apache.maven.execution.MavenSession;
+import java.util.Map;
+
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.TychoProject;
 
 public abstract class AbstractVersionMojo
@@ -26,25 +25,19 @@ public abstract class AbstractVersionMojo
     protected String packaging;
 
     /**
-     * @parameter expression="${session}"
-     * @required
-     * @readonly
+     * @component role="org.codehaus.tycho.TychoProject"
      */
-    protected MavenSession session;
+    protected Map<String, TychoProject> projectTypes;
 
-    protected String getOSGiVersion() throws MojoFailureException
+    protected String getOSGiVersion()
     {
-        TychoProject dependencyReader;
-        try
+        TychoProject projectType = projectTypes.get( packaging );
+        if ( projectType == null )
         {
-            dependencyReader = (TychoProject) session.lookup( TychoProject.class.getName(), packaging );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new MojoFailureException( "Could not locate required component", e );
+            return null;
         }
 
-        return dependencyReader.getArtifactKey( project ).getVersion();
+        return projectType.getArtifactKey( project ).getVersion();
     }
 
 }

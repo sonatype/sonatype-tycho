@@ -11,57 +11,46 @@ import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
+import org.osgi.framework.Version;
 
 /**
  * This mojo generates build qualifier according to the rules outlined in
- * http://help.eclipse.org/ganymede/topic/org.eclipse.pde.doc.user/tasks/pde_version_qualifiers.htm
- * 
- * 1. explicit -DforceContextQualifier
- * 2. forceContextQualifier from ${project.baseDir}/build.properties
- * 3. the tag that was used to fetch the bundle (only when using map file)
- * 4. a time stamp in the form YYYYMMDDHHMM (ie 200605121600)
- * 
- * The generated qualifier is assigned to <code>buildQualifier</code> project property.
- * 
- * Unqualified project version is assigned to  <code>unqualifiedVersion</code>
- * project property. Unqualified version is calculated based on <code>${project.version}</code>
- * and can be used for any Tycho project (eclipse-update-site, eclipse-application, etc)
- * and regular maven project.
- * 
- * Implementation guarantees that the same timestamp is used for all projects
- * in reactor build. Different projects can use different formats to expand
- * the timestamp, however (highly not recommended but possible).
+ * http://help.eclipse.org/ganymede/topic/org.eclipse.pde.doc.user/tasks/pde_version_qualifiers.htm 1. explicit
+ * -DforceContextQualifier 2. forceContextQualifier from ${project.baseDir}/build.properties 3. the tag that was used to
+ * fetch the bundle (only when using map file) 4. a time stamp in the form YYYYMMDDHHMM (ie 200605121600) The generated
+ * qualifier is assigned to <code>buildQualifier</code> project property. Unqualified project version is assigned to
+ * <code>unqualifiedVersion</code> project property. Unqualified version is calculated based on
+ * <code>${project.version}</code> and can be used for any Tycho project (eclipse-update-site, eclipse-application, etc)
+ * and regular maven project. Implementation guarantees that the same timestamp is used for all projects in reactor
+ * build. Different projects can use different formats to expand the timestamp, however (highly not recommended but
+ * possible).
  * 
  * @goal build-qualifier
  * @phase validate
  */
-public class BuildQualifierMojo extends AbstractMojo {
+public class BuildQualifierMojo
+    extends AbstractVersionMojo
+{
 
-	public static final String BUILD_QUALIFIER_PROPERTY = "buildQualifier";
+    public static final String BUILD_QUALIFIER_PROPERTY = "buildQualifier";
+
     public static final String UNQUALIFIED_VERSION_PROPERTY = "unqualifiedVersion";
-	private static final String REACTOR_BUILD_TIMESTAMP_PROPERTY = "reactorBuildTimestampProperty";
 
-	/**
-	 * @parameter expression="${session}"
-	 */
-	private MavenSession session;
+    private static final String REACTOR_BUILD_TIMESTAMP_PROPERTY = "reactorBuildTimestampProperty";
+
+    /**
+     * @parameter expression="${session}"
+     */
+    private MavenSession session;
 
     /**
      * Specify a message format as specified by java.text.SimpleDateFormat.
-     *
+     * 
      * @parameter default-value="yyyyMMddHHmm"
      */
     private SimpleDateFormat format;
-
-    /**
-	 * @parameter expression="${project}"
-	 * @required
-     */
-    private MavenProject project;
 
     /**
      * @parameter default-value="${project.basedir}/build.properties"
@@ -73,61 +62,106 @@ public class BuildQualifierMojo extends AbstractMojo {
      */
     private String forceContextQualifier;
 
-    public void setFormat(String format) {
-    	this.format = new SimpleDateFormat(format);
+    public void setFormat( String format )
+    {
+        this.format = new SimpleDateFormat( format );
     }
 
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		String qualifier = forceContextQualifier;
+    public void execute()
+        throws MojoExecutionException, MojoFailureException
+    {
+        String osgiVersionStr = getOSGiVersion();
+        if ( osgiVersionStr != null )
+        {
+            try
+            {
+                Version osgiVersion = Version.parseVersion( osgiVersionStr );
 
-		if (qualifier == null) {
-			qualifier = getBuildProperties().getProperty("forceContextQualifier");
-		}
+                if ( !VersioningHelper.QUALIFIER.equals( osgiVersion.getQualifier() ) )
+                {
+                    // fully expended or absent qualified. nothing to expand
+                    project.getProperties().put( BUILD_QUALIFIER_PROPERTY, osgiVersion.getQualifier() );
+                    project.getProperties().put( UNQUALIFIED_VERSION_PROPERTY,
+                                                 osgiVersion.getMajor() + "." + osgiVersion.getMinor() + "."
+                                                     + osgiVersion.getMicro() );
 
-		if (qualifier == null) {
-			Date timestamp = getSessionTimestamp();
-			qualifier = format.format(timestamp);
-		}
+                    return;
+                }
+            }
+            catch ( IllegalArgumentException e )
+            {
+                throw new MojoFailureException( "Not a valid OSGi version " + osgiVersionStr + " for project "
+                    + project );
+            }
+        }
 
-		project.getProperties().put(BUILD_QUALIFIER_PROPERTY, qualifier);
-		project.getProperties().put(UNQUALIFIED_VERSION_PROPERTY, getUnqualifiedVersion());
-	}
+        String qualifier = forceContextQualifier;
 
-	private String getUnqualifiedVersion() {
-	    String version = project.getArtifact().getVersion();
-	    if (version.endsWith("-" + Artifact.SNAPSHOT_VERSION)) {
+        if ( qualifier == null )
+        {
+            qualifier = getBuildProperties().getProperty( "forceContextQualifier" );
+        }
+
+        if ( qualifier == null )
+        {
+            Date timestamp = getSessionTimestamp();
+            qualifier = format.format( timestamp );
+        }
+
+        project.getProperties().put( BUILD_QUALIFIER_PROPERTY, qualifier );
+        project.getProperties().put( UNQUALIFIED_VERSION_PROPERTY, getUnqualifiedVersion() );
+    }
+
+    private String getUnqualifiedVersion()
+    {
+        String version = project.getArtifact().getVersion();
+        if ( version.endsWith( "-" + Artifact.SNAPSHOT_VERSION ) )
+        {
             version = version.substring( 0, version.length() - Artifact.SNAPSHOT_VERSION.length() - 1 );
-	    }
+        }
         return version;
     }
 
-    private Date getSessionTimestamp() {
-		Date timestamp;
-		String value = session.getUserProperties().getProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY);
-		if (value != null) {
-			timestamp = new Date(Long.parseLong(value));
-		} else {
-			timestamp = new Date();
-			session.getUserProperties().setProperty(REACTOR_BUILD_TIMESTAMP_PROPERTY, Long.toString(timestamp.getTime()));
-		}
-		return timestamp;
-	}
+    private Date getSessionTimestamp()
+    {
+        Date timestamp;
+        String value = session.getUserProperties().getProperty( REACTOR_BUILD_TIMESTAMP_PROPERTY );
+        if ( value != null )
+        {
+            timestamp = new Date( Long.parseLong( value ) );
+        }
+        else
+        {
+            timestamp = new Date();
+            session.getUserProperties().setProperty( REACTOR_BUILD_TIMESTAMP_PROPERTY,
+                                                     Long.toString( timestamp.getTime() ) );
+        }
+        return timestamp;
+    }
 
-	// TODO move to a helper, we must have ~100 implementations of this logic
-	private Properties getBuildProperties() {
-		Properties props = new Properties();
-		try {
-			if (buildPropertiesFile.canRead()) {
-				InputStream is = new BufferedInputStream(new FileInputStream(buildPropertiesFile));
-				try {
-					props.load(is);
-				} finally {
-					is.close();
-				}
-			}
-		} catch (IOException e) {
-			getLog().warn("Exception reading build.properties file", e);
-		}
-		return props;
-	}
+    // TODO move to a helper, we must have ~100 implementations of this logic
+    private Properties getBuildProperties()
+    {
+        Properties props = new Properties();
+        try
+        {
+            if ( buildPropertiesFile.canRead() )
+            {
+                InputStream is = new BufferedInputStream( new FileInputStream( buildPropertiesFile ) );
+                try
+                {
+                    props.load( is );
+                }
+                finally
+                {
+                    is.close();
+                }
+            }
+        }
+        catch ( IOException e )
+        {
+            getLog().warn( "Exception reading build.properties file", e );
+        }
+        return props;
+    }
 }
