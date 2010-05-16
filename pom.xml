@@ -98,11 +98,11 @@
       /opt/maven/bin/mvn install:install-file -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
         -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
 
-      mvn deploy:deploy-file -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
-        -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip \
+      mvn deploy:deploy-file -DgeneratePom=false -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
+        -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dversion=${ECLIPSE_VERSION} -Dclassifier=win32 -Dpackaging=zip \
         -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
-      mvn deploy:deploy-file -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
+      mvn deploy:deploy-file -e -DgeneratePom=false -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
         -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip \
         -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
