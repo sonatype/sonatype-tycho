@@ -12,16 +12,17 @@ import java.util.zip.ZipInputStream;
 import junit.framework.Assert;
 
 import org.apache.maven.it.Verifier;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
-public class Tycho46MapfileTest
+public class Tycho46MapfileTestDisabled
     extends AbstractTychoIntegrationTest
 {
 
     private static final int BUFFER_SIZE = 1024;
 
-    @Test
+    @Test @Ignore
     public void testCVS()
         throws Exception
     {
