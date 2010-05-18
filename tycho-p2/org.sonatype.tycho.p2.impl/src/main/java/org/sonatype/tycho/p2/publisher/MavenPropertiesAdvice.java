@@ -25,6 +25,11 @@ public class MavenPropertiesAdvice
         properties.put( RepositoryLayoutHelper.PROP_VERSION, version );
     }
 
+    public MavenPropertiesAdvice( String groupId, String artifactId, String version, String classifier ) {
+    	this(groupId, artifactId, version);
+		properties.put(RepositoryLayoutHelper.PROP_CLASSIFIER, classifier);
+    }
+
     public Map<String, String> getArtifactProperties( IInstallableUnit iu, IArtifactDescriptor descriptor )
     {
         for (Map.Entry<String, String> entry : properties.entrySet())

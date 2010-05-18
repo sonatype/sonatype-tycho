@@ -11,6 +11,7 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.P2Generator;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.facade.internal.ProjectArtifactFacade;
 
 /**
  * @goal p2-metadata
@@ -72,11 +73,7 @@ public class P2MetadataMojo
 
         try
         {
-            getP2Generator().generateMetadata( file,
-                                               project.getPackaging(),
-                                               project.getGroupId(),
-                                               project.getArtifactId(),
-                                               project.getVersion(),
+            getP2Generator().generateMetadata( new ProjectArtifactFacade(project),
                                                content,
                                                artifacts );
         }

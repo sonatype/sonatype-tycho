@@ -13,6 +13,8 @@ public class RepositoryLayoutHelper
 
     public static final String PROP_VERSION = "maven-version";
 
+    public static final String PROP_CLASSIFIER = "maven-classifier";
+
     public static final String CLASSIFIER_P2_METADATA = "p2metadata";
 
     public static final String EXTENSION_P2_METADATA = "xml";

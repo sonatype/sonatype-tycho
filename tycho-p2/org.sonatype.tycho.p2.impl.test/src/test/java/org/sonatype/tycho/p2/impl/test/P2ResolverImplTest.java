@@ -31,7 +31,7 @@ public class P2ResolverImplTest
         String version = "1.0.0-SNAPSHOT";
 
         impl.setEnvironments( getEnvironments() );
-        impl.addMavenArtifact( bundle, P2Resolver.TYPE_ECLIPSE_PLUGIN, groupId, artifactId, version );
+        impl.addMavenArtifact(new ArtifactMock( bundle,  groupId, artifactId, version,P2Resolver.TYPE_ECLIPSE_PLUGIN ));
 
         List<P2ResolutionResult> results = impl.resolveProject( bundle );
 

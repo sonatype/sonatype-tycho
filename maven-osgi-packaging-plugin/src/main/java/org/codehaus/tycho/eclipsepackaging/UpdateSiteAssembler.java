@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Map;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
@@ -24,6 +25,7 @@ import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.PluginRef;
+import org.codehaus.tycho.utils.SourceBundleUtils;
 
 /**
  * Assembles standard eclipse update site directory structure on local filesystem.
@@ -141,22 +143,37 @@ public class UpdateSiteAssembler
             return;
         }
 
-        File location = plugin.getLocation();
-        if ( location == null )
+        if (  plugin.getLocation() == null )
         {
             throw new IllegalStateException( "Unresolved bundle reference " + bundleId + "_" + version );
         }
 
         MavenProject bundleProject = plugin.getMavenProject();
+        File location = null;
         if ( bundleProject != null )
         {
-            location = bundleProject.getArtifact().getFile();
+        	if (isSourceBundle(bundleProject, bundleId)) {
+        		for (Artifact attachedArtifact : bundleProject.getAttachedArtifacts()) {
+        			if (SourceBundleUtils.ARTIFACT_CLASSIFIER.equals(attachedArtifact.getClassifier())) {
+        				location = attachedArtifact.getFile();
+        				break;
+        			}
+        		}
+        		if (location == null) {
+					throw new IllegalStateException(bundleProject
+							+ " is a source bundle but does not provide an artifact with classifier 'sources'");
+        		}
+        	} else {
+              location = bundleProject.getArtifact().getFile();
+        	}
             if ( location.isDirectory() )
             {
                 throw new RuntimeException( "Bundle project " + bundleProject.getId()
                     + " artifact is a directory. The build should at least run ``package'' phase." );
             }
             version = VersioningHelper.getExpandedVersion( bundleProject, version );
+        } else {
+        	 location = plugin.getLocation();
         }
 
         if ( unpackPlugins && isDirectoryShape( plugin, location ) )
@@ -194,7 +211,12 @@ public class UpdateSiteAssembler
         }
     }
 
-    protected boolean isDirectoryShape( PluginDescription plugin, File location )
+	protected boolean isSourceBundle(MavenProject bundleProject, String bundleId) {
+		String suffix = SourceBundleUtils.getSourceBundleSuffix(bundleProject);
+		return bundleId.equals(bundleProject.getArtifactId() + suffix);
+	}
+
+	protected boolean isDirectoryShape( PluginDescription plugin, File location )
     {
         PluginRef pluginRef = plugin.getPluginRef();
         return ( ( pluginRef != null && pluginRef.isUnpack() ) || location.isDirectory() );

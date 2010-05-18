@@ -19,6 +19,14 @@ package org.codehaus.tycho.source;
  * under the License.
  */
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -32,13 +40,6 @@ import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Base class for bundling sources into a jar archive.
@@ -227,13 +228,15 @@ public abstract class AbstractSourceJarMojo
     protected void packageSources( MavenProject p )
         throws MojoExecutionException
     {
-        if ( !"pom".equals( p.getPackaging() ) )
+		if ( isRelevantProject(p))
         {
-            packageSources( Arrays.asList( new Object[] { p } ) );
+            packageSources( Collections.singletonList( p ) );
         }
     }
 
-    protected void packageSources( List projects )
+    protected abstract  boolean isRelevantProject(MavenProject p);
+
+	protected void packageSources( List projects )
         throws MojoExecutionException
     {
         if ( project.getArtifact().hasClassifier() )

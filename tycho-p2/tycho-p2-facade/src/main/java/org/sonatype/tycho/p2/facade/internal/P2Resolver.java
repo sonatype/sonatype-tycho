@@ -27,9 +27,9 @@ public interface P2Resolver
      */
     public static final String TYPE_INSTALLABLE_UNIT = "p2-installable-unit";
 
-    public void addMavenProject( File location, String type, String groupId, String artifactId, String version );
+	public void addMavenProject(IArtifactFacade artifact);
 
-    public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version );
+    public void addMavenArtifact(IArtifactFacade artifact);
 
     public void addP2Repository( URI location );
 

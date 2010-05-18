@@ -53,7 +53,9 @@ import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
 import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
@@ -89,7 +91,7 @@ public class P2TargetPlatformResolver
 
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
-
+    
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
@@ -135,9 +137,7 @@ public class P2TargetPlatformResolver
                 getLogger().debug( "P2resolver.addMavenProject " + otherProject.toString() );
             }
             projects.put( otherProject.getBasedir(), otherProject );
-            resolver.addMavenProject( otherProject.getBasedir(), otherProject.getPackaging(),
-                                      otherProject.getGroupId(), otherProject.getArtifactId(),
-                                      otherProject.getVersion() );
+            resolver.addMavenProject( new MavenProjectFacade(otherProject));
         }
 
         if ( dependencies != null )
@@ -190,9 +190,9 @@ public class P2TargetPlatformResolver
             {
                 throw new RuntimeException( "Could not resolve project dependencies", e );
             }
-            for ( Artifact a : artifacts )
+            for ( Artifact artifact : artifacts )
             {
-                String key = ArtifactUtils.key( a.getGroupId(), a.getArtifactId(), a.getBaseVersion() );
+                String key = ArtifactUtils.key( artifact.getGroupId(), artifact.getArtifactId(), artifact.getBaseVersion() );
                 if ( projectIds.contains( key ) )
                 {
                     // resolved to an older snapshot from the repo, we only want the current project in the reactor
@@ -200,9 +200,9 @@ public class P2TargetPlatformResolver
                 }
                 if ( getLogger().isDebugEnabled() )
                 {
-                    getLogger().debug( "P2resolver.addMavenArtifact " + a.toString() );
+                    getLogger().debug( "P2resolver.addMavenArtifact " + artifact.toString() );
                 }
-                resolver.addMavenArtifact( a.getFile(), a.getType(), a.getGroupId(), a.getArtifactId(), a.getVersion() );
+				resolver.addMavenArtifact(new ArtifactFacade(artifact));
             }
         }
 

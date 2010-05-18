@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -15,6 +16,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.utils.SourceBundleUtils;
 import org.osgi.framework.Version;
 
 /**
@@ -28,7 +30,6 @@ import org.osgi.framework.Version;
  */
 public class OsgiSourceMojo extends AbstractSourceJarMojo {
     
-    private static final String BUNDLE_SYMBOLIC_NAME_SUFFIX = ".source";
     private static final String MANIFEST_HEADER_BUNDLE_MANIFEST_VERSION = "Bundle-ManifestVersion";
     private static final String MANIFEST_HEADER_BUNDLE_SYMBOLIC_NAME = "Bundle-SymbolicName";
     private static final String MANIFEST_HEADER_BUNDLE_VERSION = "Bundle-Version";
@@ -53,7 +54,15 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
      * @parameter default-value="true"
      */
     private boolean sourceBundle;
-
+    
+	/**
+	 * The suffix to be added to the symbolic name of the bundle to construct
+	 * the symbolic name of the Eclipse source bundle.
+	 * 
+	 * @parameter expression="${sourceBundleSuffix}" default-value=".source"
+	 */
+	private String sourceBundleSuffix;
+	
     /**
      * Build qualifier. Recommended way to set this parameter is using
      * build-qualifier goal. Only used when creating a source bundle. 
@@ -73,21 +82,29 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 			throws MojoExecutionException {
 		if (usePdeSourceRoots) {
 			Properties props = getBuildProperties();
-			if (props.containsKey("source..")) {
-				String sourceRaw = props.getProperty("source..");
-				List<String> sources = new ArrayList<String>();
-				for (String source : sourceRaw.split(",")) {
-					sources.add(new File(project.getBasedir(), source)
-							.getAbsolutePath());
+			List<String> sources = new ArrayList<String>();
+			for (Entry<Object, Object> entry : props.entrySet()) {
+				if (((String) entry.getKey()).startsWith("source.")) {
+					sources.addAll(getSourceDirs((String) entry.getValue()));
 				}
-				return sources;
-			} else {
-				throw new MojoExecutionException(
-						"Source folder not found at build.properties");
 			}
+			if (sources.isEmpty()) {
+				throw new MojoExecutionException(
+						"no source folders found in build.properties");
+			}
+			return sources;
 		} else {
 			return p.getCompileSourceRoots();
 		}
+	}
+
+	private List<String> getSourceDirs(String sourceRaw) {
+		List<String> sources = new ArrayList<String>();
+		for (String source : sourceRaw.split(",")) {
+			sources.add(new File(project.getBasedir(), source.trim())
+					.getAbsolutePath());
+		}
+		return sources;
 	}
 
 	/** {@inheritDoc} */
@@ -105,7 +122,7 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 
 	/** {@inheritDoc} */
 	protected String getClassifier() {
-		return "sources";
+		return SourceBundleUtils.ARTIFACT_CLASSIFIER;
 	}
 
 	// TODO check how to fix this code duplicated
@@ -153,14 +170,14 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_MANIFEST_VERSION, "2" );
 
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_SYMBOLIC_NAME,
-            	    symbolicName + BUNDLE_SYMBOLIC_NAME_SUFFIX );
+            	    symbolicName + sourceBundleSuffix);
 
             Version expandedVersion = getExpandedVersion(version);
 
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_BUNDLE_VERSION, expandedVersion.toString() );
 
             mavenArchiveConfiguration.addManifestEntry( MANIFEST_HEADER_ECLIPSE_SOURCE_BUNDLE, symbolicName
-            	    + ";version=\"" + expandedVersion + '"' );
+            	    + ";version=\"" + expandedVersion + "\";roots:=\".\"" );
         }
         else
         {
@@ -177,5 +194,12 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
         }
         return version;
     }
+
+	@Override
+	protected boolean isRelevantProject(MavenProject project) {
+		String packaging = project.getPackaging();
+		return TychoProject.ECLIPSE_PLUGIN.equals(packaging)
+				|| TychoProject.ECLIPSE_TEST_PLUGIN.equals(packaging);
+	}
 
 }

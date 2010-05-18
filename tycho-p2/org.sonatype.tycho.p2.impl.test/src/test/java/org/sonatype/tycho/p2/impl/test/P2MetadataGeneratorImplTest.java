@@ -31,8 +31,9 @@ public class P2MetadataGeneratorImplTest
         List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
         Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
         Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
-        impl.generateMetadata( location, P2Resolver.TYPE_ECLIPSE_PLUGIN, groupId, artifactId, version, environments,
-                               units, artifacts );
+		impl.generateMetadata(new ArtifactMock(location, groupId, artifactId,
+				version, P2Resolver.TYPE_ECLIPSE_PLUGIN), environments, units,
+				artifacts);
 
         Assert.assertEquals( 1, units.size() );
         IInstallableUnit unit = units.iterator().next();

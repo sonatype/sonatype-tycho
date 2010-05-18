@@ -29,7 +29,6 @@ import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepository;
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties;
-import org.eclipse.equinox.internal.p2.core.helpers.ServiceHelper;
 import org.eclipse.equinox.internal.p2.director.Explanation;
 import org.eclipse.equinox.internal.p2.director.Projector;
 import org.eclipse.equinox.internal.p2.director.QueryableArray;
@@ -69,6 +68,7 @@ import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.sonatype.tycho.p2.Activator;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
+import org.sonatype.tycho.p2.facade.internal.IArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.P2Logger;
@@ -146,14 +146,13 @@ public class P2ResolverImpl
     {
     }
 
-    public void addMavenProject( File location, String type, String groupId, String artifactId, String version )
-    {
-        if ( !generator.isSupported( type ) )
+	public void addMavenProject(IArtifactFacade artifact) {
+		if ( !generator.isSupported( artifact.getPackagingType() ) )
         {
             return;
         }
 
-        LinkedHashSet<IInstallableUnit> units = doAddMavenArtifact( location, type, groupId, artifactId, version );
+        LinkedHashSet<IInstallableUnit> units = doAddMavenArtifact( artifact);
 
         for ( IInstallableUnit iu : units )
         {
@@ -164,25 +163,24 @@ public class P2ResolverImpl
                 iuReactorProjects.put( iu.getId(), projects );
             }
             // TODO do we support multiple versions of the same project
-            projects.add( location );
+            projects.add( artifact.getLocation());
         }
     }
 
-    public void addMavenArtifact( File location, String type, String groupId, String artifactId, String version )
+    public void addMavenArtifact(IArtifactFacade artifact )
     {
-        doAddMavenArtifact( location, type, groupId, artifactId, version );
+        doAddMavenArtifact( artifact);
     }
 
-    protected LinkedHashSet<IInstallableUnit> doAddMavenArtifact( File location, String type, String groupId,
-                                                                  String artifactId, String version )
+    protected LinkedHashSet<IInstallableUnit> doAddMavenArtifact( IArtifactFacade artifact)
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
-        generator.generateMetadata( location, type, groupId, artifactId, version, environments, units, null );
+        generator.generateMetadata( artifact, environments, units, null );
 
-        mavenArtifactTypes.put( location, type );
+        mavenArtifactTypes.put( artifact.getLocation(), artifact.getPackagingType());
 
-        mavenArtifactIUs.put( location, units );
+        mavenArtifactIUs.put( artifact.getLocation(), units );
 
         return units;
     }

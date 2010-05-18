@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +39,13 @@ import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction;
 import org.eclipse.equinox.p2.publisher.eclipse.ProductAction;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
+import org.eclipse.osgi.service.resolver.BundleDescription;
+import org.eclipse.osgi.service.resolver.StateObjectFactory;
+import org.osgi.framework.BundleException;
 import org.sonatype.tycho.p2.facade.P2Generator;
+import org.sonatype.tycho.p2.facade.internal.IArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
+import org.sonatype.tycho.p2.facade.internal.ProjectArtifactFacade;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 import org.sonatype.tycho.p2.publisher.model.ProductFile2;
@@ -48,6 +55,9 @@ import org.sonatype.tycho.p2.publisher.repo.TransientArtifactRepository;
 public class P2GeneratorImpl
     implements P2Generator
 {
+    private static final String SUFFIX_QUALIFIER = ".qualifier";
+    private static final String SUFFIX_SNAPSHOT = "-SNAPSHOT";
+
     private static final String[] SUPPORTED_TYPES = { P2Resolver.TYPE_ECLIPSE_PLUGIN,
         P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN, P2Resolver.TYPE_ECLIPSE_FEATURE, P2Resolver.TYPE_ECLIPSE_UPDATE_SITE,
         P2Resolver.TYPE_ECLIPSE_APPLICATION };
@@ -64,14 +74,13 @@ public class P2GeneratorImpl
         this.dependenciesOnly = dependenciesOnly;
     }
 
-    public void generateMetadata( File location, String packaging, String groupId, String artifactId, String version,
-                                  File content, File artifacts )
+    public void generateMetadata( IArtifactFacade artifact, File content, File artifacts )
         throws IOException
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
         LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
 
-        generateMetadata( location, packaging, groupId, artifactId, version, null, units, artifactDescriptors );
+        generateMetadata( artifact, null, units, artifactDescriptors );
 
         new MetadataIO().writeXML( units, content );
         new ArtifactsIO().writeXML( artifactDescriptors, artifacts );
@@ -152,17 +161,51 @@ public class P2GeneratorImpl
         return buildProperties;
     }
 
-    public void generateMetadata( File location, String packaging, String groupId, String artifactId, String version,
-                                  List<Map<String,String>> environments, Set<IInstallableUnit> units,
-                                  Set<IArtifactDescriptor> artifacts )
+    public void generateMetadata( IArtifactFacade artifact, List<Map<String,String>> environments, Set<IInstallableUnit> units,
+                                  Set<IArtifactDescriptor> artifacts)
     {
         TransientArtifactRepository artifactsRepository = new TransientArtifactRepository();
+        PublisherInfo publisherInfo = createPublisherInfo(artifact,
+				artifactsRepository);
+        publisherInfo.addAdvice( new MavenPropertiesAdvice( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion()) );
+        IPublisherAction[] actions = getPublisherActions( artifact, environments , false);
+        publish(units, artifacts, artifactsRepository, publisherInfo, actions);
+        if (artifact.hasSourceBundle()) {
+            publisherInfo = createPublisherInfo(artifact,
+    				artifactsRepository);
+			publisherInfo.addAdvice(new MavenPropertiesAdvice(artifact
+					.getGroupId(), artifact.getArtifactId(), artifact
+					.getVersion(), "sources"));
+            actions = getPublisherActions( artifact, environments, true );
+            publish(units, artifacts, artifactsRepository, publisherInfo, actions);
+        }
+    }
 
-        PublisherInfo request = new PublisherInfo();
+	private void publish(Set<IInstallableUnit> units,
+			Set<IArtifactDescriptor> artifacts,
+			TransientArtifactRepository artifactsRepository,
+			PublisherInfo publisherInfo, IPublisherAction[] actions) {
+		PublisherResult result = new PublisherResult();
+
+        new Publisher( publisherInfo, result ).publish( actions, monitor );
+
+        if ( units != null )
+        {
+            units.addAll( result.getIUs( null, null ) );
+        }
+
+        if ( artifacts != null )
+        {
+            artifacts.addAll( artifactsRepository.getArtifactDescriptors() );
+        }
+	}
+
+	private PublisherInfo createPublisherInfo(IArtifactFacade artifact,
+			TransientArtifactRepository artifactsRepository) {
+		PublisherInfo request = new PublisherInfo();
         request.setArtifactRepository( artifactsRepository );
 
-        request.addAdvice( new MavenPropertiesAdvice( groupId, artifactId, version ) );
-        final IRequirement[] extraRequirements = extractExtraEntriesAsIURequirement( location );
+        final IRequirement[] extraRequirements = extractExtraEntriesAsIURequirement( artifact.getLocation());
         request.addAdvice( new ICapabilityAdvice()
         {
 
@@ -186,30 +229,22 @@ public class P2GeneratorImpl
                 return null;
             }
         } );
-        IPublisherAction[] actions = getPublisherActions( location, packaging, artifactId, version, environments );
+		return request;
+	}
 
-        PublisherResult result = new PublisherResult();
-
-        new Publisher( request, result ).publish( actions, monitor );
-
-        if ( units != null )
-        {
-            units.addAll( result.getIUs( null, null ) );
-        }
-
-        if ( artifacts != null )
-        {
-            artifacts.addAll( artifactsRepository.getArtifactDescriptors() );
-        }
-    }
-
-    private IPublisherAction[] getPublisherActions( File location, String packaging, String id, String version,
-                                                    List<Map<String,String>> environments )
+    private IPublisherAction[] getPublisherActions( IArtifactFacade artifact, List<Map<String,String>> environments, boolean isSourceBundle )
     {
+    	String packaging = artifact.getPackagingType();
+    	File location = artifact.getLocation();
         if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( packaging )
             || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) )
         {
-            return new IPublisherAction[] { new BundlesAction( new File[] { location } ) };
+			if (isSourceBundle) {
+				return new IPublisherAction[] { createSourceBundleAction(artifact) };
+			} else {
+				return new IPublisherAction[] { new BundlesAction(
+						new File[] { location }) };
+			}
         }
         else if ( P2Resolver.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
         {
@@ -226,7 +261,7 @@ public class P2GeneratorImpl
         }
         else if ( P2Resolver.TYPE_ECLIPSE_APPLICATION.equals( packaging ) )
         {
-            String product = new File( location, id + ".product" ).getAbsolutePath();
+            String product = new File( location, artifact.getArtifactId() + ".product" ).getAbsolutePath();
             try
             {
                 IProductDescriptor productDescriptor = new ProductFile2( product );
@@ -248,7 +283,7 @@ public class P2GeneratorImpl
         {
             if ( dependenciesOnly )
             {
-                return new IPublisherAction[] { new SiteDependenciesAction( location, id, version ) };
+                return new IPublisherAction[] { new SiteDependenciesAction( location, artifact.getArtifactId(), artifact.getVersion()) };
             }
             else
             {
@@ -262,6 +297,56 @@ public class P2GeneratorImpl
 
         throw new IllegalArgumentException();
     }
+
+	private IPublisherAction createSourceBundleAction(IArtifactFacade artifact) {
+		String id = artifact.getArtifactId();
+		String version = toCanonicalVersion(artifact.getVersion());
+		try {
+			if (artifact instanceof ProjectArtifactFacade) {
+				return new BundlesAction(
+						new File[] { ((ProjectArtifactFacade) artifact)
+								.getSourceArtifactLocation() });
+			} else {
+				// generated source bundle is not available at this point in filesystem yet, need to create 
+				// in-memory BundleDescription instead
+				Dictionary<String, String> manifest = new Hashtable<String, String>();
+				manifest.put("Manifest-Version", "1.0");
+				manifest.put("Bundle-ManifestVersion", "2");
+				String sourceBundleSymbolicName = id
+						+ artifact.getSourceBundleSuffix();
+				manifest.put("Bundle-SymbolicName", sourceBundleSymbolicName);
+				manifest.put("Bundle-Version", version);
+				manifest.put("Eclipse-SourceBundle", id + ";version=" + version
+						+ ";roots:=\".\"");
+				StateObjectFactory factory = StateObjectFactory.defaultFactory;
+				BundleDescription bundleDescription = factory
+						.createBundleDescription(factory.createState(false),
+								manifest, artifact.getLocation().getAbsolutePath(),
+								createId(sourceBundleSymbolicName, version));
+				bundleDescription.setUserObject(manifest);
+				return new BundlesAction(
+						new BundleDescription[] { bundleDescription });
+			}
+		} catch (BundleException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public long createId(String sourceBundleSymbolicName, String version) {
+		return (long)sourceBundleSymbolicName.hashCode() | (((long)version.hashCode()) << 32);
+	}
+
+	private static String toCanonicalVersion(String version) {
+		if (version == null) {
+			return null;
+		}
+		if (version.endsWith(SUFFIX_SNAPSHOT)) {
+			return version.substring(0,
+					version.length() - SUFFIX_SNAPSHOT.length())
+					+ SUFFIX_QUALIFIER;
+		}
+		return version;
+	}
 
     public boolean isSupported( String type )
     {
