@@ -1,6 +1,8 @@
 package org.sonatype.tycho.plugins.p2;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,14 +29,14 @@ public abstract class AbstractP2MetadataMojo
      * @parameter default-value="${project.name}"
      * @required
      */
-    private String metadataRepositoryName;
+    protected String metadataRepositoryName;
 
     /**
      * Generated update site location (must match update-site mojo configuration)
      * 
      * @parameter expression="${project.build.directory}/site"
      */
-    private File target;
+    protected File target;
 
     /**
      * Artifact repository name
@@ -42,7 +44,7 @@ public abstract class AbstractP2MetadataMojo
      * @parameter default-value="${project.name} Artifacts"
      * @required
      */
-    private String artifactRepositoryName;
+    protected String artifactRepositoryName;
 
     /**
      * Kill the forked test process after a certain number of seconds. If set to 0, wait forever for the process, never
@@ -59,8 +61,8 @@ public abstract class AbstractP2MetadataMojo
      */
     private String argLine;
 
-    /** 
-     * @parameter default-value="true" 
+    /**
+     * @parameter default-value="true"
      */
     protected boolean generateP2Metadata;
 
@@ -112,15 +114,15 @@ public abstract class AbstractP2MetadataMojo
 
         cli.addArguments( new String[] { "-jar", getEquinoxLauncher().getCanonicalPath(), } );
 
-        cli.addArguments( new String[] { "-nosplash", // 
-            "-application", getPublisherApplication(), // 
-            "-source", getUpdateSiteLocation().getCanonicalPath(), //
-            "-metadataRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
-            "-metadataRepositoryName", metadataRepositoryName, //
-            "-artifactRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
-            "-artifactRepositoryName", artifactRepositoryName, //
-            "-noDefaultIUs", // 
-            "-vmargs", argLine, } );
+        cli.addArguments( new String[] { "-nosplash", //
+            "-application", getPublisherApplication(), } );
+
+        addArguments( cli );
+
+        if ( argLine != null && argLine.trim().length() > 0 )
+        {
+            cli.addArguments( new String[] { "-vmargs", argLine, } );
+        }
 
         getLog().info( "Command line:\n\t" + cli.toString() );
 
@@ -147,9 +149,20 @@ public abstract class AbstractP2MetadataMojo
         }
     }
 
+    protected void addArguments( Commandline cli )
+        throws IOException, MalformedURLException
+    {
+        cli.addArguments( new String[] { "-source", getUpdateSiteLocation().getCanonicalPath(), //
+            "-metadataRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
+            "-metadataRepositoryName", metadataRepositoryName, //
+            "-artifactRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
+            "-artifactRepositoryName", artifactRepositoryName, //
+            "-noDefaultIUs", } );
+    }
+
     protected abstract String getPublisherApplication();
 
-    private File getUpdateSiteLocation()
+    protected File getUpdateSiteLocation()
     {
         return target;
     }
