@@ -32,7 +32,7 @@ public class TYCHO285EclipseSourceBundlesTest
         
         Assert.assertEquals("bundle.source", mainAttributes.getValue("Bundle-SymbolicName"));
         Assert.assertEquals("1.2.3.TAGNAME", mainAttributes.getValue("Bundle-Version"));
-        Assert.assertEquals("bundle;version=\"1.2.3.TAGNAME\"", mainAttributes.getValue("Eclipse-SourceBundle"));
+        Assert.assertEquals("bundle;version=\"1.2.3.TAGNAME\";roots:=\".\"", mainAttributes.getValue("Eclipse-SourceBundle"));
     }
 
 }

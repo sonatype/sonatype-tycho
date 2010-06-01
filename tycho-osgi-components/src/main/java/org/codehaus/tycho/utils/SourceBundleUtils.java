@@ -19,13 +19,16 @@ public class SourceBundleUtils {
 				.equals(packaging))) {
 			return null;
 		}
-		String suffix = project.getProperties().getProperty(SUFFIX_PROPERTY);
-		// TODO we should rather check the configuration of OsgiSourceMojo
-		if (suffix == null) {
-			return SOURCE_BUNDLE_SUFFIX;
-		} else {
+		// TODO should rather use MavenSession to get effective properties?
+		String suffix = System.getProperty(SUFFIX_PROPERTY);
+		if (suffix != null) {
 			return suffix;
-		}
+		} 
+		suffix = project.getProperties().getProperty(SUFFIX_PROPERTY);
+		if (suffix != null) {
+			return suffix;
+		} 
+		return SOURCE_BUNDLE_SUFFIX;
 	}
 
 }

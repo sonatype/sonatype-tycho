@@ -14,13 +14,11 @@ public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 	
 	@Test
 	public void testDefaultSourceBundleSuffix() throws Exception {
-		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
-		verifier.setAutoclean(true);
+		Verifier verifier = getVerifier("/TYCHO192sourceBundles");
 		verifier.setCliOptions(Arrays.asList(new String[] {
-				"-PtestDefaultSuffix", 
-				"-Dtycho-version=0.9.0-SNAPSHOT" 
+				"-PtestDefaultSuffix"
 				}));
-		verifier.executeGoal("install");
+		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 		File[] sourceJars = new File(verifier.getBasedir(),
 				"helloworld.updatesite/target/site/plugins")
@@ -44,14 +42,12 @@ public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 
 	@Test
 	public void testCustomSourceBundleSuffix() throws Exception {
-		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
-		verifier.setAutoclean(true);
+		Verifier verifier = getVerifier("/TYCHO192sourceBundles");
 		verifier.setCliOptions(Arrays.asList(new String[] {
 				"-PtestCustomSuffix",
-				"-DsourceBundleSuffix=my_src_suffix",
-				"-Dtycho-version=0.9.0-SNAPSHOT" 
+				"-DsourceBundleSuffix=.my_src_suffix"
 				}));
-		verifier.executeGoal("install");
+		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 		File[] sourceJars = new File(verifier.getBasedir(),
 				"helloworld.updatesite/target/site/plugins")
