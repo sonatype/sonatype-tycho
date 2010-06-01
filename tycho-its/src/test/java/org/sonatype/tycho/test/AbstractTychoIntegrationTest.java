@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 
 import org.apache.maven.it.Verifier;
 import org.apache.maven.it.util.DirectoryScanner;
@@ -69,11 +67,10 @@ public abstract class AbstractTychoIntegrationTest {
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( EnvironmentUtil.getLocalRepo() );
 
-        // tell test maven to update snapshots. this is useful when ITs and main build
-        // run on separate machines.
-        if ( Boolean.getBoolean( "it.-U" ) )
+        String customOptions = System.getProperty( "it.cliOptions" );
+        if ( customOptions != null && customOptions.trim().length() > 0 )
         {
-            verifier.getCliOptions().add("-U");
+            verifier.getCliOptions().add( customOptions );
         }
 
         String m2eState = System.getProperty("m2eclipse.workspace.state");
