@@ -2,11 +2,11 @@ package org.sonatype.tycho.versions.pom;
 
 import de.pdark.decentxml.Element;
 
-public class Parent
+public class GAV
 {
     private final Element dom;
 
-    public Parent( Element element )
+    public GAV( Element element )
     {
         this.dom = element;
     }

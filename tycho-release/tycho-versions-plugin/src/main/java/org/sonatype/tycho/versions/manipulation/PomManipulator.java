@@ -9,8 +9,9 @@ import org.sonatype.tycho.versions.engine.MetadataManipulator;
 import org.sonatype.tycho.versions.engine.ProjectMetadata;
 import org.sonatype.tycho.versions.engine.VersionChange;
 import org.sonatype.tycho.versions.engine.VersionsEngine;
+import org.sonatype.tycho.versions.pom.GAV;
+import org.sonatype.tycho.versions.pom.DependencyManagement;
 import org.sonatype.tycho.versions.pom.MutablePomFile;
-import org.sonatype.tycho.versions.pom.Parent;
 
 @Component( role = MetadataManipulator.class, hint = "pom" )
 public class PomManipulator
@@ -20,8 +21,9 @@ public class PomManipulator
     public boolean addMoreChanges( ProjectMetadata project, VersionChange change, Set<VersionChange> allChanges )
     {
         MutablePomFile pom = project.getMetadata( MutablePomFile.class );
-        Parent parent = pom.getParent();
-        if ( parent != null && isGavEquals( parent, change ) && !isVersionEquals( change.getNewVersion(), parent.getVersion() ) )
+        GAV parent = pom.getParent();
+        if ( parent != null && isGavEquals( parent, change )
+            && !isVersionEquals( change.getNewVersion(), parent.getVersion() ) )
         {
             String explicitVersion = pom.getVersion();
             if ( explicitVersion == null || isVersionEquals( explicitVersion, change.getVersion() ) )
@@ -36,7 +38,7 @@ public class PomManipulator
     public void applyChange( ProjectMetadata project, VersionChange change, Set<VersionChange> allChanges )
     {
         MutablePomFile pom = project.getMetadata( MutablePomFile.class );
-        Parent parent = pom.getParent();
+        GAV parent = pom.getParent();
 
         String version = VersionsEngine.toMavenVersion( change.getVersion() );
         String newVersion = VersionsEngine.toMavenVersion( change.getNewVersion() );
@@ -49,9 +51,40 @@ public class PomManipulator
         {
             if ( parent != null && isGavEquals( parent, change ) )
             {
-                logger.info( "  pom.xml//project/parent/version: " + version + " => "
-                    + newVersion );
+                logger.info( "  pom.xml//project/parent/version: " + version + " => " + newVersion );
                 parent.setVersion( newVersion );
+            }
+        }
+
+        //
+        // Dependencies and entries inside dependencyManagement sections are not
+        // OSGI related. Nevertheless it might happen that dependencies like this
+        // does occur inside OSGI related project. Hence we must be able to handle
+        // it.
+        //
+        for ( GAV dependency : pom.getDependencies() )
+        {
+            if ( isGavEquals( dependency, change ) )
+            {
+                logger.info( "  pom.xml//project/dependencies/dependency/[ " + dependency.getGroupId() + ":"
+                    + dependency.getArtifactId() + " ] " + version + " => " + newVersion );
+                dependency.setVersion( newVersion );
+            }
+        }
+
+        DependencyManagement dependencyManagment = pom.getDependencyManagement();
+
+        if ( dependencyManagment != null )
+        {
+            for ( GAV dependency : dependencyManagment.getDependencies() )
+            {
+                if ( isGavEquals( dependency, change ) )
+                {
+                    logger.info( "  pom.xml//project/dependencyManagement/dependencies/dependency/[ "
+                        + dependency.getGroupId() + ":" + dependency.getArtifactId() + " ] " + version + " => "
+                        + newVersion );
+                    dependency.setVersion( newVersion );
+                }
             }
         }
 
@@ -65,11 +98,11 @@ public class PomManipulator
             && isVersionEquals( change.getVersion(), pom.getVersion() );
     }
 
-    private boolean isGavEquals( Parent parent, VersionChange change )
+    private boolean isGavEquals( GAV dependency, VersionChange change )
     {
-        return change.getGroupId().equals( parent.getGroupId() )
-            && change.getArtifactId().equals( parent.getArtifactId() )
-            && isVersionEquals( change.getVersion(), parent.getVersion() );
+        return change.getGroupId().equals( dependency.getGroupId() )
+            && change.getArtifactId().equals( dependency.getArtifactId() )
+            && isVersionEquals( change.getVersion(), dependency.getVersion() );
     }
 
     public void writeMetadata( ProjectMetadata project )

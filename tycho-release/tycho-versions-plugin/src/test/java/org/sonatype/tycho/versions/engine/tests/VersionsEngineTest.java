@@ -96,6 +96,78 @@ public class VersionsEngineTest
         assertBundleManifest( new File( basedir, "detached" ) );
     }
 
+    public void testDependencySimple()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "projects/dependencysimple" );
+
+        VersionsEngine engine = lookup( VersionsEngine.class );
+        engine.addBasedir( basedir );
+        engine.addVersionChange( "someproject", "1.0.1.qualifier" );
+        engine.apply();
+
+        assertPom( basedir );
+
+        assertPom( new File( basedir, "bundle" ) );
+        assertBundleManifest( new File( basedir, "bundle" ) );
+
+        assertPom( new File( basedir, "someproject" ) );
+    }
+
+    public void testDependencyOtherVersion()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "projects/dependencyotherversion" );
+
+        VersionsEngine engine = lookup( VersionsEngine.class );
+        engine.addBasedir( basedir );
+        engine.addVersionChange( "someproject", "1.0.1.qualifier" );
+        engine.apply();
+
+        assertPom( basedir );
+
+        assertPom( new File( basedir, "bundle" ) );
+        assertBundleManifest( new File( basedir, "bundle" ) );
+
+        assertPom( new File( basedir, "someproject" ) );
+    }
+
+    public void testDependencyManagmentSimple()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "projects/dependencymanagementsimple" );
+
+        VersionsEngine engine = lookup( VersionsEngine.class );
+        engine.addBasedir( basedir );
+        engine.addVersionChange( "someproject", "1.0.1.qualifier" );
+        engine.apply();
+
+        assertPom( basedir );
+
+        assertPom( new File( basedir, "bundle" ) );
+        assertBundleManifest( new File( basedir, "bundle" ) );
+
+        assertPom( new File( basedir, "someproject" ) );
+    }
+
+    public void testDependencyManagmentOtherVersion()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "projects/dependencymanagementotherversion" );
+
+        VersionsEngine engine = lookup( VersionsEngine.class );
+        engine.addBasedir( basedir );
+        engine.addVersionChange( "someproject", "1.0.1.qualifier" );
+        engine.apply();
+
+        assertPom( basedir );
+
+        assertPom( new File( basedir, "bundle" ) );
+        assertBundleManifest( new File( basedir, "bundle" ) );
+
+        assertPom( new File( basedir, "someproject" ) );
+    }
+
     public void testDeepNesting()
         throws Exception
     {
