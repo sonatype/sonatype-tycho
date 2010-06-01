@@ -69,6 +69,13 @@ public abstract class AbstractTychoIntegrationTest {
         verifier.getVerifierProperties().put( "use.mavenRepoLocal", "true" );
         verifier.setLocalRepo( EnvironmentUtil.getLocalRepo() );
 
+        // tell test maven to update snapshots. this is useful when ITs and main build
+        // run on separate machines.
+        if ( Boolean.getBoolean( "it.-U" ) )
+        {
+            verifier.getCliOptions().add("-U");
+        }
+
         String m2eState = System.getProperty("m2eclipse.workspace.state");
         String m2eResolver = System.getProperty("m2eclipse.workspace.resolver");
 
