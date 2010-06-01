@@ -30,10 +30,10 @@ public class SetMojo
     /**
      * Comma separated list of artifact ids to set the new version to.
      * <p/>
-     * By default. the new version will be set on the current project and all references to the project, including all
+     * By default, the new version will be set on the current project and all references to the project, including all
      * <parent/> elements if the project is a parent pom.
      * 
-     * @parameter expression="${project.artifactId}"
+     * @parameter expression="${artifacts}" default-value="${project.artifactId}"
      */
     private String artifacts;
 
