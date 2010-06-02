@@ -2,7 +2,7 @@ package org.sonatype.tycho.test.TYCHO192sourceBundles;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
+import java.util.List;
 import java.util.jar.JarFile;
 
 import org.apache.maven.it.Verifier;
@@ -14,10 +14,8 @@ public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 	
 	@Test
 	public void testDefaultSourceBundleSuffix() throws Exception {
-		Verifier verifier = getVerifier("/TYCHO192sourceBundles");
-		verifier.setCliOptions(Arrays.asList(new String[] {
-				"-PtestDefaultSuffix"
-				}));
+		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
+		verifier.getCliOptions().add("-PtestDefaultSuffix");
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 		File[] sourceJars = new File(verifier.getBasedir(),
@@ -42,11 +40,10 @@ public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 
 	@Test
 	public void testCustomSourceBundleSuffix() throws Exception {
-		Verifier verifier = getVerifier("/TYCHO192sourceBundles");
-		verifier.setCliOptions(Arrays.asList(new String[] {
-				"-PtestCustomSuffix",
-				"-DsourceBundleSuffix=.my_src_suffix"
-				}));
+		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
+		List<String> cliOptions = verifier.getCliOptions();
+		cliOptions.add("-PtestCustomSuffix");
+		cliOptions.add("-DsourceBundleSuffix=.my_src_suffix");
 		verifier.executeGoal("package");
 		verifier.verifyErrorFreeLog();
 		File[] sourceJars = new File(verifier.getBasedir(),
