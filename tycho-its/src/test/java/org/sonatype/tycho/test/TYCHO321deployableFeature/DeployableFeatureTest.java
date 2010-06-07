@@ -25,8 +25,8 @@ public class DeployableFeatureTest
         Assert.assertTrue( new File( site, "features" ).list().length > 0 );
         Assert.assertTrue( new File( site, "plugins" ).list().length > 0 );
 
-        Assert.assertTrue( new File( site, "artifacts.xml" ).isFile() );
-        Assert.assertTrue( new File( site, "content.xml" ).isFile() );
+        Assert.assertTrue( new File( site, "artifacts.jar" ).isFile() );
+        Assert.assertTrue( new File( site, "content.jar" ).isFile() );
     }
 
 }

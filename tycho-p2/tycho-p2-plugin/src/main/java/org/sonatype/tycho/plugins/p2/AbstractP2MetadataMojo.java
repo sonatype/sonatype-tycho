@@ -66,6 +66,12 @@ public abstract class AbstractP2MetadataMojo
      */
     protected boolean generateP2Metadata;
 
+    /** 
+     * @parameter default-value="true" 
+     */
+    private boolean compressRepository;
+
+
     /** @component */
     private EquinoxEmbedder p2;
 
@@ -158,6 +164,9 @@ public abstract class AbstractP2MetadataMojo
             "-artifactRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
             "-artifactRepositoryName", artifactRepositoryName, //
             "-noDefaultIUs", } );
+        if (compressRepository) {
+        	cli.addArguments(new String[] {"-compress"});
+        }
     }
 
     protected abstract String getPublisherApplication();
