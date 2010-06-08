@@ -10,7 +10,7 @@ TYCHO_M2_HOME=/opt/maven
 
 export MAVEN_OPTS=-Xmx512m
 
-export MAVEN_PARAMS="-Dmaven.repo.local=/tmp/localrepo -Dit.cliOptions=-U"
+#export MAVEN_PARAMS="-Dmaven.repo.local=/tmp/localrepo -Dit.cliOptions=-U"
 
 $TYCHO_M2_HOME/bin/mvn clean install -e -V -Pbootstrap-1 || exit
 
