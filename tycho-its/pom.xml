@@ -76,13 +76,16 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.4.3</version>
+        <version>2.5</version>
         <configuration>
           <failIfNoTests>true</failIfNoTests>
           <excludes>
             <!-- TODO tycho-186 is breaking 136 -->
             <exclude>**/Tycho136*</exclude>
           </excludes>
+          <systemPropertyVariables>
+            <it.cliOptions>${it.cliOptions}</it.cliOptions>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
 
@@ -124,6 +127,11 @@
     </dependency> 
 
     <!-- artifacts to be tested -->
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-osgi-components</artifactId>
+      <version>${tycho-build-version}</version>
+    </dependency>
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
       <artifactId>tycho-maven-plugin</artifactId>
