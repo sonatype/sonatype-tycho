@@ -91,19 +91,34 @@ public class P2TargetPlatformResolver
 
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
-    
+
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
+        P2Resolver resolver = resolverFactory.createResolver();
+
+        try
+        {
+            return doResolvePlatform( session, project, dependencies, resolver );
+        }
+        finally
+        {
+            resolver.stop();
+        }
+    }
+
+    protected TargetPlatform doResolvePlatform( MavenSession session, MavenProject project,
+                                                List<Dependency> dependencies, P2Resolver resolver )
+    {
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
 
-        P2Resolver resolver = resolverFactory.createResolver();
-
         resolver.setRepositoryCache( repositoryCache );
+
+        resolver.setOffline( session.isOffline() );
 
         resolver.setLogger( new P2Logger()
         {
@@ -137,7 +152,7 @@ public class P2TargetPlatformResolver
                 getLogger().debug( "P2resolver.addMavenProject " + otherProject.toString() );
             }
             projects.put( otherProject.getBasedir(), otherProject );
-            resolver.addMavenProject( new MavenProjectFacade(otherProject));
+            resolver.addMavenProject( new MavenProjectFacade( otherProject ) );
         }
 
         if ( dependencies != null )
@@ -192,7 +207,8 @@ public class P2TargetPlatformResolver
             }
             for ( Artifact artifact : artifacts )
             {
-                String key = ArtifactUtils.key( artifact.getGroupId(), artifact.getArtifactId(), artifact.getBaseVersion() );
+                String key =
+                    ArtifactUtils.key( artifact.getGroupId(), artifact.getArtifactId(), artifact.getBaseVersion() );
                 if ( projectIds.contains( key ) )
                 {
                     // resolved to an older snapshot from the repo, we only want the current project in the reactor
@@ -202,26 +218,24 @@ public class P2TargetPlatformResolver
                 {
                     getLogger().debug( "P2resolver.addMavenArtifact " + artifact.toString() );
                 }
-				resolver.addMavenArtifact(new ArtifactFacade(artifact));
+                resolver.addMavenArtifact( new ArtifactFacade( artifact ) );
             }
         }
 
         for ( ArtifactRepository repository : project.getRemoteArtifactRepositories() )
         {
-            if ( session.isOffline() )
-            {
-                getLogger().debug(
-                                   "Ignored repository " + repository.getId() + " (" + repository.getUrl()
-                                       + ") while in offline mode" );
-                continue;
-            }
-
             try
             {
                 URI uri = new URL( repository.getUrl() ).toURI();
 
                 if ( repository.getLayout() instanceof P2ArtifactRepositoryLayout )
                 {
+                    if ( session.isOffline() )
+                    {
+                        getLogger().debug( "Offline mode, using local cache only for repository " + repository.getId()
+                                               + " (" + repository.getUrl() + ")" );
+                    }
+
                     try
                     {
                         Authentication auth = repository.getAuthentication();
@@ -232,8 +246,7 @@ public class P2TargetPlatformResolver
 
                         resolver.addP2Repository( uri );
 
-                        getLogger().debug(
-                                           "Added p2 repository " + repository.getId() + " (" + repository.getUrl()
+                        getLogger().debug( "Added p2 repository " + repository.getId() + " (" + repository.getUrl()
                                                + ")" );
                     }
                     catch ( Exception e )
@@ -253,7 +266,7 @@ public class P2TargetPlatformResolver
                 }
                 else
                 {
-                    if ( !configuration.isIgnoreTychoRepositories() )
+                    if ( !configuration.isIgnoreTychoRepositories() && !session.isOffline() )
                     {
                         try
                         {
@@ -271,8 +284,7 @@ public class P2TargetPlatformResolver
                             }
 
                             resolver.addMavenRepository( uri, index, reader );
-                            getLogger().debug(
-                                               "Added Maven repository " + repository.getId() + " ("
+                            getLogger().debug( "Added Maven repository " + repository.getId() + " ("
                                                    + repository.getUrl() + ")" );
                         }
                         catch ( FileNotFoundException e )
@@ -286,9 +298,13 @@ public class P2TargetPlatformResolver
                     }
                     else
                     {
-                        getLogger().debug(
-                                           "Ignoring Maven repository " + repository.getId() + " ("
-                                               + repository.getUrl() + ")" );
+                        String msg =
+                            "Ignoring Maven repository " + repository.getId() + " (" + repository.getUrl() + ")";
+                        if ( session.isOffline() )
+                        {
+                            msg += " while in offline mode";
+                        }
+                        getLogger().debug( msg );
                     }
                 }
             }
@@ -339,8 +355,7 @@ public class P2TargetPlatformResolver
                                 }
                                 else
                                 {
-                                    getLogger().info(
-                                                      "Unknown server id=" + id + " for repository location="
+                                    getLogger().info( "Unknown server id=" + id + " for repository location="
                                                           + location.getRepositoryLocation() );
                                 }
                             }
@@ -413,9 +428,9 @@ public class P2TargetPlatformResolver
         return multiPlatform;
     }
 
-    private List<Map<String,String>> getEnvironments( TargetPlatformConfiguration configuration )
+    private List<Map<String, String>> getEnvironments( TargetPlatformConfiguration configuration )
     {
-        ArrayList<Map<String,String>> environments = new ArrayList<Map<String,String>>();
+        ArrayList<Map<String, String>> environments = new ArrayList<Map<String, String>>();
 
         for ( TargetEnvironment environment : configuration.getEnvironments() )
         {
@@ -428,7 +443,7 @@ public class P2TargetPlatformResolver
             // TODO does not belong here
             properties.put( "org.eclipse.update.install.features", "true" );
 
-            Map<String,String> map = new LinkedHashMap<String, String>();
+            Map<String, String> map = new LinkedHashMap<String, String>();
             for ( Object key : properties.keySet() )
             {
                 map.put( key.toString(), properties.getProperty( key.toString() ) );

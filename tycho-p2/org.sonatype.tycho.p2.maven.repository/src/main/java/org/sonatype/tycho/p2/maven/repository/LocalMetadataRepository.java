@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.facade.internal.GAV;
@@ -79,7 +78,7 @@ public class LocalMetadataRepository
         File basedir = new File( getLocation() );
 
         // XXX lock
-        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( basedir );
+        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( basedir, LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH );
 
         MetadataIO io = new MetadataIO();
 

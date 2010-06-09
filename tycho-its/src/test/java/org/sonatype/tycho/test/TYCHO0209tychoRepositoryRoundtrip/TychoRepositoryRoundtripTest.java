@@ -7,6 +7,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 public class TychoRepositoryRoundtripTest
@@ -47,6 +48,8 @@ public class TychoRepositoryRoundtripTest
         // cleanup old tycho index
         File localBasedir = new File( v01.localRepo );
         new File( localBasedir, DefaultTychoRepositoryIndex.INDEX_RELPATH ).delete();
+        new File( localBasedir, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH ).delete();
+        new File( localBasedir, LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH ).delete();
 
         // install build01
         v01.getCliOptions().add( "-Dp2.repo=" + toURI( new File( "repositories/e342" ) ) );
@@ -58,10 +61,12 @@ public class TychoRepositoryRoundtripTest
         String build01relpath = "org/codehaus/tycho/tychoits/tycho0209/build01";
         File remoteBasedir = new File( "target/remoterepo/" );
         FileUtils.copyDirectory( new File( localBasedir, build01relpath ), new File( remoteBasedir, build01relpath ) );
-        FileUtils.copyFile( new File( localBasedir, DefaultTychoRepositoryIndex.INDEX_RELPATH), new File( remoteBasedir, DefaultTychoRepositoryIndex.INDEX_RELPATH ) );
+        FileUtils.copyFile( new File( localBasedir, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH), new File( remoteBasedir, DefaultTychoRepositoryIndex.INDEX_RELPATH ) );
 
         // cleanup localrepo once again
         new File( localBasedir, DefaultTychoRepositoryIndex.INDEX_RELPATH ).delete();
+        new File( localBasedir, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH ).delete();
+        new File( localBasedir, LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH ).delete();
         FileUtils.deleteDirectory( new File( remoteBasedir, build01relpath ) );
 
         // build02

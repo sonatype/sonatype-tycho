@@ -1,9 +1,11 @@
 package org.sonatype.tycho.test.TYCHO338offlineMode;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.apache.maven.it.Verifier;
 import org.codehaus.tycho.model.Target;
@@ -47,20 +49,18 @@ public class OfflineModeTest
         platform.getLocations().get( 0 ).setRepositoryLocation( url );
         Target.write( platform, platformFile );
 
-        new File( verifier.localRepo, ".meta/p2-metadata.properties" ).delete();
-
         verifier.setLogFileName( "log-online.txt" );
         verifier.executeGoal( "integration-test" );
         verifier.verifyErrorFreeLog();
-        List<String> urls = server.getAccessedUrls( "test" );
-        assertFalse( urls.isEmpty() );
-        urls.clear();
-
+        assertFalse( server.getAccessedUrls( "test" ).isEmpty() );
+        server.getAccessedUrls( "test" ).clear();
+        
         verifier.getCliOptions().add( "--offline" );
         verifier.setLogFileName( "log-offline.txt" );
         verifier.executeGoal( "integration-test" );
         verifier.verifyErrorFreeLog();
-        urls = server.getAccessedUrls( "test" );
+        Set<String> urls = new LinkedHashSet<String>( server.getAccessedUrls( "test" ) );
+        urls.remove( "/test/p2.index" ); // p2 keeps asking for this, which is stupid (pascal's words, not mine)
         assertTrue( urls.toString(), urls.isEmpty() );
     }
 

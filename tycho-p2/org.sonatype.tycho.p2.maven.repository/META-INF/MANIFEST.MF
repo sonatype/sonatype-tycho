@@ -11,9 +11,12 @@ Require-Bundle: org.eclipse.equinox.common;bundle-version="3.5.0",
  org.eclipse.equinox.p2.metadata,
  org.eclipse.equinox.p2.core,
  org.eclipse.equinox.p2.metadata.repository;bundle-version="1.1.0",
- org.eclipse.equinox.p2.artifact.repository;bundle-version="1.1.0"
+ org.eclipse.equinox.p2.artifact.repository;bundle-version="1.1.0",
+ org.eclipse.ecf.filetransfer;bundle-version="4.0.0",
+ org.eclipse.ecf;bundle-version="3.1.0"
 Export-Package: org.sonatype.tycho.p2.maven.repository,
- org.sonatype.tycho.p2.maven.repository.xmlio;x-friends:="org.sonatype.tycho.p2.maven.repository.tests"
+ org.sonatype.tycho.p2.maven.repository.xmlio;x-friends:="org.sonatype.tycho.p2.maven.repository.tests",
+ org.sonatype.tycho.p2.repository
 Import-Package: org.eclipse.osgi.util,
  org.osgi.framework,
  org.sonatype.tycho.p2.facade;resolution:=optional,

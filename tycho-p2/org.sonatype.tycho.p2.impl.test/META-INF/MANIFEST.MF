@@ -13,8 +13,13 @@ Require-Bundle: system.bundle,
  org.eclipse.equinox.p2.metadata;bundle-version="2.0.0",
  org.eclipse.equinox.p2.repository;bundle-version="2.0.0",
  org.sonatype.tycho.p2.impl;bundle-version="0.9.0",
- org.eclipse.equinox.p2.publisher;bundle-version="1.1.0"
-Import-Package: org.codehaus.tycho,
+ org.eclipse.equinox.p2.publisher;bundle-version="1.1.0",
+ org.mortbay.jetty.server;bundle-version="6.1.23",
+ org.mortbay.jetty.util;bundle-version="6.1.23",
+ org.eclipse.equinox.p2.core;bundle-version="2.0.0"
+Import-Package: javax.servlet;version="2.5.0",
+ javax.servlet.http;version="2.5.0",
+ org.codehaus.tycho,
  org.codehaus.tycho.utils,
  org.sonatype.tycho.p2.facade,
  org.sonatype.tycho.p2.facade.internal

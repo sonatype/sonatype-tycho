@@ -36,6 +36,7 @@ import org.eclipse.equinox.internal.p2.director.SimplePlanner;
 import org.eclipse.equinox.internal.p2.director.Slicer;
 import org.eclipse.equinox.internal.p2.metadata.IRequiredCapability;
 import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
+import org.eclipse.equinox.internal.p2.repository.CacheManager;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
@@ -66,8 +67,6 @@ import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.sonatype.tycho.p2.Activator;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.GAV;
 import org.sonatype.tycho.p2.facade.internal.IArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
@@ -84,6 +83,7 @@ import org.sonatype.tycho.p2.maven.repository.MavenMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMirrorRequest;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 import org.sonatype.tycho.p2.publisher.P2GeneratorImpl;
+import org.sonatype.tycho.p2.repository.TychoP2RepositoryCacheManager;
 
 @SuppressWarnings( "restriction" )
 public class P2ResolverImpl
@@ -142,17 +142,24 @@ public class P2ResolverImpl
 
     private P2Logger logger;
 
+    private boolean offline;
+
+    private IProvisioningAgent agent;
+
+    private File localRepositoryLocation;
+
     public P2ResolverImpl()
     {
     }
 
-	public void addMavenProject(IArtifactFacade artifact) {
-		if ( !generator.isSupported( artifact.getPackagingType() ) )
+    public void addMavenProject( IArtifactFacade artifact )
+    {
+        if ( !generator.isSupported( artifact.getPackagingType() ) )
         {
             return;
         }
 
-        LinkedHashSet<IInstallableUnit> units = doAddMavenArtifact( artifact);
+        LinkedHashSet<IInstallableUnit> units = doAddMavenArtifact( artifact );
 
         for ( IInstallableUnit iu : units )
         {
@@ -163,22 +170,22 @@ public class P2ResolverImpl
                 iuReactorProjects.put( iu.getId(), projects );
             }
             // TODO do we support multiple versions of the same project
-            projects.add( artifact.getLocation());
+            projects.add( artifact.getLocation() );
         }
     }
 
-    public void addMavenArtifact(IArtifactFacade artifact )
+    public void addMavenArtifact( IArtifactFacade artifact )
     {
-        doAddMavenArtifact( artifact);
+        doAddMavenArtifact( artifact );
     }
 
-    protected LinkedHashSet<IInstallableUnit> doAddMavenArtifact( IArtifactFacade artifact)
+    protected LinkedHashSet<IInstallableUnit> doAddMavenArtifact( IArtifactFacade artifact )
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
         generator.generateMetadata( artifact, environments, units, null );
 
-        mavenArtifactTypes.put( artifact.getLocation(), artifact.getPackagingType());
+        mavenArtifactTypes.put( artifact.getLocation(), artifact.getPackagingType() );
 
         mavenArtifactIUs.put( artifact.getLocation(), units );
 
@@ -187,30 +194,55 @@ public class P2ResolverImpl
 
     public void addP2Repository( URI location )
     {
-        IProvisioningAgent agent = Activator.getProvisioningAgent();
-
-        IMetadataRepositoryManager metadataRepositoryManager =
-            (IMetadataRepositoryManager) agent.getService( IMetadataRepositoryManager.SERVICE_NAME );
-        if ( metadataRepositoryManager == null )
+        if ( agent == null )
         {
-            throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
-        }
+            if ( localRepositoryLocation == null )
+            {
+                throw new IllegalStateException( "Maven local repository location is null" );
+            }
 
-        IArtifactRepositoryManager artifactRepositoryManager =
-            (IArtifactRepositoryManager) agent.getService( IArtifactRepositoryManager.SERVICE_NAME );
-        if ( artifactRepositoryManager == null )
-        {
-            throw new IllegalStateException( "No artifact repository manager found" ); //$NON-NLS-1$
+            try
+            {
+                agent = Activator.newProvisioningAgent();
+
+                TychoP2RepositoryCacheManager cacheMgr = new TychoP2RepositoryCacheManager();
+                cacheMgr.setOffline( offline );
+                cacheMgr.setLocalRepositoryLocation( localRepositoryLocation );
+
+                agent.registerService( CacheManager.SERVICE_NAME, cacheMgr );
+            }
+            catch ( ProvisionException e )
+            {
+                throw new RuntimeException( e );
+            }
         }
 
         try
         {
-            IMetadataRepository metadataRepository = metadataRepositoryManager.loadRepository( location, monitor );
-            IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
-            metadataRepositories.add( metadataRepository );
-            artifactRepositories.add( artifactRepository );
+            IMetadataRepositoryManager metadataRepositoryManager =
+                (IMetadataRepositoryManager) agent.getService( IMetadataRepositoryManager.SERVICE_NAME );
+            if ( metadataRepositoryManager == null )
+            {
+                throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
+            }
 
-            forceSingleThreadedDownload( artifactRepositoryManager, artifactRepository );
+            IMetadataRepository metadataRepository = metadataRepositoryManager.loadRepository( location, monitor );
+            metadataRepositories.add( metadataRepository );
+
+            if ( !offline || URIUtil.isFileURI( location ) )
+            {
+                IArtifactRepositoryManager artifactRepositoryManager =
+                    (IArtifactRepositoryManager) agent.getService( IArtifactRepositoryManager.SERVICE_NAME );
+                if ( artifactRepositoryManager == null )
+                {
+                    throw new IllegalStateException( "No artifact repository manager found" ); //$NON-NLS-1$
+                }
+
+                IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
+                artifactRepositories.add( artifactRepository );
+
+                forceSingleThreadedDownload( artifactRepositoryManager, artifactRepository );
+            }
 
             // processPartialIUs( metadataRepository, artifactRepository );
         }
@@ -322,12 +354,7 @@ public class P2ResolverImpl
                     Collection<IArtifactKey> artifactKeys = iu.getArtifacts();
                     for ( IArtifactKey key : artifactKeys )
                     {
-                        requests.add( new MavenMirrorRequest( iu, key, localMetadataRepository, localRepository ) );
-                    }
-                    if ( artifactKeys.size() <= 0 )
-                    {
-                        GAV gav = RepositoryLayoutHelper.getP2Gav( "iu", iu.getId(), iu.getVersion().toString() );
-                        localMetadataRepository.addInstallableUnit( iu, gav );
+                        requests.add( new MavenMirrorRequest( key, localRepository ) );
                     }
                 }
             }
@@ -664,6 +691,7 @@ public class P2ResolverImpl
 
     public void setLocalRepositoryLocation( File location )
     {
+        this.localRepositoryLocation = location;
         URI uri = location.toURI();
 
         localRepository = (LocalArtifactRepository) repositoryCache.getArtifactRepository( uri );
@@ -671,11 +699,14 @@ public class P2ResolverImpl
 
         if ( localRepository == null || localMetadataRepository == null )
         {
-            TychoRepositoryIndex projectIndex = new LocalTychoRepositoryIndex( location );
             RepositoryReader contentLocator = new LocalRepositoryReader( location );
+            LocalTychoRepositoryIndex artifactsIndex =
+                new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH );
+            LocalTychoRepositoryIndex metadataIndex =
+                new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH );
 
-            localRepository = new LocalArtifactRepository( location, projectIndex, contentLocator );
-            localMetadataRepository = new LocalMetadataRepository( uri, projectIndex, contentLocator );
+            localRepository = new LocalArtifactRepository( location, artifactsIndex, contentLocator );
+            localMetadataRepository = new LocalMetadataRepository( uri, metadataIndex, contentLocator );
 
             repositoryCache.putRepository( uri, localMetadataRepository, localRepository );
         }
@@ -807,6 +838,11 @@ public class P2ResolverImpl
         }
     }
 
+    public void setOffline( boolean offline )
+    {
+        this.offline = offline;
+    }
+
     @SuppressWarnings( "unused" )
     private void dumpInstallableUnits( IQueryable<IInstallableUnit> source, boolean verbose )
     {
@@ -850,4 +886,11 @@ public class P2ResolverImpl
         dumpInstallableUnits( Arrays.asList( ius ), verbose );
     }
 
+    public void stop()
+    {
+        if ( agent != null )
+        {
+            agent.stop();
+        }
+    }
 }

@@ -28,12 +28,13 @@ import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 public class LocalArtifactRepository
     extends AbstractMavenArtifactRepository
 {
-    
+
     private Set<IArtifactKey> changedDescriptors = new HashSet<IArtifactKey>();
 
     public LocalArtifactRepository( File location )
     {
-        this( location, new LocalTychoRepositoryIndex( location ), new LocalRepositoryReader( location ) );
+        this( location, new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH ),
+              new LocalRepositoryReader( location ) );
     }
 
     public LocalArtifactRepository( File location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
@@ -45,7 +46,7 @@ public class LocalArtifactRepository
     {
         File location = getBasedir();
 
-        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location );
+        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH );
 
         ArtifactsIO io = new ArtifactsIO();
 
@@ -102,10 +103,9 @@ public class LocalArtifactRepository
 
     private String getMetadataRelpath( GAV gav )
     {
-        String relpath = RepositoryLayoutHelper.getRelativePath(
-            gav,
-            RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
-            RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS );
+        String relpath =
+            RepositoryLayoutHelper.getRelativePath( gav, RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
+                                                    RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS );
         return relpath;
     }
 

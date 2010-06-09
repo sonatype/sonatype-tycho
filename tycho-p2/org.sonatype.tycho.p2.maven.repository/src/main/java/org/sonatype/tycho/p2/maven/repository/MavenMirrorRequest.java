@@ -5,11 +5,8 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.artifact.repository.MirrorRequest;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
-import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.GAV;
 
 @SuppressWarnings( "restriction" )
 public class MavenMirrorRequest
@@ -17,14 +14,10 @@ public class MavenMirrorRequest
 {
 
     private final LocalArtifactRepository localRepository;
-    private final IInstallableUnit iu;
-    private final LocalMetadataRepository localMetadataRepository;
 
-    public MavenMirrorRequest( IInstallableUnit iu, IArtifactKey key, LocalMetadataRepository localMetadataRepository, LocalArtifactRepository localRepository )
+    public MavenMirrorRequest( IArtifactKey key, LocalArtifactRepository localRepository )
     {
         super( key, localRepository, null, null );
-        this.iu = iu;
-        this.localMetadataRepository = localMetadataRepository;
 
         this.localRepository = localRepository;
     }
@@ -74,23 +67,6 @@ public class MavenMirrorRequest
         // not a maven repo and not in maven local repo, delegate to p2 implementation
 
         super.perform( sourceRepository, monitor );
-
-        if ( getResult().isOK() )
-        {
-            // If we got here, we just copied artifact from p2 to local maven repo
-            // Now need to create matching p2 metadata to describe installable unit
-            GAV gav = null;
-            if ( descriptor != null )
-            {
-                gav = localRepository.getP2GAV( descriptor );
-            }
-            if ( gav == null )
-            {
-                IArtifactKey key = getArtifactKey();
-                gav = RepositoryLayoutHelper.getP2Gav( key.getClassifier(), key.getId(), key.toString() );
-            }
-            localMetadataRepository.addInstallableUnit( iu, gav );
-        }
     }
 
     private IArtifactDescriptor getArtifactDescriptor()

@@ -2,6 +2,7 @@ package org.sonatype.tycho.p2;
 
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.IProvisioningAgentProvider;
+import org.eclipse.equinox.p2.core.ProvisionException;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -20,22 +21,15 @@ public class Activator
 
     private BundleContext context;
 
-    private IProvisioningAgent agent;
-
     public Activator()
     {
-        this.instance = this;
+        Activator.instance = this;
     }
 
     public void start( BundleContext context )
         throws Exception
     {
         this.context = context;
-
-        ServiceReference providerRef = context.getServiceReference( IProvisioningAgentProvider.SERVICE_NAME );
-        IProvisioningAgentProvider provider = (IProvisioningAgentProvider) context.getService( providerRef );
-        agent = provider.createAgent( null ); // null == currently running system
-        context.ungetService( providerRef );
 
         context.registerService( P2ResolverFactory.class.getName(), new P2ResolverFactory()
         {
@@ -47,6 +41,23 @@ public class Activator
         context.registerService( P2Generator.class.getName(), new P2GeneratorImpl( false ), null );
     }
 
+    public static IProvisioningAgent newProvisioningAgent()
+        throws ProvisionException
+    {
+        BundleContext context = getContext();
+
+        ServiceReference providerRef = context.getServiceReference( IProvisioningAgentProvider.SERVICE_NAME );
+        IProvisioningAgentProvider provider = (IProvisioningAgentProvider) context.getService( providerRef );
+        try
+        {
+            return provider.createAgent( null ); // null == currently running system
+        }
+        finally
+        {
+            context.ungetService( providerRef );
+        }
+    }
+
     public void stop( BundleContext context )
         throws Exception
     {
@@ -55,10 +66,5 @@ public class Activator
     public static BundleContext getContext()
     {
         return instance.context;
-    }
-
-    public static IProvisioningAgent getProvisioningAgent()
-    {
-        return instance.agent;
     }
 }

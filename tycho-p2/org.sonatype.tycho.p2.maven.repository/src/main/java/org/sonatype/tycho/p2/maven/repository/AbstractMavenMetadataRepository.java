@@ -24,9 +24,9 @@ import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 public abstract class AbstractMavenMetadataRepository
     extends AbstractMetadataRepository
 {
-    private static final String REPOSITORY_TYPE = AbstractMavenMetadataRepository.class.getName();
-
-    private static final String REPOSITORY_VERSION = "1.0.0";
+//    private static final String REPOSITORY_TYPE = AbstractMavenMetadataRepository.class.getName();
+//
+//    private static final String REPOSITORY_VERSION = "1.0.0";
 
     protected final TychoRepositoryIndex projectIndex;
 

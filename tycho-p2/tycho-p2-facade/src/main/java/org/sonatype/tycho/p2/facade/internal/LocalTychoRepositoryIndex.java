@@ -6,19 +6,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 
-
 /**
- * Simplistic local Maven repository index to allow efficient lookup 
- * of all installed Tycho projects.
+ * Simplistic local Maven repository index to allow efficient lookup of all installed Tycho projects.
  */
 public class LocalTychoRepositoryIndex
     extends DefaultTychoRepositoryIndex
 {
     private final File indexFile;
 
-    public LocalTychoRepositoryIndex( File basedir )
+    public static final String ARTIFACTS_INDEX_RELPATH = ".meta/p2-artifacts.properties";
+
+    public static final String METADATA_INDEX_RELPATH = ".meta/p2-local-metadata.properties";
+
+    public LocalTychoRepositoryIndex( File basedir, String relpath )
     {
-        this.indexFile = new File( basedir, INDEX_RELPATH );
+        this.indexFile = new File( basedir, relpath );
         try
         {
             this.gavs = read( new FileInputStream( indexFile ) );
@@ -37,9 +39,13 @@ public class LocalTychoRepositoryIndex
 
         try
         {
-            LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( basedir );
-            index.addProject( groupId, artifactId, version );
-            index.save();
+            LocalTychoRepositoryIndex artifactsIndex = new LocalTychoRepositoryIndex( basedir, ARTIFACTS_INDEX_RELPATH );
+            artifactsIndex.addProject( groupId, artifactId, version );
+            artifactsIndex.save();
+
+            LocalTychoRepositoryIndex metadataIndex = new LocalTychoRepositoryIndex( basedir, METADATA_INDEX_RELPATH );
+            metadataIndex.addProject( groupId, artifactId, version );
+            metadataIndex.save();
         }
         finally
         {
