@@ -67,8 +67,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
     public static final String RULE_EXCLUDE_ALL = "?**/*";
 
     private static final Set<String> MATCH_ALL = Collections.singleton("**/*");
-	private static final Set<String> MATCH_JAVA = Collections
-			.singleton("**/*.java");
 	private static final String MANIFEST_HEADER_BUNDLE_REQ_EXEC_ENV = "Bundle-RequiredExecutionEnvironment";
 	private static final Pattern COMMA_SEP_INCLUDING_WHITESPACE = Pattern
 			.compile("\\s*,\\s*");
@@ -129,6 +127,14 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private Set<String> excludes = new HashSet<String>();
 
 	/**
+	 * A list of exclusion filters for non-java resource files which should not
+	 * be copied to the output directory.
+	 * 
+	 * @parameter
+	 */
+	private Set<String> excludeResources = new HashSet<String>();
+	
+	/**
 	 * Current build output jar
 	 */
 	private BuildOutputJar outputJar;
@@ -173,7 +179,10 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 				continue;
 			}
 
-			StaleSourceScanner scanner = new StaleSourceScanner(0L, MATCH_ALL, MATCH_JAVA);
+			Set<String> excludes = new HashSet<String>();
+			excludes.addAll(excludeResources);
+			excludes.add("**/*.java");
+			StaleSourceScanner scanner = new StaleSourceScanner(0L, MATCH_ALL, excludes);
 			CopyMapping copyMapping = new CopyMapping();
 			scanner.addSourceMapping(copyMapping);
 			try {
