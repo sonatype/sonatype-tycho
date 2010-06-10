@@ -13,7 +13,6 @@ import org.codehaus.tycho.model.Platform;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.model.UpdateSite;
-import org.codehaus.tycho.model.Target.Location;
 
 public class EclipseModelTest
     extends TestCase
@@ -143,16 +142,21 @@ public class EclipseModelTest
     {
         Target target = Target.read( new File( "src/test/resources/modelio/target.target" ) );
 
-        List<Location> locations = target.getLocations();
+        List<Target.Location> locations = target.getLocations();
         assertEquals( 2, locations.size() );
 
-        Location l01 = locations.get( 0 );
-        assertEquals( "http://download.eclipse.org/eclipse/updates/3.5", l01.getRepositoryLocation() );
+        Target.Location l01 = locations.get( 0 );
+        assertEquals( 1, l01.getRepositories().size() );
+        assertEquals( "http://download.eclipse.org/eclipse/updates/3.5/", l01.getRepositories().get( 0 ).getLocation() );
         assertEquals( 1, l01.getUnits().size() );
-        assertEquals( "org.eclipse.sdk.ide", l01.getUnits().get( 0 ).getId() );
-        assertEquals( "3.5.0.I20090611-1540", l01.getUnits().get( 0 ).getVersion() );
+        assertEquals( "org.eclipse.platform.sdk", l01.getUnits().get( 0 ).getId() );
+        assertEquals( "3.5.2.M20100211-1343", l01.getUnits().get( 0 ).getVersion() );
 
-        Location l02 = locations.get( 1 );
-        assertEquals( 4, l02.getUnits().size() );
+        Target.Location l02 = locations.get( 1 );
+        assertEquals( 5, l02.getUnits().size() );
+        assertEquals( 2, l02.getRepositories().size() );
+        assertEquals( "http://subclipse.tigris.org/update_1.6.x/", l02.getRepositories().get( 0 ).getLocation() );
+        assertEquals( "http://download.eclipse.org/tools/mylyn/update/e3.4/", l02.getRepositories().get( 1 )
+                .getLocation() );
     }
 }

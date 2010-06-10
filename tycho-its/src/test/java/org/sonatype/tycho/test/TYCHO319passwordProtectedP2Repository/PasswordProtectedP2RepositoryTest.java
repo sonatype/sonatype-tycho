@@ -58,7 +58,7 @@ public class PasswordProtectedP2RepositoryTest
         
         File platformFile = new File( verifier.getBasedir(), "platform.target" );
         Target platform = Target.read( platformFile );
-        platform.getLocations().get( 0 ).setRepositoryLocation( url );
+        platform.getLocations().get( 0 ).getRepositories().get( 0 ).setLocation( url );
         Target.write( platform, platformFile );
 
         verifier.getCliOptions().add( "-P=target-definition" );

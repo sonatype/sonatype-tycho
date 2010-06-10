@@ -45,7 +45,6 @@ import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.Target;
-import org.codehaus.tycho.model.Target.Location;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
@@ -332,10 +331,12 @@ public class P2TargetPlatformResolver
                     getLogger().warn( "Target location type: " + type + " is not supported" );
                     continue;
                 }
+                for ( Target.Repository repository : location.getRepositories() )
+                {
 
                 try
                 {
-                    URI uri = new URI( getMirror( location, session.getRequest().getMirrors() ) );
+                        URI uri = new URI( getMirror( repository, session.getRequest().getMirrors() ) );
                     if ( uris.add( uri ) )
                     {
                         if ( session.isOffline() )
@@ -344,7 +345,7 @@ public class P2TargetPlatformResolver
                         }
                         else
                         {
-                            String id = location.getRepositoryId();
+                                String id = repository.getId();
                             if ( id != null )
                             {
                                 Server server = session.getSettings().getServer( id );
@@ -356,7 +357,7 @@ public class P2TargetPlatformResolver
                                 else
                                 {
                                     getLogger().info( "Unknown server id=" + id + " for repository location="
-                                                          + location.getRepositoryLocation() );
+                                                        + repository.getLocation() );
                                 }
                             }
 
@@ -384,6 +385,7 @@ public class P2TargetPlatformResolver
                 catch ( URISyntaxException e )
                 {
                     getLogger().debug( "Could not parse repository URL", e );
+                }
                 }
 
                 for ( Target.Unit unit : location.getUnits() )
@@ -462,10 +464,10 @@ public class P2TargetPlatformResolver
         return sb.toString();
     }
 
-    private String getMirror( Location location, List<Mirror> mirrors )
+    private String getMirror( Target.Repository location, List<Mirror> mirrors )
     {
-        String url = location.getRepositoryLocation();
-        String id = location.getRepositoryId();
+        String url = location.getLocation();
+        String id = location.getId();
         if ( id == null )
         {
             id = url;

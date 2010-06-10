@@ -21,8 +21,9 @@ public class TargetDefinitionTest
 
         for ( Target.Location location : platform.getLocations() )
         {
-            File file = new File( location.getRepositoryLocation() );
-            location.setRepositoryLocation( file.getCanonicalFile().toURI().toASCIIString() );
+            Target.Repository repository = location.getRepositories().get( 0 );
+            File file = new File( repository.getLocation() );
+            repository.setLocation( file.getCanonicalFile().toURI().toASCIIString() );
         }
 
         Target.write( platform, platformFile );

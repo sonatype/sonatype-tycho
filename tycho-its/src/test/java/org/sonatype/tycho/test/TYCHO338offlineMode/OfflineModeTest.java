@@ -46,7 +46,7 @@ public class OfflineModeTest
 
         File platformFile = new File( verifier.getBasedir(), "platform.target" );
         Target platform = Target.read( platformFile );
-        platform.getLocations().get( 0 ).setRepositoryLocation( url );
+        platform.getLocations().get( 0 ).getRepositories().get( 0 ).setLocation( url );
         Target.write( platform, platformFile );
 
         verifier.setLogFileName( "log-online.txt" );

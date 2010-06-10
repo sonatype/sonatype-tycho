@@ -39,36 +39,16 @@ public class Target
             return Collections.unmodifiableList( units );
         }
 
-        public String getRepositoryLocation()
+        public List<Repository> getRepositories()
         {
-            Xpp3Dom repositoryDom = dom.getChild( "repository" );
-            if ( repositoryDom == null )
+            final Xpp3Dom[] repositoryNodes = dom.getChildren( "repository" );
+
+            final List<Repository> repositories = new ArrayList<Target.Repository>( repositoryNodes.length );
+            for ( Xpp3Dom node : repositoryNodes )
             {
-                return null;
+                repositories.add( new Repository( node ) );
             }
-
-            return repositoryDom.getAttribute( "location" );
-        }
-
-        public void setRepositoryLocation( String locationURI )
-        {
-            Xpp3Dom repositoryDom = dom.getChild( "repository" );
-            if ( repositoryDom != null )
-            {
-                repositoryDom.setAttribute( "location", locationURI );
-            }
-        }
-
-        public String getRepositoryId()
-        {
-            Xpp3Dom repositoryDom = dom.getChild( "repository" );
-            if ( repositoryDom == null )
-            {
-                return null;
-            }
-
-            // this is Maven specific, used to match credentials and mirrors
-            return repositoryDom.getAttribute( "id" );
+            return repositories;
         }
 
         public String getType()
@@ -78,7 +58,33 @@ public class Target
 
         public void setType( String type )
         {
-            dom.setAttribute( "type" , type );
+            dom.setAttribute( "type", type );
+        }
+    }
+
+    public static final class Repository
+    {
+        private final Xpp3Dom dom;
+
+        public Repository( Xpp3Dom dom )
+        {
+            this.dom = dom;
+        }
+
+        public String getId()
+        {
+            // this is Maven specific, used to match credentials and mirrors
+            return dom.getAttribute( "id" );
+        }
+
+        public String getLocation()
+        {
+            return dom.getAttribute( "location" );
+        }
+
+        public void setLocation( String location )
+        {
+            dom.setAttribute( "location", location );
         }
     }
 
