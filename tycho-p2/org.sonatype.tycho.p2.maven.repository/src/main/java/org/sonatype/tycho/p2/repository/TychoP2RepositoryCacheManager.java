@@ -30,9 +30,9 @@ public class TychoP2RepositoryCacheManager
     public File createCache( URI repositoryLocation, String prefix, IProgressMonitor monitor )
         throws IOException, ProvisionException
     {
+        File cacheFile = getCache( repositoryLocation, prefix );
         if ( offline )
         {
-            File cacheFile = getCache( repositoryLocation, prefix );
             if ( cacheFile != null )
             {
                 return cacheFile;

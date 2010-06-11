@@ -194,6 +194,21 @@ public class P2ResolverImpl
 
     public void addP2Repository( URI location )
     {
+        // check metadata cache, first
+        IMetadataRepository metadataRepository = (IMetadataRepository) repositoryCache.getMetadataRepository( location );
+        IArtifactRepository artifactRepository = (IArtifactRepository) repositoryCache.getArtifactRepository( location );
+        if ( metadataRepository != null && ( offline || artifactRepository != null ) )
+        {
+            // cache hit
+            metadataRepositories.add( metadataRepository );
+            if ( artifactRepository != null )
+            {
+                artifactRepositories.add( artifactRepository );
+            }
+            logger.info( "Adding repository (cached) " + location.toASCIIString() );
+            return;
+        }
+
         if ( agent == null )
         {
             if ( localRepositoryLocation == null )
@@ -226,7 +241,7 @@ public class P2ResolverImpl
                 throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
             }
 
-            IMetadataRepository metadataRepository = metadataRepositoryManager.loadRepository( location, monitor );
+            metadataRepository = metadataRepositoryManager.loadRepository( location, monitor );
             metadataRepositories.add( metadataRepository );
 
             if ( !offline || URIUtil.isFileURI( location ) )
@@ -238,11 +253,13 @@ public class P2ResolverImpl
                     throw new IllegalStateException( "No artifact repository manager found" ); //$NON-NLS-1$
                 }
 
-                IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
+                artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
                 artifactRepositories.add( artifactRepository );
 
                 forceSingleThreadedDownload( artifactRepositoryManager, artifactRepository );
             }
+
+            repositoryCache.putRepository( location, metadataRepository, artifactRepository );
 
             // processPartialIUs( metadataRepository, artifactRepository );
         }
