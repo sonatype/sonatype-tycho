@@ -212,7 +212,8 @@ public class DefaultBundleReader
     {
         if ( bundleLocation.isDirectory() )
         {
-            return new File( bundleLocation, path );
+            File file = new File( bundleLocation, path );
+            return file.exists() ? file : null;
         }
 
         File file = new File( cacheDir, bundleLocation.getName() + "/" + path );
@@ -227,10 +228,11 @@ public class DefaultBundleReader
                 {
                     InputStream is = zip.getInputStream( ze );
                     FileUtils.copyStreamToFile( new RawInputStreamFacade( is ), file );
+                    return file;
                 }
                 else
                 {
-                    // TODO log
+                    getLogger().debug( "Bundle entry " + bundleLocation + "!/" + path + " does not exist" );
                 }
             }
             finally
@@ -240,10 +242,9 @@ public class DefaultBundleReader
         }
         catch ( IOException e )
         {
-            // XXX log
-            return null;
+            getLogger().warn( "Could not read bundle entry " + bundleLocation + "!/" + path, e );
         }
 
-        return file;
+        return null;
     }
 }

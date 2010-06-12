@@ -1,6 +1,7 @@
 package org.codehaus.tycho.maven.test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.execution.MavenExecutionRequest;
@@ -9,9 +10,11 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.testing.SilentLog;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.tycho.ClasspathEntry;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.DefaultBundleReader;
+import org.codehaus.tycho.osgitools.OsgiBundleProject;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.codehaus.tycho.testing.CompoundRuntimeException;
 
@@ -194,5 +197,30 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertEquals(2, platform.getArtifacts( TychoProject.ECLIPSE_PLUGIN ).size());
 		assertNotNull(platform.getArtifact(TychoProject.ECLIPSE_PLUGIN, "org.junit4.nl_ru", null));
 	}
-	
+
+    public void testMissingClasspathEntries()  throws Exception {
+        File basedir = getBasedir( "projects/missingentry" );
+        File pom = new File( basedir, "pom.xml" );
+        MavenExecutionRequest request = newMavenExecutionRequest( pom );
+        request.getUserProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/missingentry").getCanonicalPath());
+        request.getProjectBuildingRequest().setProcessPlugins( false );
+
+        MavenProject project = getSortedProjects(request).get(0);
+
+        OsgiBundleProject projectType = (OsgiBundleProject) lookup(TychoProject.class, project.getPackaging());
+
+        List<ClasspathEntry> classpath = projectType.getClasspath(project);
+        assertEquals(3, classpath.size());
+        assertEquals(1, classpath.get(1).getLocations().size());
+        assertEquals(canonicalFile("src/test/resources/targetplatforms/missingentry/plugins/dirbundle_0.0.1"), 
+                     classpath.get(1).getLocations().get(0).getCanonicalFile());
+        assertEquals(1, classpath.get(2).getLocations().size());
+        assertEquals(canonicalFile("src/test/resources/targetplatforms/missingentry/plugins/jarbundle_0.0.1.jar"), 
+                     classpath.get(2).getLocations().get(0).getCanonicalFile());
+    }
+
+    private File canonicalFile(String path) throws IOException {
+        return new File(path).getCanonicalFile();
+    }
+
 }

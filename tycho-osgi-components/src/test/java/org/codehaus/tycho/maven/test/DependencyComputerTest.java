@@ -55,7 +55,7 @@ public class DependencyComputerTest
 
         MavenProject project = basedirMap.get( new File( basedir, "bundle" ) );
         TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
-        
+
         State state = resolver.newResolvedState( project, platform );
         BundleDescription bundle = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
 

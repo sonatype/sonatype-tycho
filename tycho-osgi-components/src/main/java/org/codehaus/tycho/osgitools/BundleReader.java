@@ -29,5 +29,9 @@ public interface BundleReader
      */
     boolean isDirectoryShape( Manifest mf );
 
+    /**
+     * Returns bundle entry with given path or null if no such entry exists. If bundle is a jar, the entry will be
+     * extracted into a cached location.
+     */
     File getEntry( File bundleLocation, String path );
 }
