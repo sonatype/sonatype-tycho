@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.p2.MetadataSerializable;
 
 public interface TargetPlatform
 {
@@ -36,6 +37,13 @@ public interface TargetPlatform
     public ArtifactDescription getArtifact( File location );
 
     public ArtifactDescription getArtifact( ArtifactKey key );
+    
+    
+	/**
+	 * This is only set if target-platform-configuration uses
+	 * &lt;resolver&gt;p2&lt;/resolver&gt;, <code>null</code> otherwise.
+	 */
+    public MetadataSerializable getP2MetadataSerializable();
 
     /**
      * For debug purposes only, do not use.

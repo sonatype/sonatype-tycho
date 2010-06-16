@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.tycho.p2.MetadataSerializable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -25,6 +27,7 @@ import org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepo
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties;
 import org.eclipse.equinox.internal.p2.director.QueryableArray;
+import org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryIO;
 import org.eclipse.equinox.internal.p2.repository.CacheManager;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
@@ -37,16 +40,19 @@ import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
 import org.eclipse.equinox.p2.publisher.actions.JREAction;
+import org.eclipse.equinox.p2.query.IQuery;
 import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.p2.repository.IRepository;
+import org.eclipse.equinox.p2.repository.IRepositoryReference;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
+import org.eclipse.equinox.p2.repository.metadata.spi.AbstractMetadataRepository;
 import org.eclipse.equinox.p2.repository.spi.AbstractRepository;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
@@ -68,6 +74,7 @@ import org.sonatype.tycho.p2.maven.repository.MavenArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMirrorRequest;
 import org.sonatype.tycho.p2.publisher.P2GeneratorImpl;
+import org.sonatype.tycho.p2.repo.MetadataSerializableImpl;
 import org.sonatype.tycho.p2.repository.TychoP2RepositoryCacheManager;
 
 @SuppressWarnings( "restriction" )
@@ -397,6 +404,8 @@ public class P2ResolverImpl
                 }
             }
         }
+        Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( newState );
+        result.setMetadataRepositorySerializable( new MetadataSerializableImpl( units, agent ) );
         return result;
     }
 

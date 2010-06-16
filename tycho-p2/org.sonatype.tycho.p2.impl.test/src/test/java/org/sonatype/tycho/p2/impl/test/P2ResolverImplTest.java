@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
 import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
+import org.sonatype.tycho.p2.repo.MetadataSerializableImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolverImpl;
 import org.sonatype.tycho.test.util.HttpServer;
 
@@ -60,6 +61,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
+        Assert.assertEquals( 2, ( (MetadataSerializableImpl) result.getMetadataRepositorySerializable() ).getUnits().size() );
     }
 
     @Test
@@ -82,6 +84,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
+        Assert.assertEquals( 2, ( (MetadataSerializableImpl) result.getMetadataRepositorySerializable() ).getUnits().size() );
     }
 
     @Test

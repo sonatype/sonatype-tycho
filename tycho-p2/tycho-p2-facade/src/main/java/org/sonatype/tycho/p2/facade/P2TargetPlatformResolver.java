@@ -50,6 +50,8 @@ import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
+import org.codehaus.tycho.p2.MetadataSerializable;
+import org.codehaus.tycho.p2.MetadataSerializableMerger;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
@@ -96,6 +98,8 @@ public class P2TargetPlatformResolver
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
+
+    private MetadataSerializableMerger<MetadataSerializable> metadataRepositorySerializableMerger;
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
@@ -406,7 +410,8 @@ public class P2TargetPlatformResolver
         {
             List<P2ResolutionResult> results = resolver.resolveProject( project.getBasedir() );
 
-            MultiEnvironmentTargetPlatform multiPlatform = new MultiEnvironmentTargetPlatform();
+            MultiEnvironmentTargetPlatform multiPlatform =
+                new MultiEnvironmentTargetPlatform( metadataRepositorySerializableMerger );
 
             // FIXME this is just wrong
             for ( int i = 0; i < configuration.getEnvironments().size(); i++ )
@@ -467,6 +472,7 @@ public class P2TargetPlatformResolver
                 platform.addArtifactFile( entry.getKey(), entry.getValue() );
             }
         }
+        platform.setP2MetadataRepository( result.getMetadataRepositorySerializable() );
         return platform;
     }
 
@@ -525,5 +531,6 @@ public class P2TargetPlatformResolver
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );
+        metadataRepositorySerializableMerger = equinox.getService( MetadataSerializableMerger.class );
     }
 }
