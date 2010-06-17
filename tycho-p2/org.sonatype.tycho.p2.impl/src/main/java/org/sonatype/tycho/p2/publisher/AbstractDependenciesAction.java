@@ -79,9 +79,16 @@ public abstract class AbstractDependenciesAction
 
         iud.addRequirements( getRequiredCapabilities() );
 
+        addProperties( iud );
+
         results.addIU( MetadataFactory.createInstallableUnit( iud ), PublisherResult.ROOT );
 
         return Status.OK_STATUS;
+    }
+
+    protected void addProperties( InstallableUnitDescription iud )
+    {
+        // do nothing by default
     }
 
     protected abstract Set<IRequirement> getRequiredCapabilities();

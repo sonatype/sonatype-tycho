@@ -44,6 +44,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
@@ -395,39 +396,72 @@ public class P2TargetPlatformResolver
             }
         }
 
-        List<P2ResolutionResult> results = resolver.resolveProject( project.getBasedir() );
-
-        MultiEnvironmentTargetPlatform multiPlatform = new MultiEnvironmentTargetPlatform();
-
-        // FIXME this is just wrong
-        for ( int i = 0; i < configuration.getEnvironments().size(); i++ )
+        if ( !isAllowConflictingDependencies( project, configuration ) )
         {
-            TargetEnvironment environment = configuration.getEnvironments().get( i );
-            P2ResolutionResult result = results.get( i );
+            List<P2ResolutionResult> results = resolver.resolveProject( project.getBasedir() );
 
-            DefaultTargetPlatform platform = new DefaultTargetPlatform();
+            MultiEnvironmentTargetPlatform multiPlatform = new MultiEnvironmentTargetPlatform();
 
-            platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
-
-            for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
+            // FIXME this is just wrong
+            for ( int i = 0; i < configuration.getEnvironments().size(); i++ )
             {
-                MavenProject otherProject = projects.get( entry.getValue() );
-                if ( otherProject != null )
-                {
-                    platform.addMavenProject( entry.getKey(), otherProject );
-                }
-                else
-                {
-                    platform.addArtifactFile( entry.getKey(), entry.getValue() );
-                }
+                TargetEnvironment environment = configuration.getEnvironments().get( i );
+                P2ResolutionResult result = results.get( i );
+
+                DefaultTargetPlatform platform = newDefaultTargetPlatform( session, projects, result );
+
+                // addProjects( session, platform );
+
+                multiPlatform.addPlatform( environment, platform );
             }
 
-            // addProjects( session, platform );
+            return multiPlatform;
+        }
+        else
+        {
+            P2ResolutionResult result = resolver.collectProjectDependencies( project.getBasedir() );
 
-            multiPlatform.addPlatform( environment, platform );
+            return newDefaultTargetPlatform( session, projects, result );
+        }
+    }
+
+    private boolean isAllowConflictingDependencies( MavenProject project, TargetPlatformConfiguration configuration )
+    {
+        String packaging = project.getPackaging();
+
+        if ( TychoProject.ECLIPSE_UPDATE_SITE.equals( packaging ) || TychoProject.ECLIPSE_FEATURE.equals( packaging ) )
+        {
+            Boolean allow = configuration.getAllowConflictingDependencies();
+            if ( allow != null )
+            {
+                return allow.booleanValue();
+            }
         }
 
-        return multiPlatform;
+        // conflicting dependencies do not make sense for products and bundles
+        return false;
+    }
+
+    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session, Map<File, MavenProject> projects,
+                                                              P2ResolutionResult result )
+    {
+        DefaultTargetPlatform platform = new DefaultTargetPlatform();
+
+        platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
+
+        for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
+        {
+            MavenProject otherProject = projects.get( entry.getValue() );
+            if ( otherProject != null )
+            {
+                platform.addMavenProject( entry.getKey(), otherProject );
+            }
+            else
+            {
+                platform.addArtifactFile( entry.getKey(), entry.getValue() );
+            }
+        }
+        return platform;
     }
 
     private List<Map<String, String>> getEnvironments( TargetPlatformConfiguration configuration )

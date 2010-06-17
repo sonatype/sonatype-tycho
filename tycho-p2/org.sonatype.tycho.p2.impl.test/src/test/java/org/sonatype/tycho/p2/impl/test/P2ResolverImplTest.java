@@ -108,6 +108,44 @@ public class P2ResolverImplTest
         }
     }
 
+    @Test
+    public void siteResolver()
+        throws IOException
+    {
+        P2ResolverImpl impl = new P2ResolverImpl();
+        impl.setRepositoryCache( new P2RepositoryCache() );
+        impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
+        impl.addP2Repository( new File( "resources/repositories/e342" ).getCanonicalFile().toURI() );
+
+        impl.setEnvironments( getEnvironments() );
+
+        addMavenProject( impl, new File( "resources/siteresolver/bundle342" ), P2Resolver.TYPE_ECLIPSE_PLUGIN,
+                         "bundle342" );
+        addMavenProject( impl, new File( "resources/siteresolver/bundle352" ), P2Resolver.TYPE_ECLIPSE_PLUGIN,
+                         "bundle352" );
+        addMavenProject( impl, new File( "resources/siteresolver/feature342" ), P2Resolver.TYPE_ECLIPSE_FEATURE,
+                         "feature342" );
+        addMavenProject( impl, new File( "resources/siteresolver/feature352" ), P2Resolver.TYPE_ECLIPSE_FEATURE,
+                         "feature352" );
+
+        File basedir = new File( "resources/siteresolver/site" ).getCanonicalFile();
+        addMavenProject( impl, basedir, P2Resolver.TYPE_ECLIPSE_UPDATE_SITE, "site" );
+
+        P2ResolutionResult result = impl.collectProjectDependencies( basedir );
+
+        impl.stop();
+
+        Assert.assertEquals( 4, result.getArtifacts().size() );
+    }
+
+    private void addMavenProject( P2ResolverImpl impl, File basedir, String packaging, String id )
+        throws IOException
+    {
+        String version = "1.0.0-SNAPSHOT";
+
+        impl.addMavenArtifact( new ArtifactMock( basedir.getCanonicalFile(), id, id, version, packaging ) );
+    }
+
     protected List<P2ResolutionResult> resolveFromHttp( P2ResolverImpl impl, String url )
         throws IOException, URISyntaxException
     {
@@ -115,13 +153,12 @@ public class P2ResolverImplTest
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new URI( url ) );
 
-        File bundle = new File( "resources/resolver/bundle01" ).getCanonicalFile();
-        String groupId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
-        String artifactId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
-        String version = "1.0.0-SNAPSHOT";
-
         impl.setEnvironments( getEnvironments() );
-        impl.addMavenArtifact( new ArtifactMock( bundle, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_PLUGIN ) );
+
+        String groupId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
+        File bundle = new File( "resources/resolver/bundle01" ).getCanonicalFile();
+
+        addMavenProject( impl, bundle, P2Resolver.TYPE_ECLIPSE_PLUGIN, groupId );
 
         List<P2ResolutionResult> results = impl.resolveProject( bundle );
         return results;

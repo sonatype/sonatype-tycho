@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubMonitor;
@@ -29,13 +28,7 @@ import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepository;
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties;
-import org.eclipse.equinox.internal.p2.director.Explanation;
-import org.eclipse.equinox.internal.p2.director.Projector;
 import org.eclipse.equinox.internal.p2.director.QueryableArray;
-import org.eclipse.equinox.internal.p2.director.SimplePlanner;
-import org.eclipse.equinox.internal.p2.director.Slicer;
-import org.eclipse.equinox.internal.p2.metadata.IRequiredCapability;
-import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
 import org.eclipse.equinox.internal.p2.repository.CacheManager;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
@@ -44,10 +37,7 @@ import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
-import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
-import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.metadata.VersionRange;
-import org.eclipse.equinox.p2.metadata.expression.IMatchExpression;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
 import org.eclipse.equinox.p2.publisher.actions.JREAction;
@@ -89,12 +79,7 @@ import org.sonatype.tycho.p2.repository.TychoP2RepositoryCacheManager;
 public class P2ResolverImpl
     implements P2Resolver
 {
-
-    private static final IInstallableUnit[] IU_ARRAY = new IInstallableUnit[0];
-
     private static final IArtifactRequest[] ARTIFACT_REQUEST_ARRAY = new IArtifactRequest[0];
-
-    private static final IRequiredCapability[] REQUIRED_CAPABILITY_ARRAY = new IRequiredCapability[0];
 
     private P2GeneratorImpl generator = new P2GeneratorImpl( true );
 
@@ -318,111 +303,91 @@ public class P2ResolverImpl
 
         for ( Map<String, String> properties : environments )
         {
-            P2ResolutionResult result = new P2ResolutionResult();
-            resolveProject( result, projectLocation, properties );
-            results.add( result );
+            results.add( resolveProject( projectLocation, new ProjectorResolutionStrategy( properties ) ) );
         }
 
         return results;
     }
 
-    protected void resolveProject( P2ResolutionResult result, File projectLocation, Map<String, String> properties )
+    public P2ResolutionResult collectProjectDependencies( File projectLocation )
     {
-        Map<String, String> newSelectionContext = SimplePlanner.createSelectionContext( properties );
+        return resolveProject( projectLocation, new DependencyCollector() );
+    }
 
-        IInstallableUnit[] availableIUs = gatherAvailableInstallableUnits( monitor );
+    protected P2ResolutionResult resolveProject( File projectLocation, ResolutionStrategy strategy )
+    {
+        strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
+        strategy.setRootInstallableUnits( getProjectIUs( projectLocation ) );
+        strategy.setAdditionalRequirements( additionalRequirements );
 
-        Set<IInstallableUnit> rootIUs = getProjectIUs( projectLocation );
+        Collection<IInstallableUnit> newState = strategy.resolve( monitor );
 
-        Set<IInstallableUnit> extraIUs = createAdditionalRequirementsIU();
-
-        Set<IInstallableUnit> rootWithExtraIUs = new LinkedHashSet<IInstallableUnit>();
-        rootWithExtraIUs.addAll( rootIUs );
-        rootWithExtraIUs.addAll( extraIUs );
-
-        Slicer slicer = new Slicer( new QueryableArray( availableIUs ), newSelectionContext, false );
-        IQueryable<IInstallableUnit> slice = slicer.slice( rootWithExtraIUs.toArray( IU_ARRAY ), monitor );
-
-        if ( slice != null )
+        List<MavenMirrorRequest> requests = new ArrayList<MavenMirrorRequest>();
+        for ( IInstallableUnit iu : newState )
         {
-            Projector projector = new Projector( slice, newSelectionContext, new HashSet<IInstallableUnit>(), false );
-            projector.encode( createMetaIU( rootIUs ), extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
-                              new QueryableArray( new IInstallableUnit[0] ) /* installed IUs */,
-                              rootIUs /* newRoots */, monitor );
-            IStatus s = projector.invokeSolver( monitor );
-            if ( s.getSeverity() == IStatus.ERROR )
+            if ( getReactorProjectBasedir( iu ) == null )
             {
-                Set<Explanation> explanation = projector.getExplanation( monitor );
-
-                System.out.println( properties.toString() );
-                System.out.println( explanation );
-
-                throw new RuntimeException( new ProvisionException( s ) );
-            }
-            Collection<IInstallableUnit> newState = projector.extractSolution();
-
-            fixSWT( newState, availableIUs, newSelectionContext );
-
-            List<MavenMirrorRequest> requests = new ArrayList<MavenMirrorRequest>();
-            for ( IInstallableUnit iu : newState )
-            {
-                if ( getReactorProjectBasedir( iu ) == null )
+                Collection<IArtifactKey> artifactKeys = iu.getArtifacts();
+                for ( IArtifactKey key : artifactKeys )
                 {
-                    Collection<IArtifactKey> artifactKeys = iu.getArtifacts();
-                    for ( IArtifactKey key : artifactKeys )
-                    {
-                        requests.add( new MavenMirrorRequest( key, localRepository ) );
-                    }
-                }
-            }
-
-            for ( IArtifactRepository artifactRepository : artifactRepositories )
-            {
-                artifactRepository.getArtifacts( requests.toArray( ARTIFACT_REQUEST_ARRAY ), monitor );
-
-                requests = filterCompletedRequests( requests );
-            }
-
-            localRepository.save();
-            localMetadataRepository.save();
-
-            // check for locally installed artifacts, which are not available from any remote repo
-            for ( Iterator<MavenMirrorRequest> iter = requests.iterator(); iter.hasNext(); )
-            {
-                MavenMirrorRequest request = iter.next();
-                if ( localRepository.contains( request.getArtifactKey() ) )
-                {
-                    iter.remove();
-                }
-            }
-
-            if ( !requests.isEmpty() )
-            {
-                StringBuilder msg = new StringBuilder( "Could not download artifacts from any repository\n" );
-                for ( MavenMirrorRequest request : requests )
-                {
-                    msg.append( "   " ).append( request.getArtifactKey().toExternalForm() ).append( '\n' );
-                }
-
-                throw new RuntimeException( msg.toString() );
-            }
-
-            for ( IInstallableUnit iu : newState )
-            {
-                File basedir = getReactorProjectBasedir( iu );
-                if ( basedir != null )
-                {
-                    addReactorProject( result, iu, basedir );
-                }
-                else
-                {
-                    for ( IArtifactKey key : iu.getArtifacts() )
-                    {
-                        addArtifactFile( result, iu, key );
-                    }
+                    requests.add( new MavenMirrorRequest( key, localRepository ) );
                 }
             }
         }
+
+        for ( IArtifactRepository artifactRepository : artifactRepositories )
+        {
+            artifactRepository.getArtifacts( requests.toArray( ARTIFACT_REQUEST_ARRAY ), monitor );
+
+            requests = filterCompletedRequests( requests );
+        }
+
+        localRepository.save();
+        localMetadataRepository.save();
+
+        // check for locally installed artifacts, which are not available from any remote repo
+        for ( Iterator<MavenMirrorRequest> iter = requests.iterator(); iter.hasNext(); )
+        {
+            MavenMirrorRequest request = iter.next();
+            if ( localRepository.contains( request.getArtifactKey() ) )
+            {
+                iter.remove();
+            }
+        }
+
+        if ( !requests.isEmpty() )
+        {
+            StringBuilder msg = new StringBuilder( "Could not download artifacts from any repository\n" );
+            for ( MavenMirrorRequest request : requests )
+            {
+                msg.append( "   " ).append( request.getArtifactKey().toExternalForm() ).append( '\n' );
+            }
+
+            throw new RuntimeException( msg.toString() );
+        }
+
+        return toResolutionResult( newState );
+    }
+
+    private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState )
+    {
+        P2ResolutionResult result = new P2ResolutionResult();
+        for ( IInstallableUnit iu : newState )
+        {
+            File basedir = getReactorProjectBasedir( iu );
+            if ( basedir != null )
+            {
+                addReactorProject( result, iu, basedir );
+            }
+            else
+            {
+                for ( IArtifactKey key : iu.getArtifacts() )
+                {
+                    addArtifactFile( result, iu, key );
+                }
+            }
+        }
+        return result;
     }
 
     private File getReactorProjectBasedir( IInstallableUnit iu )
@@ -437,87 +402,11 @@ public class P2ResolverImpl
         return null;
     }
 
-    private void fixSWT( Collection<IInstallableUnit> ius, IInstallableUnit[] availableIUs,
-                         Map<String, String> newSelectionContext )
-    {
-
-        boolean swt = false;
-        for ( IInstallableUnit iu : ius )
-        {
-            if ( "org.eclipse.swt".equals( iu.getId() ) )
-            {
-                swt = true;
-                break;
-            }
-        }
-
-        if ( !swt )
-        {
-            return;
-        }
-
-        IInstallableUnit swtFragment = null;
-
-        all_ius: for ( IInstallableUnit iu : availableIUs )
-        {
-            if ( iu.getId().startsWith( "org.eclipse.swt" ) && isApplicable( newSelectionContext, iu.getFilter() ) )
-            {
-                for ( IProvidedCapability provided : iu.getProvidedCapabilities() )
-                {
-                    if ( "osgi.fragment".equals( provided.getNamespace() )
-                        && "org.eclipse.swt".equals( provided.getName() ) )
-                    {
-                        if ( swtFragment == null || swtFragment.getVersion().compareTo( iu.getVersion() ) < 0 )
-                        {
-                            swtFragment = iu;
-                        }
-                        continue all_ius;
-                    }
-                }
-            }
-        }
-
-        if ( swtFragment == null )
-        {
-            throw new RuntimeException( "Could not determine SWT implementation fragment bundle" );
-        }
-
-        ius.add( swtFragment );
-    }
-
-    protected boolean isApplicable( Map<String, String> selectionContext, IMatchExpression<IInstallableUnit> filter )
-    {
-        if ( filter == null )
-        {
-            return true;
-        }
-
-        return filter.isMatch( InstallableUnit.contextIU( selectionContext ) );
-    }
-
     private LinkedHashSet<IInstallableUnit> getProjectIUs( File location )
     {
         LinkedHashSet<IInstallableUnit> ius = new LinkedHashSet<IInstallableUnit>( mavenArtifactIUs.get( location ) );
 
         return ius;
-    }
-
-    private Set<IInstallableUnit> createAdditionalRequirementsIU()
-    {
-        LinkedHashSet<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
-
-        if ( !additionalRequirements.isEmpty() )
-        {
-            InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
-            String time = Long.toString( System.currentTimeMillis() );
-            iud.setId( "extra-" + time );
-            iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
-            iud.setRequirements( additionalRequirements.toArray( REQUIRED_CAPABILITY_ARRAY ) );
-
-            result.add( MetadataFactory.createInstallableUnit( iud ) );
-        }
-
-        return result;
     }
 
     private void addArtifactFile( P2ResolutionResult platform, IInstallableUnit iu, IArtifactKey key )
@@ -615,7 +504,7 @@ public class P2ResolverImpl
         return filteredRequests;
     }
 
-    public IInstallableUnit[] gatherAvailableInstallableUnits( IProgressMonitor monitor )
+    public IQueryable<IInstallableUnit> gatherAvailableInstallableUnits( IProgressMonitor monitor )
     {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
@@ -665,7 +554,8 @@ public class P2ResolverImpl
         }
         result.addAll( createJREIUs() );
         sub.done();
-        return result.toArray( IU_ARRAY );
+        // this is a real shame
+        return new QueryableArray( result.toArray( new IInstallableUnit[result.size()] ) );
     }
 
     private static boolean isPartialIU( IInstallableUnit iu )
@@ -682,28 +572,6 @@ public class P2ResolverImpl
         // TODO use the appropriate profile name
         new JREAction( (String) null ).perform( new PublisherInfo(), results, new NullProgressMonitor() );
         return results.query( QueryUtil.ALL_UNITS, new NullProgressMonitor() ).toSet();
-    }
-
-    private IInstallableUnit createMetaIU( Set<IInstallableUnit> rootIUs )
-    {
-        InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
-        String time = Long.toString( System.currentTimeMillis() );
-        iud.setId( time );
-        iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
-
-        ArrayList<IRequirement> capabilities = new ArrayList<IRequirement>();
-        for ( IInstallableUnit iu : rootIUs )
-        {
-            VersionRange range = new VersionRange( iu.getVersion(), true, iu.getVersion(), true );
-            capabilities.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, iu.getId(), range,
-                                                                 iu.getFilter(), 1 /* min */, iu.isSingleton() ? 1
-                                                                                 : Integer.MAX_VALUE /* max */, true /* greedy */) );
-        }
-
-        capabilities.addAll( additionalRequirements );
-
-        iud.setRequirements( (IRequirement[]) capabilities.toArray( new IRequirement[capabilities.size()] ) );
-        return MetadataFactory.createInstallableUnit( iud );
     }
 
     public void setLocalRepositoryLocation( File location )

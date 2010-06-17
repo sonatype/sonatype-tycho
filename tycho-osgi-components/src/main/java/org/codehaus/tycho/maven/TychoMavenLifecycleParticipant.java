@@ -86,7 +86,7 @@ public class TychoMavenLifecycleParticipant
         {
             return;
         }
-        
+
         System.setProperty( "osgi.framework.useSystemProperties", "false" ); //$NON-NLS-1$ //$NON-NLS-2$
 
         File localRepository = new File( session.getLocalRepository().getBasedir() );
@@ -105,7 +105,7 @@ public class TychoMavenLifecycleParticipant
         } );
 
         List<MavenProject> projects = session.getProjects();
-        
+
         for ( MavenProject project : projects )
         {
             try
@@ -179,7 +179,8 @@ public class TychoMavenLifecycleParticipant
             {
                 if ( logger.isDebugEnabled() )
                 {
-                    logger.debug( "target-platform-configuration for " + project.toString() + ":\n" + configuration.toString() );
+                    logger.debug( "target-platform-configuration for " + project.toString() + ":\n"
+                        + configuration.toString() );
                 }
 
                 addTargetEnvironments( result, project, configuration );
@@ -189,6 +190,8 @@ public class TychoMavenLifecycleParticipant
                 result.setTarget( getTarget( session, project, configuration ) );
 
                 result.setPomDependencies( getPomDependencies( configuration ) );
+
+                result.setAllowConflictingDependencies( getAllowConflictingDependencies( configuration ) );
 
                 result.setIgnoreTychoRepositories( getIgnoreTychoRepositories( configuration ) );
             }
@@ -217,6 +220,17 @@ public class TychoMavenLifecycleParticipant
         }
 
         return result;
+    }
+
+    private Boolean getAllowConflictingDependencies( Xpp3Dom configuration )
+    {
+        Xpp3Dom allowConflictingDependenciesDom = configuration.getChild( "allowConflictingDependencies" );
+        if ( allowConflictingDependenciesDom == null )
+        {
+            return null;
+        }
+
+        return Boolean.parseBoolean( allowConflictingDependenciesDom.getValue() );
     }
 
     private void addTargetEnvironments( TargetPlatformConfiguration result, MavenProject project, Xpp3Dom configuration )

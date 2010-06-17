@@ -7,9 +7,9 @@ import org.codehaus.tycho.model.Target;
 
 public class TargetPlatformConfiguration
 {
-	
+
     public static final String POM_DEPENDENCIES_CONSIDER = "consider";
-    
+
     private String resolver;
 
     private List<TargetEnvironment> environments = new ArrayList<TargetEnvironment>();
@@ -21,6 +21,8 @@ public class TargetPlatformConfiguration
     private String pomDependencies;
 
     private boolean ignoreTychoRepositories;
+
+    private Boolean allowConflictingDependencies;
 
     public List<TargetEnvironment> getEnvironments()
     {
@@ -80,5 +82,15 @@ public class TargetPlatformConfiguration
     public void setImplicitTargetEnvironment( boolean implicitTargetEnvironment )
     {
         this.implicitTargetEnvironment = implicitTargetEnvironment;
+    }
+
+    public void setAllowConflictingDependencies( Boolean allow )
+    {
+        this.allowConflictingDependencies = allow;
+    }
+
+    public Boolean getAllowConflictingDependencies()
+    {
+        return allowConflictingDependencies;
     }
 }

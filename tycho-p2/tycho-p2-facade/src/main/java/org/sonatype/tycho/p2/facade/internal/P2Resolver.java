@@ -27,9 +27,9 @@ public interface P2Resolver
      */
     public static final String TYPE_INSTALLABLE_UNIT = "p2-installable-unit";
 
-	public void addMavenProject(IArtifactFacade artifact);
+    public void addMavenProject( IArtifactFacade artifact );
 
-    public void addMavenArtifact(IArtifactFacade artifact);
+    public void addMavenArtifact( IArtifactFacade artifact );
 
     public void addP2Repository( URI location );
 
@@ -39,20 +39,22 @@ public interface P2Resolver
 
     public void setEnvironments( List<Map<String, String>> properties );
 
+    public void addDependency( String type, String id, String version );
+
     public List<P2ResolutionResult> resolveProject( File location );
 
-    public void addDependency( String type, String id, String version );
+    public P2ResolutionResult collectProjectDependencies( File projectLocation );
 
     public void setLogger( P2Logger logger );
 
-    void setRepositoryCache( P2RepositoryCache repositoryCache );
+    public void setRepositoryCache( P2RepositoryCache repositoryCache );
 
-    void setCredentials( URI location, String username, String password );
+    public void setCredentials( URI location, String username, String password );
 
-    void setOffline( boolean offline );
+    public void setOffline( boolean offline );
 
-    /** 
-     * Releases all resources used by the resolver instance 
+    /**
+     * Releases all resources used by the resolver instance
      */
-    void stop();
+    public void stop();
 }

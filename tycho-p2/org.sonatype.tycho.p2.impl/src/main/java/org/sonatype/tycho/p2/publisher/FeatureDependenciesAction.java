@@ -2,22 +2,30 @@ package org.sonatype.tycho.p2.publisher;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
+import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeatureEntry;
+import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 
 @SuppressWarnings( "restriction" )
 public class FeatureDependenciesAction
     extends AbstractDependenciesAction
 {
+    /**
+     * Comma separated list of IInstallableUnit ids that are included (as opposed to required by) the feature.
+     */
+    public static final String INCLUDED_IUS = "org.sonatype.tycho.p2.includedIUs";
+
     private final Feature feature;
 
     public FeatureDependenciesAction( Feature feature )
@@ -114,5 +122,39 @@ public class FeatureDependenciesAction
     {
         provided.add( MetadataFactory.createProvidedCapability( PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE,
                                                                 feature.getId(), getVersion() ) );
+    }
+
+    @Override
+    protected void addProperties( InstallableUnitDescription iud )
+    {
+        iud.setProperty( QueryUtil.PROP_TYPE_GROUP, "true" );
+
+        StringBuilder includedIUs = new StringBuilder();
+        for ( FeatureEntry entry : feature.getEntries() )
+        {
+            String id = getInstallableUnitId( entry );
+            if ( includedIUs.length() > 0 )
+            {
+                includedIUs.append( ',' );
+            }
+            includedIUs.append( id );
+        }
+        iud.setProperty( INCLUDED_IUS, includedIUs.toString() );
+    }
+
+    public static Set<String> getIncludedUIs( IInstallableUnit iu )
+    {
+        Set<String> includedIUs = new LinkedHashSet<String>();
+
+        String prop = iu.getProperty( INCLUDED_IUS );
+        if ( prop != null )
+        {
+            StringTokenizer st = new StringTokenizer( prop, "," );
+            while ( st.hasMoreTokens() )
+            {
+                includedIUs.add( st.nextToken() );
+            }
+        }
+        return includedIUs;
     }
 }
