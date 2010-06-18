@@ -73,8 +73,10 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 	}
 
 	private void createSubJars() throws MojoExecutionException {
+	    BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
+        String dotOutputJarName = dotOutputJar != null ? dotOutputJar.getName() : ".";
 		for (BuildOutputJar jar : pdeProject.getOutputJars()) {
-			if (!".".equals(jar.getName())) {
+            if (!jar.getName().equals( dotOutputJarName )) {
 				makeJar(jar.getName(), jar.getOutputDirectory());
 			}
 		}
@@ -107,10 +109,19 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 			List<String> binExcludesList = toFilePattern(buildProperties.getProperty("bin.excludes"));
 
 			BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
-			if (dotOutputJar != null && binInludesList.contains(".")) {
-				archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory());
+			if (dotOutputJar != null && binInludesList.contains(dotOutputJar.getName())) {
+			    String prefix;
+                if ( dotOutputJar.getName().endsWith( "/" ) )
+                {
+				    // prefix is a relative path to folder inside the jar: something like WEB-INF/classes/
+				    prefix = dotOutputJar.getName();
+				} else {
+				    // dotOutputJar.getName().equals(".")
+				    prefix = "";
+				}
+				archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory(), prefix);
 			}
-
+			
 			if (binInludesList.size() > 0) {
 				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), binInludesList, binExcludesList));
 			}

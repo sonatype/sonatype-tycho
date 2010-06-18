@@ -36,6 +36,30 @@ public class PackagePluginMojoTest extends AbstractTychoMojoTestCase {
 		}
 	}
 
+	public void testOutputClassesInANestedFolder() throws Exception {
+		File basedir = getBasedir("projects/outputClassesInANestedFolder");
+		//Copy the hello.properties to simulate the compiler and resource mojos
+		File classes = new File(basedir, "target/classes/");
+		FileUtils.copyFileToDirectory(new File(basedir, "src/main/resources/hello.properties"), classes);
+		PackagePluginMojo mojo = execMaven(basedir);
+		createDummyClassFile(basedir);
+		mojo.execute();
+		JarFile pluginJar = new JarFile(new File(basedir,
+				"target/test.jar"));
+		try {
+			//make sure we can find the WEB-INF/classes/hello.properties
+			//and no hello.properties in the root.
+			assertNotNull(pluginJar.getEntry("WEB-INF/classes/hello.properties"));
+			assertNull(pluginJar.getEntry("hello.properties"));
+            //make sure we can find the WEB-INF/classes/TestNoDot.class
+            //and no TestNoDot.class in the root.
+            assertNotNull(pluginJar.getEntry("WEB-INF/classes/TestNoDot.class"));
+            assertNull(pluginJar.getEntry("TestNoDot.class"));
+		} finally {
+			pluginJar.close();
+		}
+	}
+
 	public void testBinIncludesSpaces() throws Exception {
         File basedir = getBasedir( "projects/binIncludesSpaces" );
         File classes = new File( basedir, "target/classes" );
