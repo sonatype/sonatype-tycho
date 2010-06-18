@@ -5,15 +5,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.FileSet;
+import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;
@@ -70,6 +78,13 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
      * @parameter expression="${buildQualifier}"
      */
     private String qualifier;
+    
+    /**
+     * Whether default source excludes for SCM files defined in {@see AbstractScanner#DEFAULTEXCLUDES} should be used.
+     * 
+     * @parameter default-value="true"
+     */
+    protected boolean useDefaultSourceExcludes;
 
     /**
      * @component role="org.codehaus.tycho.TychoProject"
@@ -109,16 +124,66 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
-	protected List getResources(MavenProject p) {
+	protected List getResources(MavenProject p) throws MojoExecutionException {
 		if (excludeResources) {
 			return Collections.EMPTY_LIST;
 		}
 		if (usePdeSourceRoots) {
-			return Collections.EMPTY_LIST;
+			Properties props = getBuildProperties();
+			String srcIncludes = props.getProperty("src.includes");
+			if (srcIncludes == null)
+			{
+				return Collections.EMPTY_LIST;
+			}
+			List<String> srcInludesList = toFilePattern(props.getProperty("src.includes"));
+			List<String> srcExcludesList = toFilePattern(props.getProperty("src.excludes"));
+	        //FileSet src = getFileSet(project.getBasedir(), includes, excludes);
+			Resource resource = new Resource();
+			resource.setDirectory(project.getBasedir().getAbsolutePath());
+			resource.setExcludes(srcExcludesList);
+			resource.setIncludes(srcInludesList);
+			return Collections.singletonList(resource);
 		}
 
 		return p.getResources();
 	}
+	
+    protected List<String> toFilePattern( String pattern )
+    {
+        ArrayList<String> result = new ArrayList<String>();
+        if ( pattern != null )
+        {
+            StringTokenizer st = new StringTokenizer( pattern, "," );
+            while ( st.hasMoreTokens() )
+            {
+                result.add( st.nextToken().trim() );
+            }
+        }
+
+        return result;
+    }
+    
+    protected FileSet getFileSet( File basedir, List<String> includes, List<String> excludes )
+    {
+        DefaultFileSet fileSet = new DefaultFileSet();
+        fileSet.setDirectory( basedir );
+        fileSet.setIncludes( includes.toArray( new String[includes.size()] ) );
+
+        Set<String> allExcludes = new LinkedHashSet<String>();
+        if ( excludes != null )
+        {
+            allExcludes.addAll( excludes );
+        }
+        if ( useDefaultSourceExcludes )
+        {
+            allExcludes.addAll( Arrays.asList( AbstractScanner.DEFAULTEXCLUDES ) );
+        }
+
+        fileSet.setExcludes( allExcludes.toArray( new String[allExcludes.size()] ) );
+
+        return fileSet;
+    }
+
 
 	/** {@inheritDoc} */
 	protected String getClassifier() {
