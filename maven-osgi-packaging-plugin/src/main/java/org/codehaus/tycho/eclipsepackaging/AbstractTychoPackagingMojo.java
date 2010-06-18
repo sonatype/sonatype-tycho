@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -15,7 +16,6 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactDescription;
@@ -50,6 +50,11 @@ public abstract class AbstractTychoPackagingMojo
 
     /** @component */
     protected MavenProjectHelper projectHelper;
+
+    /**
+     * @component role="org.codehaus.tycho.TychoProject"
+     */
+    private Map<String, TychoProject> projectTypes;
 
     protected List<String> toFilePattern( String pattern )
     {
@@ -100,14 +105,10 @@ public abstract class AbstractTychoPackagingMojo
 
     protected TychoProject getTychoProjectFacet( String packaging )
     {
-        TychoProject facet;
-        try
+        TychoProject facet = projectTypes.get( packaging );
+        if ( facet == null )
         {
-            facet = (TychoProject) session.lookup( TychoProject.class.getName(), packaging );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new IllegalStateException( "Could not lookup required component", e );
+            throw new IllegalStateException( "Unknown or unsupported packaging type " + packaging );
         }
         return facet;
     }
@@ -122,17 +123,6 @@ public abstract class AbstractTychoPackagingMojo
         String originalVersion = getTychoProjectFacet().getArtifactKey( project ).getVersion();
 
         VersioningHelper.setExpandedVersion( project, originalVersion, qualifier );
-    }
-
-    protected String getVersion( ArtifactDescription artifact )
-    {
-        String version = artifact.getKey().getVersion();
-        MavenProject project = artifact.getMavenProject();
-        if ( project != null )
-        {
-            version = VersioningHelper.getExpandedVersion( project, version );
-        }
-        return version;
     }
 
 }

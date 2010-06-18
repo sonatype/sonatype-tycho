@@ -27,11 +27,6 @@ public class VersioningHelper
     public static void setExpandedVersion( MavenProject project, String originalVersion, String qualifier )
     {
         Version version = Version.parseVersion( originalVersion );
-        if ( !QUALIFIER.equals( version.getQualifier() ) )
-        {
-            // only expand .qualifier versions
-            return;
-        }
 
         String expandedVersion =
             new Version( version.getMajor(), version.getMinor(), version.getMicro(), qualifier ).toString();

@@ -19,6 +19,7 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.PluginDescription;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
@@ -69,8 +70,8 @@ public class PackageFeatureMojo
      */
     private boolean deployableFeature = false;
 
-    /** 
-     * @parameter expression="${project.build.directory}/site" 
+    /**
+     * @parameter expression="${project.build.directory}/site"
      */
     private File target;
 
@@ -159,7 +160,7 @@ public class PackageFeatureMojo
             public void visitPlugin( PluginDescription plugin )
             {
                 PluginRef pluginRef = plugin.getPluginRef();
-                
+
                 if ( pluginRef == null )
                 {
                     // can't really happen
@@ -178,7 +179,9 @@ public class PackageFeatureMojo
                         throw new IllegalStateException( "At least ``package'' phase execution is required" );
                     }
 
-                    pluginRef.setVersion( VersioningHelper.getExpandedVersion( bundleProject, pluginRef.getVersion() ) );
+                    TychoProject projectType = getTychoProjectFacet( bundleProject.getPackaging() );
+                    String version = projectType.getArtifactKey( bundleProject ).getVersion();
+                    pluginRef.setVersion( VersioningHelper.getExpandedVersion( bundleProject, version ) );
                 }
                 else
                 {
@@ -195,8 +198,7 @@ public class PackageFeatureMojo
                 }
                 else
                 {
-                    getLog().info(
-                                   "Download/install size is not calculated for directory based bundle "
+                    getLog().info( "Download/install size is not calculated for directory based bundle "
                                        + pluginRef.getId() );
                 }
 
@@ -210,7 +212,8 @@ public class PackageFeatureMojo
                 if ( featureRef == null )
                 {
                     // this feature
-                    feature.getFeature().setVersion( VersioningHelper.getExpandedVersion( project, feature.getKey().getVersion() ) );
+                    feature.getFeature().setVersion( VersioningHelper.getExpandedVersion( project,
+                                                                                          feature.getKey().getVersion() ) );
                     return true; // keep visiting
                 }
                 else
@@ -219,7 +222,9 @@ public class PackageFeatureMojo
                     MavenProject otherProject = feature.getMavenProject();
                     if ( otherProject != null )
                     {
-                        featureRef.setVersion( VersioningHelper.getExpandedVersion( otherProject, featureRef.getVersion() ) );
+                        TychoProject projectType = getTychoProjectFacet( otherProject.getPackaging() );
+                        String version = projectType.getArtifactKey( otherProject ).getVersion();
+                        featureRef.setVersion( VersioningHelper.getExpandedVersion( otherProject, version ) );
                     }
                     else
                     {
