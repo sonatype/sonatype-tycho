@@ -8,7 +8,7 @@
     <version>0.9.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>tycho-surefire-junit4</artifactId>
+  <artifactId>org.sonatype.tycho.surefire.junit4</artifactId>
   <packaging>eclipse-plugin</packaging>
 
   <name>Tycho Surefire OSGi JUnit4 Runner</name>

@@ -8,7 +8,7 @@
     <version>0.9.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>tycho-surefire-osgi-booter</artifactId>
+  <artifactId>org.sonatype.tycho.surefire.osgibooter</artifactId>
   <packaging>eclipse-plugin</packaging>
 
   <name>Tycho Surefire OSGi Booter Eclipse application</name>

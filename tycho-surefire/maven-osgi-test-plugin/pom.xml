@@ -36,19 +36,19 @@
 
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-surefire-osgi-booter</artifactId>
+      <artifactId>org.sonatype.tycho.surefire.osgibooter</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-surefire-junit</artifactId>
+      <artifactId>org.sonatype.tycho.surefire.junit</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
-      <artifactId>tycho-surefire-junit4</artifactId>
+      <artifactId>org.sonatype.tycho.surefire.junit4</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
