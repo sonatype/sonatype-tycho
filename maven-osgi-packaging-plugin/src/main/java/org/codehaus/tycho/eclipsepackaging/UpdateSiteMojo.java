@@ -1,10 +1,12 @@
 package org.codehaus.tycho.eclipsepackaging;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.TychoProject;
@@ -33,7 +35,13 @@ public class UpdateSiteMojo
         throws MojoExecutionException, MojoFailureException
     {
         target.mkdirs();
-
+        try {
+            // remove content collected in former builds.
+            // Even without clean goal the build result must not assembly out dated content
+            FileUtils.cleanDirectory(target);
+        } catch (IOException e) {
+            throw new MojoFailureException("Unable to delete old update site content: " + target.getAbsolutePath(),e);
+        }
         // expandVersion();
 
         try
