@@ -41,9 +41,9 @@
     <maven-version>3.0-beta-1</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.6M7
+      Version corresponds to Eclipse 3.6.0
 
-      EQUINOX_VERSION=3.6.0.v20100422-1745
+      EQUINOX_VERSION=3.6.0.v20100517
 
       /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.osgi_$EQUINOX_VERSION.jar -Dsources=org.eclipse.osgi.source_$EQUINOX_VERSION.jar \
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar
@@ -56,17 +56,17 @@
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
-      Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
+      Promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <equinoxVersion>3.6.0.v20100422-1745</equinoxVersion>
+    <equinoxVersion>3.6.0.v20100517</equinoxVersion>
 
     <!-- 
-      Version corresponds to Eclipse 3.6M7
+      Version corresponds to Eclipse 3.6.0
       
-      JDT_VERSION=3.6.0.v_A48
+      JDT_VERSION=3.6.0.v_A58
       
       /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar -Dsources=org.eclipse.jdt.core.source_$JDT_VERSION.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=3.6.0.v_A48 -Dpackaging=jar
+        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar
 
       /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar \
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
@@ -76,9 +76,9 @@
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
-      Ask Brian to promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
+      Promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <jdtVersion>3.6.0.v_A48</jdtVersion>
+    <jdtVersion>3.6.0.v_A58</jdtVersion>
 
     <!--
       Canonical build target platform configuration used to resolve p2 runtime.
@@ -90,7 +90,7 @@
       For example, I am able to fully build and test Tycho in linux/gtk/x86_64 using
       target.eclipse-classifier=win32
 
-      ECLIPSE_VERSION=3.6RC1
+      ECLIPSE_VERSION=3.6.0
 
       /opt/maven/bin/mvn install:install-file -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
         -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dclassifier=win32 -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
@@ -108,7 +108,7 @@
 
     -->
     <target.basedir>${java.io.tmpdir}</target.basedir>
-    <target.eclipse-version>3.6RC1</target.eclipse-version>
+    <target.eclipse-version>3.6.0</target.eclipse-version>
     <target.eclipse-classifier>win32</target.eclipse-classifier>
     <target.eclipse-basedir>${target.basedir}/tycho-ci/${target.eclipse-classifier}/${target.eclipse-version}</target.eclipse-basedir>
     <tycho.targetPlatform>${target.eclipse-basedir}/eclipse</tycho.targetPlatform>
