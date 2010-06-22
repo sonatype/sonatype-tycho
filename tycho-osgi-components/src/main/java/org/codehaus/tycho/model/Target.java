@@ -1,30 +1,38 @@
 package org.codehaus.tycho.model;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.codehaus.plexus.util.ReaderFactory;
-import org.codehaus.plexus.util.xml.XmlStreamReader;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
-import org.codehaus.plexus.util.xml.Xpp3DomWriter;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.codehaus.plexus.util.IOUtil;
+
+import de.pdark.decentxml.Document;
+import de.pdark.decentxml.Element;
+import de.pdark.decentxml.XMLIOSource;
+import de.pdark.decentxml.XMLParser;
+import de.pdark.decentxml.XMLWriter;
 
 public class Target
 {
-    private final Xpp3Dom dom;
+    private static XMLParser parser = new XMLParser();
+
+    private Element dom;
+
+    private Document document;
 
     public static class Location
     {
-        private final Xpp3Dom dom;
+        private final Element dom;
 
-        public Location( Xpp3Dom dom )
+        public Location( Element dom )
         {
             this.dom = dom;
         }
@@ -32,7 +40,7 @@ public class Target
         public List<Unit> getUnits()
         {
             ArrayList<Unit> units = new ArrayList<Unit>();
-            for ( Xpp3Dom unitDom : dom.getChildren( "unit" ) )
+            for ( Element unitDom : dom.getChildren( "unit" ) )
             {
                 units.add( new Unit( unitDom ) );
             }
@@ -41,10 +49,10 @@ public class Target
 
         public List<Repository> getRepositories()
         {
-            final Xpp3Dom[] repositoryNodes = dom.getChildren( "repository" );
+            final List<Element> repositoryNodes = dom.getChildren( "repository" );
 
-            final List<Repository> repositories = new ArrayList<Target.Repository>( repositoryNodes.length );
-            for ( Xpp3Dom node : repositoryNodes )
+            final List<Repository> repositories = new ArrayList<Target.Repository>( repositoryNodes.size() );
+            for ( Element node : repositoryNodes )
             {
                 repositories.add( new Repository( node ) );
             }
@@ -53,7 +61,7 @@ public class Target
 
         public String getType()
         {
-            return dom.getAttribute( "type" );
+            return dom.getAttributeValue( "type" );
         }
 
         public void setType( String type )
@@ -64,9 +72,9 @@ public class Target
 
     public static final class Repository
     {
-        private final Xpp3Dom dom;
+        private final Element dom;
 
-        public Repository( Xpp3Dom dom )
+        public Repository( Element dom )
         {
             this.dom = dom;
         }
@@ -74,12 +82,12 @@ public class Target
         public String getId()
         {
             // this is Maven specific, used to match credentials and mirrors
-            return dom.getAttribute( "id" );
+            return dom.getAttributeValue( "id" );
         }
 
         public String getLocation()
         {
-            return dom.getAttribute( "location" );
+            return dom.getAttributeValue( "location" );
         }
 
         public void setLocation( String location )
@@ -90,36 +98,42 @@ public class Target
 
     public static class Unit
     {
-        private final Xpp3Dom dom;
+        private final Element dom;
 
-        public Unit( Xpp3Dom dom )
+        public Unit( Element dom )
         {
             this.dom = dom;
         }
 
         public String getId()
         {
-            return dom.getAttribute( "id" );
+            return dom.getAttributeValue( "id" );
         }
 
         public String getVersion()
         {
-            return dom.getAttribute( "version" );
+            return dom.getAttributeValue( "version" );
+        }
+
+        public void setVersion( String version )
+        {
+            dom.setAttribute( "version", version );
         }
     }
 
-    public Target( Xpp3Dom dom )
+    public Target( Document document )
     {
-        this.dom = dom;
+        this.document = document;
+        this.dom = document.getRootElement();
     }
 
     public List<Location> getLocations()
     {
         ArrayList<Location> locations = new ArrayList<Location>();
-        Xpp3Dom locationsDom = dom.getChild( "locations" );
+        Element locationsDom = dom.getChild( "locations" );
         if ( locationsDom != null )
         {
-            for ( Xpp3Dom locationDom : locationsDom.getChildren( "location" ) )
+            for ( Element locationDom : locationsDom.getChildren( "location" ) )
             {
                 locations.add( new Location( locationDom ) );
             }
@@ -127,32 +141,44 @@ public class Target
         return Collections.unmodifiableList( locations );
     }
 
-    @SuppressWarnings( "deprecation" )
     public static Target read( File file )
-        throws IOException, XmlPullParserException
+        throws IOException
     {
-        XmlStreamReader reader = ReaderFactory.newXmlReader( file );
+        FileInputStream input = new FileInputStream( file );
         try
         {
-            return new Target( Xpp3DomBuilder.build( reader ) );
+            return new Target( parser.parse( new XMLIOSource( input ) ) );
         }
         finally
         {
-            reader.close();
+            IOUtil.close( input );
         }
     }
 
     public static void write( Target target, File file )
         throws IOException
     {
-        Writer writer = new OutputStreamWriter( new FileOutputStream( file ), "UTF-8" );
+        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
+
+        Document document = target.document;
         try
         {
-            Xpp3DomWriter.write( writer, target.dom );
+            Writer w =
+                document.getEncoding() != null ? new OutputStreamWriter( os, document.getEncoding() )
+                                : new OutputStreamWriter( os );
+            XMLWriter xw = new XMLWriter( w );
+            try
+            {
+                document.toXML( xw );
+            }
+            finally
+            {
+                xw.flush();
+            }
         }
         finally
         {
-            writer.close();
+            IOUtil.close( os );
         }
     }
 
