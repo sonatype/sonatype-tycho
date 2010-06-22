@@ -314,6 +314,21 @@ public class P2ResolverImpl
         return resolveProject( projectLocation, new DependencyCollector() );
     }
 
+    public P2ResolutionResult resolveMetadata( Map<String, String> properties )
+    {
+        ProjectorResolutionStrategy strategy = new ProjectorResolutionStrategy( properties );
+        strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
+        strategy.setRootInstallableUnits( new HashSet<IInstallableUnit>() );
+        strategy.setAdditionalRequirements( additionalRequirements );
+
+        P2ResolutionResult result = new P2ResolutionResult();
+        for ( IInstallableUnit iu : strategy.resolve( monitor ) )
+        {
+            result.addArtifact( TYPE_INSTALLABLE_UNIT, iu.getId(), iu.getVersion().toString(), null );
+        }
+        return result;
+    }
+
     protected P2ResolutionResult resolveProject( File projectLocation, ResolutionStrategy strategy )
     {
         strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );

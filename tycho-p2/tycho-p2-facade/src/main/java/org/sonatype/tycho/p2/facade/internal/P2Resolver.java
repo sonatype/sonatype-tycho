@@ -57,4 +57,6 @@ public interface P2Resolver
      * Releases all resources used by the resolver instance
      */
     public void stop();
+
+    public P2ResolutionResult resolveMetadata( Map<String, String> properties );
 }
