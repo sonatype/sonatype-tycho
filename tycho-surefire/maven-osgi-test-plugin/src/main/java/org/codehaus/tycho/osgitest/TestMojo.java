@@ -359,8 +359,15 @@ public class TestMojo extends AbstractMojo {
 		getLog().debug("Using test framework " + testFramework);
 
 		for (ArtifactDescription artifact : testTargetPlatform.getArtifacts(TychoProject.ECLIPSE_PLUGIN)) {
+		    // note that this project is added as directory structure rooted at project basedir.
+		    // project classes and test-classes are added via dev.properties file (see #createDevProperties())
+		    // all other projects are added as bundle jars.
 		    MavenProject otherProject = artifact.getMavenProject();
-		    if (otherProject != null) {
+		    if (otherProject == project) {
+                testRuntime.addBundle(artifact.getKey(), project.getBasedir());
+                continue;
+		    } else 
+		        if (otherProject != null) {
                 File file = otherProject.getArtifact().getFile();
                 if (file != null) {
                     testRuntime.addBundle(artifact.getKey(), file);
@@ -665,18 +672,21 @@ public class TestMojo extends AbstractMojo {
 	private void createDevProperties() throws MojoExecutionException {
 		Properties dev = new Properties();
 //		dev.put("@ignoredot@", "true");
-		for (MavenProject otherProject : session.getProjects()) {
-			if ("eclipse-test-plugin".equals(otherProject.getPackaging())) {
-	            TychoProject projectType = projectTypes.get(otherProject.getPackaging());
-				dev.put(projectType.getArtifactKey(otherProject).getId(), getBuildOutputDirectories(otherProject));
-			} else if ("eclipse-plugin".equals(otherProject.getPackaging())) {
-                TychoProject projectType = projectTypes.get(otherProject.getPackaging());
-				File file = otherProject.getArtifact().getFile();
-				if (file == null || file.isDirectory()) {
-					dev.put(projectType.getArtifactKey(otherProject).getId(), getBuildOutputDirectories(otherProject));
-				}
-			}
-		}
+//		for (MavenProject otherProject : session.getProjects()) {
+//			if ("eclipse-test-plugin".equals(otherProject.getPackaging())) {
+//	            TychoProject projectType = projectTypes.get(otherProject.getPackaging());
+//				dev.put(projectType.getArtifactKey(otherProject).getId(), getBuildOutputDirectories(otherProject));
+//			} else if ("eclipse-plugin".equals(otherProject.getPackaging())) {
+//                TychoProject projectType = projectTypes.get(otherProject.getPackaging());
+//				File file = otherProject.getArtifact().getFile();
+//				if (file == null || file.isDirectory()) {
+//					dev.put(projectType.getArtifactKey(otherProject).getId(), getBuildOutputDirectories(otherProject));
+//				}
+//			}
+//		}
+
+		TychoProject projectType = projectTypes.get(project.getPackaging());
+		dev.put(projectType.getArtifactKey(project).getId(), getBuildOutputDirectories(project));
 
 		try {
 			OutputStream os = new BufferedOutputStream(new FileOutputStream(devProperties));
