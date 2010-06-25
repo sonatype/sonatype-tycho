@@ -16,7 +16,6 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import de.pdark.decentxml.Document;
 import de.pdark.decentxml.Element;
@@ -197,7 +196,7 @@ public class Feature
     }
 
     public static Feature readJar( File file )
-        throws IOException, XmlPullParserException
+        throws IOException
     {
         JarFile jar = new JarFile( file );
         try
@@ -238,10 +237,6 @@ public class Feature
             return feature;
         }
         catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not read feature descriptor at " + location.getAbsolutePath(), e );
-        }
-        catch ( XmlPullParserException e )
         {
             throw new RuntimeException( "Could not read feature descriptor at " + location.getAbsolutePath(), e );
         }
