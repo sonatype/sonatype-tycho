@@ -14,6 +14,10 @@ import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.model.UpdateSite;
 
+import de.pdark.decentxml.Document;
+import de.pdark.decentxml.Element;
+import de.pdark.decentxml.XMLParser;
+
 public class EclipseModelTest
     extends TestCase
 {
@@ -156,7 +160,21 @@ public class EclipseModelTest
         assertEquals( 5, l02.getUnits().size() );
         assertEquals( 2, l02.getRepositories().size() );
         assertEquals( "http://subclipse.tigris.org/update_1.6.x/", l02.getRepositories().get( 0 ).getLocation() );
-        assertEquals( "http://download.eclipse.org/tools/mylyn/update/e3.4/", l02.getRepositories().get( 1 )
-                .getLocation() );
+        assertEquals( "http://download.eclipse.org/tools/mylyn/update/e3.4/",
+                      l02.getRepositories().get( 1 ).getLocation() );
+    }
+
+    public void testDefaultXmlEncoding()
+        throws Exception
+    {
+        // Run the test with -Dfile.encoding=Cp1252 to be sure
+
+        Feature feature = Feature.read( new File( "src/test/resources/modelio/feature-default-encoding.xml" ) );
+        Feature.write( feature, new File( "target/feature-default-encoding.xml" ) );
+
+        Document document = XMLParser.parse( new File( "target/feature-default-encoding.xml" ) );
+        Element child = document.getChild( "/feature/license" );
+
+        assertEquals( "“I AGREE”", child.getText().trim() );
     }
 }

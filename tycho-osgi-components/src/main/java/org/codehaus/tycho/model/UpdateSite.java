@@ -121,9 +121,8 @@ public class UpdateSite
         Document document = site.document;
         try
         {
-            Writer w =
-                document.getEncoding() != null ? new OutputStreamWriter( os, document.getEncoding() )
-                                : new OutputStreamWriter( os );
+            String enc = document.getEncoding() != null ? document.getEncoding() : "UTF-8";
+            Writer w = new OutputStreamWriter( os, enc );
             XMLWriter xw = new XMLWriter( w );
             try
             {
