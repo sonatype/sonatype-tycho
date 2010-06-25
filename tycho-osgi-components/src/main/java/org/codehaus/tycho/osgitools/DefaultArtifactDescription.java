@@ -37,4 +37,20 @@ public class DefaultArtifactDescription
     {
         return project;
     }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( key.toString() ).append( ": " );
+        if ( project != null )
+        {
+            sb.append( project.toString() );
+        }
+        else
+        {
+            sb.append( location );
+        }
+        return sb.toString();
+    }
 }

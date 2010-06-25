@@ -3,7 +3,6 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ArtifactDependencyVisitor;

@@ -1,10 +1,14 @@
 package org.codehaus.tycho.osgitools;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
@@ -44,7 +48,7 @@ public abstract class AbstractArtifactDependencyWalker
 
     public void traverseUpdateSite( UpdateSite site, ArtifactDependencyVisitor visitor )
     {
-        Map<ArtifactKey, File> visited = new HashMap<ArtifactKey, File>();
+        WalkbackPath visited = new WalkbackPath();
 
         for ( FeatureRef ref : site.getFeatures() )
         {
@@ -54,11 +58,11 @@ public abstract class AbstractArtifactDependencyWalker
 
     public void traverseFeature( File location, Feature feature, ArtifactDependencyVisitor visitor )
     {
-        traverseFeature( location, feature, null, visitor, new HashMap<ArtifactKey, File>() );
+        traverseFeature( location, feature, null, visitor, new WalkbackPath() );
     }
 
     protected void traverseFeature( File location, Feature feature, FeatureRef featureRef,
-                                    ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
+                                    ArtifactDependencyVisitor visitor, WalkbackPath visited )
     {
         ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );
         MavenProject project = platform.getMavenProject( location );
@@ -82,7 +86,7 @@ public abstract class AbstractArtifactDependencyWalker
 
     public void traverseProduct( ProductConfiguration product, ArtifactDependencyVisitor visitor )
     {
-        Map<ArtifactKey, File> visited = new HashMap<ArtifactKey, File>();
+        WalkbackPath visited = new WalkbackPath();
 
         if ( product.useFeatures() )
         {
@@ -100,8 +104,9 @@ public abstract class AbstractArtifactDependencyWalker
         }
 
         Set<String> bundles = new HashSet<String>();
-        for ( ArtifactKey key : visited.keySet() )
+        for ( ArtifactDescription artifact : visited.getVisited() )
         {
+            ArtifactKey key = artifact.getKey();
             if ( TychoProject.ECLIPSE_PLUGIN.equals( key.getType() ) )
             {
                 bundles.add( key.getId() );
@@ -154,57 +159,72 @@ public abstract class AbstractArtifactDependencyWalker
         }
     }
 
-    protected void traverseFeature( FeatureRef ref, ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
+    protected void traverseFeature( FeatureRef ref, ArtifactDependencyVisitor visitor, WalkbackPath visited )
     {
-        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
+        ArtifactDescription artifact =
+            platform.getArtifact( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
 
         if ( artifact != null )
         {
-            if ( visited.containsKey( artifact.getKey() ) )
+            if ( visited.visited( artifact.getKey() ) )
             {
                 return;
             }
 
-            File location = artifact.getLocation();
+            visited.enter( artifact );
+            try
+            {
+                File location = artifact.getLocation();
 
-            Feature feature = Feature.loadFeature( location );
-            traverseFeature( location, feature, ref, visitor, visited );
+                Feature feature = Feature.loadFeature( location );
+                traverseFeature( location, feature, ref, visitor, visited );
+            }
+            finally
+            {
+                visited.leave( artifact );
+            }
         }
         else
         {
-            visitor.missingFeature( ref );
+            visitor.missingFeature( ref, visited.getWalkback() );
         }
     }
 
-    private void traversePlugin( PluginRef ref, ArtifactDependencyVisitor visitor, Map<ArtifactKey, File> visited )
+    private void traversePlugin( PluginRef ref, ArtifactDependencyVisitor visitor, WalkbackPath visited )
     {
         if ( !matchTargetEnvironment( ref ) )
         {
             return;
         }
 
-        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, ref.getId(), ref.getVersion() );
+        ArtifactDescription artifact =
+            platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, ref.getId(), ref.getVersion() );
 
         if ( artifact != null )
         {
             ArtifactKey key = artifact.getKey();
-
-            if ( visited.containsKey( key ) )
+            if ( visited.visited( key ) )
             {
                 return;
             }
 
             File location = artifact.getLocation();
 
-            visited.put( key, location );
-
             MavenProject project = platform.getMavenProject( location );
             PluginDescription description = new DefaultPluginDescription( key, location, project, ref );
-            visitor.visitPlugin( description );
+            visited.enter( description );
+            try
+            {
+                visitor.visitPlugin( description );
+            }
+            finally
+            {
+                visited.leave( description );
+            }
         }
         else
         {
-            visitor.missingPlugin( ref );
+            visitor.missingPlugin( ref, visited.getWalkback() );
         }
     }
 
@@ -234,4 +254,36 @@ public abstract class AbstractArtifactDependencyWalker
         return false;
     }
 
+    private static class WalkbackPath
+    {
+        private Map<ArtifactKey, ArtifactDescription> visited = new HashMap<ArtifactKey, ArtifactDescription>();
+
+        private Stack<ArtifactDescription> walkback = new Stack<ArtifactDescription>();
+
+        boolean visited( ArtifactKey key )
+        {
+            return visited.containsKey( key );
+        }
+
+        public List<ArtifactDescription> getWalkback()
+        {
+            return new ArrayList<ArtifactDescription>( walkback );
+        }
+
+        void enter( ArtifactDescription artifact )
+        {
+            visited.put( artifact.getKey(), artifact );
+            walkback.push( artifact );
+        }
+
+        void leave( ArtifactDescription artifact )
+        {
+            walkback.pop();
+        }
+
+        Collection<ArtifactDescription> getVisited()
+        {
+            return visited.values();
+        }
+    }
 }

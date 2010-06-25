@@ -45,14 +45,14 @@ public class MavenDependencyCollector
     }
 
     @Override
-    public void missingPlugin( PluginRef ref )
+    public void missingPlugin( PluginRef ref, List<ArtifactDescription> walkback )
     {
         // we don't handle multi-environment target platforms well, so
         // missing environment specific bundles should not fail the build
 
         if ( ref.getOs() == null && ref.getWs() == null && ref.getArch() == null )
         {
-            super.missingPlugin( ref );
+            super.missingPlugin( ref, walkback );
         }
         else
         {
