@@ -246,4 +246,24 @@ public class DefaultTargetPlatform
             }
         }
     }
+
+    public void toDebugString( StringBuilder sb, String linePrefix )
+    {
+        for ( ArtifactDescription artifact : artifacts.values() )
+        {
+            sb.append( linePrefix );
+            sb.append( artifact.getKey().toString() );
+            sb.append( ": " );
+            MavenProject project = artifact.getMavenProject();
+            if ( project != null )
+            {
+                sb.append( project.toString() );
+            }
+            else
+            {
+                sb.append( artifact.getLocation() );
+            }
+            sb.append( "\n" );
+        }
+    }
 }

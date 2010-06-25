@@ -23,7 +23,7 @@ public class DependencyCollectorTest
     @Test
     public void missingDependencies()
     {
-        DependencyCollector dc = new DependencyCollector();
+        DependencyCollector dc = new DependencyCollector( new NullP2Logger() );
 
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
         String time = Long.toString( System.currentTimeMillis() );

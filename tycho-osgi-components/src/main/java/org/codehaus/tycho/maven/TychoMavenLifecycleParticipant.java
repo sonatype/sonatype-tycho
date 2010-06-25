@@ -30,6 +30,7 @@ import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.BundleReader;
+import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.DefaultBundleReader;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
@@ -130,20 +131,30 @@ public class TychoMavenLifecycleParticipant
                 logger.info( "Resolving target platform for project " + project );
                 TargetPlatform targetPlatform = resolver.resolvePlatform( session, project, null );
 
+                if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append( "Resolved target platform for project " ).append( project ).append( "\n" );
+                    targetPlatform.toDebugString( sb, "  " );
+                    logger.debug( sb.toString() );
+                }
+
                 dr.setTargetPlatform( session, project, targetPlatform );
 
-                dr.resolve( project );
+                dr.resolve( session, project );
 
                 MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
                 dr.getDependencyWalker( project ).walk( dependencyCollector );
 
-                if ( logger.isDebugEnabled() )
+                if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
                 {
-                    logger.debug( "Injected dependencies for " + project.toString() );
+                    StringBuilder sb = new StringBuilder();
+                    sb.append( "Injected dependencies for " ).append( project.toString() ).append( "\n" );
                     for ( Dependency dependency : project.getDependencies() )
                     {
-                        logger.debug( "\t" + dependency.toString() );
+                        sb.append( "  " ).append( dependency.toString() );
                     }
+                    logger.debug( sb.toString() );
                 }
             }
             catch ( ComponentLookupException e )

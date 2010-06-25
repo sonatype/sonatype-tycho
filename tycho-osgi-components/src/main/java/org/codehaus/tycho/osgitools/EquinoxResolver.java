@@ -79,27 +79,26 @@ public class EquinoxResolver
     protected void resolveState( State state )
     {
         state.resolve( false );
+    }
 
-        if ( logger.isDebugEnabled() )
+    public String toDebugString( State state )
+    {
+        StringBuilder sb = new StringBuilder( "Resolved OSGi state\n" );
+        for ( BundleDescription otherBundle : state.getBundles() )
         {
-            StringBuilder sb = new StringBuilder( "Resolved OSGi state\n" );
-            for ( BundleDescription otherBundle : state.getBundles() )
+            if ( !otherBundle.isResolved() )
             {
-                if ( !otherBundle.isResolved() )
-                {
-                    sb.append( "NOT " );
-                }
-                sb.append( "RESOLVED " );
-                sb.append( otherBundle.toString() ).append( " : " ).append( otherBundle.getLocation() );
-                sb.append( '\n' );
-                for ( ResolverError error : state.getResolverErrors( otherBundle ) )
-                {
-                    sb.append( '\t' ).append( error.toString() ).append( '\n' );
-                }
+                sb.append( "NOT " );
             }
-
-            logger.debug( sb.toString() );
+            sb.append( "RESOLVED " );
+            sb.append( otherBundle.toString() ).append( " : " ).append( otherBundle.getLocation() );
+            sb.append( '\n' );
+            for ( ResolverError error : state.getResolverErrors( otherBundle ) )
+            {
+                sb.append( '\t' ).append( error.toString() ).append( '\n' );
+            }
         }
+        return sb.toString();
     }
 
     protected Properties getPlatformProperties( MavenProject project )
@@ -255,9 +254,7 @@ public class EquinoxResolver
             for ( int i = 0; i < errors.length; i++ )
             {
                 ResolverError error = errors[i];
-                msg.append( "   Bundle " ).append( error.getBundle().getSymbolicName() ).append( " - " ).append(
-                                                                                                                 error.toString() ).append(
-                                                                                                                                            "\n" );
+                msg.append( "   Bundle " ).append( error.getBundle().getSymbolicName() ).append( " - " ).append( error.toString() ).append( "\n" );
             }
 
             throw new BundleException( msg.toString() );

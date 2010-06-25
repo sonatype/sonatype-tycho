@@ -46,6 +46,7 @@ import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
+import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
@@ -110,7 +111,7 @@ public class P2TargetPlatformResolver
         }
     }
 
-    protected TargetPlatform doResolvePlatform( MavenSession session, MavenProject project,
+    protected TargetPlatform doResolvePlatform( final MavenSession session, final MavenProject project,
                                                 List<Dependency> dependencies, P2Resolver resolver )
     {
         TargetPlatformConfiguration configuration =
@@ -136,6 +137,11 @@ public class P2TargetPlatformResolver
                 {
                     getLogger().info( message );
                 }
+            }
+
+            public boolean isDebugEnabled()
+            {
+                return getLogger().isDebugEnabled() && DebugUtils.isDebugEnabled( session, project );
             }
         } );
 

@@ -15,14 +15,18 @@ import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.sonatype.tycho.p2.Activator;
+import org.sonatype.tycho.p2.facade.internal.P2Logger;
 import org.sonatype.tycho.p2.publisher.FeatureDependenciesAction;
 
 @SuppressWarnings( "restriction" )
 public class DependencyCollector
     extends ResolutionStrategy
 {
-    public DependencyCollector()
+    private final P2Logger logger;
+
+    public DependencyCollector( P2Logger logger )
     {
+        this.logger = logger;
     }
 
     @Override
@@ -32,9 +36,21 @@ public class DependencyCollector
 
         LinkedHashSet<IStatus> errors = new LinkedHashSet<IStatus>();
 
+        if ( logger.isDebugEnabled() )
+        {
+            logger.debug( "Available IUs:\n" + ResolverDebugUtils.toDebugString( availableIUs, false, monitor ) );
+            logger.debug( "Root IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
+            logger.debug( "Extra IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
+        }
+
         for ( IInstallableUnit iu : rootIUs )
         {
             collectIncludedIUs( result, errors, iu, true, monitor );
+        }
+
+        if ( logger.isDebugEnabled() )
+        {
+            logger.debug( "Collected IUs:\n" + ResolverDebugUtils.toDebugString( result, false ) );
         }
 
         // TODO additionalRequirements

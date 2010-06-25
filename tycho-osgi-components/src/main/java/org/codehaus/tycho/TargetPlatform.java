@@ -23,7 +23,7 @@ public interface TargetPlatform
      * This method uses the following version selection rules
      * <ul>
      * <li>0.0.0 or null matches the latest version
-     * <li>1.2.3, i.e. withput a qualifier, is equivalent to [1.2.3,1.2.4) and matches 1.2.3 with the latest qualifier.
+     * <li>1.2.3, i.e. without a qualifier, is equivalent to [1.2.3,1.2.4) and matches 1.2.3 with the latest qualifier.
      * <li>1.2.3.qualifier, i.e. literal "qualifier", is equivalent to [1.2.3,1.2.4) and matches 1.2.3 with the latest
      * qualifier.
      * <li>all other versions match artifact with that exact version, 1.2.3.foo is equivalent to [1.2.3.foo]
@@ -36,4 +36,11 @@ public interface TargetPlatform
     public ArtifactDescription getArtifact( File location );
 
     public ArtifactDescription getArtifact( ArtifactKey key );
+
+    /**
+     * For debug purposes only, do not use.
+     * 
+     * TODO move this out of here
+     */
+    public void toDebugString( StringBuilder sb, String linePrefix );
 }

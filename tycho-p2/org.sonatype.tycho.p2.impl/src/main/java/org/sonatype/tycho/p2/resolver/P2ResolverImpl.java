@@ -1,15 +1,11 @@
 package org.sonatype.tycho.p2.resolver;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,7 +67,6 @@ import org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMetadataRepository;
 import org.sonatype.tycho.p2.maven.repository.MavenMirrorRequest;
-import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 import org.sonatype.tycho.p2.publisher.P2GeneratorImpl;
 import org.sonatype.tycho.p2.repository.TychoP2RepositoryCacheManager;
 
@@ -303,7 +298,7 @@ public class P2ResolverImpl
 
         for ( Map<String, String> properties : environments )
         {
-            results.add( resolveProject( projectLocation, new ProjectorResolutionStrategy( properties ) ) );
+            results.add( resolveProject( projectLocation, new ProjectorResolutionStrategy( properties, logger ) ) );
         }
 
         return results;
@@ -311,12 +306,12 @@ public class P2ResolverImpl
 
     public P2ResolutionResult collectProjectDependencies( File projectLocation )
     {
-        return resolveProject( projectLocation, new DependencyCollector() );
+        return resolveProject( projectLocation, new DependencyCollector( logger ) );
     }
 
     public P2ResolutionResult resolveMetadata( Map<String, String> properties )
     {
-        ProjectorResolutionStrategy strategy = new ProjectorResolutionStrategy( properties );
+        ProjectorResolutionStrategy strategy = new ProjectorResolutionStrategy( properties, logger );
         strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
         strategy.setRootInstallableUnits( new HashSet<IInstallableUnit>() );
         strategy.setAdditionalRequirements( additionalRequirements );
@@ -741,49 +736,6 @@ public class P2ResolverImpl
     public void setOffline( boolean offline )
     {
         this.offline = offline;
-    }
-
-    @SuppressWarnings( "unused" )
-    private void dumpInstallableUnits( IQueryable<IInstallableUnit> source, boolean verbose )
-    {
-        IQueryResult<IInstallableUnit> collector = source.query( QueryUtil.ALL_UNITS, monitor );
-        dumpInstallableUnits( collector.toSet(), verbose );
-    }
-
-    private void dumpInstallableUnits( Collection<IInstallableUnit> ius, boolean verbose )
-    {
-        if ( verbose )
-        {
-            try
-            {
-                OutputStream os = new FileOutputStream( "/dev/stdout" ); // will this work?
-                try
-                {
-                    new MetadataIO().writeXML( new LinkedHashSet<IInstallableUnit>( ius ), os );
-                }
-                finally
-                {
-                    os.close();
-                }
-            }
-            catch ( IOException e )
-            {
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            for ( IInstallableUnit iu : ius )
-            {
-                System.out.println( iu.toString() );
-            }
-        }
-    }
-
-    @SuppressWarnings( "unused" )
-    private void dumpInstallableUnits( IInstallableUnit[] ius, boolean verbose )
-    {
-        dumpInstallableUnits( Arrays.asList( ius ), verbose );
     }
 
     public void stop()

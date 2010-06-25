@@ -30,8 +30,7 @@ import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
 
 /**
- * Quick&dirty way to update .target file to use latest versions of IUs available
- * from specified metadata repositories.
+ * Quick&dirty way to update .target file to use latest versions of IUs available from specified metadata repositories.
  * 
  * @goal update-target
  */
@@ -91,6 +90,11 @@ public class UpdateTargetMojo
                     {
                         getLog().info( message );
                     }
+                }
+
+                public boolean isDebugEnabled()
+                {
+                    return getLog().isDebugEnabled();
                 }
             } );
 

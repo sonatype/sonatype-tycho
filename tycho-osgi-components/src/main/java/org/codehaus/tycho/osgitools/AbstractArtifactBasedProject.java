@@ -1,5 +1,6 @@
 package org.codehaus.tycho.osgitools;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
@@ -27,7 +28,7 @@ public abstract class AbstractArtifactBasedProject
     protected abstract ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment );
 
     @Override
-    public void resolve( MavenProject project )
+    public void resolve( MavenSession session, MavenProject project )
     {
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );

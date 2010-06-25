@@ -128,17 +128,23 @@ public class OsgiBundleProject
         project.setContextValue( CTX_ARTIFACT_KEY, key );
     }
 
-    public String getManifestValue(String key, MavenProject project) {
+    public String getManifestValue( String key, MavenProject project )
+    {
         Manifest mf = bundleReader.loadManifest( project.getBasedir() );
-    	return mf.getMainAttributes().getValue(key);
+        return mf.getMainAttributes().getValue( key );
     }
-    
+
     @Override
-    public void resolve( MavenProject project )
+    public void resolve( MavenSession session, MavenProject project )
     {
         TargetPlatform platform = getTargetPlatform( project );
 
         State state = getResolverState( project, platform );
+
+        if ( getLogger().isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
+        {
+            getLogger().debug( resolver.toDebugString( state ) );
+        }
 
         BundleDescription bundleDescription = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
 
@@ -253,7 +259,8 @@ public class OsgiBundleProject
                 }
             }
         }
-        else /* nestedPath != null */
+        else
+        /* nestedPath != null */
         {
             File jar = new File( project.getBasedir(), nestedPath );
 

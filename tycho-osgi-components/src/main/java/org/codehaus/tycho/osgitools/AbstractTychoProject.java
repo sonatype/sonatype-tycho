@@ -55,7 +55,7 @@ public abstract class AbstractTychoProject
         // do nothing by default
     }
 
-    public abstract void resolve( MavenProject project );
+    public abstract void resolve( MavenSession session, MavenProject project );
 
     protected TargetEnvironment[] getEnvironments( MavenProject project, TargetEnvironment environment )
     {

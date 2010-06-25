@@ -23,4 +23,15 @@ public class MultiEnvironmentTargetPlatform
     {
         return platforms.get( environment );
     }
+
+    @Override
+    public void toDebugString( StringBuilder sb, String linePrefix )
+    {
+        for ( Map.Entry<TargetEnvironment, TargetPlatform> entry : platforms.entrySet() )
+        {
+            sb.append( linePrefix );
+            sb.append( "Target environment: " ).append( entry.getKey().toString() ).append( "\n" );
+            entry.getValue().toDebugString( sb, linePrefix );
+        }
+    }
 }

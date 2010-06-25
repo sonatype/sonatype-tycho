@@ -29,6 +29,7 @@ import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.metadata.expression.IMatchExpression;
 import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.query.QueryUtil;
+import org.sonatype.tycho.p2.facade.internal.P2Logger;
 
 @SuppressWarnings( "restriction" )
 public class ProjectorResolutionStrategy
@@ -38,9 +39,12 @@ public class ProjectorResolutionStrategy
 
     private final Map<String, String> properties;
 
-    public ProjectorResolutionStrategy( Map<String, String> properties )
+    private final P2Logger logger;
+
+    public ProjectorResolutionStrategy( Map<String, String> properties, P2Logger logger )
     {
         this.properties = properties;
+        this.logger = logger;
     }
 
     public Collection<IInstallableUnit> resolve( IProgressMonitor monitor )
@@ -60,12 +64,24 @@ public class ProjectorResolutionStrategy
         rootWithExtraIUs.addAll( rootIUs );
         rootWithExtraIUs.addAll( extraIUs );
 
+        if ( logger.isDebugEnabled() )
+        {
+            logger.debug( "Available IUs:\n" + ResolverDebugUtils.toDebugString( availableIUs, false, monitor ) );
+            logger.debug( "Root IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
+            logger.debug( "Extra IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
+        }
+
         Slicer slicer = new Slicer( availableIUs, newSelectionContext, false );
         IQueryable<IInstallableUnit> slice = slicer.slice( rootWithExtraIUs.toArray( IU_ARRAY ), monitor );
 
         if ( slice == null )
         {
             throw new RuntimeException( new CoreException( slicer.getStatus() ) );
+        }
+
+        if ( logger.isDebugEnabled() )
+        {
+            logger.debug( "Slice:\n" + ResolverDebugUtils.toDebugString( slice, false, monitor ) );
         }
 
         Projector projector = new Projector( slice, newSelectionContext, new HashSet<IInstallableUnit>(), false );
@@ -76,14 +92,19 @@ public class ProjectorResolutionStrategy
         {
             Set<Explanation> explanation = projector.getExplanation( monitor );
 
-            System.out.println( newSelectionContext.toString() );
-            System.out.println( explanation );
+            logger.info( newSelectionContext.toString() );
+            logger.info( explanation.toString() );
 
             throw new RuntimeException( new ProvisionException( s ) );
         }
         Collection<IInstallableUnit> newState = projector.extractSolution();
 
         fixSWT( newState, newSelectionContext, monitor );
+
+        if ( logger.isDebugEnabled() )
+        {
+            logger.debug( "Resolved IUs:\n" + ResolverDebugUtils.toDebugString( newState, false ) );
+        }
 
         return newState;
     }
