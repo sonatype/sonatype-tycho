@@ -2,6 +2,8 @@ package org.codehaus.tycho.maven;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -9,11 +11,15 @@ import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.execution.AbstractExecutionListener;
+import org.apache.maven.execution.ExecutionEvent;
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.settings.Proxy;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -21,6 +27,7 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.tycho.ProxyServiceFacade;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
@@ -63,6 +70,8 @@ public class TychoMavenLifecycleParticipant
     @Requirement
     private BundleReader bundleReader;
 
+    private ProxyServiceFacade proxyService;
+
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
     {
@@ -92,7 +101,7 @@ public class TychoMavenLifecycleParticipant
         equinoxEmbedder.setNonFrameworkArgs( new String[] { "-eclipse.keyring", secureStorage.getAbsolutePath(),
         // TODO "-eclipse.password", ""
         } );
-
+        configureProxy(session);
         List<MavenProject> projects = session.getProjects();
 
         for ( MavenProject project : projects )
@@ -162,6 +171,51 @@ public class TychoMavenLifecycleParticipant
                 // no biggie
             }
         }
+    }
+
+    private void configureProxy( MavenSession session )
+    {
+        final List<Proxy> activeProxies = new ArrayList<Proxy>();
+        for ( Proxy proxy : session.getSettings().getProxies() )
+        {
+            if ( proxy.isActive() )
+            {
+                activeProxies.add( proxy );
+            }
+        }
+        equinoxEmbedder.registerAfterStartCallback( new Runnable()
+        {
+            
+            public void run()
+            {
+                proxyService = equinoxEmbedder.getService( ProxyServiceFacade.class );
+                // make sure there is no old state from previous aborted builds
+                logger.debug("clear OSGi proxy settings");
+                proxyService.clearPersistentProxySettings();
+                for ( Proxy proxy : activeProxies )
+                {
+                    logger.debug( "Configure OSGi proxy for protocol " + proxy.getProtocol() + ", host: " + proxy.getHost()
+                        + ", port: " + proxy.getPort() + ", nonProxyHosts: " + proxy.getNonProxyHosts() );
+                    proxyService.configureProxy( proxy.getProtocol(), proxy.getHost(), proxy.getPort(),
+                                                 proxy.getUsername(), proxy.getPassword(), proxy.getNonProxyHosts() );
+                }
+            }
+        });
+        MavenExecutionRequest request = session.getRequest();
+        MultiplexExecutionListener listener = new MultiplexExecutionListener( request.getExecutionListener() );
+        request.setExecutionListener( listener );
+        listener.addListener(  new AbstractExecutionListener()
+        {
+            @Override
+            public void sessionEnded( ExecutionEvent event )
+            {
+                if ( proxyService != null )
+                {
+                    logger.debug("clear OSGi proxy settings");
+                    proxyService.clearPersistentProxySettings();
+                } 
+            }
+        } );
     }
 
     private TargetPlatformConfiguration getTargetPlatformConfiguration( MavenSession session, MavenProject project )

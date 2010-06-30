@@ -1,5 +1,6 @@
 package org.sonatype.tycho.p2;
 
+import org.codehaus.tycho.ProxyServiceFacade;
 import org.codehaus.tycho.p2.MetadataSerializableMerger;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.IProvisioningAgentProvider;
@@ -10,6 +11,7 @@ import org.osgi.framework.ServiceReference;
 import org.sonatype.tycho.p2.facade.P2Generator;
 import org.sonatype.tycho.p2.facade.internal.P2Resolver;
 import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
+import org.sonatype.tycho.p2.proxy.ProxyServiceFacadeImpl;
 import org.sonatype.tycho.p2.publisher.P2GeneratorImpl;
 import org.sonatype.tycho.p2.repo.MetadataSerializableMergerImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolverImpl;
@@ -42,6 +44,7 @@ public class Activator
         }, null );
         context.registerService( P2Generator.class.getName(), new P2GeneratorImpl( false ), null );
         context.registerService( MetadataSerializableMerger.class.getName(), new MetadataSerializableMergerImpl(), null );
+        context.registerService( ProxyServiceFacade.class.getName(), new ProxyServiceFacadeImpl( context ), null );
     }
 
     public static IProvisioningAgent newProvisioningAgent()
