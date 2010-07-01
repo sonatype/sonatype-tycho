@@ -47,7 +47,7 @@ public class MavenMirrorRequestTest
         InstallableUnitDescription iud = new InstallableUnitDescription();
         IInstallableUnit iu = MetadataFactory.createInstallableUnit( iud );
 
-        MavenMirrorRequest request = new MavenMirrorRequest( iu, key, localMetadataRepository, localRepository );
+        MavenMirrorRequest request = new MavenMirrorRequest( key, localRepository );
 
         repository.getArtifacts( new IArtifactRequest[] { request }, monitor );
 

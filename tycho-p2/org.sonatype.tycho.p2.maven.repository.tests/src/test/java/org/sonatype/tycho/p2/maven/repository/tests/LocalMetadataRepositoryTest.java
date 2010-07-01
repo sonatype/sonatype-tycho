@@ -42,7 +42,7 @@ public class LocalMetadataRepositoryTest
     protected IMetadataRepository loadRepository( File location )
         throws ProvisionException
     {
-        return new LocalMetadataRepository( location.toURI(), new LocalTychoRepositoryIndex( location ),
+        return new LocalMetadataRepository( location.toURI(), new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH ),
                                             new LocalRepositoryReader( location ) );
     }
 
