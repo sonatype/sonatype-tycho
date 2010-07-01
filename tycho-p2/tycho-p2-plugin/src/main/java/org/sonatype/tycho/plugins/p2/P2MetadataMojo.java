@@ -68,7 +68,7 @@ public class P2MetadataMojo
             throw new IllegalStateException();
         }
 
-        File content = new File( project.getBuild().getDirectory(), "p2content.xml" );
+        File content = new File( project.getBuild().getDirectory(), "p2metadata.xml" );
         File artifacts = new File( project.getBuild().getDirectory(), "p2artifacts.xml" );
 
         try
