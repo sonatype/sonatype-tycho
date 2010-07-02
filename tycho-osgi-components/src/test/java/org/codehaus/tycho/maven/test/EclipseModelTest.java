@@ -175,6 +175,6 @@ public class EclipseModelTest
         Document document = XMLParser.parse( new File( "target/feature-default-encoding.xml" ) );
         Element child = document.getChild( "/feature/license" );
 
-        assertEquals( "“I AGREE”", child.getText().trim() );
+        assertEquals( "\u201cI AGREE\u201d", child.getText().trim() );
     }
 }
