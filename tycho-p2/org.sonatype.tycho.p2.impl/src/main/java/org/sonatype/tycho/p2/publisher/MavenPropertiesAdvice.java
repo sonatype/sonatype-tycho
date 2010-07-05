@@ -23,14 +23,16 @@ public class MavenPropertiesAdvice
         properties.put( RepositoryLayoutHelper.PROP_GROUP_ID, groupId );
         properties.put( RepositoryLayoutHelper.PROP_ARTIFACT_ID, artifactId );
         properties.put( RepositoryLayoutHelper.PROP_VERSION, version );
+        properties.put( RepositoryLayoutHelper.PROP_PATH, getPath( groupId, artifactId, version, null ) );
     }
 
     public MavenPropertiesAdvice( String groupId, String artifactId, String version, String classifier ) {
     	this(groupId, artifactId, version);
 		properties.put(RepositoryLayoutHelper.PROP_CLASSIFIER, classifier);
+		properties.put( RepositoryLayoutHelper.PROP_PATH, getPath( groupId, artifactId, version, classifier ) );
     }
 
-    public Map<String, String> getArtifactProperties( IInstallableUnit iu, IArtifactDescriptor descriptor )
+	public Map<String, String> getArtifactProperties( IInstallableUnit iu, IArtifactDescriptor descriptor )
     {
         for (Map.Entry<String, String> entry : properties.entrySet())
         {
@@ -50,5 +52,23 @@ public class MavenPropertiesAdvice
     {
         return true;
     }
+    
+    private String getPath(String groupId, String artifactId, String version, String classifier ) 
+    {
+		StringBuilder path = new StringBuilder();
+		path.append( groupId.replace( ".", "/" ) );
+		path.append( "/" );
+		path.append( artifactId );
+		path.append( "/" );
+		path.append( version );
+		path.append( "/" );
+		path.append( artifactId ).append( "-" ).append( version );
+		if( classifier != null )
+		{
+			path.append( "-" ).append( classifier );
+		}
+		path.append( ".jar" );
+		return path.toString();
+	}    
 
 }
