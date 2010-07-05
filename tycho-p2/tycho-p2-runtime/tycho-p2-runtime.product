@@ -72,6 +72,9 @@
       <plugin id="org.sat4j.pb"/>
       <plugin id="org.sonatype.tycho.p2.impl"/>
       <plugin id="org.sonatype.tycho.p2.maven.repository"/>
+      <plugin id="com.sonatype.p2h.repository" />
+      <plugin id="org.eclipse.jgit" />
+      <plugin id="com.jcraft.jsch" />
    </plugins>
 
 
