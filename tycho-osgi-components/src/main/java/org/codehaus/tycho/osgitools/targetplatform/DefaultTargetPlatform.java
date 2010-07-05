@@ -19,6 +19,7 @@ import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.DefaultArtifactDescription;
+import org.codehaus.tycho.p2.MetadataSerializable;
 import org.osgi.framework.Version;
 
 public class DefaultTargetPlatform
@@ -34,6 +35,8 @@ public class DefaultTargetPlatform
     protected Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
 
     protected Map<File, ArtifactDescription> locations = new LinkedHashMap<File, ArtifactDescription>();
+
+    private MetadataSerializable p2MetadataRepository;
 
     public List<ArtifactDescription> getArtifacts( String type )
     {
@@ -245,6 +248,15 @@ public class DefaultTargetPlatform
                 iter.remove();
             }
         }
+    }
+    public MetadataSerializable getP2MetadataSerializable()
+    {
+        return p2MetadataRepository;
+    }
+
+    public void setP2MetadataRepository( MetadataSerializable p2MetadataRepository )
+    {
+        this.p2MetadataRepository = p2MetadataRepository;
     }
 
     public void toDebugString( StringBuilder sb, String linePrefix )
