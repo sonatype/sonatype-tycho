@@ -17,6 +17,7 @@
     <module>org.sonatype.tycho.surefire.osgibooter</module>
     <module>org.sonatype.tycho.surefire.junit</module>
     <module>org.sonatype.tycho.surefire.junit4</module>
+    <module>tycho-emma-coverage-plugin</module>
   </modules>
 
 </project>
