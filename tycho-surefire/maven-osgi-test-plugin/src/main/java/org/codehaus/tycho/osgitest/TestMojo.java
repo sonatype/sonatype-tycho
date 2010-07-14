@@ -198,7 +198,7 @@ public class TestMojo extends AbstractMojo {
 	/**
      * Arbitrary JVM options to set on the command line.
      * 
-     * @parameter
+     * @parameter expression="${tycho.testArgLine}"
      */
     private String argLine;
 
