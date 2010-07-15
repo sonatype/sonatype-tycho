@@ -119,7 +119,10 @@ public abstract class AbstractP2MetadataMojo
         cli.setExecutable( executable );
 
         cli.addArguments( new String[] { "-jar", getEquinoxLauncher().getCanonicalPath(), } );
-
+        if ( getLog().isDebugEnabled() )
+        {
+            cli.addArguments( new String[] { "-debug", "-consoleLog" } );
+        }
         cli.addArguments( new String[] { "-nosplash", //
             "-application", getPublisherApplication(), } );
 

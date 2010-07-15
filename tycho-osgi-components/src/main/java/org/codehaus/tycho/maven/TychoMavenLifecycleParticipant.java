@@ -98,9 +98,16 @@ public class TychoMavenLifecycleParticipant
         }
 
         File secureStorage = new File( session.getLocalRepository().getBasedir(), ".meta/tycho.secure_storage" );
-        equinoxEmbedder.setNonFrameworkArgs( new String[] { "-eclipse.keyring", secureStorage.getAbsolutePath(),
-        // TODO "-eclipse.password", ""
-        } );
+        List<String> nonFrameworkArgs = new ArrayList<String>();
+        nonFrameworkArgs.add("-eclipse.keyring");
+        nonFrameworkArgs.add(secureStorage.getAbsolutePath());
+        // TODO nonFrameworkArgs.add("-eclipse.password");
+        // nonFrameworkArgs.add("");
+        if (logger.isDebugEnabled()) {
+            nonFrameworkArgs.add( "-debug" );
+            nonFrameworkArgs.add( "-consoleLog" );
+        }
+        equinoxEmbedder.setNonFrameworkArgs( nonFrameworkArgs.toArray(new String[0]) );
         configureProxy(session);
         List<MavenProject> projects = session.getProjects();
 
