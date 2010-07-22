@@ -226,4 +226,29 @@ public class LocalArtifactRepository
 
         changedDescriptors.add( descriptor.getArtifactKey() );
     }
+
+    @Override
+    public void removeDescriptor( IArtifactDescriptor descriptor )
+    {
+        super.removeDescriptor( descriptor );
+
+        IArtifactKey key = descriptor.getArtifactKey();
+
+        Set<IArtifactDescriptor> keyDescriptors = descriptorsMap.get( key );
+
+        if ( keyDescriptors != null )
+        {
+            keyDescriptors.remove( descriptor );
+            if ( keyDescriptors.isEmpty() )
+            {
+                descriptorsMap.remove( key );
+            }
+        }
+
+        descriptors.remove( descriptor );
+        getLocationFile( descriptor ).delete();
+
+        changedDescriptors.remove( descriptor.getArtifactKey() );
+    }
+
 }

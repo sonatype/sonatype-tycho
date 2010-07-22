@@ -20,7 +20,6 @@
         <executions>
           <execution>
             <id>plugin-source</id>
-            <phase>generate-sources</phase>
             <goals>
               <goal>plugin-source</goal>
             </goals>

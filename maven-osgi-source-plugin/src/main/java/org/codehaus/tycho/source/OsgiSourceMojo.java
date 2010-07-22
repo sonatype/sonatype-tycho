@@ -34,7 +34,7 @@ import org.osgi.framework.Version;
  * @extendsPlugin source
  * @extendsGoal jar
  * @goal plugin-source
- * @phase package
+ * @phase prepare-package
  */
 public class OsgiSourceMojo extends AbstractSourceJarMojo {
     

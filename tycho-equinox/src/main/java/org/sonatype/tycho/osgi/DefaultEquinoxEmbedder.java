@@ -2,7 +2,9 @@ package org.sonatype.tycho.osgi;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.plexus.component.annotations.Component;
@@ -32,6 +34,8 @@ public class DefaultEquinoxEmbedder
     private EquinoxLocator equinoxLocator;
 
     private String[] nonFrameworkArgs;
+
+    private List<Runnable> afterStartCallbacks = new ArrayList<Runnable>();
 
     public synchronized void start()
         throws Exception
@@ -85,11 +89,8 @@ public class DefaultEquinoxEmbedder
         // EclipseStarter is not helping here
 
         EclipseStarter.setInitialProperties( properties );
-
         EclipseStarter.startup( nonFrameworkArgs != null ? nonFrameworkArgs : new String[0], null );
-
         frameworkContext = EclipseStarter.getSystemBundleContext();
-
         PackageAdmin packageAdmin = null;
         ServiceReference packageAdminRef = frameworkContext.getServiceReference( PackageAdmin.class.getName() );
         if ( packageAdminRef != null )
@@ -108,7 +109,7 @@ public class DefaultEquinoxEmbedder
             {
                 try
                 {
-                    bundle.start();
+                    bundle.start( );
                 }
                 catch ( BundleException e )
                 {
@@ -118,6 +119,10 @@ public class DefaultEquinoxEmbedder
         }
 
         frameworkContext.ungetService( packageAdminRef );
+        for ( Runnable callback  : afterStartCallbacks )
+        {
+            callback.run();
+        }
     }
 
     public File getRuntimeLocation()
@@ -189,4 +194,10 @@ public class DefaultEquinoxEmbedder
     {
         nonFrameworkArgs = args;
     }
+
+    public void registerAfterStartCallback( Runnable callback )
+    {
+        this.afterStartCallbacks.add( callback );
+    }
+    
 }
