@@ -344,7 +344,7 @@ public class OsgiBundleProject
                 }
                 else
                 {
-                    entry = getNestedJar( bundle, cp );
+                    entry = getNestedJarOrDir( bundle, cp );
                 }
 
                 if ( entry != null )
@@ -373,7 +373,7 @@ public class OsgiBundleProject
         return result;
     }
 
-    private File getNestedJar( ArtifactDescription bundle, String cp )
+    private File getNestedJarOrDir( ArtifactDescription bundle, String cp )
     {
         return bundleReader.getEntry( bundle.getLocation(), cp );
     }

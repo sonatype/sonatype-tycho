@@ -14,6 +14,8 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.util.FileUtils;
@@ -226,8 +228,23 @@ public class DefaultBundleReader
                 ZipEntry ze = zip.getEntry( path );
                 if ( ze != null )
                 {
-                    InputStream is = zip.getInputStream( ze );
-                    FileUtils.copyStreamToFile( new RawInputStreamFacade( is ), file );
+                    if ( ze.isDirectory() )
+                    {
+                        ZipUnArchiver zipUnArchiver = new ZipUnArchiver( bundleLocation );
+                        try
+                        {
+                            zipUnArchiver.extract( path, new File( cacheDir, bundleLocation.getName() ) );
+                        }
+                        catch ( ArchiverException e )
+                        {
+                            throw new RuntimeException( e );
+                        }
+                    }
+                    else
+                    {
+                        InputStream is = zip.getInputStream( ze );
+                        FileUtils.copyStreamToFile( new RawInputStreamFacade( is ), file );
+                    }
                     return file;
                 }
                 else
