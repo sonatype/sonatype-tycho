@@ -26,6 +26,13 @@ public final class DirectorMojo
     /** @parameter default-value="DefaultProfile" */
     private String profile;
 
+    /**
+     * Build qualifier. Recommended way to set this parameter is using build-qualifier goal.
+     * 
+     * @parameter expression="${buildQualifier}"
+     */
+    private String qualifier;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -74,6 +81,7 @@ public final class DirectorMojo
     private String materializeRepository( MetadataSerializable metadataRepositorySerializable, File targetDirectory )
         throws IOException
     {
+        metadataRepositorySerializable.replaceBuildQualifier( qualifier );
         File repositoryLocation = new File( targetDirectory, "targetMetadataRepository" );
         repositoryLocation.mkdirs();
         FileOutputStream stream = new FileOutputStream( new File( repositoryLocation, "content.xml" ) );

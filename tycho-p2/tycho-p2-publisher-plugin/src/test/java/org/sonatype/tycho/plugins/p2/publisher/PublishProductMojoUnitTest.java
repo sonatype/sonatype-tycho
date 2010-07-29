@@ -151,6 +151,7 @@ public class PublishProductMojoUnitTest
         throws IOException
     {
         MetadataSerializable metadataRepositorySerializable = EasyMock.createMock( MetadataSerializable.class );
+        metadataRepositorySerializable.replaceBuildQualifier( "123" );
         metadataRepositorySerializable.serialize( EasyMock.isA( OutputStream.class ) );
         EasyMock.expectLastCall().andAnswer( new IAnswer<Void>()
         {
@@ -167,7 +168,7 @@ public class PublishProductMojoUnitTest
 
         EasyMock.replay( metadataRepositorySerializable );
 
-        subject.materializeRepository( metadataRepositorySerializable, tempDir );
+        subject.materializeRepository( metadataRepositorySerializable, tempDir, "123" );
 
         File contentXml = new File( tempDir, "targetMetadataRepository/content.xml" );
         Assert.assertTrue( contentXml.exists() );

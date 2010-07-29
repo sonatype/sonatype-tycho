@@ -81,6 +81,43 @@ public class MetadataSerializableImplTest
         }
     }
 
+    @Test
+    public void testQualifyVersion()
+        throws IOException, ProvisionException, OperationCanceledException
+    {
+        final IInstallableUnit testIU = InstallableUnitUtil.createIU( "org.example.test", "1.0.0.qualifier" );
+        Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
+        subject.replaceBuildQualifier( "12345678" );
+        Assert.assertEquals( "1.0.0.12345678", testIU.getVersion().toString() );
+    }
+
+    @Test
+    public void testQualifyCapabilityVersion()
+        throws IOException, ProvisionException, OperationCanceledException
+    {
+        final IInstallableUnit testIU =
+            InstallableUnitUtil.createIU( "org.example.test", "1.0.0.qualifier", "testCapability", "1.0.1.qualifier" );
+        Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
+        subject.replaceBuildQualifier( "12345678" );
+        Assert.assertEquals( "1.0.1.12345678",
+                             testIU.getProvidedCapabilities().iterator().next().getVersion().toString() );
+    }
+
+    @Test
+    public void testQualifyArtifactVersion()
+        throws IOException, ProvisionException, OperationCanceledException
+    {
+        final IInstallableUnit testIU =
+            InstallableUnitUtil.createIUArtifact( "org.example.test", "1.0.0.qualifier", "testArtifact",
+                                                  "1.0.2.qualifier" );
+        Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
+        subject.replaceBuildQualifier( "12345678" );
+        Assert.assertEquals( "1.0.2.12345678", testIU.getArtifacts().iterator().next().getVersion().toString() );
+    }
+
     private Set<IInstallableUnit> deserialize( File tmpDir )
         throws ProvisionException
     {

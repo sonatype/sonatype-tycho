@@ -14,6 +14,8 @@
 	<modules>
 		<module>eclipse-repository</module>
 		<module>target-definition</module>
+		<module>example-bundle</module>
+		<module>example-feature</module>
 	</modules>
 
 	<build>

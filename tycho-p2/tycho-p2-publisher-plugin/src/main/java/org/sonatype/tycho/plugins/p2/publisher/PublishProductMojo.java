@@ -97,7 +97,7 @@ public final class PublishProductMojo
                  */
                 String contextRepositoryUrl =
                     materializeRepository( getTargetPlatform().getP2MetadataSerializable(),
-                                           new File( getProject().getBuild().getDirectory() ) );
+                                           new File( getProject().getBuild().getDirectory() ), getQualifier() );
                 cli.addArguments( new String[] { "-artifactRepository", getRepositoryUrl(), //
                     "-metadataRepository", getRepositoryUrl(), //
                     "-productFile", buildProduct.productFile.getCanonicalPath(), //
@@ -274,9 +274,11 @@ public final class PublishProductMojo
         }
     }
 
-    String materializeRepository( MetadataSerializable metadataRepositorySerializable, File targetDirectory )
+    String materializeRepository( MetadataSerializable metadataRepositorySerializable, File targetDirectory,
+                                  String qualifier )
         throws IOException
     {
+        metadataRepositorySerializable.replaceBuildQualifier( qualifier );
         File repositoryLocation = new File( targetDirectory, "targetMetadataRepository" );
         repositoryLocation.mkdirs();
         FileOutputStream stream = new FileOutputStream( new File( repositoryLocation, "content.xml" ) );

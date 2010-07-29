@@ -15,6 +15,13 @@ public interface MetadataSerializable
      * @param stream
      * @throws IOException
      */
-    void serialize(OutputStream stream) throws IOException;
+    void serialize( OutputStream stream )
+        throws IOException;
     
+    /**
+     * Replaces the build qualifier with the given value.
+     * 
+     * @param qualifier the value to use as build qualifier.
+     */
+    void replaceBuildQualifier( String qualifier );
 }

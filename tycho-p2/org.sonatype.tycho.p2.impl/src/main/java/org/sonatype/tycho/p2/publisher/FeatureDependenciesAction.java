@@ -1,19 +1,28 @@
 package org.sonatype.tycho.p2.publisher;
 
+import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.metadata.ILicense;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
+import org.eclipse.equinox.p2.metadata.IUpdateDescriptor;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
 import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
+import org.eclipse.equinox.p2.metadata.expression.IMatchExpression;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.metadata.VersionRange;
+import org.eclipse.equinox.p2.publisher.IPublisherResult;
+import org.eclipse.equinox.p2.publisher.PublisherInfo;
+import org.eclipse.equinox.p2.publisher.PublisherResult;
+import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
 import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeatureEntry;
+import org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 
@@ -101,7 +110,11 @@ public class FeatureDependenciesAction
             required.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, id, range,
                                                              InstallableUnit.parseFilter( filter ), optional, false ) );
         }
-
+        IInstallableUnit featureJarIU = FeaturesAction.createFeatureJarIU( feature, new PublisherInfo() );
+        required.add( MetadataFactory.createRequirement( PublisherHelper.IU_NAMESPACE, featureJarIU.getId(),
+                                                         new VersionRange( featureJarIU.getVersion(), true,
+                                                                           featureJarIU.getVersion(), true ),
+                                                         featureJarIU.getFilter(), false, false ) );
         return required;
     }
 
@@ -140,6 +153,54 @@ public class FeatureDependenciesAction
             includedIUs.append( id );
         }
         iud.setProperty( INCLUDED_IUS, includedIUs.toString() );
+
+        iud.setProperty( IInstallableUnit.PROP_NAME, feature.getLabel() );
+        if ( feature.getDescription() != null )
+        {
+            iud.setProperty( IInstallableUnit.PROP_DESCRIPTION, feature.getDescription() );
+        }
+        if ( feature.getDescriptionURL() != null )
+        {
+            iud.setProperty( IInstallableUnit.PROP_DESCRIPTION_URL, feature.getDescriptionURL() );
+        }
+        if ( feature.getProviderName() != null )
+        {
+            iud.setProperty( IInstallableUnit.PROP_PROVIDER, feature.getProviderName() );
+        }
+        if ( feature.getLicense() != null )
+        {
+            iud.setLicenses( new ILicense[] { MetadataFactory.createLicense( createURI( feature.getLicenseURL() ),
+                                                                             feature.getLicense() ) } );
+        }
+        if ( feature.getCopyright() != null )
+        {
+            iud.setCopyright( MetadataFactory.createCopyright( createURI( feature.getCopyrightURL() ),
+                                                               feature.getCopyright() ) );
+        }
+        if ( !Version.emptyVersion.equals( iud.getVersion() ) )
+        {
+            final VersionRange newVersionRange = new VersionRange( Version.emptyVersion, true, iud.getVersion(), false );
+            iud.setUpdateDescriptor( MetadataFactory.createUpdateDescriptor( iud.getId(), newVersionRange,
+                                                                             IUpdateDescriptor.NORMAL, null ) );
+        }
+    }
+
+    private URI createURI( final String url )
+    {
+        if ( url != null )
+        {
+            return URI.create( url );
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    @Override
+    protected void addResults( IPublisherResult results )
+    {
+        results.addIU( FeaturesAction.createFeatureJarIU( feature, new PublisherInfo() ), IPublisherResult.ROOT );
     }
 
     public static Set<String> getIncludedUIs( IInstallableUnit iu )
