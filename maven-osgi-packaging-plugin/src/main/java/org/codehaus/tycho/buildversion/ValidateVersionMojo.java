@@ -72,6 +72,10 @@ public class ValidateVersionMojo
         {
             return project.getArtifactId() + ".product";
         }
+        else if ( TychoProject.ECLIPSE_REPOSITORY.equals( packaging ) )
+        {
+            return project.getArtifactId();
+        }
         return "<unknown packaging=" + packaging + ">";
     }
 

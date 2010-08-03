@@ -15,12 +15,14 @@ public interface TychoProject
     public static final String ECLIPSE_FEATURE = "eclipse-feature";
     public static final String ECLIPSE_UPDATE_SITE = "eclipse-update-site";
     public static final String ECLIPSE_APPLICATION = "eclipse-application";
+    public static final String ECLIPSE_REPOSITORY = "eclipse-repository";
     public static final String[] PROJECT_TYPES = {
         ECLIPSE_PLUGIN,
         ECLIPSE_TEST_PLUGIN,
         ECLIPSE_FEATURE,
         ECLIPSE_UPDATE_SITE,
-        ECLIPSE_APPLICATION
+        ECLIPSE_APPLICATION,
+        ECLIPSE_REPOSITORY
     };
 
     /**

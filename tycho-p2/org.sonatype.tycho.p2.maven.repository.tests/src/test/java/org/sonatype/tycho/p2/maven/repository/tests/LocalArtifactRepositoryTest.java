@@ -1,14 +1,22 @@
 package org.sonatype.tycho.p2.maven.repository.tests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.metadata.ArtifactKey;
 import org.eclipse.equinox.p2.core.ProvisionException;
+import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.spi.ProcessingStepDescriptor;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
@@ -16,13 +24,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.maven.repository.Activator;
 import org.sonatype.tycho.p2.maven.repository.LocalArtifactRepository;
 
 @SuppressWarnings( "restriction" )
 public class LocalArtifactRepositoryTest
 {
 
-    private File basedir = new File( "target/repository" ).getAbsoluteFile();
+    private final File basedir = new File( "target/repository" ).getAbsoluteFile();
 
     @Before
     public void cleanupRepository()
@@ -57,8 +66,8 @@ public class LocalArtifactRepositoryTest
         URI location = repo.getLocation( desc );
         Assert.assertEquals( new File( basedir, "p2/osgi/bundle/org.sonatype.tycho.test.p2/1.0.0/org.sonatype.tycho.test.p2-1.0.0.jar" ).toURI(), location );
 
-        ProcessingStepDescriptor[] steps = new ProcessingStepDescriptor[] { 
-              new ProcessingStepDescriptor( "org.eclipse.equinox.p2.processing.Pack200Unpacker", null, true ) 
+        ProcessingStepDescriptor[] steps = new ProcessingStepDescriptor[] {
+              new ProcessingStepDescriptor( "org.eclipse.equinox.p2.processing.Pack200Unpacker", null, true )
         };
         desc.setProcessingSteps( steps );
         desc.setProperty( IArtifactDescriptor.FORMAT, "packed" );
@@ -116,8 +125,14 @@ public class LocalArtifactRepositoryTest
     private void writeDummyArtifact( LocalArtifactRepository repo, ArtifactDescriptor desc )
         throws ProvisionException, IOException
     {
+        writeDummyArtifact( repo, desc, new byte[] { 111 } );
+    }
+
+    private void writeDummyArtifact( LocalArtifactRepository repo, ArtifactDescriptor desc, byte[] content )
+        throws ProvisionException, IOException
+    {
         OutputStream os = repo.getOutputStream( desc );
-        os.write( 111 );
+        os.write( content );
         os.close();
     }
 
@@ -153,6 +168,80 @@ public class LocalArtifactRepositoryTest
         repo = new LocalArtifactRepository( basedir );
         Assert.assertTrue( repo.contains( mavenArtifact.getArtifactKey() ) );
         Assert.assertTrue( repo.contains( p2Artifact.getArtifactKey() ) );
+    }
+
+    @Test
+    public void testGetArtifactsNoRequests()
+    {
+        LocalArtifactRepository repo = new LocalArtifactRepository( basedir );
+        IStatus status = repo.getArtifacts( new IArtifactRequest[0], new NullProgressMonitor() );
+        Assert.assertTrue( status.isOK() );
+    }
+
+    @Test
+    public void testGetArtifactsErrorRequest()
+    {
+        LocalArtifactRepository repo = new LocalArtifactRepository( basedir );
+        IArtifactRequest errorRequest = new IArtifactRequest()
+        {
+            public void perform( IArtifactRepository sourceRepository, IProgressMonitor monitor )
+            {
+            }
+
+            public IStatus getResult()
+            {
+                return new Status( IStatus.ERROR, Activator.ID, "Error" );
+            }
+
+            public IArtifactKey getArtifactKey()
+            {
+                return null;
+            }
+        };
+        IStatus status = repo.getArtifacts( new IArtifactRequest[]{errorRequest}, new NullProgressMonitor() );
+        Assert.assertFalse( status.isOK() );
+    }
+
+    @Test
+    public void testGetArtifactsCreateSubmonitor()
+    {
+        NullProgressMonitor monitor = new NullProgressMonitor();
+        LocalArtifactRepository repo = new LocalArtifactRepository( basedir );
+        final IProgressMonitor[] requestMonitorReturnValue = new IProgressMonitor[1];
+        IArtifactRequest errorRequest = new IArtifactRequest()
+        {
+            public void perform( IArtifactRepository sourceRepository, IProgressMonitor monitor )
+            {
+                requestMonitorReturnValue[0] = monitor;
+            }
+
+            public IStatus getResult()
+            {
+                return Status.OK_STATUS;
+            }
+
+            public IArtifactKey getArtifactKey()
+            {
+                return null;
+            }
+        };
+        IStatus status = repo.getArtifacts( new IArtifactRequest[] { errorRequest }, monitor );
+        Assert.assertTrue( status.isOK() );
+        Assert.assertNotNull( requestMonitorReturnValue[0] );
+        Assert.assertNotSame( monitor, requestMonitorReturnValue[0] );
+    }
+
+    @Test
+    public void testGetRawArtifactDummy() throws ProvisionException, IOException
+    {
+        LocalArtifactRepository repo = new LocalArtifactRepository( basedir );
+        ArtifactDescriptor p2Artifact = newBundleArtifactDescriptor( false );
+        byte[] content = new byte[] {111,112};
+        writeDummyArtifact( repo, p2Artifact, content );
+        Assert.assertTrue( repo.contains( p2Artifact.getArtifactKey() ) );
+        ByteArrayOutputStream destination = new ByteArrayOutputStream();
+        repo.getRawArtifact( p2Artifact, destination, new NullProgressMonitor() );
+        Assert.assertArrayEquals( content, destination.toByteArray());
     }
 
 }

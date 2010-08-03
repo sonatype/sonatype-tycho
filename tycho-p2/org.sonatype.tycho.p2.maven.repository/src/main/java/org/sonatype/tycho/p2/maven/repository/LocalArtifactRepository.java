@@ -5,13 +5,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
@@ -29,7 +34,7 @@ public class LocalArtifactRepository
     extends AbstractMavenArtifactRepository
 {
 
-    private Set<IArtifactKey> changedDescriptors = new HashSet<IArtifactKey>();
+    private final Set<IArtifactKey> changedDescriptors = new HashSet<IArtifactKey>();
 
     public LocalArtifactRepository( File location )
     {
@@ -46,7 +51,8 @@ public class LocalArtifactRepository
     {
         File location = getBasedir();
 
-        LocalTychoRepositoryIndex index = new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH );
+        LocalTychoRepositoryIndex index =
+            new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH );
 
         ArtifactsIO io = new ArtifactsIO();
 
@@ -117,13 +123,38 @@ public class LocalArtifactRepository
     @Override
     public IStatus getArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
     {
-        throw new UnsupportedOperationException();
+        // we believe we do not need to implement artifact pre and post processing as in the
+        // org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository
+        // because the P2 mirroring has already done that
+        return getRawArtifact( descriptor, destination, monitor );
     }
 
     @Override
     public IStatus getArtifacts( IArtifactRequest[] requests, IProgressMonitor monitor )
     {
-        throw new UnsupportedOperationException();
+        SubMonitor subMonitor = SubMonitor.convert( monitor, requests.length );
+        try
+        {
+            MultiStatus result =
+                new MultiStatus( Activator.ID, -1, "Error executing requests. See children for details.", null );
+            for ( IArtifactRequest request : requests )
+            {
+                request.perform( this, subMonitor.newChild( 1 ) );
+                result.add( request.getResult() );
+            }
+            if ( !result.isOK() )
+            {
+                return result;
+            }
+            else
+            {
+                return Status.OK_STATUS;
+            }
+        }
+        finally
+        {
+            monitor.done();
+        }
     }
 
     @Override
@@ -170,7 +201,39 @@ public class LocalArtifactRepository
 
     public IStatus getRawArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
     {
-        throw new UnsupportedOperationException();
+        URI location = getLocation( descriptor );
+        try
+        {
+            InputStream source = location.toURL().openStream();
+            try
+            {
+                copyStream( source, destination );
+            }
+            finally
+            {
+                source.close();
+            }
+        }
+        catch ( MalformedURLException e )
+        {
+            return new Status( IStatus.ERROR, Activator.ID, "Invalid location in artifact descriptor: " + descriptor, e );
+        }
+        catch ( IOException e )
+        {
+            return new Status( IStatus.ERROR, Activator.ID, "Could not retrieve artifact from location: " + location, e );
+        }
+        return Status.OK_STATUS;
+    }
+
+    private static void copyStream( final InputStream source, final OutputStream destination )
+        throws IOException
+    {
+        final byte[] buffer = new byte[8192];
+        int length;
+        while ( ( length = source.read( buffer ) ) != -1 )
+        {
+            destination.write( buffer, 0, length );
+        }
     }
 
     public File getBasedir()

@@ -16,8 +16,11 @@
   <modules>
     <module>org.sonatype.tycho.p2.impl</module>
     <module>org.sonatype.tycho.p2.maven.repository</module>
+    <module>org.sonatype.tycho.p2.publisher</module>
     <module>tycho-p2-facade</module>
     <module>tycho-p2-runtime</module>
+    <module>tycho-p2-publisher-plugin</module>
+    <module>tycho-p2-director-plugin</module>
 <!-- 
     <module>org.sonatype.tycho.p2.impl.test</module>
     <module>org.sonatype.tycho.p2.maven.repository.tests</module>

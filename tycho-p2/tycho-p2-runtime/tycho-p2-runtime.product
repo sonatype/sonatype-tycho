@@ -47,6 +47,10 @@
       <plugin id="org.eclipse.equinox.p2.artifact.repository"/>
       <plugin id="org.eclipse.equinox.p2.core"/>
       <plugin id="org.eclipse.equinox.p2.director"/>
+      <plugin id="org.eclipse.equinox.p2.director.app"/>
+      <plugin id="org.eclipse.equinox.p2.garbagecollector"/>
+      <plugin id="org.eclipse.equinox.p2.touchpoint.natives"/>
+      <plugin id="org.eclipse.equinox.p2.touchpoint.eclipse"/>
       <plugin id="org.eclipse.equinox.p2.engine"/>
       <plugin id="org.eclipse.equinox.p2.jarprocessor"/>
       <plugin id="org.eclipse.equinox.p2.metadata"/>
@@ -68,7 +72,13 @@
       <plugin id="org.sat4j.pb"/>
       <plugin id="org.sonatype.tycho.p2.impl"/>
       <plugin id="org.sonatype.tycho.p2.maven.repository"/>
+      <plugin id="org.sonatype.tycho.p2.publisher"/>
    </plugins>
 
+   <configurations>
+      <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="4" />
+      <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
+      <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
+   </configurations>
 
 </product>

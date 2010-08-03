@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.codehaus.tycho.p2.MetadataSerializable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -27,7 +25,6 @@ import org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepo
 import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
 import org.eclipse.equinox.internal.p2.core.helpers.OrderedProperties;
 import org.eclipse.equinox.internal.p2.director.QueryableArray;
-import org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryIO;
 import org.eclipse.equinox.internal.p2.repository.CacheManager;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
@@ -40,19 +37,16 @@ import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
 import org.eclipse.equinox.p2.publisher.actions.JREAction;
-import org.eclipse.equinox.p2.query.IQuery;
 import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.p2.repository.IRepository;
-import org.eclipse.equinox.p2.repository.IRepositoryReference;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepositoryManager;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
-import org.eclipse.equinox.p2.repository.metadata.spi.AbstractMetadataRepository;
 import org.eclipse.equinox.p2.repository.spi.AbstractRepository;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
@@ -83,19 +77,19 @@ public class P2ResolverImpl
 {
     private static final IArtifactRequest[] ARTIFACT_REQUEST_ARRAY = new IArtifactRequest[0];
 
-    private P2GeneratorImpl generator = new P2GeneratorImpl( true );
+    private final P2GeneratorImpl generator = new P2GeneratorImpl( true );
 
     private P2RepositoryCache repositoryCache;
 
     /**
      * All known P2 metadata repositories, including maven local repository
      */
-    private List<IMetadataRepository> metadataRepositories = new ArrayList<IMetadataRepository>();
+    private final List<IMetadataRepository> metadataRepositories = new ArrayList<IMetadataRepository>();
 
     /**
      * All known P2 artifact repositories, NOT including maven local repository.
      */
-    private List<IArtifactRepository> artifactRepositories = new ArrayList<IArtifactRepository>();
+    private final List<IArtifactRepository> artifactRepositories = new ArrayList<IArtifactRepository>();
 
     /** maven local repository as P2 IArtifactRepository */
     private LocalArtifactRepository localRepository;
@@ -106,17 +100,17 @@ public class P2ResolverImpl
     /**
      * Maps maven artifact location (project basedir or local repo path) to installable units
      */
-    private Map<File, Set<IInstallableUnit>> mavenArtifactIUs = new HashMap<File, Set<IInstallableUnit>>();
+    private final Map<File, Set<IInstallableUnit>> mavenArtifactIUs = new HashMap<File, Set<IInstallableUnit>>();
 
     /**
      * Maps maven artifact location (project basedir or local repo path) to project type
      */
-    private Map<File, String> mavenArtifactTypes = new LinkedHashMap<File, String>();
+    private final Map<File, String> mavenArtifactTypes = new LinkedHashMap<File, String>();
 
     /**
      * Maps installable unit id to locations of reactor projects
      */
-    private Map<String, Set<File>> iuReactorProjects = new HashMap<String, Set<File>>();
+    private final Map<String, Set<File>> iuReactorProjects = new HashMap<String, Set<File>>();
 
     private IProgressMonitor monitor = new NullProgressMonitor();
 
@@ -125,7 +119,7 @@ public class P2ResolverImpl
      */
     private List<Map<String, String>> environments;
 
-    private List<IRequirement> additionalRequirements = new ArrayList<IRequirement>();
+    private final List<IRequirement> additionalRequirements = new ArrayList<IRequirement>();
 
     private P2Logger logger;
 
@@ -281,7 +275,7 @@ public class P2ResolverImpl
                                                 CompositeArtifactRepository artifactRepository )
         throws ProvisionException
     {
-        List<URI> children = (List<URI>) artifactRepository.getChildren();
+        List<URI> children = artifactRepository.getChildren();
         for ( URI child : children )
         {
             forceSingleThreadedDownload( artifactRepositoryManager,
@@ -334,7 +328,8 @@ public class P2ResolverImpl
     protected P2ResolutionResult resolveProject( File projectLocation, ResolutionStrategy strategy )
     {
         strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
-        strategy.setRootInstallableUnits( getProjectIUs( projectLocation ) );
+        LinkedHashSet<IInstallableUnit> projectIUs = getProjectIUs( projectLocation );
+        strategy.setRootInstallableUnits( projectIUs );
         strategy.setAdditionalRequirements( additionalRequirements );
 
         Collection<IInstallableUnit> newState = strategy.resolve( monitor );
@@ -383,10 +378,11 @@ public class P2ResolverImpl
             throw new RuntimeException( msg.toString() );
         }
 
-        return toResolutionResult( newState );
+        return toResolutionResult( newState, projectIUs );
     }
 
-    private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState )
+    private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState,
+                                                   Set<IInstallableUnit> projectIUs )
     {
         P2ResolutionResult result = new P2ResolutionResult();
         for ( IInstallableUnit iu : newState )
@@ -404,8 +400,18 @@ public class P2ResolverImpl
                 }
             }
         }
+
+        /*
+         * Do not put the IUs that will be created by the project into the metadata repository
+         * representation of the target platform. In case of an "eclipse-repository" module, the
+         * proper IUs for products will be generated later, so we want to make sure that there are
+         * no preliminary IUs around (which may get picked up by the tycho-p2-director-plugin in
+         * error).
+         */
         Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( newState );
+        units.removeAll( projectIUs );
         result.setMetadataRepositorySerializable( new MetadataSerializableImpl( units, agent ) );
+
         return result;
     }
 

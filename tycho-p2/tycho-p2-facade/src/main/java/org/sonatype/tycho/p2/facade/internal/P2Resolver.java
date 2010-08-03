@@ -20,6 +20,8 @@ public interface P2Resolver
 
     public static final String TYPE_ECLIPSE_UPDATE_SITE = TychoProject.ECLIPSE_UPDATE_SITE;
 
+    public static final String TYPE_ECLIPSE_REPOSITORY = TychoProject.ECLIPSE_REPOSITORY;
+
     public static final String ANY_QUALIFIER = TargetPlatform.ANY_QUALIFIER;
 
     /**

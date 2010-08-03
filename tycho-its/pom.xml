@@ -176,6 +176,18 @@
     </dependency>
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-publisher-plugin</artifactId>
+      <version>${tycho-build-version}</version>
+      <type>maven-plugin</type>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-director-plugin</artifactId>
+      <version>${tycho-build-version}</version>
+      <type>maven-plugin</type>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>target-platform-configuration</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
