@@ -135,7 +135,7 @@ public final class PublishProductMojo
 
         String executable = System.getProperty( "java.home" ) + File.separator + "bin" + File.separator + "java";
         cli.setExecutable( executable );
-        cli.addArguments( new String[] { "-jar", equinoxLauncher.getAbsolutePath(), } );
+        cli.addArguments( new String[] { "-jar", equinoxLauncher.getAbsolutePath() } );
         cli.addArguments( new String[] { "-application", applicationId } );
         cli.addArguments( new String[] { "-nosplash" } );
         cli.addArguments( new String[] { "-consoleLog" } );

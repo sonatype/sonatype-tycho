@@ -187,9 +187,11 @@ public class PublishProductMojoUnitTest
     @Test
     public void testCreateOSGiCommandline()
     {
+        File equinoxLauncher = new File( "equinoxLauncher" );
+        String expectedLauncherLocation = equinoxLauncher.getAbsolutePath();
         Commandline commandline =
-            PublishProductMojo.createOSGiCommandline( "application.id", new File( "C:\\equinoxLauncher" ) );
-        Assert.assertEquals( new String[] { "-jar", "C:\\equinoxLauncher", "-application", "application.id",
+            PublishProductMojo.createOSGiCommandline( "application.id", equinoxLauncher );
+        Assert.assertEquals( new String[] { "-jar", expectedLauncherLocation, "-application", "application.id",
             "-nosplash", "-consoleLog" }, commandline.getArguments() );
     }
 
