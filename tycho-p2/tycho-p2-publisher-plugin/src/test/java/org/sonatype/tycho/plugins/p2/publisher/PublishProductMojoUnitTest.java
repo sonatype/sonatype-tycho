@@ -121,10 +121,10 @@ public class PublishProductMojoUnitTest
     }
 
     @Test
-    public void testGetSourceP2InfFile()
+    public void testGetSourceP2InfFile() throws IOException
     {
-        File p2InfFile = Product.getSourceP2InfFile( new File( "./test/test.product" ) );
-        Assert.assertEquals( new File( "./test/test.p2.inf" ), p2InfFile );
+        String p2InfFile = Product.getSourceP2InfFile( new File( "./test/test.product" ) ).getCanonicalPath();
+        Assert.assertEquals( new File( "./test/test.p2.inf" ).getCanonicalPath(), p2InfFile );
     }
 
     @Test

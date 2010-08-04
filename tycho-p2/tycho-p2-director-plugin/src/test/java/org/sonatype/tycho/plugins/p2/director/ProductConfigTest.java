@@ -53,8 +53,10 @@ public class ProductConfigTest
 
         subject = new ProductConfig( null, tempDir );
 
-        List<Product> expected = Arrays.asList( new Product( "product.id.1" ), new Product( "product.id.2" ) );
-        assertEquals( expected, subject.getProducts() );
+        List<Product> products = subject.getProducts();
+        assertEquals( 2, products.size() );
+        assertTrue( products.contains(new Product( "product.id.1" )  ) );
+        assertTrue( products.contains(new Product( "product.id.2" )  ) );
     }
 
     @Test
