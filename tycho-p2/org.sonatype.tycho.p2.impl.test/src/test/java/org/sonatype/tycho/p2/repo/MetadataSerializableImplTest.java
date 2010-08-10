@@ -1,5 +1,7 @@
 package org.sonatype.tycho.p2.repo;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,6 +14,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
@@ -97,12 +100,28 @@ public class MetadataSerializableImplTest
         throws IOException, ProvisionException, OperationCanceledException
     {
         final IInstallableUnit testIU =
-            InstallableUnitUtil.createIU( "org.example.test", "1.0.0.qualifier", "testCapability", "1.0.1.qualifier" );
+            InstallableUnitUtil.createIUCapability( "org.example.test", "1.0.0.qualifier", "testCapability", "1.0.1.qualifier" );
         Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( Arrays.asList( testIU ) );
         MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
         subject.replaceBuildQualifier( "12345678" );
         Assert.assertEquals( "1.0.1.12345678",
                              testIU.getProvidedCapabilities().iterator().next().getVersion().toString() );
+    }
+
+    @Test
+    public void testQualifyRequirementVersion()
+        throws IOException, ProvisionException, OperationCanceledException
+    {
+        final IInstallableUnit testIU =
+            InstallableUnitUtil.createIURequirement( "org.example.test", "1.0.0.qualifier", "testCapability",
+                                                     "[1.0.1.qualifier, 1.0.1.qualifier]" );
+        Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
+        subject.replaceBuildQualifier( "12345678" );
+        final IRequirement qualifiedRequirement = testIU.getRequirements().iterator().next();
+        IInstallableUnit candidate =
+            InstallableUnitUtil.createIUCapability( "otherIu", "2.0", "testCapability", "1.0.1.12345678" );
+        Assert.assertTrue( qualifiedRequirement.getMatches().isMatch( candidate ) );
     }
 
     @Test
@@ -116,6 +135,16 @@ public class MetadataSerializableImplTest
         MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
         subject.replaceBuildQualifier( "12345678" );
         Assert.assertEquals( "1.0.2.12345678", testIU.getArtifacts().iterator().next().getVersion().toString() );
+    }
+
+    @Test
+    public void testKeepNonQualifierVersion()
+    {
+        final IInstallableUnit testIU = InstallableUnitUtil.createIU( "org.example.test", "1.0.0.abc" );
+        Set<IInstallableUnit> units = new HashSet<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl( units, agent );
+        subject.replaceBuildQualifier( "12345678" );
+        Assert.assertEquals( "1.0.0.abc", testIU.getVersion().toString() );
     }
 
     private Set<IInstallableUnit> deserialize( File tmpDir )

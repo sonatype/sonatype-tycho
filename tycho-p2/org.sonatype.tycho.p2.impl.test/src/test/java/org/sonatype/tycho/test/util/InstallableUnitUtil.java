@@ -4,11 +4,14 @@ import java.util.Arrays;
 
 import org.eclipse.equinox.internal.p2.metadata.ArtifactKey;
 import org.eclipse.equinox.internal.p2.metadata.ProvidedCapability;
+import org.eclipse.equinox.internal.p2.metadata.RequiredCapability;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
+import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
 import org.eclipse.equinox.p2.metadata.Version;
+import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
 
 @SuppressWarnings( { "restriction", "nls" } )
@@ -21,7 +24,8 @@ public class InstallableUnitUtil
         return MetadataFactory.createInstallableUnit( description );
     }
 
-    public static IInstallableUnit createIU( String id, String version, String capabilityId, String capabilityVersion )
+    public static IInstallableUnit createIUCapability( String id, String version, String capabilityId,
+                                                       String capabilityVersion )
     {
         InstallableUnitDescription description = createIuDescription( id, version );
         description.addProvidedCapabilities( Arrays.<IProvidedCapability> asList( new ProvidedCapability(
@@ -37,6 +41,17 @@ public class InstallableUnitUtil
         InstallableUnitDescription description = createIuDescription( id, version );
         description.setArtifacts( new IArtifactKey[] { new ArtifactKey( "type", artifactId,
                                                                         Version.create( artifactVersion ) ) } );
+        return MetadataFactory.createInstallableUnit( description );
+    }
+
+    public static IInstallableUnit createIURequirement( String id, String version, String requiredId,
+                                                        String requiredVersionRange )
+    {
+        InstallableUnitDescription description = createIuDescription( id, version );
+        final RequiredCapability requiredCapability =
+            new RequiredCapability( IInstallableUnit.NAMESPACE_IU_ID, requiredId,
+                                    new VersionRange( requiredVersionRange ), null, false, true );
+        description.addRequirements( Arrays.<IRequirement> asList( requiredCapability ) );
         return MetadataFactory.createInstallableUnit( description );
     }
 
