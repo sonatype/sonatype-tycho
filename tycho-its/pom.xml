@@ -107,6 +107,11 @@
       <version>${tycho-build-version}</version>
       <type>zip</type>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-testing-harness</artifactId>
+      <version>${tycho-build-version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
