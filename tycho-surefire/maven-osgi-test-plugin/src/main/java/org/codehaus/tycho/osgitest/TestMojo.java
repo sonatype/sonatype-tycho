@@ -119,6 +119,14 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 	private boolean skip;
 
 	/**
+	 * If set to "false" the test execution will not fail in case there are 
+	 * no tests found.
+	 * 
+	 * @parameter expression="${failIfNoTests}" default-value="true"
+	 */
+	private boolean failIfNoTests;
+
+	/**
 	 * The directory containing generated test classes of the project being
 	 * tested.
 	 * 
@@ -485,6 +493,8 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
                 p.put("excludes", excludes != null ? getIncludesExcludes(excludes): "**/Abstract*Test.class,**/Abstract*TestCase.class,**/*$*");
             }
         }
+
+		p.put("failifnotests", String.valueOf(failIfNoTests));
 
 		try {
 			BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(surefireProperties));

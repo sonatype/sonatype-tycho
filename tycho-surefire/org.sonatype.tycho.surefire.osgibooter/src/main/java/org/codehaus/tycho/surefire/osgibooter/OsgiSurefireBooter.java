@@ -72,7 +72,13 @@ public class OsgiSurefireBooter {
 			}
 		});
 
-		return surefire.run(reports, tests, surefireClassLoader, testClassLoader, true /*failIfNoTests*/);
+		Boolean failIfNoTests;
+		if ("false".equalsIgnoreCase(p.getProperty("failifnotests"))) {
+			failIfNoTests = Boolean.FALSE;
+		} else {
+			failIfNoTests = Boolean.TRUE;
+		}
+		return surefire.run(reports, tests, surefireClassLoader, testClassLoader, failIfNoTests);
 	}
 
 	private static File getTestProperties(String[] args) throws CoreException {
