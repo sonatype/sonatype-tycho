@@ -7,9 +7,10 @@
   <packaging>pom</packaging>
 
   <properties>
-    <tycho-version>0.8.0-SNAPSHOT</tycho-version>
+    <tycho-version>0.9.0</tycho-version>
+    <eclipse-repository-url>http://download.eclipse.org/eclipse/updates/3.6</eclipse-repository-url>
   </properties>
-  
+
   <modules>
     <module>org.tycho.demo.crossplatform</module>
     <module>org.tycho.demo.crossplatform.rcp</module>
@@ -18,25 +19,19 @@
   <profiles>
     <profile>
       <id>e35</id>
-      <repositories>
-        <repository>
-          <id>update35</id>
-          <url>http://download.eclipse.org/eclipse/updates/3.5</url>
-          <layout>p2</layout>
-        </repository>
-      </repositories>
-    </profile>
-    <profile>
-      <id>e36</id>
-      <repositories>
-        <repository>
-          <id>update36</id>
-          <url>http://download.eclipse.org/eclipse/updates/3.6-I-builds</url>
-          <layout>p2</layout>
-        </repository>
-      </repositories>
+      <properties>
+        <eclipse-repository-url>http://download.eclipse.org/eclipse/updates/3.5</eclipse-repository-url>
+      </properties>
     </profile>
   </profiles>
+
+  <repositories>
+    <repository>
+      <id>update36</id>
+      <url>${eclipse-repository-url}</url>
+      <layout>p2</layout>
+    </repository>
+  </repositories>
 
   <build>
     <plugins>
@@ -94,3 +89,4 @@
     </plugins>
   </build>
 </project>
+
