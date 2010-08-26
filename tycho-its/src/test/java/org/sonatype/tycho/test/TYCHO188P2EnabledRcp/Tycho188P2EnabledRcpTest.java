@@ -49,16 +49,46 @@ public class Tycho188P2EnabledRcpTest
         throws Exception
     {
         Verifier verifier = getVerifier( "/TYCHO188P2EnabledRcp", false );
+        verifier.setAutoclean( false );
+        verifier.executeGoal( "clean" );
+        verifier.verifyErrorFreeLog();
+
+        // First run compile to fill output repository
+        // The test will verify that legacy content from former builds is not accumulated (product IU).
+        verifier.executeGoal( "compile" );
+        verifier.verifyErrorFreeLog();
+        validatePublishedProducts( verifier, getContentXml( verifier ) );
+        
+        // change product version and run next build. Only one product IU must be contained in resulting repository.
+        File newMainProductFile = new File( verifier.getBasedir(), MODULE + "/main.product_version2" );
+        File oldMainProductFile = new File( verifier.getBasedir(), MODULE + "/main.product" );
+        assertTrue( oldMainProductFile.delete() );
+        assertTrue( newMainProductFile.renameTo( oldMainProductFile ) );
 
         verifier.executeGoal( "install" );
         verifier.verifyErrorFreeLog();
 
-        File repoDir = new File( verifier.getBasedir(), MODULE + "/target/repository" );
-        File contentJar = new File( repoDir, "content.jar" );
-        assertTrue( "content.jar not found \n" + contentJar.getAbsolutePath(), contentJar.isFile() );
+        Document contentXml = getContentXml( verifier );
+        validatePublishedProducts( verifier, contentXml );
+        validateContent( verifier, contentXml );
+        validateNoDuplications(contentXml);
+    }
 
-        Document contentXml = openXmlFromZip( contentJar, "content.xml" );
+    private void validateContent( Verifier verifier, Document contentXml )
+        throws IOException, ZipException
+    {
+        assertRepositoryArtifacts( verifier );
+        int materializedProducts = TEST_PRODUCTS.size() - 1;
+        int environmentsPerProduct = TEST_ENVIRONMENTS.size();
+        int repositoryArtifacts = 1;
+        assertTotalZipArtifacts( verifier, materializedProducts * environmentsPerProduct + repositoryArtifacts );
+        assertLocalFeatureProperties( verifier.getBasedir() );
+    }
 
+
+    private void validatePublishedProducts( Verifier verifier, Document contentXml )
+        throws IOException, ZipException
+    {
         for ( Product product : TEST_PRODUCTS )
         {
             for ( Environment env : TEST_ENVIRONMENTS )
@@ -67,24 +97,35 @@ public class Tycho188P2EnabledRcpTest
                 assertProductArtifacts( verifier, product, env );
             }
         }
-        assertRepositoryArtifacts( verifier );
-
-        int materializedProducts = TEST_PRODUCTS.size() - 1;
-        int environmentsPerProduct = TEST_ENVIRONMENTS.size();
-        int repositoryArtifacts = 1;
-        assertTotalZipArtifacts( verifier, materializedProducts * environmentsPerProduct + repositoryArtifacts );
-        assertLocalFeatureProperties( verifier.getBasedir() );
     }
 
+    private void validateNoDuplications( Document contentXml )
+    {
+        for ( Product product : TEST_PRODUCTS )
+        {
+            assertEquals( product.unitId + " IU published more than once", 1, countIUWithProperty( contentXml,
+                                                                                                   product.unitId ) );
+        }
+    }
+
+    private Document getContentXml( Verifier verifier )
+        throws IOException, ZipException
+    {
+        File repoDir = new File( verifier.getBasedir(), MODULE + "/target/repository" );
+        File contentJar = new File( repoDir, "content.jar" );
+        assertTrue( "content.jar not found \n" + contentJar.getAbsolutePath(), contentJar.isFile() );
+        Document contentXml = openXmlFromZip( contentJar, "content.xml" );
+        return contentXml;
+    }
+    
     private void assertLocalFeatureProperties( String baseDir )
         throws IOException
     {
         File contentXmlFile = new File( baseDir, MODULE + "/target/targetMetadataRepository/content.xml" );
         Document contentXml = XMLParser.parse( contentXmlFile );
-        assertTrue( "feature description is missing", containsIUWithProperty( contentXml,
-                                                                              "example.feature.feature.group",
-                                                                              "org.eclipse.equinox.p2.description",
-                                                                              "A description of an example feature" ) );
+        assertTrue( "feature description is missing",
+                    containsIUWithProperty( contentXml, "example.feature.feature.group",
+                                            "org.eclipse.equinox.p2.description", "A description of an example feature" ) );
     }
 
     static private void assertProductIUs( Document contentXml, Product product, Environment env )
@@ -133,14 +174,15 @@ public class Tycho188P2EnabledRcpTest
     {
         ZipFile zipFile = new ZipFile( file );
 
-        for ( final Enumeration entries = zipFile.getEntries(); entries.hasMoreElements(); )
+        for ( final Enumeration<?> entries = zipFile.getEntries(); entries.hasMoreElements(); )
         {
             final ZipEntry entry = (ZipEntry) entries.nextElement();
             if ( entry.getName().startsWith( prefix ) )
             {
                 if ( entry.getName().endsWith( "qualifier" ) )
                 {
-                    Assert.fail( "replacement of build qualifier missing in " + file + ", zip entry: " + entry.getName() );
+                    Assert.fail( "replacement of build qualifier missing in " + file + ", zip entry: "
+                        + entry.getName() );
                 }
                 return;
             }
@@ -226,10 +268,20 @@ public class Tycho188P2EnabledRcpTest
 
     static private boolean containsIUWithProperty( Document contentXML, String iuId, String propName, String propValue )
     {
-        boolean foundIU = false;
+        return countIUWithProperty( contentXML, iuId, propName, propValue ) > 0;
+    }
+    
+    static private int countIUWithProperty( Document contentXML, String iuId )
+    {
+        return countIUWithProperty( contentXML, iuId, null, null );
+    }
+
+    static private int countIUWithProperty( Document contentXML, String iuId, String propName, String propValue )
+    {
+        int foundIUCounter = 0;
 
         Element repository = contentXML.getRootElement();
-        all_units: for ( Element unit : repository.getChild( "units" ).getChildren( "unit" ) )
+        for ( Element unit : repository.getChild( "units" ).getChildren( "unit" ) )
         {
             if ( iuId.equals( unit.getAttributeValue( "id" ) ) )
             {
@@ -240,19 +292,17 @@ public class Tycho188P2EnabledRcpTest
                         if ( propName.equals( property.getAttributeValue( "name" ) )
                             && propValue.equals( ( property.getAttributeValue( "value" ) ) ) )
                         {
-                            foundIU = true;
-                            break all_units;
+                            foundIUCounter++;
                         }
                     }
                 }
                 else
                 {
-                    foundIU = true;
-                    break all_units;
+                    foundIUCounter++;
                 }
             }
         }
-        return foundIU;
+        return foundIUCounter;
     }
 
     static class Environment
