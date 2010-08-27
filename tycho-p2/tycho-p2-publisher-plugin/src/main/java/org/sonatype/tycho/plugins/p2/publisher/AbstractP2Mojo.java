@@ -36,6 +36,11 @@ public abstract class AbstractP2Mojo
         return project;
     }
 
+    protected MavenSession getSession()
+    {
+        return session;
+    }
+    
     protected String getQualifier()
     {
         return qualifier;

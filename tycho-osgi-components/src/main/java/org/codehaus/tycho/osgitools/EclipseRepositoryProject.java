@@ -12,6 +12,8 @@ import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.model.Category;
+import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 
 /**
@@ -38,20 +40,53 @@ public class EclipseRepositoryProject
     protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
     {
         final List<ProductConfiguration> products = loadProducts( project );
+        final List<Category> categories = loadCategories( project );
         return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ),
                                                      getEnvironments( project, environment ) )
         {
             public void walk( ArtifactDependencyVisitor visitor )
             {
+                WalkbackPath visited = new WalkbackPath();
                 for ( ProductConfiguration product : products )
                 {
-                    traverseProduct( product, visitor );
+                    traverseProduct( product, visitor, visited );
+                }
+                for ( Category category : categories )
+                {
+                    for ( FeatureRef feature : category.getFeatures() )
+                    {
+                        traverseFeature( feature, visitor, visited );
+                    }
                 }
             }
         };
     }
 
     /**
+     * Parses the category configuration files
+     *
+     * @param project
+     * @return
+     */
+    public List<Category> loadCategories( final MavenProject project )
+    {
+        List<Category> categories = new ArrayList<Category>();
+        for ( File file : getCategoryFiles( project ) )
+        {
+            try
+            {
+                categories.add( Category.read( file ) );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( "Could not read product configuration file " + file.getAbsolutePath(), e );
+            }
+        }
+        return categories;
+    }
+    
+
+	/**
      * Parses the product configuration files
      *
      * @param project
@@ -74,6 +109,17 @@ public class EclipseRepositoryProject
         return products;
     }
 
+	private List<File> getCategoryFiles(MavenProject project)
+	{
+		List<File> res = new ArrayList<File>();
+		File categoryFile = new File(project.getBasedir(), "category.xml");
+		if (categoryFile.exists())
+		{
+			res.add(categoryFile);
+		}
+		return res;
+	}
+    
     /**
      * Looks for all files at the base of the project that extension is ".product" Duplicated in the
      * P2GeneratorImpl

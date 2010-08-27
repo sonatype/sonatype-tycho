@@ -11,9 +11,9 @@ import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,14 +21,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.internal.p2.publisher.eclipse.FeatureParser;
 import org.eclipse.equinox.internal.p2.publisher.eclipse.IProductDescriptor;
+import org.eclipse.equinox.internal.p2.updatesite.CategoryParser;
+import org.eclipse.equinox.internal.p2.updatesite.SiteModel;
 import org.eclipse.equinox.internal.p2.updatesite.SiteXMLAction;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
-import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.metadata.VersionRange;
+import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.Publisher;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
@@ -310,7 +312,33 @@ public class P2GeneratorImpl
                     actions.add( new ProductDependenciesAction( productDescriptor, environments ) );
                 }
             }
-            return actions.toArray(new IPublisherAction[actions.size()] );
+            for ( File categoryFile : getCategoryFiles( location ) )
+            {
+                CategoryParser cp = new CategoryParser( null );
+                FileInputStream ins = null;
+                try
+                {
+                    try
+                    {
+                        ins = new FileInputStream( categoryFile );
+                        SiteModel siteModel = cp.parse( ins );
+                        actions.add( new CategoryDependenciesAction( siteModel, artifact.getArtifactId(),
+                                                                     artifact.getVersion() ) );
+                    }
+                    finally
+                    {
+                        if ( ins != null )
+                        {
+                            ins.close();
+                        }
+                    }
+                }
+                catch ( Exception e )
+                {
+                    throw new RuntimeException( "Unable to read category File", e );
+                }
+            }
+            return actions.toArray( new IPublisherAction[actions.size()] );
         }
         else if ( location.isFile() && location.getName().endsWith( ".jar" ) )
         {
@@ -319,6 +347,8 @@ public class P2GeneratorImpl
 
         throw new IllegalArgumentException("Unknown type of packaging " + packaging);
     }
+
+
 
 	private IPublisherAction createSourceBundleAction(IArtifactFacade artifact) {
 		String id = artifact.getArtifactId();
@@ -393,4 +423,15 @@ public class P2GeneratorImpl
     	}
     	return res;
     }
+    
+	private List<File> getCategoryFiles(File projectLocation)
+	{
+		List<File> res = new ArrayList<File>();
+		File categoryFile = new File(projectLocation, "category.xml");
+		if (categoryFile.exists())
+		{
+			res.add(categoryFile);
+		}
+		return res;
+	}
 }

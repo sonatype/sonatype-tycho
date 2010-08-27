@@ -95,8 +95,12 @@ public abstract class AbstractArtifactDependencyWalker
 
     public void traverseProduct( ProductConfiguration product, ArtifactDependencyVisitor visitor )
     {
-        WalkbackPath visited = new WalkbackPath();
+        traverseProduct( product, visitor, new WalkbackPath() );
+    }
 
+    protected void traverseProduct( ProductConfiguration product, ArtifactDependencyVisitor visitor,
+                                    WalkbackPath visited )
+    {
         if ( product.useFeatures() )
         {
             for ( FeatureRef ref : product.getFeatures() )
@@ -263,7 +267,7 @@ public abstract class AbstractArtifactDependencyWalker
         return false;
     }
 
-    private static class WalkbackPath
+    protected static class WalkbackPath
     {
         private Map<ArtifactKey, ArtifactDescription> visited = new HashMap<ArtifactKey, ArtifactDescription>();
 

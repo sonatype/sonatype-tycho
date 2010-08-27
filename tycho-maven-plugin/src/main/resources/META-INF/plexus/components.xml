@@ -294,9 +294,11 @@
               	org.apache.maven.plugins:maven-clean-plugin:clean
               </initialize>
               <compile>
-                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-products
+                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-products,
+              	org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-categories
               </compile>
               <package>
+                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-features-and-bundles,
                 org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:archive-repository
               </package>
               <install>
