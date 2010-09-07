@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -20,8 +19,6 @@ import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 import de.pdark.decentxml.Document;
-import de.pdark.decentxml.Element;
-import de.pdark.decentxml.XMLIOSource;
 import de.pdark.decentxml.XMLParser;
 
 public class Tycho188P2EnabledRcpTest
@@ -115,7 +112,7 @@ public class Tycho188P2EnabledRcpTest
     {
         for ( Product product : TEST_PRODUCTS )
         {
-            assertEquals( product.unitId + " IU published more than once", 1, countIUWithProperty( contentXml,
+            assertEquals( product.unitId + " IU published more than once", 1, Util.countIUWithProperty( contentXml,
                                                                                                    product.unitId ) );
         }
     }
@@ -126,7 +123,7 @@ public class Tycho188P2EnabledRcpTest
         File repoDir = new File( verifier.getBasedir(), MODULE + "/target/repository" );
         File contentJar = new File( repoDir, "content.jar" );
         assertTrue( "content.jar not found \n" + contentJar.getAbsolutePath(), contentJar.isFile() );
-        Document contentXml = openXmlFromZip( contentJar, "content.xml" );
+        Document contentXml = Util.openXmlFromZip( contentJar, "content.xml" );
         return contentXml;
     }
     
@@ -136,25 +133,25 @@ public class Tycho188P2EnabledRcpTest
         File contentXmlFile = new File( baseDir, MODULE + "/target/targetMetadataRepository/content.xml" );
         Document contentXml = XMLParser.parse( contentXmlFile );
         assertTrue( "feature description is missing",
-                    containsIUWithProperty( contentXml, "example.feature.feature.group",
+                    Util.containsIUWithProperty( contentXml, "example.feature.feature.group",
                                             "org.eclipse.equinox.p2.description", "A description of an example feature" ) );
     }
 
     static private void assertProductIUs( Document contentXml, Product product, Environment env )
     {
         assertTrue( product.unitId + " IU with lineUp property value true does not exist",
-                    containsIUWithProperty( contentXml, product.unitId, "lineUp", "true" ) );
+                    Util.containsIUWithProperty( contentXml, product.unitId, "lineUp", "true" ) );
 
         final String p2InfAdded = "p2.inf.added-property";
         assertEquals( "Property " + p2InfAdded + " in " + product.unitId, product.p2InfProperty,
-                      containsIUWithProperty( contentXml, product.unitId, p2InfAdded, "true" ) );
+                      Util.containsIUWithProperty( contentXml, product.unitId, p2InfAdded, "true" ) );
 
         /*
          * This only works if the context repositories are configured correctly. If the simpleconfigurator bundle is not
          * visible to the product publisher, this IU would not be generated.
          */
         String simpleConfiguratorIU = "tooling" + env.toWsOsArch() + "org.eclipse.equinox.simpleconfigurator";
-        assertTrue( simpleConfiguratorIU + " IU does not exist", containsIU( contentXml, simpleConfiguratorIU ) );
+        assertTrue( simpleConfiguratorIU + " IU does not exist", Util.containsIU( contentXml, simpleConfiguratorIU ) );
     }
 
     static private void assertProductArtifacts( Verifier verifier, Product product, Environment env )
@@ -169,7 +166,7 @@ public class Tycho188P2EnabledRcpTest
                     + env.toOsWsArch() + ".zip" );
             assertTrue( "Product archive not found at: " + installedProductArchive, installedProductArchive.exists() );
 
-            Properties configIni = openPropertiesFromZip( installedProductArchive, "configuration/config.ini" );
+            Properties configIni = Util.openPropertiesFromZip( installedProductArchive, "configuration/config.ini" );
             String bundleConfiguration = configIni.getProperty( "osgi.bundles" );
             assertTrue( "Installation is not configured to use the simpleconfigurator",
                         bundleConfiguration.startsWith( "reference:file:org.eclipse.equinox.simpleconfigurator" ) );
@@ -222,99 +219,6 @@ public class Tycho188P2EnabledRcpTest
             }
         }
         assertEquals( expectedArtifacts, zipArtifacts );
-    }
-
-    static Document openXmlFromZip( File zipFile, String xmlFile )
-        throws IOException, ZipException
-    {
-        XMLParser parser = new XMLParser();
-        ZipFile zip = new ZipFile( zipFile );
-        try
-        {
-            ZipEntry contentXmlEntry = zip.getEntry( xmlFile );
-            InputStream entryStream = zip.getInputStream( contentXmlEntry );
-            try
-            {
-                return parser.parse( new XMLIOSource( entryStream ) );
-            }
-            finally
-            {
-                entryStream.close();
-            }
-        }
-        finally
-        {
-            zip.close();
-        }
-    }
-
-    static Properties openPropertiesFromZip( File zipFile, String propertyFile )
-        throws IOException, ZipException
-    {
-        ZipFile zip = new ZipFile( zipFile );
-        Properties configIni = new Properties();
-        try
-        {
-            ZipEntry configIniEntry = zip.getEntry( propertyFile );
-            InputStream entryStream = zip.getInputStream( configIniEntry );
-            try
-            {
-                configIni.load( entryStream );
-            }
-            finally
-            {
-                entryStream.close();
-            }
-        }
-        finally
-        {
-            zip.close();
-        }
-        return configIni;
-    }
-
-    static private boolean containsIU( Document contentXML, String iuId )
-    {
-        return containsIUWithProperty( contentXML, iuId, null, null );
-    }
-
-    static private boolean containsIUWithProperty( Document contentXML, String iuId, String propName, String propValue )
-    {
-        return countIUWithProperty( contentXML, iuId, propName, propValue ) > 0;
-    }
-    
-    static private int countIUWithProperty( Document contentXML, String iuId )
-    {
-        return countIUWithProperty( contentXML, iuId, null, null );
-    }
-
-    static private int countIUWithProperty( Document contentXML, String iuId, String propName, String propValue )
-    {
-        int foundIUCounter = 0;
-
-        Element repository = contentXML.getRootElement();
-        for ( Element unit : repository.getChild( "units" ).getChildren( "unit" ) )
-        {
-            if ( iuId.equals( unit.getAttributeValue( "id" ) ) )
-            {
-                if ( propName != null )
-                {
-                    for ( Element property : unit.getChild( "properties" ).getChildren( "property" ) )
-                    {
-                        if ( propName.equals( property.getAttributeValue( "name" ) )
-                            && propValue.equals( ( property.getAttributeValue( "value" ) ) ) )
-                        {
-                            foundIUCounter++;
-                        }
-                    }
-                }
-                else
-                {
-                    foundIUCounter++;
-                }
-            }
-        }
-        return foundIUCounter;
     }
 
     static class Environment
