@@ -72,6 +72,7 @@ public class Tycho188P2EnabledRcpTest
         validatePublishedProducts( verifier, contentXml );
         validateContent( verifier, contentXml );
         validateNoDuplications(contentXml);
+        validateInstalledProductArtifacts( verifier );
     }
 
     private void validateContent( Verifier verifier, Document contentXml )
@@ -94,11 +95,22 @@ public class Tycho188P2EnabledRcpTest
             for ( Environment env : TEST_ENVIRONMENTS )
             {
                 assertProductIUs( contentXml, product, env );
-                assertProductArtifacts( verifier, product, env );
             }
         }
     }
 
+    private void validateInstalledProductArtifacts( Verifier verifier )
+        throws IOException, ZipException
+    {
+        for ( Product product : TEST_PRODUCTS )
+        {
+            for ( Environment env : TEST_ENVIRONMENTS )
+            {
+                assertProductArtifacts( verifier, product, env );
+            }
+        }
+    }
+    
     private void validateNoDuplications( Document contentXml )
     {
         for ( Product product : TEST_PRODUCTS )
