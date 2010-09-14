@@ -1,6 +1,7 @@
 package org.sonatype.tycho.p2.publisher;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -16,8 +17,8 @@ import org.eclipse.equinox.p2.metadata.ITouchpointData;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.junit.Test;
+import org.sonatype.tycho.p2.impl.publisher.P2GeneratorImpl;
 import org.sonatype.tycho.p2.impl.test.ArtifactMock;
-import org.sonatype.tycho.p2.publisher.P2GeneratorImpl;
 
 public class P2GeneratorImplTest {
 

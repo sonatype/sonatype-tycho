@@ -22,13 +22,13 @@ import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.GAV;
-import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
-import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
+import org.sonatype.tycho.p2.repository.GAV;
+import org.sonatype.tycho.p2.repository.LocalRepositoryReader;
+import org.sonatype.tycho.p2.repository.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.repository.RepositoryReader;
+import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
 public class LocalArtifactRepository
     extends AbstractMavenArtifactRepository

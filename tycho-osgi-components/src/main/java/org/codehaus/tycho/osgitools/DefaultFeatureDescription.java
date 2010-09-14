@@ -16,7 +16,8 @@ public class DefaultFeatureDescription
 
     private FeatureRef featureRef;
 
-    public DefaultFeatureDescription( ArtifactKey key, File location, MavenProject project, Feature feature, FeatureRef featureRef )
+    public DefaultFeatureDescription( ArtifactKey key, File location, MavenProject project, Feature feature,
+                                      FeatureRef featureRef )
     {
         super( key, location, project );
         this.feature = feature;

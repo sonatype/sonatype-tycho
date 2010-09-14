@@ -8,9 +8,10 @@ import java.util.Arrays;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.p2.DirectorApplicationWrapper;
-import org.codehaus.tycho.p2.MetadataSerializable;
+import org.codehaus.tycho.TargetPlatform;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.p2.DirectorApplicationWrapper;
+import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
 
 /**
  * @phase package
@@ -33,6 +34,9 @@ public final class DirectorMojo
      */
     private String qualifier;
 
+    /** @component */
+    private P2MetadataRepositoryWriter metadataRepositoryWriter;
+
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -48,8 +52,7 @@ public final class DirectorMojo
                 final DirectorApplicationWrapper director = p2.getService( DirectorApplicationWrapper.class );
                 try
                 {
-                    String targetRepositoryUrl =
-                        materializeRepository( getTargetPlatform().getP2MetadataSerializable(), getBuildDirectory() );
+                    String targetRepositoryUrl = materializeRepository( getTargetPlatform(), getBuildDirectory() );
                     File destination = getProductMaterializeDirectory( product, env );
                     String[] args =
                         new String[] {
@@ -78,16 +81,15 @@ public final class DirectorMojo
         }
     }
 
-    private String materializeRepository( MetadataSerializable metadataRepositorySerializable, File targetDirectory )
+    private String materializeRepository( TargetPlatform targetPlatform, File targetDirectory )
         throws IOException
     {
-        metadataRepositorySerializable.replaceBuildQualifier( qualifier );
         File repositoryLocation = new File( targetDirectory, "targetMetadataRepository" );
         repositoryLocation.mkdirs();
         FileOutputStream stream = new FileOutputStream( new File( repositoryLocation, "content.xml" ) );
         try
         {
-            metadataRepositorySerializable.serialize( stream );
+            metadataRepositoryWriter.write( stream, targetPlatform, qualifier );
         }
         finally
         {

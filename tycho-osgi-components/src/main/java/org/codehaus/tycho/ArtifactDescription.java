@@ -11,4 +11,5 @@ public interface ArtifactDescription
     File getLocation();
 
     MavenProject getMavenProject();
+
 }

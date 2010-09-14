@@ -1,6 +1,6 @@
 package org.sonatype.tycho.p2.impl.test;
 
-import org.sonatype.tycho.p2.facade.internal.P2Logger;
+import org.sonatype.tycho.p2.resolver.P2Logger;
 
 public class NullP2Logger
     implements P2Logger

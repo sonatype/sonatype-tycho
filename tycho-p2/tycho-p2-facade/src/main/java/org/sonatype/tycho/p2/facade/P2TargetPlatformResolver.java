@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -50,22 +49,20 @@ import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
-import org.codehaus.tycho.p2.MetadataSerializable;
-import org.codehaus.tycho.p2.MetadataSerializableMerger;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
-import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
 import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.P2Logger;
-import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
-import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
-import org.sonatype.tycho.p2.facade.internal.P2Resolver;
-import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
+import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
+import org.sonatype.tycho.p2.repository.DefaultTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
+import org.sonatype.tycho.p2.resolver.P2Logger;
+import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
+import org.sonatype.tycho.p2.resolver.P2Resolver;
+import org.sonatype.tycho.p2.resolver.P2ResolverFactory;
 
 @Component( role = TargetPlatformResolver.class, hint = P2TargetPlatformResolver.ROLE_HINT, instantiationStrategy = "per-lookup" )
 public class P2TargetPlatformResolver
@@ -90,7 +87,7 @@ public class P2TargetPlatformResolver
     private ArtifactRepositoryLayout p2layout;
 
     @Requirement
-    private P2RepositoryCache repositoryCache;
+    private P2RepositoryCacheImpl repositoryCache;
 
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
@@ -98,8 +95,6 @@ public class P2TargetPlatformResolver
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
-
-    private MetadataSerializableMerger<MetadataSerializable> metadataRepositorySerializableMerger;
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {
@@ -345,58 +340,58 @@ public class P2TargetPlatformResolver
                 for ( Target.Repository repository : location.getRepositories() )
                 {
 
-                try
-                {
-                        URI uri = new URI( getMirror( repository, session.getRequest().getMirrors() ) );
-                    if ( uris.add( uri ) )
+                    try
                     {
-                        if ( session.isOffline() )
+                        URI uri = new URI( getMirror( repository, session.getRequest().getMirrors() ) );
+                        if ( uris.add( uri ) )
                         {
-                            getLogger().debug( "Ignored repository " + uri + " while in offline mode" );
-                        }
-                        else
-                        {
+                            if ( session.isOffline() )
+                            {
+                                getLogger().debug( "Ignored repository " + uri + " while in offline mode" );
+                            }
+                            else
+                            {
                                 String id = repository.getId();
-                            if ( id != null )
-                            {
-                                Server server = session.getSettings().getServer( id );
+                                if ( id != null )
+                                {
+                                    Server server = session.getSettings().getServer( id );
 
-                                if ( server != null )
-                                {
-                                    resolver.setCredentials( uri, server.getUsername(), server.getPassword() );
+                                    if ( server != null )
+                                    {
+                                        resolver.setCredentials( uri, server.getUsername(), server.getPassword() );
+                                    }
+                                    else
+                                    {
+                                        getLogger().info( "Unknown server id=" + id + " for repository location="
+                                                              + repository.getLocation() );
+                                    }
                                 }
-                                else
-                                {
-                                    getLogger().info( "Unknown server id=" + id + " for repository location="
-                                                        + repository.getLocation() );
-                                }
-                            }
 
-                            try
-                            {
-                                resolver.addP2Repository( uri );
-                            }
-                            catch ( Exception e )
-                            {
-                                String msg =
-                                    "Failed to access p2 repository " + uri + ", will try to use local cache. Reason: "
-                                        + e.getMessage();
-                                if ( getLogger().isDebugEnabled() )
+                                try
                                 {
-                                    getLogger().warn( msg, e );
+                                    resolver.addP2Repository( uri );
                                 }
-                                else
+                                catch ( Exception e )
                                 {
-                                    getLogger().warn( msg );
+                                    String msg =
+                                        "Failed to access p2 repository " + uri
+                                            + ", will try to use local cache. Reason: " + e.getMessage();
+                                    if ( getLogger().isDebugEnabled() )
+                                    {
+                                        getLogger().warn( msg, e );
+                                    }
+                                    else
+                                    {
+                                        getLogger().warn( msg );
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                catch ( URISyntaxException e )
-                {
-                    getLogger().debug( "Could not parse repository URL", e );
-                }
+                    catch ( URISyntaxException e )
+                    {
+                        getLogger().debug( "Could not parse repository URL", e );
+                    }
                 }
 
                 for ( Target.Unit unit : location.getUnits() )
@@ -410,8 +405,7 @@ public class P2TargetPlatformResolver
         {
             List<P2ResolutionResult> results = resolver.resolveProject( project.getBasedir() );
 
-            MultiEnvironmentTargetPlatform multiPlatform =
-                new MultiEnvironmentTargetPlatform( metadataRepositorySerializableMerger );
+            MultiEnvironmentTargetPlatform multiPlatform = new MultiEnvironmentTargetPlatform();
 
             // FIXME this is just wrong
             for ( int i = 0; i < configuration.getEnvironments().size(); i++ )
@@ -460,19 +454,21 @@ public class P2TargetPlatformResolver
 
         platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
 
-        for ( Entry<ArtifactKey, File> entry : result.getArtifacts().entrySet() )
+        platform.addInstallableUnits( result.getInstallableUnits() );
+
+        for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
         {
-            MavenProject otherProject = projects.get( entry.getValue() );
+            ArtifactKey key = new ArtifactKey( entry.getType(), entry.getId(), entry.getVersion() );
+            MavenProject otherProject = projects.get( entry.getLocation() );
             if ( otherProject != null )
             {
-                platform.addMavenProject( entry.getKey(), otherProject );
+                platform.addMavenProject( key, otherProject );
             }
             else
             {
-                platform.addArtifactFile( entry.getKey(), entry.getValue() );
+                platform.addArtifactFile( key, entry.getLocation() );
             }
         }
-        platform.setP2MetadataRepository( result.getMetadataRepositorySerializable() );
         return platform;
     }
 
@@ -531,6 +527,5 @@ public class P2TargetPlatformResolver
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );
-        metadataRepositorySerializableMerger = equinox.getService( MetadataSerializableMerger.class );
     }
 }

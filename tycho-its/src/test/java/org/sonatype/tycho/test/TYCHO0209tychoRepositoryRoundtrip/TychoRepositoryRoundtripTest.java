@@ -6,8 +6,8 @@ import org.apache.maven.it.Verifier;
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.internal.DefaultTychoRepositoryIndex;
-import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.DefaultTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 public class TychoRepositoryRoundtripTest

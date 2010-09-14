@@ -10,11 +10,11 @@ public class DefaultArtifactDescription
     implements ArtifactDescription
 {
 
-    private ArtifactKey key;
+    private final ArtifactKey key;
 
-    private File location;
+    private final File location;
 
-    private MavenProject project;
+    private final MavenProject project;
 
     public DefaultArtifactDescription( ArtifactKey key, File location, MavenProject project )
     {

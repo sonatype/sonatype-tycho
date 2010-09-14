@@ -3,6 +3,7 @@ package org.sonatype.tycho.p2.facade.internal;
 import java.io.File;
 
 import org.apache.maven.artifact.Artifact;
+import org.sonatype.tycho.p2.IArtifactFacade;
 
 public class ArtifactFacade implements IArtifactFacade {
 

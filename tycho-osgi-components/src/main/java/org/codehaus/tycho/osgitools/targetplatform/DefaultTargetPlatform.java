@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -19,7 +21,6 @@ import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.DefaultArtifactDescription;
-import org.codehaus.tycho.p2.MetadataSerializable;
 import org.osgi.framework.Version;
 
 public class DefaultTargetPlatform
@@ -32,11 +33,11 @@ public class DefaultTargetPlatform
     private static final WeakHashMap<ArtifactKey, ArtifactDescription> ARTIFACT_CACHE =
         new WeakHashMap<ArtifactKey, ArtifactDescription>();
 
-    protected Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
+    protected final Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
 
-    protected Map<File, ArtifactDescription> locations = new LinkedHashMap<File, ArtifactDescription>();
+    protected final Map<File, ArtifactDescription> locations = new LinkedHashMap<File, ArtifactDescription>();
 
-    private MetadataSerializable p2MetadataRepository;
+    protected final Set<Object/* IInstallableUnit */> installableUnits = new LinkedHashSet<Object>();
 
     public List<ArtifactDescription> getArtifacts( String type )
     {
@@ -50,6 +51,11 @@ public class DefaultTargetPlatform
         }
 
         return result;
+    }
+
+    public List<ArtifactDescription> getArtifacts()
+    {
+        return new ArrayList<ArtifactDescription>( artifacts.values() );
     }
 
     public void addArtifactFile( ArtifactKey key, File location )
@@ -249,14 +255,15 @@ public class DefaultTargetPlatform
             }
         }
     }
-    public MetadataSerializable getP2MetadataSerializable()
+
+    public Set<Object> getInstallableUnits()
     {
-        return p2MetadataRepository;
+        return installableUnits;
     }
 
-    public void setP2MetadataRepository( MetadataSerializable p2MetadataRepository )
+    public void addInstallableUnits( Set<Object/* IInstallableUnit */> installableUnits )
     {
-        this.p2MetadataRepository = p2MetadataRepository;
+        this.installableUnits.addAll( installableUnits );
     }
 
     public void toDebugString( StringBuilder sb, String linePrefix )

@@ -8,12 +8,12 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.GAV;
-import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
-import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
+import org.sonatype.tycho.p2.repository.GAV;
+import org.sonatype.tycho.p2.repository.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.repository.RepositoryReader;
+import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
 public class LocalMetadataRepository
     extends AbstractMavenMetadataRepository

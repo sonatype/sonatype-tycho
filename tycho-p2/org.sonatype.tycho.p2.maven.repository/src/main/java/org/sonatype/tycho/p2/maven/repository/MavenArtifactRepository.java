@@ -17,10 +17,10 @@ import org.eclipse.equinox.internal.p2.core.helpers.FileUtils;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.GAV;
-import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.GAV;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.repository.RepositoryReader;
+import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
 @SuppressWarnings( "restriction" )
 public class MavenArtifactRepository

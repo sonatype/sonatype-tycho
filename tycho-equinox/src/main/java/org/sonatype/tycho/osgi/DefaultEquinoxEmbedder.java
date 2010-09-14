@@ -78,6 +78,10 @@ public class DefaultEquinoxEmbedder
         // this tells framework to use our classloader as parent, so it can see classes that we see
         properties.put( "osgi.parentClassloader", "fwk" );
 
+        // this tells framework to check parent classloader first
+        // TODO specific package names
+        properties.put( "org.osgi.framework.bootdelegation", "*" );
+
         // properties.put( "eclipse.p2.data.area", dataArea.getAbsolutePath() );
 
         // debug

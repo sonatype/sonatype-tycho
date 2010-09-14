@@ -31,6 +31,11 @@
       <artifactId>tycho-osgi-components</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>org.sonatype.tycho.p2</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.sonatype.tycho</groupId>

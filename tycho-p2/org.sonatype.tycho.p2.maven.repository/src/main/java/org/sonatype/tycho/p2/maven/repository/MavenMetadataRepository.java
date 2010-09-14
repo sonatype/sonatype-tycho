@@ -2,8 +2,8 @@ package org.sonatype.tycho.p2.maven.repository;
 
 import java.net.URI;
 
-import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.RepositoryReader;
+import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
 public class MavenMetadataRepository
     extends AbstractMavenMetadataRepository

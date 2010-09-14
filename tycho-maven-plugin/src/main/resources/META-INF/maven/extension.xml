@@ -10,6 +10,7 @@
 
   <exportedArtifacts>
     <exportedArtifact>tycho-osgi-components</exportedArtifact>
+    <exportedArtifact>org.sonatype.tycho.p2</exportedArtifact>
     <exportedArtifact>tycho-p2-facade</exportedArtifact>
     <exportedArtifact>tycho-equinox</exportedArtifact>
     <exportedArtifact>org.eclipse.osgi</exportedArtifact>

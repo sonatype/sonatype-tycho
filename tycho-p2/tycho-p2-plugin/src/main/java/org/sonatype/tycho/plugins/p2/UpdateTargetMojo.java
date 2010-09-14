@@ -13,7 +13,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.maven.TychoP2RuntimeLocator;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.model.Target.Location;
@@ -23,11 +22,11 @@ import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
 import org.sonatype.tycho.osgi.EquinoxLocator;
-import org.sonatype.tycho.p2.facade.internal.P2Logger;
-import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
-import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
-import org.sonatype.tycho.p2.facade.internal.P2Resolver;
-import org.sonatype.tycho.p2.facade.internal.P2ResolverFactory;
+import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
+import org.sonatype.tycho.p2.resolver.P2Logger;
+import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
+import org.sonatype.tycho.p2.resolver.P2Resolver;
+import org.sonatype.tycho.p2.resolver.P2ResolverFactory;
 
 /**
  * Quick&dirty way to update .target file to use latest versions of IUs available from specified metadata repositories.
@@ -72,7 +71,7 @@ public class UpdateTargetMojo
 
             P2ResolverFactory factory = equinox.getService( P2ResolverFactory.class );
             P2Resolver p2 = factory.createResolver();
-            p2.setRepositoryCache( new P2RepositoryCache() );
+            p2.setRepositoryCache( new P2RepositoryCacheImpl() );
             p2.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
             p2.setLogger( new P2Logger()
             {
@@ -115,9 +114,9 @@ public class UpdateTargetMojo
             P2ResolutionResult result = p2.resolveMetadata( getEnvironments().get( 0 ) );
 
             Map<String, String> ius = new HashMap<String, String>();
-            for ( ArtifactKey key : result.getArtifacts().keySet() )
+            for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
             {
-                ius.put( key.getId(), key.getVersion() );
+                ius.put( entry.getId(), entry.getVersion() );
             }
 
             for ( Location location : target.getLocations() )

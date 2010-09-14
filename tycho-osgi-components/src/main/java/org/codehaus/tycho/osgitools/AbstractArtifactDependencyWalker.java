@@ -64,8 +64,17 @@ public abstract class AbstractArtifactDependencyWalker
     protected void traverseFeature( File location, Feature feature, FeatureRef featureRef,
                                     ArtifactDependencyVisitor visitor, WalkbackPath visited )
     {
-        ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );
-        MavenProject project = platform.getMavenProject( location );
+        ArtifactDescription artifact = platform.getArtifact( location );
+
+        if ( artifact == null )
+        {
+            // ah?
+            throw new IllegalStateException( "Feature " + location
+                + " is not part of the project build target platform" );
+        }
+
+        ArtifactKey key = artifact.getKey();
+        MavenProject project = artifact.getMavenProject();
 
         DefaultFeatureDescription description =
             new DefaultFeatureDescription( key, location, project, feature, featureRef );

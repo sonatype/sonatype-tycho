@@ -20,13 +20,14 @@ import org.codehaus.plexus.util.cli.DefaultConsumer;
 import org.codehaus.plexus.util.cli.WriterStreamConsumer;
 import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
-import org.codehaus.tycho.p2.MetadataSerializable;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
 
 /**
  * This goal invokes the product publisher for each product file found.
@@ -60,6 +61,9 @@ public final class PublishProductMojo
     /** @component */
     private EquinoxEmbedder p2;
 
+    /** @component */
+    private P2MetadataRepositoryWriter metadataRepositoryWriter;
+    
     /**
      * Kill the forked process after a certain number of seconds. If set to 0, wait forever for the
      * process, never timing out.
@@ -96,8 +100,8 @@ public final class PublishProductMojo
                  * accessed from current (lower) Mojo-Layer.
                  */
                 String contextRepositoryUrl =
-                    materializeRepository( getTargetPlatform().getP2MetadataSerializable(),
-                                           new File( getProject().getBuild().getDirectory() ), getQualifier() );
+                    materializeRepository( new File( getProject().getBuild().getDirectory() ),
+                                           getTargetPlatform(), getQualifier() );
                 cli.addArguments( new String[] { "-artifactRepository", getRepositoryUrl(), //
                     "-metadataRepository", getRepositoryUrl(), //
                     "-productFile", buildProduct.productFile.getCanonicalPath(), //
@@ -274,17 +278,16 @@ public final class PublishProductMojo
         }
     }
 
-    String materializeRepository( MetadataSerializable metadataRepositorySerializable, File targetDirectory,
-                                  String qualifier )
+    String materializeRepository( File targetDirectory,
+                                  TargetPlatform targetPlatform, String qualifier )
         throws IOException
     {
-        metadataRepositorySerializable.replaceBuildQualifier( qualifier );
         File repositoryLocation = new File( targetDirectory, "targetMetadataRepository" );
         repositoryLocation.mkdirs();
         FileOutputStream stream = new FileOutputStream( new File( repositoryLocation, "content.xml" ) );
         try
         {
-            metadataRepositorySerializable.serialize( stream );
+            metadataRepositoryWriter.write( stream, targetPlatform, qualifier );
         }
         finally
         {

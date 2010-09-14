@@ -19,10 +19,10 @@ import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.LocalRepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.LocalMetadataRepository;
+import org.sonatype.tycho.p2.repository.LocalRepositoryReader;
+import org.sonatype.tycho.p2.repository.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 
 public class LocalMetadataRepositoryTest
 {

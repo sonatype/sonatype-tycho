@@ -12,9 +12,9 @@ import junit.framework.Assert;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.P2Resolver;
-import org.sonatype.tycho.p2.publisher.P2GeneratorImpl;
+import org.sonatype.tycho.p2.impl.publisher.P2GeneratorImpl;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.resolver.P2Resolver;
 
 public class P2MetadataGeneratorImplTest
 {

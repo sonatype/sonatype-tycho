@@ -2,9 +2,9 @@ package org.codehaus.tycho;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.p2.MetadataSerializable;
 
 public interface TargetPlatform
 {
@@ -12,6 +12,11 @@ public interface TargetPlatform
      * Conventional qualifier used to denote "ANY QUALIFIER" in feature.xml and .product files. See TYCHO-383.
      */
     public static final String ANY_QUALIFIER = "qualifier";
+
+    /**
+     * Returns all artifacts.
+     */
+    public List<ArtifactDescription> getArtifacts();
 
     /**
      * Returns all artifacts of the given type.
@@ -37,13 +42,16 @@ public interface TargetPlatform
     public ArtifactDescription getArtifact( File location );
 
     public ArtifactDescription getArtifact( ArtifactKey key );
-    
-    
-	/**
-	 * This is only set if target-platform-configuration uses
-	 * &lt;resolver&gt;p2&lt;/resolver&gt;, <code>null</code> otherwise.
-	 */
-    public MetadataSerializable getP2MetadataSerializable();
+
+    /**
+     * Set of IInstallableUnits that were used to construct this target platform or or <code>null</code> if the the
+     * target platform was not resolved from a p2 repository.<br/>
+     * Type parametyer is Object instead of actual IInstallableUnit because P2 runtime is run off separate classloader
+     * not visible to tycho core.
+     * 
+     * @return Set&lt;IInstallableUnit&gt; or null
+     */
+    public Set<Object/* IInstallableUnit */> getInstallableUnits();
 
     /**
      * For debug purposes only, do not use.

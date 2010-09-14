@@ -114,7 +114,7 @@ public class TestEclipseRuntime
     {
         Map<ArtifactKey, File> effective = new LinkedHashMap<ArtifactKey, File>();
 
-        for (ArtifactDescription artifact : bundles.getArtifacts( TychoProject.ECLIPSE_PLUGIN ) )
+        for ( ArtifactDescription artifact : bundles.getArtifacts( TychoProject.ECLIPSE_PLUGIN ) )
         {
             ArtifactKey key = artifact.getKey();
             File file = artifact.getLocation();
@@ -357,7 +357,8 @@ public class TestEclipseRuntime
             bundles.removeAll( TychoProject.ECLIPSE_PLUGIN, id[0].getValue() );
         }
 
-        bundles.addArtifactFile( new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() ), file );
+        bundles.addArtifactFile( new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() ),
+                                 file );
     }
 
     public void addBundle( ArtifactDescription artifact )

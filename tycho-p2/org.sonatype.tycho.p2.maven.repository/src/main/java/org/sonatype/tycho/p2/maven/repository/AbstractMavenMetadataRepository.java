@@ -15,11 +15,11 @@ import org.eclipse.equinox.p2.query.IQuery;
 import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.repository.IRepositoryReference;
 import org.eclipse.equinox.p2.repository.metadata.spi.AbstractMetadataRepository;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
-import org.sonatype.tycho.p2.facade.internal.GAV;
-import org.sonatype.tycho.p2.facade.internal.RepositoryReader;
-import org.sonatype.tycho.p2.facade.internal.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
+import org.sonatype.tycho.p2.repository.GAV;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.repository.RepositoryReader;
+import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
 public abstract class AbstractMavenMetadataRepository
     extends AbstractMetadataRepository

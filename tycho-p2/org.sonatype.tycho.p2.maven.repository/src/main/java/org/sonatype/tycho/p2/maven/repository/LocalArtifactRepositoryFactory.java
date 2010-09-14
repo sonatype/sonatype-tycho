@@ -10,7 +10,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactRepositoryFactory;
-import org.sonatype.tycho.p2.facade.internal.LocalTychoRepositoryIndex;
+import org.sonatype.tycho.p2.repository.LocalTychoRepositoryIndex;
 
 public class LocalArtifactRepositoryFactory
     extends ArtifactRepositoryFactory

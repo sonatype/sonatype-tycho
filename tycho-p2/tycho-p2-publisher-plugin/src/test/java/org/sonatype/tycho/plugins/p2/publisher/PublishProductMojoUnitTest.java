@@ -1,21 +1,14 @@
 package org.sonatype.tycho.plugins.p2.publisher;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.Arrays;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.model.ProductConfiguration;
-import org.codehaus.tycho.p2.MetadataSerializable;
 import org.codehaus.tycho.testing.TestUtil;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -144,45 +137,6 @@ public class PublishProductMojoUnitTest
                                                         new TargetEnvironment( "os2", "ws", "arch", "nl2" ) ) );
         Assert.assertEquals( "-configs", configsParameter[0] );
         Assert.assertEquals( "ws.os.arch,ws.os2.arch", configsParameter[1] );
-    }
-
-    @Test
-    public void testCreateContextRepositoryUrl()
-        throws IOException
-    {
-        MetadataSerializable metadataRepositorySerializable = EasyMock.createMock( MetadataSerializable.class );
-        metadataRepositorySerializable.replaceBuildQualifier( "123" );
-        metadataRepositorySerializable.serialize( EasyMock.isA( OutputStream.class ) );
-        EasyMock.expectLastCall().andAnswer( new IAnswer<Void>()
-        {
-
-            public Void answer()
-                throws Throwable
-            {
-                OutputStream os = (OutputStream) EasyMock.getCurrentArguments()[0];
-                os.write( "content.xml".getBytes() );
-                return null;
-            }
-
-        } );
-
-        EasyMock.replay( metadataRepositorySerializable );
-
-        subject.materializeRepository( metadataRepositorySerializable, tempDir, "123" );
-
-        File contentXml = new File( tempDir, "targetMetadataRepository/content.xml" );
-        Assert.assertTrue( contentXml.exists() );
-        BufferedReader reader = new BufferedReader( new InputStreamReader( new FileInputStream( contentXml ) ) );
-        try
-        {
-            Assert.assertEquals( "content.xml", reader.readLine() );
-        }
-        finally
-        {
-            reader.close();
-        }
-
-        EasyMock.verify( metadataRepositorySerializable );
     }
 
     @Test

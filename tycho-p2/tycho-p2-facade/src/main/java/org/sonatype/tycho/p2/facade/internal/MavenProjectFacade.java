@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;
+import org.sonatype.tycho.p2.IArtifactFacade;
 
 public class MavenProjectFacade implements IArtifactFacade {
 

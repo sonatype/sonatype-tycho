@@ -3,7 +3,7 @@ package org.sonatype.tycho.p2.impl.test;
 import java.io.File;
 
 import org.codehaus.tycho.utils.SourceBundleUtils;
-import org.sonatype.tycho.p2.facade.internal.IArtifactFacade;
+import org.sonatype.tycho.p2.IArtifactFacade;
 
 public class ArtifactMock implements IArtifactFacade {
 

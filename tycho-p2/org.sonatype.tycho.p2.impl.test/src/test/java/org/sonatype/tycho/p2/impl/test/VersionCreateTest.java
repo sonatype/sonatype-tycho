@@ -1,7 +1,7 @@
 package org.sonatype.tycho.p2.impl.test;
 
 import org.junit.Test;
-import org.sonatype.tycho.p2.publisher.SiteDependenciesAction;
+import org.sonatype.tycho.p2.impl.publisher.SiteDependenciesAction;
 
 public class VersionCreateTest
 {

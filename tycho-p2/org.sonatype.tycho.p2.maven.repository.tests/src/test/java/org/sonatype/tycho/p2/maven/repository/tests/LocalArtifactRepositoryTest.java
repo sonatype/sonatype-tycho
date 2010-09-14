@@ -23,9 +23,9 @@ import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.maven.repository.Activator;
 import org.sonatype.tycho.p2.maven.repository.LocalArtifactRepository;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 
 @SuppressWarnings( "restriction" )
 public class LocalArtifactRepositoryTest

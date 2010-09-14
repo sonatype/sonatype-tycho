@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.jar.Manifest;
 
 import org.apache.maven.ProjectDependenciesResolver;
@@ -52,6 +51,39 @@ public class LocalTargetPlatformResolver
 
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
+
+    @Requirement( role = TychoProject.class )
+    private Map<String, TychoProject> projectTypes;
+
+    private boolean isSubdir( File parent, File child )
+    {
+        return child.getAbsolutePath().startsWith( parent.getAbsolutePath() );
+    }
+
+    private void addProjects( MavenSession session, DefaultTargetPlatform platform )
+    {
+        File parentDir = null;
+
+        for ( MavenProject project : session.getProjects() )
+        {
+            TychoProject dr = projectTypes.get( project.getPackaging() );
+            if ( dr != null )
+            {
+                ArtifactKey key = dr.getArtifactKey( project );
+    
+                platform.removeAll( key.getType(), key.getId() );
+    
+                platform.addMavenProject( key, project );
+    
+                if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
+                {
+                    parentDir = project.getBasedir();
+                }
+            }
+        }
+
+        platform.addSite( parentDir );
+    }
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
     {

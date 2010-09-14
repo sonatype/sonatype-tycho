@@ -5,8 +5,9 @@ import java.io.File;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;
+import org.sonatype.tycho.p2.IProjectArtifactFacade;
 
-public class ProjectArtifactFacade extends MavenProjectFacade {
+public class ProjectArtifactFacade extends MavenProjectFacade implements IProjectArtifactFacade {
 
 	public ProjectArtifactFacade(MavenProject wrappedProject) {
 		super(wrappedProject);

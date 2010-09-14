@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Tycho_p2_impl
 Bundle-SymbolicName: org.sonatype.tycho.p2.impl;singleton:=true
 Bundle-Version: 0.10.0.qualifier
-Bundle-Activator: org.sonatype.tycho.p2.Activator
+Bundle-Activator: org.sonatype.tycho.p2.impl.Activator
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.equinox.security;bundle-version="1.0.100",
  org.eclipse.equinox.frameworkadmin.equinox;bundle-version="1.0.101",
@@ -15,21 +15,20 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.equinox.p2.metadata.repository;bundle-version="1.1.0",
  org.eclipse.equinox.p2.director;bundle-version="2.0.0",
  org.eclipse.equinox.p2.repository;bundle-version="2.0.0",
- org.sonatype.tycho.p2.maven.repository;bundle-version="0.9.0",
  org.eclipse.equinox.p2.updatesite;bundle-version="1.0.200",
  org.eclipse.equinox.p2.director.app;bundle-version="1.0.200",
- org.eclipse.core.net;bundle-version="1.2.100"
+ org.eclipse.core.net;bundle-version="1.2.100",
+ org.sonatype.tycho.p2.maven.repository;bundle-version="0.10.0",
+ org.eclipse.ecf.filetransfer;bundle-version="4.0.0",
+ org.eclipse.ecf;bundle-version="3.1.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
-Import-Package: org.codehaus.tycho;resolution:=optional,
- org.codehaus.tycho.p2;resolution:=optional,
- org.sonatype.tycho.p2.facade;resolution:=optional,
- org.sonatype.tycho.p2.facade.internal;resolution:=optional
 Export-Package: copied.org.eclipse.equinox.internal.p2.publisher.eclipse;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.publisher;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.publisher.model;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.publisher.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.resolver;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.security.storage;x-friends:="org.sonatype.tycho.p2.impl.test"
+ org.sonatype.tycho.p2.impl;x-friends:="org.sonatype.tycho.p2.impl.test",
+ org.sonatype.tycho.p2.impl.publisher;x-friends:="org.sonatype.tycho.p2.impl.test",
+ org.sonatype.tycho.p2.impl.publisher.model;x-friends:="org.sonatype.tycho.p2.impl.test",
+ org.sonatype.tycho.p2.impl.publisher.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
+ org.sonatype.tycho.p2.impl.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
+ org.sonatype.tycho.p2.impl.resolver;x-friends:="org.sonatype.tycho.p2.impl.test"
+Import-Package: org.sonatype.tycho.p2,
+ org.sonatype.tycho.p2.resolver

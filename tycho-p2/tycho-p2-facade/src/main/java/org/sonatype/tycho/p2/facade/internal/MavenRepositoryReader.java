@@ -17,6 +17,8 @@ import org.apache.maven.repository.ArtifactTransferFailedException;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.sonatype.tycho.p2.repository.GAV;
+import org.sonatype.tycho.p2.repository.RepositoryReader;
 
 /**
  * Implementation of RepositoryReader interface that delegates to Maven repository subsystem to retrieve artifacts from

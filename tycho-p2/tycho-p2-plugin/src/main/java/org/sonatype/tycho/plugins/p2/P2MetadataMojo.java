@@ -9,9 +9,9 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.sonatype.tycho.osgi.EquinoxEmbedder;
-import org.sonatype.tycho.p2.facade.P2Generator;
-import org.sonatype.tycho.p2.facade.RepositoryLayoutHelper;
+import org.sonatype.tycho.p2.P2Generator;
 import org.sonatype.tycho.p2.facade.internal.ProjectArtifactFacade;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 
 /**
  * @goal p2-metadata

@@ -15,7 +15,7 @@ import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.query.CollectionResult;
 import org.junit.Assert;
 import org.junit.Test;
-import org.sonatype.tycho.p2.resolver.DependencyCollector;
+import org.sonatype.tycho.p2.impl.resolver.DependencyCollector;
 
 public class DependencyCollectorTest
 {

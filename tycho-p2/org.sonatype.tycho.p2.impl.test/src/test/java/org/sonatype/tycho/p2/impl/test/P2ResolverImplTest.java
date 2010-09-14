@@ -13,11 +13,10 @@ import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.internal.P2RepositoryCache;
-import org.sonatype.tycho.p2.facade.internal.P2ResolutionResult;
-import org.sonatype.tycho.p2.facade.internal.P2Resolver;
-import org.sonatype.tycho.p2.repo.MetadataSerializableImpl;
-import org.sonatype.tycho.p2.resolver.P2ResolverImpl;
+import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
+import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
+import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
+import org.sonatype.tycho.p2.resolver.P2Resolver;
 import org.sonatype.tycho.test.util.HttpServer;
 
 public class P2ResolverImplTest
@@ -41,7 +40,7 @@ public class P2ResolverImplTest
         throws Exception
     {
         P2ResolverImpl impl = new P2ResolverImpl();
-        impl.setRepositoryCache( new P2RepositoryCache() );
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new File( "resources/repositories/e342" ).getCanonicalFile().toURI() );
 
@@ -61,7 +60,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
-        Assert.assertEquals( 2, ( (MetadataSerializableImpl) result.getMetadataRepositorySerializable() ).getUnits().size() );
+        Assert.assertEquals( 2,  result.getInstallableUnits().size() );
     }
 
     @Test
@@ -84,7 +83,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
-        Assert.assertEquals( 2, ( (MetadataSerializableImpl) result.getMetadataRepositorySerializable() ).getUnits().size() );
+        Assert.assertEquals( 2, result.getInstallableUnits().size() );
     }
 
     @Test
@@ -116,7 +115,7 @@ public class P2ResolverImplTest
         throws IOException
     {
         P2ResolverImpl impl = new P2ResolverImpl();
-        impl.setRepositoryCache( new P2RepositoryCache() );
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new File( "resources/repositories/e342" ).getCanonicalFile().toURI() );
 
@@ -152,7 +151,7 @@ public class P2ResolverImplTest
     protected List<P2ResolutionResult> resolveFromHttp( P2ResolverImpl impl, String url )
         throws IOException, URISyntaxException
     {
-        impl.setRepositoryCache( new P2RepositoryCache() );
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new URI( url ) );
 
