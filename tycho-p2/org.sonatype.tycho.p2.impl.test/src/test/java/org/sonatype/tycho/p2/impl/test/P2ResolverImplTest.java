@@ -13,7 +13,6 @@ import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
 import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
 import org.sonatype.tycho.p2.resolver.P2Resolver;
@@ -40,9 +39,10 @@ public class P2ResolverImplTest
         throws Exception
     {
         P2ResolverImpl impl = new P2ResolverImpl();
-        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setRepositoryCache( new TestP2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new File( "resources/repositories/e342" ).getCanonicalFile().toURI() );
+        impl.setLogger( new NullP2Logger() );
 
         File bundle = new File( "resources/resolver/bundle01" ).getCanonicalFile();
         String groupId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
@@ -60,7 +60,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
-        Assert.assertEquals( 2,  result.getInstallableUnits().size() );
+        Assert.assertEquals( 1, result.getInstallableUnits().size() );
     }
 
     @Test
@@ -72,10 +72,12 @@ public class P2ResolverImplTest
 
         // prime local repository
         P2ResolverImpl impl = new P2ResolverImpl();
+        impl.setLogger( new NullP2Logger() );
         resolveFromHttp( impl, url );
 
         // now go offline and resolve again
         impl = new P2ResolverImpl();
+        impl.setLogger( new NullP2Logger() );
         impl.setOffline( true );
         List<P2ResolutionResult> results = resolveFromHttp( impl, url );
 
@@ -83,7 +85,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
-        Assert.assertEquals( 2, result.getInstallableUnits().size() );
+        Assert.assertEquals( 1, result.getInstallableUnits().size() );
     }
 
     @Test
@@ -111,13 +113,14 @@ public class P2ResolverImplTest
     }
 
     @Test
-    public void siteResolver()
+    public void siteConflictingDependenciesResolver()
         throws IOException
     {
         P2ResolverImpl impl = new P2ResolverImpl();
-        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setRepositoryCache( new TestP2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new File( "resources/repositories/e342" ).getCanonicalFile().toURI() );
+        impl.setLogger( new NullP2Logger() );
 
         impl.setEnvironments( getEnvironments() );
 
@@ -137,7 +140,7 @@ public class P2ResolverImplTest
 
         impl.stop();
 
-        Assert.assertEquals( 4, result.getArtifacts().size() );
+        Assert.assertEquals( 6, result.getArtifacts().size() );
     }
 
     private void addMavenProject( P2ResolverImpl impl, File basedir, String packaging, String id )
@@ -151,7 +154,7 @@ public class P2ResolverImplTest
     protected List<P2ResolutionResult> resolveFromHttp( P2ResolverImpl impl, String url )
         throws IOException, URISyntaxException
     {
-        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setRepositoryCache( new TestP2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
         impl.addP2Repository( new URI( url ) );
 

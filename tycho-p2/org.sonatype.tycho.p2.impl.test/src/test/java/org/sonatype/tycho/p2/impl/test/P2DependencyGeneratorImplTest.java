@@ -2,10 +2,12 @@ package org.sonatype.tycho.p2.impl.test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import junit.framework.Assert;
 
@@ -58,18 +60,18 @@ public class P2DependencyGeneratorImplTest
         String artifactId = "feature";
         String version = "1.0.0-SNAPSHOT";
         List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-        Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
+        Set<IInstallableUnit> units = new TreeSet<IInstallableUnit>();
         Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
         impl.generateMetadata( new ArtifactMock(location, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_FEATURE), environments,
                                units, artifacts );
 
-        // no feature.jar IU because dependencyOnly=true
-        Assert.assertEquals( 1, units.size() );
+        // feature.group and feature.jar IUs
+        Assert.assertEquals( 2, units.size() );
         IInstallableUnit unit = units.iterator().next();
 
         Assert.assertEquals( "org.sonatype.tycho.p2.impl.test.feature.feature.group", unit.getId() );
         Assert.assertEquals( "1.0.0.qualifier", unit.getVersion().toString() );
-        Assert.assertEquals( 4, unit.getRequirements().size() );
+        Assert.assertEquals( 5, unit.getRequirements().size() );
 
         Assert.assertEquals( 0, artifacts.size() );
     }

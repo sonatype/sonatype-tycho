@@ -31,4 +31,5 @@ Export-Package: copied.org.eclipse.equinox.internal.p2.publisher.eclipse;x-frien
  org.sonatype.tycho.p2.impl.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
  org.sonatype.tycho.p2.impl.resolver;x-friends:="org.sonatype.tycho.p2.impl.test"
 Import-Package: org.sonatype.tycho.p2,
+ org.sonatype.tycho.p2.repository,
  org.sonatype.tycho.p2.resolver
