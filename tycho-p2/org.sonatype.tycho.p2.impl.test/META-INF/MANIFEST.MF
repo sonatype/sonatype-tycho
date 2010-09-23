@@ -23,8 +23,6 @@ Import-Package: javax.servlet;version="2.5.0",
  org.codehaus.tycho.utils,
  org.sonatype.tycho.p2,
  org.sonatype.tycho.p2.impl.repo,
- org.sonatype.tycho.p2.facade,
- org.sonatype.tycho.p2.facade.internal,
  org.sonatype.tycho.p2.resolver
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.sonatype.tycho.p2.impl.test.Activator
