@@ -325,6 +325,8 @@ public class P2ResolverImpl
 
     protected P2ResolutionResult resolveProject( File projectLocation, ResolutionStrategy strategy )
     {
+        assertNoDuplicateReactorUIs();
+        
         strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
         LinkedHashSet<IInstallableUnit> projectIUs = getProjectIUs( projectLocation );
         strategy.setRootInstallableUnits( projectIUs );
@@ -377,6 +379,51 @@ public class P2ResolverImpl
         }
 
         return toResolutionResult( newState, projectIUs );
+    }
+
+    private void assertNoDuplicateReactorUIs()
+        throws DuplicateReactorIUsException
+    {
+        Map<IInstallableUnit, Set<File>> reactorUIs = new HashMap<IInstallableUnit, Set<File>>();
+        Map<IInstallableUnit, Set<File>> duplicateReactorUIs = new HashMap<IInstallableUnit, Set<File>>();
+
+        for ( Map.Entry<File, Set<IInstallableUnit>> entry : mavenArtifactIUs.entrySet() )
+        {
+            if ( isReactorProject( entry.getKey() ) )
+            {
+                for ( IInstallableUnit iu : entry.getValue() )
+                {
+                    Set<File> locations = reactorUIs.get( iu );
+                    if ( locations == null )
+                    {
+                        locations = new LinkedHashSet<File>();
+                        reactorUIs.put( iu, locations );
+                    }
+                    locations.add( entry.getKey() );
+                    if ( locations.size() > 1 )
+                    {
+                        duplicateReactorUIs.put( iu, locations );
+                    }
+                }
+            }
+        }
+
+        if ( !duplicateReactorUIs.isEmpty() )
+        {
+            throw new DuplicateReactorIUsException( duplicateReactorUIs );
+        }
+    }
+
+    private boolean isReactorProject( File location )
+    {
+        for ( Set<File> locations : iuReactorProjects.values() )
+        {
+            if ( locations != null && locations.contains( location ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState,

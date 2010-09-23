@@ -1,5 +1,7 @@
 package org.sonatype.tycho.p2.impl.test;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +15,7 @@ import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.sonatype.tycho.p2.impl.resolver.DuplicateReactorIUsException;
 import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
 import org.sonatype.tycho.p2.resolver.P2Resolver;
@@ -141,6 +144,35 @@ public class P2ResolverImplTest
         impl.stop();
 
         Assert.assertEquals( 6, result.getArtifacts().size() );
+    }
+
+    @Test
+    public void duplicateInstallableUnit()
+        throws Exception
+    {
+        P2ResolverImpl impl = new P2ResolverImpl();
+        impl.setLogger( new NullP2Logger() );
+        impl.setRepositoryCache( new TestP2RepositoryCacheImpl() );
+        impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
+        impl.setEnvironments( getEnvironments() );
+
+        File projectLocation = new File( "resources/duplicate-iu/featureA" ).getCanonicalFile();
+        impl.addMavenProject( new ArtifactMock( projectLocation, "groupId", "featureA", "1.0.0-SNAPSHOT",
+                                                P2Resolver.TYPE_ECLIPSE_FEATURE ) );
+
+        impl.addMavenProject( new ArtifactMock( new File( "resources/duplicate-iu/featureA2" ).getCanonicalFile(),
+                                                "groupId", "featureA2", "1.0.0-SNAPSHOT",
+                                                P2Resolver.TYPE_ECLIPSE_FEATURE ) );
+
+        try
+        {
+            impl.resolveProject( projectLocation );
+            fail();
+        }
+        catch ( DuplicateReactorIUsException e )
+        {
+            // TODO proper assertion
+        }
     }
 
     private void addMavenProject( P2ResolverImpl impl, File basedir, String packaging, String id )
