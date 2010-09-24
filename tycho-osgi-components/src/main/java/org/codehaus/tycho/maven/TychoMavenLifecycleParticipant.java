@@ -35,8 +35,8 @@ import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.DefaultBundleReader;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
-import org.sonatype.tycho.osgi.EquinoxLocator;
+import org.sonatype.tycho.equinox.embedder.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
 
 @Component( role = AbstractMavenLifecycleParticipant.class, hint = "TychoMavenLifecycleListener" )
 public class TychoMavenLifecycleParticipant
@@ -56,7 +56,7 @@ public class TychoMavenLifecycleParticipant
     private TychoP2RuntimeLocator p2runtime;
 
     @Requirement
-    private EquinoxLocator equinoxLocator;
+    private EquinoxRuntimeLocator equinoxLocator;
 
     @Requirement
     private EquinoxEmbedder equinoxEmbedder;
@@ -88,7 +88,7 @@ public class TychoMavenLifecycleParticipant
         File p2Directory = p2runtime.locateTychoP2Runtime( session );
         if ( p2Directory != null )
         {
-            equinoxLocator.setRuntimeLocation( p2Directory );
+            equinoxLocator.addRuntimeLocation( p2Directory );
             logger.debug( "Using P2 runtime at " + p2Directory );
         }
 

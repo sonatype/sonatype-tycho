@@ -13,7 +13,7 @@ import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.tycho.maven.MultiplexExecutionListener;
 import org.codehaus.tycho.maven.TychoLifecycleParticipant;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.embedder.EquinoxEmbedder;
 import org.sonatype.tycho.p2.ProxyServiceFacade;
 
 @Component( role = TychoLifecycleParticipant.class, hint = "P2ProxyConfigurator" )

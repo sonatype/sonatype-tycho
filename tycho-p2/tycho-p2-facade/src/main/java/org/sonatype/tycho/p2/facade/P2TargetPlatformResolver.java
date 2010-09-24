@@ -52,7 +52,7 @@ import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatfor
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
@@ -73,7 +73,7 @@ public class P2TargetPlatformResolver
     public static final String ROLE_HINT = "p2";
 
     @Requirement
-    private EquinoxEmbedder equinox;
+    private EquinoxServiceFactory equinox;
 
     @Requirement
     private PlexusContainer plexus;

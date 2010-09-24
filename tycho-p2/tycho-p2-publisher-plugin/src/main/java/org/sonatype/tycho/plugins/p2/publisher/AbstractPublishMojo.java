@@ -14,7 +14,7 @@ import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.DefaultConsumer;
 import org.codehaus.plexus.util.cli.WriterStreamConsumer;
 import org.codehaus.tycho.TargetPlatform;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
 import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
 
 public abstract class AbstractPublishMojo
@@ -28,7 +28,7 @@ public abstract class AbstractPublishMojo
     private boolean compress;
 
     /** @component */
-    private EquinoxEmbedder p2;
+    private EquinoxRuntimeLocator equinoxLocator;
 
     /** @component */
     private P2MetadataRepositoryWriter metadataRepositoryWriter;
@@ -110,7 +110,7 @@ public abstract class AbstractPublishMojo
 
     private Commandline createOSGiCommandline( String applicationId )
     {
-        File equinoxLauncher = getEquinoxLauncher( p2 );
+        File equinoxLauncher = getEquinoxLauncher( equinoxLocator );
         return createOSGiCommandline( applicationId, equinoxLauncher );
     }
 
@@ -147,9 +147,9 @@ public abstract class AbstractPublishMojo
         return getTargetRepositoryLocation().toURI().toString();
     }
 
-    private static File getEquinoxLauncher( EquinoxEmbedder equinoxEmbedder )
+    private static File getEquinoxLauncher( EquinoxRuntimeLocator equinoxLocator )
     {
-        File p2location = equinoxEmbedder.getRuntimeLocation();
+        File p2location = equinoxLocator.getRuntimeLocations().get(0);
         DirectoryScanner ds = new DirectoryScanner();
         ds.setBasedir( p2location );
         ds.setIncludes( new String[] { "plugins/org.eclipse.equinox.launcher_*.jar" } );

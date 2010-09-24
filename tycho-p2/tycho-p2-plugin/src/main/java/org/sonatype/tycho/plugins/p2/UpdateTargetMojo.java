@@ -20,8 +20,8 @@ import org.codehaus.tycho.model.Target.Repository;
 import org.codehaus.tycho.model.Target.Unit;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
-import org.sonatype.tycho.osgi.EquinoxLocator;
+import org.sonatype.tycho.equinox.EquinoxServiceFactory;
+import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
 import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
 import org.sonatype.tycho.p2.resolver.P2Logger;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
@@ -50,10 +50,10 @@ public class UpdateTargetMojo
     private TychoP2RuntimeLocator p2runtime;
 
     /** @component */
-    private EquinoxLocator equinoxLocator;
+    private EquinoxRuntimeLocator equinoxLocator;
 
     /** @component */
-    private EquinoxEmbedder equinox;
+    private EquinoxServiceFactory equinox;
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -63,7 +63,7 @@ public class UpdateTargetMojo
             File p2Directory = p2runtime.locateTychoP2Runtime( session );
             if ( p2Directory != null )
             {
-                equinoxLocator.setRuntimeLocation( p2Directory );
+                equinoxLocator.addRuntimeLocation( p2Directory );
                 getLog().debug( "Using P2 runtime at " + p2Directory );
             }
 

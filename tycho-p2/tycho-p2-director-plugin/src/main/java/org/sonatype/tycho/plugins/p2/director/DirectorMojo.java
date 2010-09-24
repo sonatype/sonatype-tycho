@@ -9,7 +9,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.DirectorApplicationWrapper;
 import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
 
@@ -22,7 +22,7 @@ public final class DirectorMojo
     extends AbstractProductMojo
 {
     /** @component */
-    private EquinoxEmbedder p2;
+    private EquinoxServiceFactory p2;
 
     /** @parameter default-value="DefaultProfile" */
     private String profile;

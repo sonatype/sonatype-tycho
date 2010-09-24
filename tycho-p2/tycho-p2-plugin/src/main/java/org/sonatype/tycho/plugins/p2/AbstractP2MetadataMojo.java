@@ -12,7 +12,7 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.plexus.util.cli.StreamConsumer;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
 
 public abstract class AbstractP2MetadataMojo
     extends AbstractMojo
@@ -73,7 +73,7 @@ public abstract class AbstractP2MetadataMojo
 
 
     /** @component */
-    private EquinoxEmbedder p2;
+    private EquinoxRuntimeLocator equinoxLocator;
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -183,7 +183,7 @@ public abstract class AbstractP2MetadataMojo
         throws MojoFailureException
     {
         // XXX dirty hack
-        File p2location = p2.getRuntimeLocation();
+        File p2location = equinoxLocator.getRuntimeLocations().get( 0 );
         DirectoryScanner ds = new DirectoryScanner();
         ds.setBasedir( p2location );
         ds.setIncludes( new String[] { "plugins/org.eclipse.equinox.launcher_*.jar" } );

@@ -1,14 +1,12 @@
-package org.sonatype.tycho.osgi;
+package org.sonatype.tycho.equinox.embedder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Configuration;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.eclipse.core.runtime.adaptor.EclipseStarter;
@@ -23,20 +21,15 @@ public class DefaultEquinoxEmbedder
     extends AbstractLogEnabled
     implements EquinoxEmbedder
 {
-    private static final String SYSPROP_EQUINOX_RUNTIMELOCATION = "equinox-runtimeLocation";
-
-    @Configuration( value = "${equinox-runtimeLocation}" )
-    private File runtimeLocation;
+    @Requirement
+    private EquinoxRuntimeLocator equinoxLocator;
 
     private BundleContext frameworkContext;
-
-    @Requirement
-    private EquinoxLocator equinoxLocator;
 
     private String[] nonFrameworkArgs;
 
     private List<Runnable> afterStartCallbacks = new ArrayList<Runnable>();
-
+    
     public synchronized void start()
         throws Exception
     {
@@ -66,14 +59,38 @@ public class DefaultEquinoxEmbedder
     protected void doStart()
         throws Exception
     {
-        String p2RuntimeLocation = getRuntimeLocation().getAbsolutePath();
+        List<File> locations = equinoxLocator.getRuntimeLocations();
+
+        if ( locations == null || locations.isEmpty() || !locations.get( 0 ).isDirectory() )
+        {
+            throw new RuntimeException( "Equinox runtime location is missing or invalid" );
+        }
+
+        File frameworkDir = locations.get( 0 );
+        String frameworkLocation = frameworkDir.getAbsolutePath();
 
         System.setProperty( "osgi.framework.useSystemProperties", "false" ); //$NON-NLS-1$ //$NON-NLS-2$
 
         Map<String, String> properties = new HashMap<String, String>();
-        properties.put( "osgi.install.area", p2RuntimeLocation );
-        properties.put( "osgi.syspath", p2RuntimeLocation + "/plugins" );
-        properties.put( "osgi.configuration.area", p2RuntimeLocation + "/configuration" );
+        properties.put( "osgi.install.area", frameworkLocation );
+        properties.put( "osgi.syspath", frameworkLocation + "/plugins" );
+        properties.put( "osgi.configuration.area", frameworkLocation + "/configuration" );
+
+        StringBuilder bundles = new StringBuilder();
+        addBundlesDir( bundles, new File( frameworkDir, "plugins" ).listFiles(), false );
+        for ( int i = 1; i < locations.size(); i++ )
+        {
+            File location = locations.get( i );
+            if ( location.isDirectory() )
+            {
+                addBundlesDir( bundles, location.listFiles(), true );
+            }
+            else
+            {
+                bundles.append( ',' ).append( getReferenceUrl( location ) );
+            }
+        }
+        properties.put( "osgi.bundles", bundles.toString() );
 
         // this tells framework to use our classloader as parent, so it can see classes that we see
         properties.put( "osgi.parentClassloader", "fwk" );
@@ -93,8 +110,11 @@ public class DefaultEquinoxEmbedder
         // EclipseStarter is not helping here
 
         EclipseStarter.setInitialProperties( properties );
+
         EclipseStarter.startup( nonFrameworkArgs != null ? nonFrameworkArgs : new String[0], null );
+
         frameworkContext = EclipseStarter.getSystemBundleContext();
+
         PackageAdmin packageAdmin = null;
         ServiceReference packageAdminRef = frameworkContext.getServiceReference( PackageAdmin.class.getName() );
         if ( packageAdminRef != null )
@@ -113,7 +133,7 @@ public class DefaultEquinoxEmbedder
             {
                 try
                 {
-                    bundle.start( );
+                    bundle.start();
                 }
                 catch ( BundleException e )
                 {
@@ -129,47 +149,51 @@ public class DefaultEquinoxEmbedder
         }
     }
 
-    public File getRuntimeLocation()
+    private void addBundlesDir( StringBuilder bundles, File[] files, boolean absolute )
     {
-        // first, check system property
-        String locatition = System.getProperty( SYSPROP_EQUINOX_RUNTIMELOCATION );
-        if ( locatition != null )
+        if ( files != null )
         {
-            File file;
-            try
+            for ( File file : files )
             {
-                file = new File( locatition ).getCanonicalFile();
+                if ( file.getName().startsWith( "org.eclipse.osgi_" ) )
+                {
+                    continue;
+                }
+
+                if ( bundles.length() > 0 )
+                {
+                    bundles.append( ',' );
+                }
+
+                if ( absolute )
+                {
+                    bundles.append( getReferenceUrl( file ) );
+                }
+                else
+                {
+                    String name = file.getName();
+                    int verIdx = name.indexOf( '_' );
+                    if ( verIdx > 0 )
+                    {
+                        bundles.append( name.substring( 0, verIdx ) );
+                    }
+                    else
+                    {
+                        // TODO barf
+                    }
+                }
+
+                if ( file.getName().startsWith( "org.eclipse.equinox.ds_" ) )
+                {
+                    bundles.append( "@1:start" );
+                }
             }
-            catch ( IOException e )
-            {
-                throw new RuntimeException( "Unexpected IOException", e );
-            }
-
-            if ( !isValidP2RuntimeLocation( file ) )
-            {
-                throw new RuntimeException( "Cannot find P2 runtime at specified location " + runtimeLocation );
-            }
-
-            return file;
         }
-
-        // second, check explicit component configuration
-        if ( isValidP2RuntimeLocation( runtimeLocation ) )
-        {
-            return runtimeLocation;
-        }
-
-        if ( isValidP2RuntimeLocation( equinoxLocator.getRuntimeLocation() ) )
-        {
-            return equinoxLocator.getRuntimeLocation();
-        }
-
-        throw new RuntimeException( "Could not determine P2 runtime location" );
     }
 
-    private static boolean isValidP2RuntimeLocation( File runtimeLocation )
+    String getReferenceUrl( File file )
     {
-        return runtimeLocation != null && runtimeLocation.isDirectory();
+        return "reference:" + file.getAbsoluteFile().toURI().normalize().toString();
     }
 
     public <T> T getService( Class<T> clazz )

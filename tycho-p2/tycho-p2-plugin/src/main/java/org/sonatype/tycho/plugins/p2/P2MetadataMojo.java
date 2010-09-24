@@ -8,7 +8,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.sonatype.tycho.osgi.EquinoxEmbedder;
+import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.P2Generator;
 import org.sonatype.tycho.p2.facade.internal.ProjectArtifactFacade;
 import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
@@ -29,7 +29,7 @@ public class P2MetadataMojo
     protected MavenProjectHelper projectHelper;
 
     /** @component */
-    private EquinoxEmbedder equinox;
+    private EquinoxServiceFactory equinox;
 
     private P2Generator p2;
 
