@@ -41,7 +41,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.maven.TychoMavenLifecycleParticipant;
+import org.codehaus.tycho.resolver.DefaultTargetPlatformResolverFactory;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.osgi.framework.Version;
 
@@ -287,6 +287,9 @@ public class TestMojo extends AbstractMojo {
     /** @component */
     private Logger logger;
 
+    /** @component */
+    private DefaultTargetPlatformResolverFactory targetPlatformResolverLocator;
+    
     /**
      * @component role="org.codehaus.tycho.TychoProject"
      */
@@ -320,7 +323,7 @@ public class TestMojo extends AbstractMojo {
 			}
 		}
 
-		TargetPlatformResolver platformResolver = TychoMavenLifecycleParticipant.lookupPlatformResolver( plexus, project );
+		TargetPlatformResolver platformResolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
 
 		ArrayList<Dependency> dependencies = new ArrayList<Dependency>(); 
 
