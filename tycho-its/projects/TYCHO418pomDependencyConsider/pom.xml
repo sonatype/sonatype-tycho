@@ -7,7 +7,7 @@
   <packaging>pom</packaging>
   
   <properties>
-  	<tycho.targetPlatform>${project.build.directory}</tycho.targetPlatform>
+  	<tycho.targetPlatform>${java.io.tmpdir}</tycho.targetPlatform>
   </properties>
 
   <modules>
