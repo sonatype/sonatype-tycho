@@ -7,7 +7,7 @@
   <packaging>pom</packaging>
   
   <properties>
-  	<tycho.targetPlatform>targetPlatform</tycho.targetPlatform>
+  	<tycho.targetPlatform>${project.build.directory}</tycho.targetPlatform>
   </properties>
 
   <modules>
