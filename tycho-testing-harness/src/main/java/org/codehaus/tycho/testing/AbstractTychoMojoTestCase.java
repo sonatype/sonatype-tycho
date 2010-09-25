@@ -16,6 +16,7 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.sonatype.aether.util.DefaultRepositorySystemSession;
 
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 
@@ -88,7 +89,8 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
     {
         MavenExecutionRequest request = newMavenExecutionRequest( new File( project.getBasedir(), "pom.xml" ) );
         MavenExecutionResult result = new DefaultMavenExecutionResult();
-        MavenSession session = new MavenSession(getContainer(), request, result);
+        DefaultRepositorySystemSession repositorySession = new DefaultRepositorySystemSession();
+        MavenSession session = new MavenSession(getContainer(), repositorySession, request, result);
         session.setCurrentProject( project );
         session.setProjects( projects );
         return session;

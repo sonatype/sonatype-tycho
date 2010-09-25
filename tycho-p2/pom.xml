@@ -33,17 +33,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-component-annotations</artifactId>
-        <version>${plexusVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-container-default</artifactId>
-        <version>${plexusVersion}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.sonatype.tycho</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
         <version>${equinoxVersion}</version>

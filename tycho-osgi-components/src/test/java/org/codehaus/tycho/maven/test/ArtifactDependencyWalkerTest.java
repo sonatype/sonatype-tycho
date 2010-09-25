@@ -21,6 +21,7 @@ import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.osgitools.AbstractArtifactDependencyWalker;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.sonatype.aether.util.DefaultRepositorySystemSession;
 
 public class ArtifactDependencyWalkerTest
     extends AbstractTychoMojoTestCase
@@ -92,11 +93,13 @@ public class ArtifactDependencyWalkerTest
     protected TargetPlatform getTargetPlatform()
         throws Exception
     {
-        LocalTargetPlatformResolver resolver = (LocalTargetPlatformResolver) lookup( TargetPlatformResolver.class );
+        LocalTargetPlatformResolver resolver =
+            (LocalTargetPlatformResolver) lookup( TargetPlatformResolver.class, LocalTargetPlatformResolver.ROLE_HINT );
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
         MavenExecutionResult result = new DefaultMavenExecutionResult();
-        MavenSession session = new MavenSession( getContainer(), request, result );
+        DefaultRepositorySystemSession repositorySession = new DefaultRepositorySystemSession();
+        MavenSession session = new MavenSession( getContainer(), repositorySession, request, result );
         session.setProjects( new ArrayList<MavenProject>() );
 
         MavenProject project = new MavenProject();

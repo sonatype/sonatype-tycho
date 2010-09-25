@@ -19,17 +19,18 @@ package org.codehaus.tycho.testing;
  * under the License.
  */
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.lifecycle.DefaultLifecycles;
+import org.apache.maven.lifecycle.LifecycleExecutionException;
 import org.apache.maven.lifecycle.LifecycleExecutor;
 import org.apache.maven.lifecycle.LifecycleNotFoundException;
 import org.apache.maven.lifecycle.LifecyclePhaseNotFoundException;
 import org.apache.maven.lifecycle.MavenExecutionPlan;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.InvalidPluginDescriptorException;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoNotFoundException;
 import org.apache.maven.plugin.PluginDescriptorParsingException;
 import org.apache.maven.plugin.PluginManagerException;
@@ -37,6 +38,7 @@ import org.apache.maven.plugin.PluginNotFoundException;
 import org.apache.maven.plugin.PluginResolutionException;
 import org.apache.maven.plugin.prefix.NoPluginFoundForPrefixException;
 import org.apache.maven.plugin.version.PluginVersionResolutionException;
+import org.apache.maven.project.MavenProject;
 
 /**
  * A stub implementation that assumes an empty lifecycle to bypass interaction with the plugin manager and to avoid
@@ -50,7 +52,8 @@ public class EmptyLifecycleExecutor
 
     public Set<Plugin> getPluginsBoundByDefaultToAllLifecycles( String packaging )
     {
-        return Collections.emptySet();
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public MavenExecutionPlan calculateExecutionPlan( MavenSession session, String... tasks )
@@ -59,11 +62,30 @@ public class EmptyLifecycleExecutor
         PluginManagerException, LifecyclePhaseNotFoundException, LifecycleNotFoundException,
         PluginVersionResolutionException
     {
-        return new MavenExecutionPlan(null, null, null, null );
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public void execute( MavenSession session )
     {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void calculateForkedExecutions( MojoExecution mojoExecution, MavenSession session )
+        throws MojoNotFoundException, PluginNotFoundException, PluginResolutionException,
+        PluginDescriptorParsingException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException,
+        LifecyclePhaseNotFoundException, LifecycleNotFoundException, PluginVersionResolutionException
+    {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public List<MavenProject> executeForkedExecutions( MojoExecution mojoExecution, MavenSession session )
+        throws LifecycleExecutionException
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

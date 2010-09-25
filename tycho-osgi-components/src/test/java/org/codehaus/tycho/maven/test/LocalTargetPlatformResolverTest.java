@@ -17,6 +17,7 @@ import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.sonatype.aether.util.DefaultRepositorySystemSession;
 
 public class LocalTargetPlatformResolverTest
     extends AbstractTychoMojoTestCase
@@ -38,11 +39,13 @@ public class LocalTargetPlatformResolverTest
     protected TargetPlatform getTargetPlatform( File location )
         throws Exception, IOException
     {
-        LocalTargetPlatformResolver resolver = (LocalTargetPlatformResolver) lookup( TargetPlatformResolver.class );
+        LocalTargetPlatformResolver resolver =
+            (LocalTargetPlatformResolver) lookup( TargetPlatformResolver.class, LocalTargetPlatformResolver.ROLE_HINT );
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
         MavenExecutionResult result = new DefaultMavenExecutionResult();
-        MavenSession session = new MavenSession( getContainer(), request, result );
+        DefaultRepositorySystemSession repositorySession = new DefaultRepositorySystemSession();
+        MavenSession session = new MavenSession( getContainer(), repositorySession, request, result );
         session.setProjects( new ArrayList<MavenProject>() );
 
         MavenProject project = new MavenProject();
