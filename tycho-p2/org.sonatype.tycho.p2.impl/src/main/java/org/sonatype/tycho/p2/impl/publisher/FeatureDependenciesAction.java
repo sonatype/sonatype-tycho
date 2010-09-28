@@ -1,13 +1,11 @@
 package org.sonatype.tycho.p2.impl.publisher;
 
-import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
-import org.eclipse.equinox.p2.metadata.ILicense;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.IUpdateDescriptor;
@@ -156,41 +154,15 @@ public class FeatureDependenciesAction
         {
             iud.setProperty( IInstallableUnit.PROP_DESCRIPTION, feature.getDescription() );
         }
-        if ( feature.getDescriptionURL() != null )
-        {
-            iud.setProperty( IInstallableUnit.PROP_DESCRIPTION_URL, feature.getDescriptionURL() );
-        }
         if ( feature.getProviderName() != null )
         {
             iud.setProperty( IInstallableUnit.PROP_PROVIDER, feature.getProviderName() );
-        }
-        if ( feature.getLicense() != null )
-        {
-            iud.setLicenses( new ILicense[] { MetadataFactory.createLicense( createURI( feature.getLicenseURL() ),
-                                                                             feature.getLicense() ) } );
-        }
-        if ( feature.getCopyright() != null )
-        {
-            iud.setCopyright( MetadataFactory.createCopyright( createURI( feature.getCopyrightURL() ),
-                                                               feature.getCopyright() ) );
         }
         if ( !Version.emptyVersion.equals( iud.getVersion() ) )
         {
             final VersionRange newVersionRange = new VersionRange( Version.emptyVersion, true, iud.getVersion(), false );
             iud.setUpdateDescriptor( MetadataFactory.createUpdateDescriptor( iud.getId(), newVersionRange,
                                                                              IUpdateDescriptor.NORMAL, null ) );
-        }
-    }
-
-    private URI createURI( final String url )
-    {
-        if ( url != null )
-        {
-            return URI.create( url );
-        }
-        else
-        {
-            return null;
         }
     }
 
