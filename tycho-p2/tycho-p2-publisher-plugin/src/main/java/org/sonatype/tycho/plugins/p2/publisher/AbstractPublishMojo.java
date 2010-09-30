@@ -20,7 +20,7 @@ import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
 public abstract class AbstractPublishMojo
     extends AbstractP2Mojo
 {
-    static String PUBLISHER_BUNDLE_ID = "org.sonatype.tycho.p2.publisher";
+    static String PUBLISHER_BUNDLE_ID = "org.eclipse.equinox.p2.publisher";
 
     /**
      * @parameter default-value="true"

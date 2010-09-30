@@ -81,38 +81,8 @@
      -->
     <jdtVersion>3.6.0.v_A58</jdtVersion>
 
-    <!--
-      Canonical build target platform configuration used to resolve p2 runtime.
-
-      Integration test can use different version/classifier. Use -Pe34 or -Pe35
-      to test against Eclipse 3.4.x and 3.5.x respectively.
-
-      As of Eclipse 3.6RC1, target.eclipse-classifier does not have to match the actual build system.
-      For example, I am able to fully build and test Tycho in linux/gtk/x86_64 using
-      target.eclipse-classifier=win32
-
-      ECLIPSE_VERSION=3.6.0
-
-      /opt/maven/bin/mvn install:install-file -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
-        -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dclassifier=win32 -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
-
-      /opt/maven/bin/mvn install:install-file -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
-        -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
-
-      mvn deploy:deploy-file -DgeneratePom=false -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
-        -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dversion=${ECLIPSE_VERSION} -Dclassifier=win32 -Dpackaging=zip \
-        -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
-
-      mvn deploy:deploy-file -e -DgeneratePom=false -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
-        -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip \
-        -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
-
-    -->
-    <target.basedir>${java.io.tmpdir}</target.basedir>
-    <target.eclipse-version>3.6.0</target.eclipse-version>
-    <target.eclipse-classifier>win32</target.eclipse-classifier>
-    <target.eclipse-basedir>${target.basedir}/tycho-ci/${target.eclipse-classifier}/${target.eclipse-version}</target.eclipse-basedir>
-    <tycho.targetPlatform>${target.eclipse-basedir}/eclipse</tycho.targetPlatform>
+    <!-- version of tycho used by this build -->
+    <tychoBootstrapVersion>0.9.0</tychoBootstrapVersion>
   </properties>
 
   <dependencyManagement>
@@ -338,6 +308,22 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>${tychoBootstrapVersion}</version>
+        <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.tycho</groupId>
+        <artifactId>target-platform-configuration</artifactId>
+        <version>${tychoBootstrapVersion}</version>
+        <configuration>
+          <resolver>p2</resolver>
+        </configuration>
+      </plugin>
     </plugins>
 
     <pluginManagement>
@@ -431,7 +417,36 @@
         <enabled>true</enabled>
       </releases>
     </repository>
+
+    <repository>
+      <id>helios</id>
+      <layout>p2</layout>
+      <url>http://download.eclipse.org/releases/helios</url>
+    </repository>
   </repositories>
+
+  <modules>
+    <module>tycho-equinox</module>
+    <module>tycho-osgi-components</module>
+    <module>tycho-testing-harness</module>
+    <module>tycho-maven-plugin</module>
+
+    <module>tycho-compiler-jdt</module>
+    <module>maven-osgi-compiler-plugin</module>
+    <module>maven-osgi-packaging-plugin</module>
+    <module>maven-osgi-source-plugin</module>
+    <module>maven-tycho-plugin</module>
+    <module>target-platform-configuration</module>
+
+    <!--  surefire -->
+    <module>tycho-surefire</module>
+
+    <!--  release -->
+    <module>tycho-release</module>
+
+    <!-- tycho-p2 -->
+    <module>tycho-p2</module>
+  </modules>
 
   <profiles>
     <profile>
@@ -463,12 +478,6 @@
             </configuration>
           </plugin>
 
-          <plugin>
-            <groupId>org.sonatype.tycho</groupId>
-            <artifactId>tycho-maven-plugin</artifactId>
-            <version>0.7.0</version>
-            <extensions>true</extensions>
-          </plugin>
         </plugins>
       </build>
     </profile>
@@ -480,103 +489,6 @@
       </modules>
     </profile>
 
-    <profile>
-      <!-- 
-        Copy/uzip eclipse sdk and delta-pack. This has to be executed explicitly from cli
-        because Tycho target platform is resolved *before* actual build, i.e. before
-        dependency:unpack is executed.
-
-        mvn -Pbootstrap-0 dependency:unpack 
-      -->
-      <id>bootstrap-0</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.1</version>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.sonatype.tycho.ci</groupId>
-                  <artifactId>eclipse-SDK</artifactId>
-                  <classifier>${target.eclipse-classifier}</classifier>
-                  <version>${target.eclipse-version}</version>
-                  <type>zip</type>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.sonatype.tycho.ci</groupId>
-                  <artifactId>eclipse-delta-pack</artifactId>
-                  <version>${target.eclipse-version}</version>
-                  <type>zip</type>
-                </artifactItem>
-              </artifactItems>
-              <markersDirectory>${target.basedir}/markers</markersDirectory>
-              <outputDirectory>${target.eclipse-basedir}</outputDirectory>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>bootstrap-1</id>
-      <modules>
-        <module>tycho-equinox</module>
-        <module>tycho-bootstrap-maven-plugin</module>
-        <module>tycho-osgi-components</module>
-        <module>tycho-testing-harness</module>
-
-      </modules>
-    </profile>
-
-    <profile>
-      <id>bootstrap-2</id>
-      <modules>
-        <module>tycho-maven-plugin</module>
-
-        <module>tycho-compiler-jdt</module>
-        <module>maven-osgi-compiler-plugin</module>
-        <module>maven-osgi-packaging-plugin</module>
-        <module>maven-osgi-source-plugin</module>
-        <module>maven-tycho-plugin</module>
-        <module>target-platform-configuration</module>
-
-        <!--  surefire -->
-        <module>tycho-surefire</module>
-
-        <!--  release -->
-        <module>tycho-release</module>
-
-        <!-- tycho-p2 -->
-        <module>tycho-p2</module>
-      </modules>
-
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.sonatype.tycho</groupId>
-            <artifactId>tycho-bootstrap-maven-plugin</artifactId>
-            <version>${project.version}</version>
-            <extensions>true</extensions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>e34</id>
-      <properties>
-        <target.eclipse-version>3.4.2</target.eclipse-version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>e35</id>
-      <properties>
-        <target.eclipse-version>3.5.2</target.eclipse-version>
-      </properties>
-    </profile>
   </profiles>
 
 </project>
