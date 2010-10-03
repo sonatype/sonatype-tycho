@@ -17,7 +17,9 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.equinox.internal.p2.publisher.eclipse.FeatureParser;
 import org.eclipse.equinox.internal.p2.publisher.eclipse.IProductDescriptor;
@@ -189,7 +191,12 @@ public class P2GeneratorImpl
 			PublisherInfo publisherInfo, IPublisherAction[] actions) {
 		PublisherResult result = new PublisherResult();
 
-        new Publisher( publisherInfo, result ).publish( actions, monitor );
+        IStatus status = new Publisher( publisherInfo, result ).publish( actions, monitor );
+
+        if ( !status.isOK() )
+        {
+            throw new RuntimeException( new CoreException( status ) );
+        }
 
         if ( units != null )
         {
