@@ -74,6 +74,11 @@
       <artifactId>tycho-equinox</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-metadata-model</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.sonatype.tycho</groupId>

@@ -6,10 +6,12 @@
     <exportedPackage>org.sonatype.tycho</exportedPackage>
     <exportedPackage>org.osgi.framework</exportedPackage>
     <exportedPackage>org.eclipse.osgi</exportedPackage>
+    <exportedPackage>org.codehaus.tycho.model</exportedPackage>
   </exportedPackages>
 
   <exportedArtifacts>
     <exportedArtifact>tycho-osgi-components</exportedArtifact>
+    <exportedArtifact>tycho-metadata-model</exportedArtifact>
     <exportedArtifact>org.sonatype.tycho.p2</exportedArtifact>
     <exportedArtifact>tycho-p2-facade</exportedArtifact>
     <exportedArtifact>tycho-equinox</exportedArtifact>

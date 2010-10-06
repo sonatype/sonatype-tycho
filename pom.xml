@@ -198,6 +198,7 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.1</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -427,6 +428,7 @@
 
   <modules>
     <module>tycho-equinox</module>
+    <module>tycho-metadata-model</module>
     <module>tycho-osgi-components</module>
     <module>tycho-testing-harness</module>
     <module>tycho-maven-plugin</module>
