@@ -2,13 +2,12 @@ package org.sonatype.tycho.p2.impl.publisher.model;
 
 import java.util.ArrayList;
 
+import org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile;
 import org.eclipse.equinox.p2.metadata.IVersionedId;
 import org.eclipse.equinox.p2.metadata.VersionedId;
 import org.xml.sax.Attributes;
 
-import copied.org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile;
-
-@SuppressWarnings( { "rawtypes", "unchecked" } )
+@SuppressWarnings( { "rawtypes", "unchecked", "restriction" } )
 public class ProductFile2
     extends ProductFile
 {

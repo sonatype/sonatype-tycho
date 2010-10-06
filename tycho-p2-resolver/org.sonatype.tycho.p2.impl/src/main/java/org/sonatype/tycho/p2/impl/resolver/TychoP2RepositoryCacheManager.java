@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.equinox.internal.p2.repository.CacheManager;
 import org.eclipse.equinox.p2.core.ProvisionException;
-
-import copied.org.eclipse.equinox.internal.p2.repository.CacheManager;
 
 /**
  * @author igor
  */
+@SuppressWarnings( "restriction" )
 public class TychoP2RepositoryCacheManager
     extends CacheManager
 {

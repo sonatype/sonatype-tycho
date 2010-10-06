@@ -17,7 +17,6 @@ import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.artifact.spi.AbstractArtifactRepository;
-import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
 
 public class TransientArtifactRepository
     extends AbstractArtifactRepository
@@ -29,7 +28,7 @@ public class TransientArtifactRepository
 
     public TransientArtifactRepository()
     {
-        super( null, "TemporaryArtifactRepository", TransientArtifactRepository.class.getName(), "1.0.0", null, null,
+        super( null, "TransientArtifactRepository", TransientArtifactRepository.class.getName(), "1.0.0", null, null,
                null, null );
     }
 
