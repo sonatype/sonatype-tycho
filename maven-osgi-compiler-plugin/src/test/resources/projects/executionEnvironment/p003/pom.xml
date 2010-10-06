@@ -20,8 +20,8 @@
         <configuration>
           <compilerId>jdt</compilerId>
           <usePdeSourceRoots>true</usePdeSourceRoots>
-          <source>1.3</source>
-	      <target>1.3</target>
+          <source>1.5</source>
+	      <target>jsr14</target>
         </configuration>
       </plugin>
     </plugins>

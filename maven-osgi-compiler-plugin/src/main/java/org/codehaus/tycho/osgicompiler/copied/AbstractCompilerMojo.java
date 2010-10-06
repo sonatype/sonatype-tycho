@@ -52,7 +52,12 @@ import org.codehaus.plexus.util.StringUtils;
  * @version $Id: AbstractCompilerMojo.java 210 2007-02-20 03:02:41Z jvanzyl $
  */
 public abstract class AbstractCompilerMojo extends AbstractMojo {
-	// ----------------------------------------------------------------------
+
+    public static final String DEFAULT_SOURCE_VERSION = "1.5";
+
+    public static final String DEFAULT_TARGET_VERSION = "1.5";
+
+    // ----------------------------------------------------------------------
 	// Configurables
 	// ----------------------------------------------------------------------
 
@@ -99,14 +104,14 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 	 * 
 	 * @parameter expression="${maven.compiler.source}" default-value="1.5"
 	 */
-	private String source;
+	protected String source;
 
 	/**
 	 * The -target argument for the Java compiler
 	 * 
 	 * @parameter expression="${maven.compiler.target}" default-value="1.5"
 	 */
-	private String target;
+	protected String target;
 
 	/**
 	 * The -encoding argument for the Java compiler
@@ -432,9 +437,9 @@ public abstract class AbstractCompilerMojo extends AbstractMojo {
 
 		compilerConfiguration.setShowDeprecation(showDeprecation);
 
-		compilerConfiguration.setSourceVersion(source);
+		compilerConfiguration.setSourceVersion(source != null? source: DEFAULT_SOURCE_VERSION);
 
-		compilerConfiguration.setTargetVersion(target);
+		compilerConfiguration.setTargetVersion(target != null? target: DEFAULT_TARGET_VERSION);
 
 		compilerConfiguration.setSourceEncoding(encoding);
 

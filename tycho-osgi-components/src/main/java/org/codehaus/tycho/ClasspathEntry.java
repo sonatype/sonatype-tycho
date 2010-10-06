@@ -7,9 +7,9 @@ public interface ClasspathEntry
 {
     public static class AccessRule
     {
-        public final String path;
+        private final String path;
 
-        public final boolean discouraged;
+        private final boolean discouraged;
 
         public AccessRule( String path, boolean discouraged )
         {
@@ -29,6 +29,16 @@ public interface ClasspathEntry
             }
             AccessRule other = (AccessRule) obj;
             return discouraged == other.discouraged && path.equals( other.path );
+        }
+
+        public boolean isDiscouraged()
+        {
+            return discouraged;
+        }
+
+        public String getPattern()
+        {
+            return path;
         }
     }
 

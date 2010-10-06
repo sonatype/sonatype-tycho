@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.tycho.SourcepathEntry;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
@@ -60,7 +61,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		MavenProject project = projects.get(4);
 		AbstractOsgiCompilerMojo mojo = getMojo(projects, project);
-		mojo.initializeProjectContext();
         List<String> cp = mojo.getClasspathElements();
 		assertEquals(4, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
@@ -80,7 +80,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		// simple project
 		project = projects.get(1);
 		AbstractOsgiCompilerMojo mojo = getMojo(projects, project);
-		mojo.initializeProjectContext();
         cp = mojo.getClasspathElements();
 		assertEquals(1, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
@@ -88,7 +87,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		// project with nested lib
 		project = projects.get(2);
 		mojo = getMojo(projects, project);
-        mojo.initializeProjectContext();
 		cp = mojo.getClasspathElements();
 		assertEquals(2, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
@@ -97,7 +95,6 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		// project with external dependency with nested jar
 		project = projects.get(3);
 		mojo = getMojo(projects, project);
-        mojo.initializeProjectContext();
 		cp = mojo.getClasspathElements();
 		assertEquals(3, cp.size());
 		assertEquals(getClasspathElement(project.getBasedir(), "target/classes", ""), cp.get(0));
@@ -141,9 +138,30 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
 		assertTrue(new File(project.getBasedir(), "target/classes/src/Src.class").canRead());
 		assertTrue(new File(project.getBasedir(), "target/library.jar-classes/src2/Src2.class").canRead());
+
+		List<SourcepathEntry> sourcepath = getMojo(projects, project).getSourcepath();
+		assertEquals(2, sourcepath.size());
 	}
-	
-	public void testCopyResources() throws Exception { 
+
+	public void test_multipleOutputJars_getSourcepath() throws Exception {
+        File basedir = getBasedir("projects/multijar");
+        List<MavenProject> projects = getSortedProjects(basedir, null);
+
+        MavenProject project = projects.get(0);
+
+        List<SourcepathEntry> sourcepath = getMojo(projects, project).getSourcepath();
+        assertEquals(2, sourcepath.size());
+        assertSameFile(new File(project.getBasedir(), "target/classes"), sourcepath.get(0).getOutputDirectory());
+        assertSameFile(new File(project.getBasedir(), "src"), sourcepath.get(0).getSourcesRoot());
+        assertSameFile(new File(project.getBasedir(), "target/library.jar-classes"), sourcepath.get(1).getOutputDirectory());
+        assertSameFile(new File(project.getBasedir(), "src2"), sourcepath.get(1).getSourcesRoot());
+    }
+
+	private void assertSameFile(File expected, File actual) throws IOException {
+	    assertEquals(expected.getCanonicalFile(), actual.getCanonicalFile());
+    }
+
+    public void testCopyResources() throws Exception { 
 		File basedir = getBasedir("projects/resources/p001");
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 		MavenProject project = projects.get(0);
@@ -178,14 +196,16 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		} catch (CompilationFailureException e) {
 			// expected
 		}
-		// project with both compiler configuration in pom.xml
-		// and Bundle-RequiredExecutionEnvironment. Latter should win.
-		// build will produce a warning that source/target level was overridden
-		// from MANIFEST
+		// project with both explicit compiler configuration in pom.xml and Bundle-RequiredExecutionEnvironment. 
+		// explicit compiler configuration in the pom should win. see https://issues.sonatype.org/browse/TYCHO-476
 		project = projects.get(3);
-		getMojo(projects, project).execute();
+		AbstractOsgiCompilerMojo mojo = getMojo(projects, project);
+		assertEquals("jsr14", mojo.getTargetLevel());
+		assertEquals("1.5", mojo.getSourceLevel());
+		assertEquals("J2SE-1.5", mojo.getExecutionEnvironment());
+		mojo.execute();
 		assertTrue(new File(project.getBasedir(),
-				"target/classes/TestRunnable.class").canRead());
+				"target/classes/Generic.class").canRead()); // TODO check if target class is actually 1.4
 	}
 	
 }

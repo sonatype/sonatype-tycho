@@ -34,6 +34,7 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.project.artifact.ProjectArtifact;
 import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.compiler.CompilerConfiguration;
 import org.codehaus.plexus.compiler.util.scan.InclusionScanException;
@@ -43,12 +44,14 @@ import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleProject;
 import org.codehaus.tycho.ClasspathEntry;
-import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.ClasspathEntry.AccessRule;
+import org.codehaus.tycho.SourcepathEntry;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.UnknownEnvironmentException;
-import org.codehaus.tycho.ClasspathEntry.AccessRule;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
+import org.codehaus.tycho.osgitools.DefaultClasspathEntry;
+import org.codehaus.tycho.osgitools.OsgiBundleProject;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.utils.ExecutionEnvironment;
@@ -75,8 +78,6 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	 * @parameter expression="${project}"
 	 */
 	private MavenProject project;
-
-	private EclipsePluginProject pdeProject;
 
 	/**
 	 * If set to true, compiler will use source folders defined in build.properties 
@@ -145,13 +146,11 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	private Map<String, TychoProject> projectTypes;
 
 	public void execute() throws MojoExecutionException, CompilationFailureException {
-        initializeProjectContext();
-
 		if (usePdeSourceRoots) {
 			getLog().info("Using compile source roots from build.properties");
 		}
 
-		for (BuildOutputJar jar : pdeProject.getOutputJars()) {
+		for (BuildOutputJar jar : getEclipsePluginProject().getOutputJars()) {
 			this.outputJar = jar;
 			this.outputJar.getOutputDirectory().mkdirs();
 			super.execute();
@@ -159,7 +158,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		}
 
 		// this does not include classes from nested jars
-		BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
+		BuildOutputJar dotOutputJar = getEclipsePluginProject().getDotOutputJar();
 		if (dotOutputJar != null) {
 			project.getArtifact().setFile(dotOutputJar.getOutputDirectory());
 		}
@@ -206,10 +205,9 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		}
 	}
 
-	/** public for testing purposes */
-    public void initializeProjectContext()
-    {
-        pdeProject = (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+	/** public for testing purposes */ 
+    public EclipsePluginProject getEclipsePluginProject() throws MojoExecutionException {
+        return ((OsgiBundleProject) getBundleProject()).getEclipsePluginProject(project);
     }
 
 	@Override
@@ -218,40 +216,13 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	}
 
 	public List<String> getClasspathElements() throws MojoExecutionException {
-	    TychoProject projectType = getBundleProject();
-		List<String> classpath = new ArrayList<String>();
-		for (ClasspathEntry cpe : ((BundleProject) projectType).getClasspath(project)) {
-		    String rules = toString(cpe.getAccessRules());
-		    for (File location : cpe.getLocations()) {
-		        classpath.add(location.getAbsolutePath() + rules);
-		    }
-		}
-
-		if (extraClasspathElements != null) {
-	    	ArtifactRepository localRepository = session.getLocalRepository();
-	    	List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
-			for (MavenArtifactRef a : extraClasspathElements) {
-				Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar");
-
-				ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-				request.setArtifact( artifact );
-				request.setLocalRepository( localRepository );
-				request.setRemoteRepositories( remoteRepositories );
-				request.setResolveRoot( true );
-				request.setResolveTransitively( true );
-                ArtifactResolutionResult result = repositorySystem.resolve( request );
-                
-                if (result.hasExceptions()) {
-                    throw new MojoExecutionException("Could not resolve extra classpath entry", result.getExceptions().get(0));
-                }
-
-    			for (Artifact b : result.getArtifacts()) {
-					classpath.add(b.getFile().getAbsolutePath() + "[+**/*]");
-				}
-			}
-		}
-		
-		return classpath;
+	    final List<String> classpath = new ArrayList<String>();
+	    for ( ClasspathEntry cpe : getClasspath() ) {
+            for (File location: cpe.getLocations()) {
+                classpath.add(location.getAbsolutePath() + toString( cpe.getAccessRules() ));
+            }
+        }
+	    return classpath;
 	}
 
 	private BundleProject getBundleProject() throws MojoExecutionException {
@@ -268,12 +239,15 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
             result.append("[");
             for (AccessRule rule : rules) {
                 if (result.length() > 1) result.append(RULE_SEPARATOR);
-                result.append(rule.discouraged? "~": "+");
-                result.append(rule.path);
+                result.append(rule.isDiscouraged()? "~": "+");
+                result.append(rule.getPattern());
             }
             if (result.length() > 1) result.append(RULE_SEPARATOR);
             result.append(RULE_EXCLUDE_ALL);
             result.append("]");
+        } else {
+            // include everything, not strictly necessary, but lets make this obvious
+            //result.append("[+**/*]");
         }
         return result.toString();
     }
@@ -281,6 +255,31 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
     protected final List<String> getCompileSourceRoots() throws MojoExecutionException {
 		return usePdeSourceRoots? getPdeCompileSourceRoots(): getConfiguredCompileSourceRoots();
 	}
+
+    public List<SourcepathEntry> getSourcepath() throws MojoExecutionException {
+        ArrayList<SourcepathEntry> entries = new ArrayList<SourcepathEntry>();
+        for(BuildOutputJar jar : getEclipsePluginProject().getOutputJars()) {
+            final File outputDirectory = jar.getOutputDirectory();
+            for(final File sourcesRoot : jar.getSourceFolders() ) {
+                SourcepathEntry entry = new SourcepathEntry() {
+                    public File getSourcesRoot() {
+                        return sourcesRoot;
+                    }
+                    public File getOutputDirectory() {
+                        return outputDirectory;
+                    }
+                    public List<String> getIncludes() {
+                        return null;
+                    }
+                    public List<String> getExcludes() {
+                        return null;
+                    }
+                };
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
 
 	protected abstract List<String> getConfiguredCompileSourceRoots();
 
@@ -332,7 +331,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 	protected CompilerConfiguration getCompilerConfiguration(List<String> compileSourceRoots) throws MojoExecutionException {
 		CompilerConfiguration compilerConfiguration = super.getCompilerConfiguration(compileSourceRoots);
 		if (usePdeSourceRoots) {
-			Properties props = pdeProject.getBuildProperties();
+			Properties props = getEclipsePluginProject().getBuildProperties();
 			String encoding = props.getProperty("javacDefaultEncoding." + outputJar.getName());
 			if (encoding != null) {
 				compilerConfiguration.setSourceEncoding(encoding);
@@ -351,37 +350,8 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		if (executionEnvironments.length == 0) {
 			return;
 		}
-		try {
-			String sourceVersion = getMinimalSourceVersion(executionEnvironments);
-			String pomSourceVersion = compilerConfiguration.getSourceVersion();
-			if (pomSourceVersion != null
-					&& !sourceVersion.equals(pomSourceVersion)) {
-				getLog().warn(
-						"Overriding compiler source level " + pomSourceVersion
-								+ " from POM with source level "
-								+ sourceVersion + " from MANIFEST.MF");
-			}
-			compilerConfiguration.setSourceVersion(sourceVersion);
-			String targetVersion = getMinimalTargetVersion(executionEnvironments);
-			String pomTargetVersion = compilerConfiguration.getTargetVersion();
-			if (pomTargetVersion != null
-					&& !targetVersion.equals(pomTargetVersion)) {
-				getLog().warn(
-						"Overriding compiler target level " + pomTargetVersion
-								+ " from POM with target level "
-								+ targetVersion + " from MANIFEST.MF");
-			}
-			compilerConfiguration.setTargetVersion(targetVersion);
-			getLog().debug(
-					"Using compiler source level: " + sourceVersion
-							+ ", target level: " + targetVersion);
-		} catch (UnknownEnvironmentException e) {
-			// fail-fast, ignoring any other environments
-			getLog()
-					.warn(
-							"Compiler source and target level not set due to unknown Bundle-RequiredExecutionEnvironment: '"
-									+ e.getEnvironmentName() + "'");
-		}
+		compilerConfiguration.setSourceVersion(getSourceLevel(executionEnvironments));
+		compilerConfiguration.setTargetVersion(getTargetLevel(executionEnvironments));
 	}
 
 	private String[] getExecutionEnvironments() throws MojoExecutionException {
@@ -424,4 +394,83 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
 		}
 		return Collections.min(sourceLevels);
 	}
+
+	public List<ClasspathEntry> getClasspath() throws MojoExecutionException {
+        TychoProject projectType = getBundleProject();
+	    ArrayList<ClasspathEntry> classpath = new ArrayList<ClasspathEntry>(((BundleProject) projectType).getClasspath(project));
+
+        if (extraClasspathElements != null) {
+            ArtifactRepository localRepository = session.getLocalRepository();
+            List<ArtifactRepository> remoteRepositories = project.getRemoteArtifactRepositories();
+            for (MavenArtifactRef a : extraClasspathElements) {
+                Artifact artifact = repositorySystem.createArtifact(a.getGroupId(), a.getArtifactId(), a.getVersion(), "jar");
+
+                ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+                request.setArtifact( artifact );
+                request.setLocalRepository( localRepository );
+                request.setRemoteRepositories( remoteRepositories );
+                request.setResolveRoot( true );
+                request.setResolveTransitively( true );
+                ArtifactResolutionResult result = repositorySystem.resolve( request );
+                
+                if (result.hasExceptions()) {
+                    throw new MojoExecutionException("Could not resolve extra classpath entry", result.getExceptions().get(0));
+                }
+
+                for (Artifact b : result.getArtifacts()) {
+                    MavenProject bProject = null;
+                    if (b instanceof ProjectArtifact) {
+                        bProject = ((ProjectArtifact) b).getProject();
+                    }
+                    ArrayList<File> bLocations = new ArrayList<File>();
+                    bLocations.add(b.getFile()); // TODO properly handle multiple project locations maybe
+                    classpath.add(new DefaultClasspathEntry( null, bLocations, null));
+                }
+            }
+        }
+        return classpath;
+	}
+
+	public String getExecutionEnvironment() throws MojoExecutionException {
+	    String[] environments = getExecutionEnvironments();
+	    return environments!= null && environments.length > 0? environments[0]: null;
+	}
+
+	public String getSourceLevel() throws MojoExecutionException {
+        return getSourceLevel(getExecutionEnvironments());
+	}
+
+    private String getSourceLevel(String[] executionEnvironments) {
+        if (source != null) {
+            // explicit pom configuration wins
+            return source;
+        }
+        if (executionEnvironments != null && executionEnvironments.length > 0) {
+            try {
+                return getMinimalSourceVersion(executionEnvironments);
+            } catch (UnknownEnvironmentException e) {
+                // fall through
+            }
+        }
+        return DEFAULT_SOURCE_VERSION;
+    }
+
+    public String getTargetLevel() throws MojoExecutionException {
+        return getTargetLevel(getExecutionEnvironments());
+    }
+
+    public String getTargetLevel(String[] executionEnvironments) {
+        if (target != null) {
+            // explicit pom configuration wins
+            return target;
+        }
+        if (executionEnvironments != null && executionEnvironments.length > 0) {
+            try {
+                return getMinimalTargetVersion(executionEnvironments);
+            } catch (UnknownEnvironmentException e) {
+                // fall through
+            }
+        }
+        return DEFAULT_TARGET_VERSION;
+    }
 }
