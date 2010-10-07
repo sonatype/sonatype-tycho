@@ -60,9 +60,11 @@ public class DependencyComputerTest
         BundleDescription bundle = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
 
         List<DependencyEntry> dependencies = dependencyComputer.computeDependencies( state.getStateHelper(), bundle );
-        Assert.assertEquals( 2, dependencies.size() );
+        Assert.assertEquals( 3, dependencies.size() );
         Assert.assertEquals( "dep", dependencies.get( 0 ).desc.getSymbolicName() );
         Assert.assertEquals( "dep2", dependencies.get( 1 ).desc.getSymbolicName() );
+        Assert.assertEquals( "dep3", dependencies.get( 2 ).desc.getSymbolicName() );
+        Assert.assertTrue( dependencies.get( 2 ).rules.isEmpty() );
     }
 
     @Test

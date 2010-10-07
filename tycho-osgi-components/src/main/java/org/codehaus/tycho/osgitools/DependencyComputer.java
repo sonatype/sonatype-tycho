@@ -171,9 +171,7 @@ public class DependencyComputer {
 
 		BundleSpecification[] required = desc.getRequiredBundles();
 		for (int i = 0; i < required.length; i++) {
-			if (required[i].isExported()) {
-				addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
-			}
+			addDependency((BundleDescription) required[i].getSupplier(), added, map, entries, useInclusion);
 		}
 	}
 

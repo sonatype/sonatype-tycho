@@ -207,5 +207,25 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertTrue(new File(project.getBasedir(),
 				"target/classes/Generic.class").canRead()); // TODO check if target class is actually 1.4
 	}
-	
+
+    public void test_TYCHO0400indirectDependencies()
+        throws Exception
+    {
+        File basedir = getBasedir( "projects/indirectDependencies" );
+        List<MavenProject> projects = getSortedProjects( basedir, null );
+
+        assertEquals( "C", projects.get( 1 ).getArtifactId() );
+        getMojo( projects, projects.get( 1 ) ).execute();
+
+        assertEquals( "B", projects.get( 2 ).getArtifactId() );
+        getMojo( projects, projects.get( 2 ) ).execute();
+
+        assertEquals( "A", projects.get( 3 ).getArtifactId() );
+        AbstractOsgiCompilerMojo mojo = getMojo( projects, projects.get( 3 ) );
+        List<String> cp = mojo.getClasspathElements();
+        assertEquals( getClasspathElement( projects.get( 1 ).getBasedir(), "target/classes", "[?**/*]" ), cp.get( 2 ) );
+
+        mojo.execute();
+        assertTrue( new File( projects.get(3).getBasedir(), "target/classes/a/A.class" ).canRead() );
+    }
 }

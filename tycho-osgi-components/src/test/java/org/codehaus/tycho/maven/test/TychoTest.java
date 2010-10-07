@@ -158,10 +158,11 @@ public class TychoTest extends AbstractTychoMojoTestCase {
 		assertEquals("client", client.getArtifactId());
 		// depends on host and because host has ExtensibleAPI also depends fragment and fragent2
 		List<Dependency> clientDependencies = client.getModel().getDependencies();
-		assertEquals(3, clientDependencies.size());
+		assertEquals(4, clientDependencies.size());
 		assertEquals("host", clientDependencies.get(0).getArtifactId());
 		assertEquals("fragment", clientDependencies.get(1).getArtifactId());
-		assertEquals("fragment2", clientDependencies.get(2).getArtifactId());
+        assertEquals("dep", clientDependencies.get(2).getArtifactId());
+		assertEquals("fragment2", clientDependencies.get(3).getArtifactId());
 	}
 
 	public void testPre30() throws Exception {
