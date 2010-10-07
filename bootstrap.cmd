@@ -1,14 +1,13 @@
-rem Location of Eclipse 3.5 with RCP Delta pack
-set TYCHO_TARGET_PLATFORM=c:\Users\Seven\Desktop\eclipse
+rem  Location of Eclipse SDK with RCP Delta pack
+set TYCHO_TEST_TARGET_PLATFORM=c:\eclipse\3.6.1\eclipse
 
-rem location of maven used to build bootstrap tycho distribution
-set TYCHO_M2_HOME=c:\java\maven
+rem Location of maven used to build tycho 
+set TYCHO_M2_HOME=c:\tools\apache-maven-3.0
 
-rem Stage 0, update versions
-rem %TYCHO_M2_HOME%/bin/mvn -e -U -up -Ppseudo-release,full \
-rem  org.codehaus.mojo:buildnumber-maven-plugin:create org.sonatype.plugins:maven-version-plugin:set-version \
-rem  -Dmaven.repo.local=%M2_LOCAL_REPO%
+set MAVEN_OPTS=-Xmx512m -XX:MaxPermSize=128m
 
-call %TYCHO_M2_HOME%/bin/m32 clean install -e -V -Pbootstrap-1
+call %TYCHO_M2_HOME%\bin\mvn -f tycho-p2-resolver\pom.xml clean install -U -e -V
 
-call %TYCHO_M2_HOME%/bin/m32 clean install -e -V -Pbootstrap-2,its -Dtycho.targetPlatform=%TYCHO_TARGET_PLATFORM%
+call %TYCHO_M2_HOME%\bin\mvn clean install -U -e -V
+
+call %TYCHO_M2_HOME%\bin\mvn -f tycho-its\pom.xml clean test -U -e -V -Dtycho.testTargetPlatform=%TYCHO_TEST_TARGET_PLATFORM%
