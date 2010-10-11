@@ -182,7 +182,7 @@ public abstract class AbstractSourceJarMojo
     protected List reactorProjects;
 
     /**
-     * Whether creating the archive should be forced.  If set to true, the jar will
+     * NOT SUPPORTED. Whether creating the archive should be forced.  If set to true, the jar will
      * always be created.  If set to false, the jar will only be created when the
      * sources are newer than the jar.
      *
@@ -277,8 +277,11 @@ public abstract class AbstractSourceJarMojo
             archiver.setOutputFile( outputFile );
 
             archive.setAddMavenDescriptor( false );
-            archive.setForced( forceCreation );
-
+            if (!archive.isForced()) {
+                // optimized archive creation not supported for now because of build qualifier mismatch issues, see TYCHO-502
+                getLog().warn( "ignoring unsupported archive forced = false parameter." );
+                archive.setForced( true );
+            }
             archiver.createArchive( project, archive );
         }
         catch ( IOException e )

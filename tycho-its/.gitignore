@@ -1,5 +1,4 @@
-/target
-/.settings
-/.classpath
-/.project
-/workspace
+target/
+.settings/
+.classpath
+.project
