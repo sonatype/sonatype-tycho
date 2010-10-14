@@ -38,7 +38,7 @@ public class PublishCategoriesMojo
 
                 List<String> categoryArgs = new ArrayList<String>();
                 categoryArgs.add( "-categoryDefinition" );
-                categoryArgs.add( buildCategoryFile.toURI().toURL().toExternalForm() );
+                categoryArgs.add( buildCategoryFile.toURL().toExternalForm() );
 
                 executePublisherApplication( CATEGORY_PUBLISHER_APP_NAME,
                                              (String[]) categoryArgs.toArray( new String[categoryArgs.size()] ) );

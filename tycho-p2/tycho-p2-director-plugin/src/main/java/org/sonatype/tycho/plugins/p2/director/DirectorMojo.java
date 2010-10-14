@@ -61,7 +61,7 @@ public final class DirectorMojo
                             "-artifactrepository",
                             repositoryLocation.toURI().toString() + "," + getSession().getLocalRepository().getUrl(), //
                             "-installIU", product.getId(), //
-                            "-destination", destination.toString(), //
+                            "-destination", destination.getAbsolutePath(), //
                             "-profile", profile, //
                             "-profileProperties", "org.eclipse.update.install.features=true", //
                             "-roaming", //
@@ -95,6 +95,6 @@ public final class DirectorMojo
         {
             stream.close();
         }
-        return repositoryLocation.toURI().toURL().toExternalForm();
+        return repositoryLocation.toURI().toString();
     }
 }

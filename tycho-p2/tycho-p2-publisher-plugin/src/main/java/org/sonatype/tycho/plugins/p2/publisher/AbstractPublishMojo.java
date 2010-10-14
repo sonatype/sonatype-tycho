@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -128,7 +129,7 @@ public abstract class AbstractPublishMojo
         {
             stream.close();
         }
-        return repositoryLocation.toURI().toURL().toExternalForm();
+        return repositoryLocation.toURL().toExternalForm();
     }
 
     /**
@@ -143,8 +144,9 @@ public abstract class AbstractPublishMojo
      * @return The value of the -metadataRepository and -artifactRepository (always the same for us so far)
      */
     private String getRepositoryUrl()
+        throws MalformedURLException
     {
-        return getTargetRepositoryLocation().toURI().toString();
+        return getTargetRepositoryLocation().toURL().toExternalForm();
     }
 
     private static File getEquinoxLauncher( EquinoxRuntimeLocator equinoxLocator )
