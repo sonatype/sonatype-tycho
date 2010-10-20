@@ -14,6 +14,7 @@
     <exportedArtifact>tycho-osgi-components</exportedArtifact>
     <exportedArtifact>tycho-metadata-model</exportedArtifact>
     <exportedArtifact>org.sonatype.tycho.p2</exportedArtifact>
+    <exportedArtifact>org.sonatype.tycho.p2.tools.facade</exportedArtifact>
     <exportedArtifact>tycho-p2-facade</exportedArtifact>
     <exportedArtifact>tycho-equinox-api</exportedArtifact>
     <exportedArtifact>tycho-equinox</exportedArtifact>

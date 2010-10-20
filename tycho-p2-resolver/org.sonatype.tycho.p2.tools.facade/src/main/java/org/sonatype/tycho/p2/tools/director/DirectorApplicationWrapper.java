@@ -1,4 +1,4 @@
-package org.sonatype.tycho.p2;
+package org.sonatype.tycho.p2.tools.director;
 
 public interface DirectorApplicationWrapper
 {
