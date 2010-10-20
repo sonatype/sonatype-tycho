@@ -9,12 +9,13 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import org.apache.maven.it.Verifier;
-import org.codehaus.plexus.archiver.zip.ZipEntry;
-import org.codehaus.plexus.archiver.zip.ZipFile;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
@@ -35,17 +36,19 @@ public class Tycho188P2EnabledRcpTest
 
     private static final List<Product> TEST_PRODUCTS =
         Arrays.asList( new Product( "main.product.id", "", false, true ), new Product( "extra.product.id", "extra",
-                                                                                       true, false ),
+                                                                                       "rootfolder", true, false ),
                        new Product( "repoonly.product.id", false ) );
 
     private static final List<Environment> TEST_ENVIRONMENTS =
         Arrays.asList( new Environment( "win32", "win32", "x86" ), new Environment( "linux", "gtk", "x86" ) );
 
-    @Test
-    public void testProductPublisher()
+    private static Verifier verifier;
+
+    @BeforeClass
+    public static void buildProduct()
         throws Exception
     {
-        Verifier verifier = getVerifier( "/TYCHO188P2EnabledRcp", false );
+        verifier = new Tycho188P2EnabledRcpTest().getVerifier( "/TYCHO188P2EnabledRcp", false );
         verifier.setAutoclean( false );
         verifier.executeGoal( "clean" );
         verifier.verifyErrorFreeLog();
@@ -55,7 +58,7 @@ public class Tycho188P2EnabledRcpTest
         verifier.executeGoal( "compile" );
         verifier.verifyErrorFreeLog();
         validatePublishedProducts( verifier, getContentXml( verifier ) );
-        
+
         // change product version and run next build. Only one product IU must be contained in resulting repository.
         File newMainProductFile = new File( verifier.getBasedir(), MODULE + "/main.product_version2" );
         File oldMainProductFile = new File( verifier.getBasedir(), MODULE + "/main.product" );
@@ -65,15 +68,31 @@ public class Tycho188P2EnabledRcpTest
         verifier.executeGoal( "install" );
         verifier.verifyErrorFreeLog();
 
-        Document contentXml = getContentXml( verifier );
-        validatePublishedProducts( verifier, contentXml );
-        validateContent( verifier, contentXml );
-        validateNoDuplications(contentXml);
-        validateInstalledProductArtifacts( verifier );
     }
 
-    private void validateContent( Verifier verifier, Document contentXml )
-        throws IOException, ZipException
+    @Test
+    public void testInstalledProdcutArtifacts()
+        throws Exception
+    {
+        for ( Product product : TEST_PRODUCTS )
+        {
+            for ( Environment env : TEST_ENVIRONMENTS )
+            {
+                assertProductArtifacts( verifier, product, env );
+            }
+        }
+    }
+
+    @Test
+    public void testPublishedProducts()
+        throws Exception
+    {
+        validatePublishedProducts( verifier, getContentXml( verifier ) );
+    }
+
+    @Test
+    public void testContent()
+        throws Exception
     {
         assertRepositoryArtifacts( verifier );
         int materializedProducts = TEST_PRODUCTS.size() - 1;
@@ -83,8 +102,18 @@ public class Tycho188P2EnabledRcpTest
         assertLocalFeatureProperties( verifier.getBasedir() );
     }
 
+    @Test
+    public void testNoDuplicates()
+        throws Exception
+    {
+        for ( Product product : TEST_PRODUCTS )
+        {
+            assertEquals( product.unitId + " IU published more than once", 1,
+                          Util.countIUWithProperty( getContentXml( verifier ), product.unitId ) );
+        }
+    }
 
-    private void validatePublishedProducts( Verifier verifier, Document contentXml )
+    private static void validatePublishedProducts( Verifier verifier, Document contentXml )
         throws IOException, ZipException
     {
         for ( Product product : TEST_PRODUCTS )
@@ -96,28 +125,7 @@ public class Tycho188P2EnabledRcpTest
         }
     }
 
-    private void validateInstalledProductArtifacts( Verifier verifier )
-        throws IOException, ZipException
-    {
-        for ( Product product : TEST_PRODUCTS )
-        {
-            for ( Environment env : TEST_ENVIRONMENTS )
-            {
-                assertProductArtifacts( verifier, product, env );
-            }
-        }
-    }
-    
-    private void validateNoDuplications( Document contentXml )
-    {
-        for ( Product product : TEST_PRODUCTS )
-        {
-            assertEquals( product.unitId + " IU published more than once", 1, Util.countIUWithProperty( contentXml,
-                                                                                                   product.unitId ) );
-        }
-    }
-
-    private Document getContentXml( Verifier verifier )
+    private static Document getContentXml( Verifier verifier )
         throws IOException, ZipException
     {
         File repoDir = new File( verifier.getBasedir(), MODULE + "/target/repository" );
@@ -126,7 +134,7 @@ public class Tycho188P2EnabledRcpTest
         Document contentXml = Util.openXmlFromZip( contentJar, "content.xml" );
         return contentXml;
     }
-    
+
     private void assertLocalFeatureProperties( String baseDir )
         throws IOException
     {
@@ -134,7 +142,8 @@ public class Tycho188P2EnabledRcpTest
         Document contentXml = XMLParser.parse( contentXmlFile );
         assertTrue( "feature description is missing",
                     Util.containsIUWithProperty( contentXml, "example.feature.feature.group",
-                                            "org.eclipse.equinox.p2.description", "A description of an example feature" ) );
+                                                 "org.eclipse.equinox.p2.description",
+                                                 "A description of an example feature" ) );
     }
 
     static private void assertProductIUs( Document contentXml, Product product, Environment env )
@@ -166,14 +175,20 @@ public class Tycho188P2EnabledRcpTest
                     + env.toOsWsArch() + ".zip" );
             assertTrue( "Product archive not found at: " + installedProductArchive, installedProductArchive.exists() );
 
-            Properties configIni = Util.openPropertiesFromZip( installedProductArchive, "configuration/config.ini" );
+            String rootFolder = product.getRootFolderName() != null ? product.getRootFolderName() + "/" : "";
+
+            Properties configIni =
+                Util.openPropertiesFromZip( installedProductArchive, rootFolder + "configuration/config.ini" );
             String bundleConfiguration = configIni.getProperty( "osgi.bundles" );
             assertTrue( "Installation is not configured to use the simpleconfigurator",
                         bundleConfiguration.startsWith( "reference:file:org.eclipse.equinox.simpleconfigurator" ) );
+
+            assertRootFolder( installedProductArchive, product.getRootFolderName() );
+
             if ( product.hasLocalFeature() )
             {
-                assertContainsEntry( installedProductArchive, "features/example.feature_1.0.0." );
-                assertContainsEntry( installedProductArchive, "plugins/example.bundle_1.0.0." );
+                assertContainsEntry( installedProductArchive, rootFolder + "features/example.feature_1.0.0." );
+                assertContainsEntry( installedProductArchive, rootFolder + "plugins/example.bundle_1.0.0." );
             }
         }
     }
@@ -183,20 +198,50 @@ public class Tycho188P2EnabledRcpTest
     {
         ZipFile zipFile = new ZipFile( file );
 
-        for ( final Enumeration<?> entries = zipFile.getEntries(); entries.hasMoreElements(); )
+        try
         {
-            final ZipEntry entry = (ZipEntry) entries.nextElement();
-            if ( entry.getName().startsWith( prefix ) )
+            for ( final Enumeration<?> entries = zipFile.entries(); entries.hasMoreElements(); )
             {
-                if ( entry.getName().endsWith( "qualifier" ) )
+                final ZipEntry entry = (ZipEntry) entries.nextElement();
+                if ( entry.getName().startsWith( prefix ) )
                 {
-                    Assert.fail( "replacement of build qualifier missing in " + file + ", zip entry: "
-                        + entry.getName() );
+                    if ( entry.getName().endsWith( "qualifier" ) )
+                    {
+                        Assert.fail( "replacement of build qualifier missing in " + file + ", zip entry: "
+                            + entry.getName() );
+                    }
+                    return;
                 }
-                return;
+            }
+
+            Assert.fail( "missing entry " + prefix + "* in product archive " + file );
+        }
+        finally
+        {
+            zipFile.close();
+        }
+    }
+
+    private static void assertRootFolder( File file, String rootFolderName )
+        throws IOException
+    {
+        if ( rootFolderName != null )
+        {
+            ZipFile zipFile = new ZipFile( file );
+            try
+            {
+                rootFolderName += "/";
+                Assert.assertNotNull( file.getName() + " does not contain the rootfolder \"" + rootFolderName + "\"",
+                                      zipFile.getEntry( rootFolderName ) );
+                String entry = rootFolderName + "plugins/org.eclipse.osgi_3.6.1.R36x_v20100806.jar";
+                Assert.assertNotNull( file.getName() + " does not contain path in the rootfolder \"" + entry + "\"",
+                                      zipFile.getEntry( entry ) );
+            }
+            finally
+            {
+                zipFile.close();
             }
         }
-        Assert.fail( "missing entry " + prefix + "* in product archive " + file );
     }
 
     static private void assertRepositoryArtifacts( Verifier verifier )
@@ -257,20 +302,25 @@ public class Tycho188P2EnabledRcpTest
 
         private final boolean localFeature;
 
-        Product( String unitId, String attachId, boolean p2InfProperty, boolean localFeature )
+        private final String rootFolderName;
+
+        Product( String unitId, String attachId, String rootFolderName, boolean p2InfProperty, boolean localFeature )
         {
             this.unitId = unitId;
             this.attachId = attachId;
             this.p2InfProperty = p2InfProperty;
             this.localFeature = localFeature;
+            this.rootFolderName = rootFolderName;
+        }
+
+        Product( String unitId, String attachId, boolean p2InfProperty, boolean localFeature )
+        {
+            this( unitId, attachId, null, p2InfProperty, localFeature );
         }
 
         Product( String unitId, boolean p2InfProperty )
         {
-            this.unitId = unitId;
-            this.attachId = null;
-            this.p2InfProperty = p2InfProperty;
-            localFeature = false;
+            this( unitId, null, null, p2InfProperty, false );
         }
 
         boolean isMaterialized()
@@ -290,6 +340,11 @@ public class Tycho188P2EnabledRcpTest
         boolean hasLocalFeature()
         {
             return localFeature;
+        }
+
+        public String getRootFolderName()
+        {
+            return rootFolderName;
         }
     }
 }

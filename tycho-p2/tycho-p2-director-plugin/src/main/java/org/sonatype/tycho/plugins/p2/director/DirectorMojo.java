@@ -53,7 +53,13 @@ public final class DirectorMojo
                 try
                 {
                     String targetRepositoryUrl = materializeRepository( getTargetPlatform(), getBuildDirectory() );
+
                     File destination = getProductMaterializeDirectory( product, env );
+                    String rootFolder = product.getRootFolder();
+                    if (rootFolder != null && !rootFolder.isEmpty()) {
+                        destination = new File( destination, rootFolder );
+                    }
+
                     String[] args =
                         new String[] {
                             "-metadatarepository",

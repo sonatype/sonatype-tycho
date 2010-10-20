@@ -39,6 +39,7 @@
 						</product>
 						<product>
 							<id>extra.product.id</id>
+							<rootFolder>rootfolder</rootFolder>
 							<attachId>extra</attachId>
 						</product>
 					</products>

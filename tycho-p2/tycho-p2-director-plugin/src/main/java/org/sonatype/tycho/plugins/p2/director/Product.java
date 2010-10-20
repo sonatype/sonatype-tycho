@@ -18,6 +18,12 @@ public final class Product
      * Arch). May be omitted.
      */
     private String attachId;
+    
+    /**
+     * The name of the root folder of the materialized product.
+     * May be omitted, which results in no root folder. 
+     */
+    private String rootFolder;
 
     public Product()
     {
@@ -44,6 +50,11 @@ public final class Product
         return attachId;
     }
 
+    public String getRootFolder()
+    {
+        return rootFolder;
+    }
+    
     @Override
     public String toString()
     {
