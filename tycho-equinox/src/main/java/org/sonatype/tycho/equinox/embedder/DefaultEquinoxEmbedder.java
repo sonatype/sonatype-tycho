@@ -209,7 +209,8 @@ public class DefaultEquinoxEmbedder
 
     String getReferenceUrl( File file )
     {
-        return "reference:" + file.getAbsoluteFile().toURI().normalize().toString();
+        // TODO replace this by URI.toString once Eclipse bug #328926 is resolved
+        return "reference:" + "file:" + file.getAbsoluteFile().toURI().normalize().getPath();
     }
 
     public <T> T getService( Class<T> clazz )
