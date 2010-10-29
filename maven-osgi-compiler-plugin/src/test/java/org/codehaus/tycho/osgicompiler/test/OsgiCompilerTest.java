@@ -7,10 +7,10 @@ import java.util.List;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.SourcepathEntry;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.sonatype.tycho.classpath.SourcepathEntry;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 

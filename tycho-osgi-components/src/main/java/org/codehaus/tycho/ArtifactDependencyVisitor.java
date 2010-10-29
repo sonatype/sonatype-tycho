@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
+import org.sonatype.tycho.ArtifactDescriptor;
 
 public abstract class ArtifactDependencyVisitor
 {
@@ -17,21 +18,21 @@ public abstract class ArtifactDependencyVisitor
 
     }
 
-    public void missingFeature( FeatureRef ref, List<ArtifactDescription> walkback )
+    public void missingFeature( FeatureRef ref, List<ArtifactDescriptor> walkback )
     {
         throw newRuntimeException( "Could not resolve feature", ref.toString(), walkback );
     }
 
-    public void missingPlugin( PluginRef ref, List<ArtifactDescription> walkback )
+    public void missingPlugin( PluginRef ref, List<ArtifactDescriptor> walkback )
     {
         throw newRuntimeException( "Could not resolve plugin", ref.toString(), walkback );
     }
 
-    protected RuntimeException newRuntimeException( String message, String missing, List<ArtifactDescription> walkback )
+    protected RuntimeException newRuntimeException( String message, String missing, List<ArtifactDescriptor> walkback )
     {
         StringBuilder sb = new StringBuilder();
         sb.append( message ).append( " " ).append( missing ).append( "; Path to dependency:\n" );
-        for ( ArtifactDescription artifact : walkback )
+        for ( ArtifactDescriptor artifact : walkback )
         {
             sb.append( "  " ).append( artifact.toString() ).append( "\n" );
         }

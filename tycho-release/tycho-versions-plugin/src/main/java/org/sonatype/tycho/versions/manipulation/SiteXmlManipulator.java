@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.model.UpdateSite.SiteFeatureRef;
+import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.versions.engine.VersionChange;
 import org.sonatype.tycho.versions.engine.MetadataManipulator;
 import org.sonatype.tycho.versions.engine.ProjectMetadata;
@@ -71,7 +71,7 @@ public class SiteXmlManipulator
 
     private boolean isSite( String packaging )
     {
-        return TychoProject.ECLIPSE_UPDATE_SITE.equals( packaging );
+        return ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE.equals( packaging );
     }
 
     public void writeMetadata( ProjectMetadata project )

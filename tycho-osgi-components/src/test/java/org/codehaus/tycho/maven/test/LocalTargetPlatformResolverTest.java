@@ -10,14 +10,13 @@ import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.ArtifactDescription;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.sonatype.aether.util.DefaultRepositorySystemSession;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 public class LocalTargetPlatformResolverTest
     extends AbstractTychoMojoTestCase
@@ -27,7 +26,7 @@ public class LocalTargetPlatformResolverTest
     {
         TargetPlatform platform = getTargetPlatform( new File( "src/test/resources/targetplatforms/basic" ) );
 
-        ArtifactDescription artifact = platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, "bundle01", null );
+        ArtifactDescriptor artifact = platform.getArtifact( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, "bundle01", null );
         ArtifactKey key = artifact.getKey();
         assertEquals( "bundle01", key.getId() );
         assertEquals( "0.0.1", key.getVersion() );
@@ -66,7 +65,7 @@ public class LocalTargetPlatformResolverTest
         File bundlePath =
             new File( platformPath, "plugins/org.eclipse.equinox.launcher_1.0.101.R34x_v20081125.jar" ).getCanonicalFile();
 
-        ArtifactDescription artifact = platform.getArtifact( bundlePath );
+        ArtifactDescriptor artifact = platform.getArtifact( bundlePath );
 
         assertNotNull( artifact );
     }
@@ -81,7 +80,7 @@ public class LocalTargetPlatformResolverTest
             new File(
                       "src/test/resources/targetplatforms/basic/plugins/org.eclipse.equinox.launcher_1.0.101.R34x_v20081125.jar" );
 
-        ArtifactDescription artifact = platform.getArtifact( bundlePath );
+        ArtifactDescriptor artifact = platform.getArtifact( bundlePath );
 
         assertNotNull( artifact );
     }

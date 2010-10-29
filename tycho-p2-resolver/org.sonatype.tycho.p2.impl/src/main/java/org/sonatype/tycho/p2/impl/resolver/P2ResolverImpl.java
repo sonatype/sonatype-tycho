@@ -318,7 +318,7 @@ public class P2ResolverImpl
         P2ResolutionResult result = new P2ResolutionResult();
         for ( IInstallableUnit iu : strategy.resolve( monitor ) )
         {
-            result.addArtifact( TYPE_INSTALLABLE_UNIT, iu.getId(), iu.getVersion().toString(), null );
+            result.addArtifact( TYPE_INSTALLABLE_UNIT, iu.getId(), iu.getVersion().toString(), null, iu );
         }
         return result;
     }
@@ -492,14 +492,14 @@ public class P2ResolverImpl
 
         if ( PublisherHelper.OSGI_BUNDLE_CLASSIFIER.equals( key.getClassifier() ) )
         {
-            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, file );
+            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, file, iu );
         }
         else if ( PublisherHelper.ECLIPSE_FEATURE_CLASSIFIER.equals( key.getClassifier() ) )
         {
             String featureId = getFeatureId( iu );
             if ( featureId != null )
             {
-                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, file );
+                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, file, iu );
             }
         }
 
@@ -515,20 +515,20 @@ public class P2ResolverImpl
 
         if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) || P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN.equals( type ) )
         {
-            platform.addArtifact( type, id, version, basedir );
+            platform.addArtifact( type, id, version, basedir, iu );
         }
         else if ( P2Resolver.TYPE_ECLIPSE_FEATURE.equals( type ) )
         {
             String featureId = getFeatureId( iu );
             if ( featureId != null )
             {
-                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, basedir );
+                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, basedir, iu );
             }
         }
         else if ( basedir.isFile() && basedir.getName().endsWith( ".jar" ) )
         {
             // TODO how do we get here???
-            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, basedir );
+            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, basedir, iu );
         }
 
         // we don't care about eclipse-update-site and eclipse-application projects for now

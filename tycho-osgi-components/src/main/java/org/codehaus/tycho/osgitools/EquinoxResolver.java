@@ -13,12 +13,10 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -30,6 +28,8 @@ import org.eclipse.osgi.service.resolver.StateObjectFactory;
 import org.eclipse.osgi.service.resolver.VersionConstraint;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 @Component( role = EquinoxResolver.class )
 public class EquinoxResolver
@@ -145,8 +145,8 @@ public class EquinoxResolver
 
         // make sure reactor projects override anything from target platform
         // that has the same bundle symbolic name
-        ArrayList<ArtifactDescription> projects = new ArrayList<ArtifactDescription>();
-        for ( ArtifactDescription artifact : platform.getArtifacts( TychoProject.ECLIPSE_PLUGIN ) )
+        ArrayList<ArtifactDescriptor> projects = new ArrayList<ArtifactDescriptor>();
+        for ( ArtifactDescriptor artifact : platform.getArtifacts( ArtifactKey.TYPE_ECLIPSE_PLUGIN ) )
         {
             if ( artifact.getMavenProject() != null )
             {
@@ -157,7 +157,7 @@ public class EquinoxResolver
                 addBundle( state, id++, artifact.getLocation(), false );
             }
         }
-        for ( ArtifactDescription artifact : projects )
+        for ( ArtifactDescriptor artifact : projects )
         {
             addBundle( state, id++, artifact.getLocation(), true );
         }

@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
+import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.versions.engine.VersionChange;
 import org.sonatype.tycho.versions.engine.MetadataManipulator;
 import org.sonatype.tycho.versions.engine.ProjectMetadata;
@@ -101,7 +101,7 @@ public class ProductFileManipulator
 
     private boolean isEclipseApplication( String packaging )
     {
-        return TychoProject.ECLIPSE_APPLICATION.equals( packaging );
+        return ArtifactKey.TYPE_ECLIPSE_APPLICATION.equals( packaging );
     }
 
     public void writeMetadata( ProjectMetadata project )

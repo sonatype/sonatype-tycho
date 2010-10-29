@@ -1,6 +1,7 @@
 package org.codehaus.tycho;
 
 import org.codehaus.tycho.model.PluginRef;
+import org.sonatype.tycho.ArtifactDescriptor;
 
 /**
  * Describes Eclipse plugin jar in context of aggregator project like eclipse-feature
@@ -9,7 +10,7 @@ import org.codehaus.tycho.model.PluginRef;
  * @author igor
  */
 public interface PluginDescription
-    extends ArtifactDescription
+    extends ArtifactDescriptor
 {
 
     PluginRef getPluginRef();

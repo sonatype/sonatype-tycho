@@ -37,21 +37,21 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Initializable;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.InitializationException;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.DebugUtils;
+import org.codehaus.tycho.osgitools.DefaultArtifactKey;
 import org.codehaus.tycho.osgitools.targetplatform.AbstractTargetPlatformResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
 import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
+import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
@@ -434,7 +434,7 @@ public class P2TargetPlatformResolver
     {
         String packaging = project.getPackaging();
 
-        if ( TychoProject.ECLIPSE_UPDATE_SITE.equals( packaging ) || TychoProject.ECLIPSE_FEATURE.equals( packaging ) )
+        if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE.equals( packaging ) || org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
         {
             Boolean allow = configuration.getAllowConflictingDependencies();
             if ( allow != null )
@@ -458,15 +458,15 @@ public class P2TargetPlatformResolver
 
         for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
         {
-            ArtifactKey key = new ArtifactKey( entry.getType(), entry.getId(), entry.getVersion() );
+            ArtifactKey key = new DefaultArtifactKey( entry.getType(), entry.getId(), entry.getVersion() );
             MavenProject otherProject = projects.get( entry.getLocation() );
             if ( otherProject != null )
             {
-                platform.addMavenProject( key, otherProject );
+                platform.addMavenProject( key, otherProject, entry.getInstallableUnits() );
             }
             else
             {
-                platform.addArtifactFile( key, entry.getLocation() );
+                platform.addArtifactFile( key, entry.getLocation(), entry.getInstallableUnits() );
             }
         }
         return platform;

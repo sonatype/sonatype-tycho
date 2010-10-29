@@ -21,7 +21,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
@@ -29,8 +28,10 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.osgitools.BundleReader;
+import org.codehaus.tycho.osgitools.DefaultArtifactKey;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.Constants;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * Creates target platform based on local eclipse installation.
@@ -73,7 +74,7 @@ public class LocalTargetPlatformResolver
     
                 platform.removeAll( key.getType(), key.getId() );
     
-                platform.addMavenProject( key, project );
+                platform.addMavenProject( key, project, null );
     
                 if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
                 {
@@ -99,16 +100,16 @@ public class LocalTargetPlatformResolver
 
                 if ( artifactKey != null )
                 {
-                    platform.addArtifactFile( artifactKey, plugin );
+                    platform.addArtifactFile( artifactKey, plugin, null );
                 }
             }
 
             for ( File feature : layout.getFeatures( site ) )
             {
                 Feature desc = Feature.loadFeature( feature );
-                ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_FEATURE, desc.getId(), desc.getVersion() );
+                ArtifactKey key = new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, desc.getId(), desc.getVersion() );
 
-                platform.addArtifactFile( key, feature );
+                platform.addArtifactFile( key, feature, null );
             }
         }
 
@@ -151,7 +152,7 @@ public class LocalTargetPlatformResolver
                         if ( artifactKey != null )
                         {
                             platform.removeAll( artifactKey.getType(), artifactKey.getId() );
-                            platform.addMavenProject( artifactKey, dependent );
+                            platform.addMavenProject( artifactKey, dependent, null );
                             if ( getLogger().isDebugEnabled() )
                             {
                                 getLogger().debug( "Add Maven project " + artifactKey );
@@ -205,7 +206,7 @@ public class LocalTargetPlatformResolver
 
                     if ( artifactKey != null )
                     {
-                        platform.addArtifactFile( artifactKey, plugin );
+                        platform.addArtifactFile( artifactKey, plugin, null );
                         if ( getLogger().isDebugEnabled() )
                         {
                             getLogger().debug( "Add Maven artifact " + artifactKey );
@@ -233,7 +234,7 @@ public class LocalTargetPlatformResolver
             return null;
         }
 
-        ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
+        ArtifactKey key = new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
         return key;
     }
 
@@ -254,7 +255,7 @@ public class LocalTargetPlatformResolver
             return null;
         }
 
-        ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
+        ArtifactKey key = new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
         return key;
     }
 

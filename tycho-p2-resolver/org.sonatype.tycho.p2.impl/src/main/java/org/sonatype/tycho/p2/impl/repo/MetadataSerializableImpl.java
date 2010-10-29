@@ -16,6 +16,7 @@ import org.eclipse.equinox.internal.p2.metadata.RequiredCapability;
 import org.eclipse.equinox.internal.p2.metadata.repository.LocalMetadataRepository;
 import org.eclipse.equinox.internal.p2.metadata.repository.MetadataRepositoryIO;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
@@ -29,6 +30,7 @@ import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.repository.IRepositoryReference;
 import org.eclipse.equinox.p2.repository.metadata.spi.AbstractMetadataRepository;
 import org.sonatype.tycho.p2.MetadataSerializable;
+import org.sonatype.tycho.p2.impl.Activator;
 
 @SuppressWarnings( "restriction" )
 public class MetadataSerializableImpl
@@ -38,10 +40,11 @@ public class MetadataSerializableImpl
 
     private final IProvisioningAgent agent;
 
-    public MetadataSerializableImpl( IProvisioningAgent agent )
+    public MetadataSerializableImpl()
+        throws ProvisionException
     {
         super();
-        this.agent = agent;
+        this.agent = Activator.newProvisioningAgent();
     }
 
     public void serialize( OutputStream stream, Set<Object> installableUnits, String qualifier )

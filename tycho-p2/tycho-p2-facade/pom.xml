@@ -31,15 +31,15 @@
       <artifactId>tycho-osgi-components</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
       <artifactId>tycho-equinox</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-equinox-launching</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -47,6 +47,31 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-compat</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>org.sonatype.tycho.p2</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!--
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-p2-runtime</artifactId>
+      <version>${project.version}</version>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>org.sonatype.tycho.p2.impl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>org.sonatype.tycho.p2.maven.repository</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    -->
 
     <dependency>
       <groupId>junit</groupId>

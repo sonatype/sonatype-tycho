@@ -23,6 +23,7 @@ import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.service.resolver.VersionConstraint;
 import org.eclipse.osgi.service.resolver.VersionRange;
 import org.osgi.framework.BundleException;
+import org.sonatype.tycho.ArtifactKey;
 
 public class TychoDependencyVersion
     implements EnforcerRule
@@ -53,7 +54,7 @@ public class TychoDependencyVersion
 
             TargetPlatform targetPlatform = projectType.getTargetPlatform( project );
 
-            if ( TychoProject.ECLIPSE_PLUGIN.equals( packaging ) || TychoProject.ECLIPSE_TEST_PLUGIN.equals( packaging ) )
+            if ( ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( packaging ) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) )
             {
                 State state;
                 try
@@ -76,7 +77,7 @@ public class TychoDependencyVersion
                     validateVersionContraint( errors, dep, toVersionConstraints( importPackages ) );
                 }
             }
-            else if ( TychoProject.ECLIPSE_FEATURE.equals( packaging ) )
+            else if ( ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
             {
 
             }

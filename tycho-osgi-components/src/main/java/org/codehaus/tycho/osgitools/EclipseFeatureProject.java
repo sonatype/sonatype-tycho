@@ -6,12 +6,12 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactKey;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetEnvironment;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
+import org.sonatype.tycho.ArtifactKey;
 
-@Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_FEATURE )
+@Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE )
 public class EclipseFeatureProject
     extends AbstractArtifactBasedProject
 {
@@ -33,6 +33,6 @@ public class EclipseFeatureProject
     public ArtifactKey getArtifactKey( MavenProject project )
     {
         Feature feature = Feature.loadFeature( project.getBasedir() );
-        return new ArtifactKey( TychoProject.ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );
+        return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );
     }
 }

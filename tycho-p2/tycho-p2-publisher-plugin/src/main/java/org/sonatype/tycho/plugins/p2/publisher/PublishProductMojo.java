@@ -11,13 +11,13 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * This goal invokes the product publisher for each product file found.
@@ -215,8 +215,8 @@ public final class PublishProductMojo
     private String getEquinoxExecutableFeature()
         throws MojoExecutionException, MojoFailureException
     {
-        ArtifactDescription artifact =
-            getTargetPlatform().getArtifact( TychoProject.ECLIPSE_FEATURE, "org.eclipse.equinox.executable", null );
+        ArtifactDescriptor artifact =
+            getTargetPlatform().getArtifact( ArtifactKey.TYPE_ECLIPSE_FEATURE, "org.eclipse.equinox.executable", null );
 
         if ( artifact == null )
         {

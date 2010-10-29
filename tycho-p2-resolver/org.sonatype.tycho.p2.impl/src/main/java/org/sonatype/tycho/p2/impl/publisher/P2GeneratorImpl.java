@@ -78,6 +78,11 @@ public class P2GeneratorImpl
         this.dependenciesOnly = dependenciesOnly;
     }
 
+    public P2GeneratorImpl()
+    {
+        this( false );
+    }
+
     public void generateMetadata( IArtifactFacade artifact, File content, File artifacts )
         throws IOException
     {

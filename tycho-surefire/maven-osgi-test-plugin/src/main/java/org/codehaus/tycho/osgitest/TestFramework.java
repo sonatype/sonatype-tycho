@@ -3,9 +3,9 @@ package org.codehaus.tycho.osgitest;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.tycho.ArtifactKey;
-import org.codehaus.tycho.ClasspathEntry;
 import org.osgi.framework.Version;
+import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.classpath.ClasspathEntry;
 
 public class TestFramework
 {

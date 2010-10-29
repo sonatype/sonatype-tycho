@@ -10,10 +10,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.model.Resource;
@@ -22,10 +22,10 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.AbstractScanner;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;
 import org.osgi.framework.Version;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * Goal to create a JAR-package containing all the source files of a osgi
@@ -263,8 +263,8 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 	@Override
 	protected boolean isRelevantProject(MavenProject project) {
 		String packaging = project.getPackaging();
-		return TychoProject.ECLIPSE_PLUGIN.equals(packaging)
-				|| TychoProject.ECLIPSE_TEST_PLUGIN.equals(packaging);
+		return org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals(packaging)
+				|| org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals(packaging);
 	}
 
 }

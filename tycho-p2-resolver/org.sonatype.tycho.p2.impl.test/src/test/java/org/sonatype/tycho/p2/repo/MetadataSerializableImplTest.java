@@ -53,7 +53,7 @@ public class MetadataSerializableImplTest
         try
         {
             Set<IInstallableUnit> units = new HashSet<IInstallableUnit>();
-            MetadataSerializableImpl subject = new MetadataSerializableImpl( agent );
+            MetadataSerializableImpl subject = new MetadataSerializableImpl();
             serialize( subject, units, tmpDir );
             Assert.assertEquals( units, deserialize( tmpDir ) );
         }
@@ -74,7 +74,7 @@ public class MetadataSerializableImplTest
             Set<IInstallableUnit> units =
                 new HashSet<IInstallableUnit>(
                                                Arrays.asList( InstallableUnitUtil.createIU( "org.example.test", "1.0.0" ) ) );
-            MetadataSerializableImpl subject = new MetadataSerializableImpl( agent );
+            MetadataSerializableImpl subject = new MetadataSerializableImpl();
             serialize( subject, units, tmpDir );
             Assert.assertEquals( units, deserialize( tmpDir ) );
         }
@@ -90,7 +90,7 @@ public class MetadataSerializableImplTest
     {
         final IInstallableUnit testIU = InstallableUnitUtil.createIU( "org.example.test", "1.0.0.qualifier" );
         List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
-        MetadataSerializableImpl subject = new MetadataSerializableImpl( agent );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
         subject.replaceBuildQualifier( units, "12345678" );
         Assert.assertEquals( "1.0.0.12345678", testIU.getVersion().toString() );
     }
@@ -102,7 +102,7 @@ public class MetadataSerializableImplTest
         final IInstallableUnit testIU =
             InstallableUnitUtil.createIUCapability( "org.example.test", "1.0.0.qualifier", "testCapability", "1.0.1.qualifier" );
         List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
-        MetadataSerializableImpl subject = new MetadataSerializableImpl(  agent );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
         subject.replaceBuildQualifier(units, "12345678" );
         Assert.assertEquals( "1.0.1.12345678",
                              testIU.getProvidedCapabilities().iterator().next().getVersion().toString() );
@@ -116,7 +116,7 @@ public class MetadataSerializableImplTest
             InstallableUnitUtil.createIURequirement( "org.example.test", "1.0.0.qualifier", "testCapability",
                                                      "[1.0.1.qualifier, 1.0.1.qualifier]" );
         List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
-        MetadataSerializableImpl subject = new MetadataSerializableImpl( agent );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
         subject.replaceBuildQualifier( units, "12345678" );
         final IRequirement qualifiedRequirement = testIU.getRequirements().iterator().next();
         IInstallableUnit candidate =
@@ -132,17 +132,17 @@ public class MetadataSerializableImplTest
             InstallableUnitUtil.createIUArtifact( "org.example.test", "1.0.0.qualifier", "testArtifact",
                                                   "1.0.2.qualifier" );
         List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
-        MetadataSerializableImpl subject = new MetadataSerializableImpl( agent );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
         subject.replaceBuildQualifier(units, "12345678" );
         Assert.assertEquals( "1.0.2.12345678", testIU.getArtifacts().iterator().next().getVersion().toString() );
     }
 
     @Test
-    public void testKeepNonQualifierVersion()
+    public void testKeepNonQualifierVersion() throws ProvisionException
     {
         final IInstallableUnit testIU = InstallableUnitUtil.createIU( "org.example.test", "1.0.0.abc" );
         List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
-        MetadataSerializableImpl subject = new MetadataSerializableImpl( agent );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
         subject.replaceBuildQualifier( units, "12345678" );
         Assert.assertEquals( "1.0.0.abc", testIU.getVersion().toString() );
     }

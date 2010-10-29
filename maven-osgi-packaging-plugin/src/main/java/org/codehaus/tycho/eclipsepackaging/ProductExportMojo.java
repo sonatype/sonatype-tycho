@@ -37,17 +37,17 @@ import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.BundleConfiguration;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.eclipse.pde.internal.swt.tools.IconExe;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * @goal product-export
@@ -232,7 +232,7 @@ public class ProductExportMojo
 
     private ArtifactDependencyWalker getDependencyWalker( TargetEnvironment environment )
     {
-        return getTychoProjectFacet( TychoProject.ECLIPSE_APPLICATION ).getDependencyWalker( project, environment );
+        return getTychoProjectFacet( ArtifactKey.TYPE_ECLIPSE_APPLICATION ).getDependencyWalker( project, environment );
     }
 
     private List<TargetEnvironment> getEnvironments()
@@ -629,8 +629,8 @@ public class ProductExportMojo
     {
         getLog().debug( "Creating launcher" );
 
-        ArtifactDescription artifact =
-            getTargetPlatform().getArtifact( TychoProject.ECLIPSE_FEATURE, "org.eclipse.equinox.executable", null );
+        ArtifactDescriptor artifact =
+            getTargetPlatform().getArtifact( ArtifactKey.TYPE_ECLIPSE_FEATURE, "org.eclipse.equinox.executable", null );
 
         if ( artifact == null )
         {

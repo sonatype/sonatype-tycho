@@ -1,7 +1,7 @@
 package org.codehaus.tycho.utils;
 
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.TychoProject;
+import org.sonatype.tycho.ArtifactKey;
 
 public class SourceBundleUtils {
 
@@ -15,7 +15,7 @@ public class SourceBundleUtils {
 
 	public static String getSourceBundleSuffix(MavenProject project) {
 		String packaging = project.getPackaging();
-		if (!(TychoProject.ECLIPSE_PLUGIN.equals(packaging) || TychoProject.ECLIPSE_TEST_PLUGIN
+		if (!(ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals(packaging) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN
 				.equals(packaging))) {
 			return null;
 		}

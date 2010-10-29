@@ -1,6 +1,6 @@
 package org.codehaus.tycho.maven.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;

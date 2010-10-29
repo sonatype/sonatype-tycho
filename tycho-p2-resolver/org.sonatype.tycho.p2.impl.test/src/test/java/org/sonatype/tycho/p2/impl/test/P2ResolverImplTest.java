@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sonatype.tycho.p2.impl.resolver.DuplicateReactorIUsException;
 import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
@@ -34,6 +35,77 @@ public class P2ResolverImplTest
         {
             _server.stop();
         }
+    }
+
+    private void addMavenProject( P2ResolverImpl impl, File basedir, String packaging, String id )
+        throws IOException
+    {
+        String version = "1.0.0-SNAPSHOT";
+
+        impl.addMavenArtifact( new ArtifactMock( basedir.getCanonicalFile(), id, id, version, packaging ) );
+    }
+
+    protected List<P2ResolutionResult> resolveFromHttp( P2ResolverImpl impl, String url )
+        throws IOException, URISyntaxException
+    {
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
+        impl.addP2Repository( new URI( url ) );
+
+        impl.setEnvironments( getEnvironments() );
+
+        String groupId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
+        File bundle = new File( "resources/resolver/bundle01" ).getCanonicalFile();
+
+        addMavenProject( impl, bundle, P2Resolver.TYPE_ECLIPSE_PLUGIN, groupId );
+
+        List<P2ResolutionResult> results = impl.resolveProject( bundle );
+        return results;
+    }
+
+    protected File getLocalRepositoryLocation()
+        throws IOException
+    {
+        return new File( "target/localrepo" ).getCanonicalFile();
+    }
+
+    private List<Map<String, String>> getEnvironments()
+    {
+        ArrayList<Map<String, String>> environments = new ArrayList<Map<String, String>>();
+
+        Map<String, String> properties = new LinkedHashMap<String, String>();
+        properties.put( "osgi.os", "linux" );
+        properties.put( "osgi.ws", "gtk" );
+        properties.put( "osgi.arch", "x86_64" );
+
+        // TODO does not belong here
+        properties.put( "org.eclipse.update.install.features", "true" );
+
+        environments.add( properties );
+
+        return environments;
+    }
+
+    static void delete( File dir )
+    {
+        if ( dir == null || !dir.exists() )
+        {
+            return;
+        }
+
+        if ( dir.isDirectory() )
+        {
+            File[] members = dir.listFiles();
+            if ( members != null )
+            {
+                for ( File member : members )
+                {
+                    delete( member );
+                }
+            }
+        }
+
+        Assert.assertTrue( "Delete " + dir.getAbsolutePath(), dir.delete() );
     }
 
     @Test
@@ -142,7 +214,8 @@ public class P2ResolverImplTest
 
         impl.stop();
 
-        Assert.assertEquals( 6, result.getArtifacts().size() );
+        Assert.assertEquals( 4, result.getArtifacts().size() );
+        Assert.assertEquals( 6, result.getInstallableUnits().size() );
     }
 
     @Test
@@ -174,74 +247,61 @@ public class P2ResolverImplTest
         }
     }
 
-    private void addMavenProject( P2ResolverImpl impl, File basedir, String packaging, String id )
-        throws IOException
+    @Test
+    public void featureInstallableUnits()
+        throws Exception
     {
-        String version = "1.0.0-SNAPSHOT";
-
-        impl.addMavenArtifact( new ArtifactMock( basedir.getCanonicalFile(), id, id, version, packaging ) );
-    }
-
-    protected List<P2ResolutionResult> resolveFromHttp( P2ResolverImpl impl, String url )
-        throws IOException, URISyntaxException
-    {
+        P2ResolverImpl impl = new P2ResolverImpl();
         impl.setRepositoryCache( new P2RepositoryCacheImpl() );
         impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
-        impl.addP2Repository( new URI( url ) );
+        impl.setLogger( new NullP2Logger() );
+
+        File bundle = new File( "resources/resolver/feature01" ).getCanonicalFile();
+        String groupId = "org.sonatype.tycho.p2.impl.resolver.test.feature01";
+        String artifactId = "org.sonatype.tycho.p2.impl.resolver.test.feature01";
+        String version = "1.0.0-SNAPSHOT";
+
+        impl.setEnvironments( getEnvironments() );
+        impl.addMavenArtifact( new ArtifactMock( bundle, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_FEATURE ) );
+
+        List<P2ResolutionResult> results = impl.resolveProject( bundle );
+
+        impl.stop();
+
+        Assert.assertEquals( 1, results.size() );
+        P2ResolutionResult result = results.get( 0 );
+
+        Assert.assertEquals( 1, result.getArtifacts().size() );
+        Assert.assertEquals( 2, result.getArtifacts().iterator().next().getInstallableUnits().size() );
+        Assert.assertEquals( 0, result.getInstallableUnits().size() ); // currently, this does not include project's IUs
+    }
+
+    @Test @Ignore
+    public void sourceBundle()
+        throws Exception
+    {
+        P2ResolverImpl impl = new P2ResolverImpl();
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
+        impl.setLogger( new NullP2Logger() );
+
+        File feature = new File( "resources/sourcebundles/feature01" ).getCanonicalFile();
+        String featureId = "org.sonatype.tycho.p2.impl.resolver.test.feature01";
+        String featureVersion = "1.0.0-SNAPSHOT";
+        impl.addMavenProject( new ArtifactMock( feature, featureId, featureId, featureVersion,
+                                                 P2Resolver.TYPE_ECLIPSE_FEATURE ) );
+
+        File bundle = new File( "resources/sourcebundles/bundle01" ).getCanonicalFile();
+        String bundleId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
+        String bundleVersion = "1.0.0-SNAPSHOT";
+        impl.addMavenProject( new ArtifactMock( bundle, bundleId, bundleId, bundleVersion,
+                                                 P2Resolver.TYPE_ECLIPSE_PLUGIN, ".source", true ) );
 
         impl.setEnvironments( getEnvironments() );
 
-        String groupId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
-        File bundle = new File( "resources/resolver/bundle01" ).getCanonicalFile();
+        List<P2ResolutionResult> results = impl.resolveProject( feature );
 
-        addMavenProject( impl, bundle, P2Resolver.TYPE_ECLIPSE_PLUGIN, groupId );
-
-        List<P2ResolutionResult> results = impl.resolveProject( bundle );
-        return results;
-    }
-
-    protected File getLocalRepositoryLocation()
-        throws IOException
-    {
-        return new File( "target/localrepo" ).getCanonicalFile();
-    }
-
-    private List<Map<String, String>> getEnvironments()
-    {
-        ArrayList<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-
-        Map<String, String> properties = new LinkedHashMap<String, String>();
-        properties.put( "osgi.os", "linux" );
-        properties.put( "osgi.ws", "gtk" );
-        properties.put( "osgi.arch", "x86_64" );
-
-        // TODO does not belong here
-        properties.put( "org.eclipse.update.install.features", "true" );
-
-        environments.add( properties );
-
-        return environments;
-    }
-
-    static void delete( File dir )
-    {
-        if ( dir == null || !dir.exists() )
-        {
-            return;
-        }
-
-        if ( dir.isDirectory() )
-        {
-            File[] members = dir.listFiles();
-            if ( members != null )
-            {
-                for ( File member : members )
-                {
-                    delete( member );
-                }
-            }
-        }
-
-        Assert.assertTrue( "Delete " + dir.getAbsolutePath(), dir.delete() );
+        impl.stop();
+        
     }
 }

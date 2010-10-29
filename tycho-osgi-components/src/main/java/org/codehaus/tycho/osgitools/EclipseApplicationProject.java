@@ -7,12 +7,12 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.ProductConfiguration;
+import org.sonatype.tycho.ArtifactKey;
 
-@Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_APPLICATION )
+@Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION )
 public class EclipseApplicationProject
     extends AbstractArtifactBasedProject
 {
@@ -49,6 +49,6 @@ public class EclipseApplicationProject
         String id = product.getId() != null ? product.getId() : project.getArtifactId();
         String version = product.getVersion() != null ? product.getVersion() : getOsgiVersion( project );
 
-        return new ArtifactKey( TychoProject.ECLIPSE_APPLICATION, id, version );
+        return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION, id, version );
     }
 }

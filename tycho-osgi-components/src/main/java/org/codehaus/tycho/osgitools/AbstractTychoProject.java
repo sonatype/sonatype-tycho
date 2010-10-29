@@ -6,10 +6,10 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.TargetPlatformConfiguration;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.TargetPlatform;
+import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
 
 public abstract class AbstractTychoProject

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.cli.Commandline;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.testing.TestUtil;
@@ -137,17 +136,6 @@ public class PublishProductMojoUnitTest
                                                         new TargetEnvironment( "os2", "ws", "arch", "nl2" ) ) );
         Assert.assertEquals( "-configs", configsParameter[0] );
         Assert.assertEquals( "ws.os.arch,ws.os2.arch", configsParameter[1] );
-    }
-
-    @Test
-    public void testCreateOSGiCommandline()
-    {
-        File equinoxLauncher = new File( "equinoxLauncher" );
-        String expectedLauncherLocation = equinoxLauncher.getAbsolutePath();
-        Commandline commandline =
-            PublishProductMojo.createOSGiCommandline( "application.id", equinoxLauncher );
-        Assert.assertEquals( new String[] { "-jar", expectedLauncherLocation, "-application", "application.id",
-            "-nosplash", "-consoleLog" }, commandline.getArguments() );
     }
 
     private File createTempDir( String prefix )

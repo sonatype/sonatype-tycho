@@ -14,6 +14,7 @@ import org.codehaus.tycho.UnknownEnvironmentException;
 import org.eclipse.osgi.framework.internal.core.Constants;
 import org.eclipse.osgi.framework.internal.core.FrameworkProperties;
 import org.eclipse.osgi.util.ManifestElement;
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.Version;
 
 /**
@@ -223,7 +224,7 @@ public class ExecutionEnvironmentUtils {
 
 	private static URL findInSystemBundle(String entry) {
 		// Check the ClassLoader in case we're launched off the Java boot classpath
-		ClassLoader loader = ExecutionEnvironmentUtils.class.getClassLoader();
+		ClassLoader loader = BundleActivator.class.getClassLoader();
 		return loader == null ? ClassLoader.getSystemResource(entry) : loader.getResource(entry);
 	}
 }

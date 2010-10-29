@@ -9,11 +9,11 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
-import org.codehaus.tycho.ArtifactDescription;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.model.PluginRef;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * Generates list of Maven dependencies from project OSGi/Eclipse dependencies
@@ -45,7 +45,7 @@ public class MavenDependencyCollector
     }
 
     @Override
-    public void missingPlugin( PluginRef ref, List<ArtifactDescription> walkback )
+    public void missingPlugin( PluginRef ref, List<ArtifactDescriptor> walkback )
     {
         // we don't handle multi-environment target platforms well, so
         // missing environment specific bundles should not fail the build
@@ -60,7 +60,7 @@ public class MavenDependencyCollector
         }
     }
 
-    protected void addDependency( ArtifactDescription artifact )
+    protected void addDependency( ArtifactDescriptor artifact )
     {
         Dependency dependency = null;
         if ( artifact.getMavenProject() != null )

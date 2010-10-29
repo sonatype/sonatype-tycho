@@ -13,18 +13,17 @@ import java.util.Stack;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactDescription;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 public abstract class AbstractArtifactDependencyWalker
     implements ArtifactDependencyWalker
@@ -64,7 +63,7 @@ public abstract class AbstractArtifactDependencyWalker
     protected void traverseFeature( File location, Feature feature, FeatureRef featureRef,
                                     ArtifactDependencyVisitor visitor, WalkbackPath visited )
     {
-        ArtifactDescription artifact = platform.getArtifact( location );
+        ArtifactDescriptor artifact = platform.getArtifact( location );
 
         if ( artifact == null )
         {
@@ -77,7 +76,7 @@ public abstract class AbstractArtifactDependencyWalker
         MavenProject project = artifact.getMavenProject();
 
         DefaultFeatureDescription description =
-            new DefaultFeatureDescription( key, location, project, feature, featureRef );
+            new DefaultFeatureDescription( key, location, project, feature, featureRef, artifact.getInstallableUnits() );
 
         if ( visitor.visitFeature( description ) )
         {
@@ -117,10 +116,10 @@ public abstract class AbstractArtifactDependencyWalker
         }
 
         Set<String> bundles = new HashSet<String>();
-        for ( ArtifactDescription artifact : visited.getVisited() )
+        for ( ArtifactDescriptor artifact : visited.getVisited() )
         {
             ArtifactKey key = artifact.getKey();
-            if ( TychoProject.ECLIPSE_PLUGIN.equals( key.getType() ) )
+            if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( key.getType() ) )
             {
                 bundles.add( key.getId() );
             }
@@ -174,8 +173,8 @@ public abstract class AbstractArtifactDependencyWalker
 
     protected void traverseFeature( FeatureRef ref, ArtifactDependencyVisitor visitor, WalkbackPath visited )
     {
-        ArtifactDescription artifact =
-            platform.getArtifact( TychoProject.ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
+        ArtifactDescriptor artifact =
+            platform.getArtifact( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, ref.getId(), ref.getVersion() );
 
         if ( artifact != null )
         {
@@ -210,8 +209,8 @@ public abstract class AbstractArtifactDependencyWalker
             return;
         }
 
-        ArtifactDescription artifact =
-            platform.getArtifact( TychoProject.ECLIPSE_PLUGIN, ref.getId(), ref.getVersion() );
+        ArtifactDescriptor artifact =
+            platform.getArtifact( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, ref.getId(), ref.getVersion() );
 
         if ( artifact != null )
         {
@@ -224,7 +223,8 @@ public abstract class AbstractArtifactDependencyWalker
             File location = artifact.getLocation();
 
             MavenProject project = platform.getMavenProject( location );
-            PluginDescription description = new DefaultPluginDescription( key, location, project, ref );
+            PluginDescription description =
+                new DefaultPluginDescription( key, location, project, ref, artifact.getInstallableUnits() );
             visited.enter( description );
             try
             {
@@ -269,32 +269,32 @@ public abstract class AbstractArtifactDependencyWalker
 
     protected static class WalkbackPath
     {
-        private Map<ArtifactKey, ArtifactDescription> visited = new HashMap<ArtifactKey, ArtifactDescription>();
+        private Map<ArtifactKey, ArtifactDescriptor> visited = new HashMap<ArtifactKey, ArtifactDescriptor>();
 
-        private Stack<ArtifactDescription> walkback = new Stack<ArtifactDescription>();
+        private Stack<ArtifactDescriptor> walkback = new Stack<ArtifactDescriptor>();
 
         boolean visited( ArtifactKey key )
         {
             return visited.containsKey( key );
         }
 
-        public List<ArtifactDescription> getWalkback()
+        public List<ArtifactDescriptor> getWalkback()
         {
-            return new ArrayList<ArtifactDescription>( walkback );
+            return new ArrayList<ArtifactDescriptor>( walkback );
         }
 
-        void enter( ArtifactDescription artifact )
+        void enter( ArtifactDescriptor artifact )
         {
             visited.put( artifact.getKey(), artifact );
             walkback.push( artifact );
         }
 
-        void leave( ArtifactDescription artifact )
+        void leave( ArtifactDescriptor artifact )
         {
             walkback.pop();
         }
 
-        Collection<ArtifactDescription> getVisited()
+        Collection<ArtifactDescriptor> getVisited()
         {
             return visited.values();
         }

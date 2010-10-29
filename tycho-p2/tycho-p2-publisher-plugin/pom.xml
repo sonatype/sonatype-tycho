@@ -28,6 +28,11 @@
     </dependency>
     <dependency>
       <groupId>org.sonatype.tycho</groupId>
+      <artifactId>tycho-equinox-launching</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
       <artifactId>tycho-p2-facade</artifactId>
       <version>${project.version}</version>
     </dependency>

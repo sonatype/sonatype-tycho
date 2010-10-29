@@ -9,19 +9,19 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
 
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.ArtifactDescription;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetPlatform;
-import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.osgitools.DefaultArtifactDescription;
+import org.codehaus.tycho.osgitools.DefaultArtifactDescriptor;
+import org.codehaus.tycho.osgitools.DefaultArtifactKey;
 import org.osgi.framework.Version;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 public class DefaultTargetPlatform
     implements TargetPlatform
@@ -30,19 +30,20 @@ public class DefaultTargetPlatform
 
     private static final WeakHashMap<ArtifactKey, ArtifactKey> KEY_CACHE = new WeakHashMap<ArtifactKey, ArtifactKey>();
 
-    private static final WeakHashMap<ArtifactKey, ArtifactDescription> ARTIFACT_CACHE =
-        new WeakHashMap<ArtifactKey, ArtifactDescription>();
+    private static final WeakHashMap<ArtifactKey, ArtifactDescriptor> ARTIFACT_CACHE =
+        new WeakHashMap<ArtifactKey, ArtifactDescriptor>();
 
-    protected final Map<ArtifactKey, ArtifactDescription> artifacts = new LinkedHashMap<ArtifactKey, ArtifactDescription>();
+    protected final Map<ArtifactKey, ArtifactDescriptor> artifacts =
+        new LinkedHashMap<ArtifactKey, ArtifactDescriptor>();
 
-    protected final Map<File, ArtifactDescription> locations = new LinkedHashMap<File, ArtifactDescription>();
+    protected final Map<File, ArtifactDescriptor> locations = new LinkedHashMap<File, ArtifactDescriptor>();
 
     protected final Set<Object/* IInstallableUnit */> installableUnits = new LinkedHashSet<Object>();
 
-    public List<ArtifactDescription> getArtifacts( String type )
+    public List<ArtifactDescriptor> getArtifacts( String type )
     {
-        ArrayList<ArtifactDescription> result = new ArrayList<ArtifactDescription>();
-        for ( Map.Entry<ArtifactKey, ArtifactDescription> entry : artifacts.entrySet() )
+        ArrayList<ArtifactDescriptor> result = new ArrayList<ArtifactDescriptor>();
+        for ( Map.Entry<ArtifactKey, ArtifactDescriptor> entry : artifacts.entrySet() )
         {
             if ( type.equals( entry.getKey().getType() ) )
             {
@@ -53,17 +54,17 @@ public class DefaultTargetPlatform
         return result;
     }
 
-    public List<ArtifactDescription> getArtifacts()
+    public List<ArtifactDescriptor> getArtifacts()
     {
-        return new ArrayList<ArtifactDescription>( artifacts.values() );
+        return new ArrayList<ArtifactDescriptor>( artifacts.values() );
     }
 
-    public void addArtifactFile( ArtifactKey key, File location )
+    public void addArtifactFile( ArtifactKey key, File location, Set<Object> installableUnits )
     {
-        addArtifact( new DefaultArtifactDescription( key, location, null ) );
+        addArtifact( new DefaultArtifactDescriptor( key, location, null, installableUnits ) );
     }
 
-    public void addArtifact( ArtifactDescription artifact )
+    public void addArtifact( ArtifactDescriptor artifact )
     {
         ArtifactKey key = normalizeKey( artifact.getKey() );
 
@@ -79,7 +80,7 @@ public class DefaultTargetPlatform
 
         artifact = normalizeArtifact( artifact );
 
-        ArtifactDescription cachedArtifact = ARTIFACT_CACHE.get( key );
+        ArtifactDescriptor cachedArtifact = ARTIFACT_CACHE.get( key );
         if ( cachedArtifact != null && eq( cachedArtifact.getLocation(), artifact.getLocation() )
             && eq( cachedArtifact.getMavenProject(), artifact.getMavenProject() ) )
         {
@@ -94,14 +95,15 @@ public class DefaultTargetPlatform
         locations.put( artifact.getLocation(), artifact );
     }
 
-    private ArtifactDescription normalizeArtifact( ArtifactDescription artifact )
+    private ArtifactDescriptor normalizeArtifact( ArtifactDescriptor artifact )
     {
         try
         {
             File location = artifact.getLocation().getCanonicalFile();
             if ( !location.equals( artifact.getLocation() ) )
             {
-                return new DefaultArtifactDescription( artifact.getKey(), location, artifact.getMavenProject() );
+                return new DefaultArtifactDescriptor( artifact.getKey(), location, artifact.getMavenProject(),
+                                                      artifact.getInstallableUnits() );
             }
             return artifact;
         }
@@ -114,10 +116,12 @@ public class DefaultTargetPlatform
 
     protected ArtifactKey normalizeKey( ArtifactKey key )
     {
-        if ( TychoProject.ECLIPSE_TEST_PLUGIN.equals( key.getType() ) )
+        if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals( key.getType() ) )
         {
             // normalize eclipse-test-plugin... after all, a bundle is a bundle.
-            key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, key.getId(), key.getVersion() );
+            key =
+                new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, key.getId(),
+                                        key.getVersion() );
         }
         return key;
     }
@@ -136,7 +140,7 @@ public class DefaultTargetPlatform
 
     public void dump()
     {
-        for ( Map.Entry<ArtifactKey, ArtifactDescription> entry : artifacts.entrySet() )
+        for ( Map.Entry<ArtifactKey, ArtifactDescriptor> entry : artifacts.entrySet() )
         {
             System.out.println( entry.getKey() + "\t" + entry.getValue() );
         }
@@ -147,7 +151,7 @@ public class DefaultTargetPlatform
         return artifacts.isEmpty();
     }
 
-    public ArtifactDescription getArtifact( String type, String id, String version )
+    public ArtifactDescriptor getArtifact( String type, String id, String version )
     {
         if ( type == null || id == null )
         {
@@ -156,8 +160,8 @@ public class DefaultTargetPlatform
         }
 
         // features with matching id, sorted by version, highest version first
-        SortedMap<Version, ArtifactDescription> relevantArtifacts =
-            new TreeMap<Version, ArtifactDescription>( new Comparator<Version>()
+        SortedMap<Version, ArtifactDescriptor> relevantArtifacts =
+            new TreeMap<Version, ArtifactDescriptor>( new Comparator<Version>()
             {
                 public int compare( Version o1, Version o2 )
                 {
@@ -165,7 +169,7 @@ public class DefaultTargetPlatform
                 };
             } );
 
-        for ( Map.Entry<ArtifactKey, ArtifactDescription> entry : this.artifacts.entrySet() )
+        for ( Map.Entry<ArtifactKey, ArtifactDescriptor> entry : this.artifacts.entrySet() )
         {
             ArtifactKey key = entry.getKey();
             if ( type.equals( key.getType() ) && id.equals( key.getId() ) )
@@ -195,7 +199,7 @@ public class DefaultTargetPlatform
         if ( qualifier == null || "".equals( qualifier ) || ANY_QUALIFIER.equals( qualifier ) )
         {
             // latest qualifier
-            for ( Map.Entry<Version, ArtifactDescription> entry : relevantArtifacts.entrySet() )
+            for ( Map.Entry<Version, ArtifactDescriptor> entry : relevantArtifacts.entrySet() )
             {
                 if ( baseVersionEquals( parsedVersion, entry.getKey() ) )
                 {
@@ -213,19 +217,19 @@ public class DefaultTargetPlatform
         return v1.getMajor() == v2.getMajor() && v1.getMinor() == v2.getMinor() && v1.getMicro() == v2.getMicro();
     }
 
-    public void addMavenProject( ArtifactKey key, MavenProject project )
+    public void addMavenProject( ArtifactKey key, MavenProject project, Set<Object> installableUnits )
     {
-        DefaultArtifactDescription artifact = new DefaultArtifactDescription( key, project.getBasedir(), project );
+        DefaultArtifactDescriptor artifact = new DefaultArtifactDescriptor( key, project.getBasedir(), project, installableUnits );
         addArtifact( artifact );
     }
 
     public MavenProject getMavenProject( File location )
     {
-        ArtifactDescription artifact = getArtifact( location );
+        ArtifactDescriptor artifact = getArtifact( location );
         return artifact != null ? artifact.getMavenProject() : null;
     }
 
-    public ArtifactDescription getArtifact( File location )
+    public ArtifactDescriptor getArtifact( File location )
     {
         try
         {
@@ -238,14 +242,14 @@ public class DefaultTargetPlatform
         }
     }
 
-    public ArtifactDescription getArtifact( ArtifactKey key )
+    public ArtifactDescriptor getArtifact( ArtifactKey key )
     {
         return artifacts.get( normalizeKey( key ) );
     }
 
     public void removeAll( String type, String id )
     {
-        Iterator<Entry<ArtifactKey, ArtifactDescription>> iter = artifacts.entrySet().iterator();
+        Iterator<Entry<ArtifactKey, ArtifactDescriptor>> iter = artifacts.entrySet().iterator();
         while ( iter.hasNext() )
         {
             ArtifactKey key = iter.next().getKey();
@@ -268,7 +272,7 @@ public class DefaultTargetPlatform
 
     public void toDebugString( StringBuilder sb, String linePrefix )
     {
-        for ( ArtifactDescription artifact : artifacts.values() )
+        for ( ArtifactDescriptor artifact : artifacts.values() )
         {
             sb.append( linePrefix );
             sb.append( artifact.getKey().toString() );

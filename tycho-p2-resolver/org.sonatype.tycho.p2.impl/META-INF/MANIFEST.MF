@@ -32,3 +32,8 @@ Export-Package: org.sonatype.tycho.p2.impl;x-friends:="org.sonatype.tycho.p2.imp
 Import-Package: org.sonatype.tycho.p2,
  org.sonatype.tycho.p2.repository,
  org.sonatype.tycho.p2.resolver
+Service-Component: OSGI-INF/directorapp.xml,
+ OSGI-INF/generator.xml,
+ OSGI-INF/metadataserializable.xml,
+ OSGI-INF/proxyfacade.xml,
+ OSGI-INF/resolver.xml

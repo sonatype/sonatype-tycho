@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.tycho.ClasspathEntry.AccessRule;
+import org.codehaus.tycho.osgitools.DefaultClasspathEntry.DefaultAccessRule;
 import org.eclipse.osgi.service.resolver.BaseDescription;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.BundleSpecification;
@@ -16,6 +16,7 @@ import org.eclipse.osgi.service.resolver.ExportPackageDescription;
 import org.eclipse.osgi.service.resolver.HostSpecification;
 import org.eclipse.osgi.service.resolver.ImportPackageSpecification;
 import org.eclipse.osgi.service.resolver.StateHelper;
+import org.sonatype.tycho.classpath.ClasspathEntry.AccessRule;
 
 /**
  * Helper class that computes compile dependencies of a bundle project.
@@ -125,7 +126,7 @@ public class DependencyComputer {
 		boolean discouraged = helper.getAccessCode(desc, export) == StateHelper.ACCESS_DISCOURAGED;
 		String name = export.getName();
 		String path = (name.equals(".")) ? "*" : name.replaceAll("\\.", "/") + "/*";
-		return new AccessRule(path, discouraged);
+		return new DefaultAccessRule(path, discouraged);
 	}
 
 	protected void addDependencyViaImportPackage(BundleDescription desc, HashSet<BundleDescription> added, Map<BundleDescription, ArrayList<AccessRule>> map, ArrayList<DependencyEntry> entries) {

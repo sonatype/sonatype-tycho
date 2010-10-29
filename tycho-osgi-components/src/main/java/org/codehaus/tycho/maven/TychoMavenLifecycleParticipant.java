@@ -1,6 +1,7 @@
 package org.codehaus.tycho.maven;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,24 +12,19 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.personality.plexus.lifecycle.phase.Disposable;
 import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.osgitools.DefaultBundleReader;
-import org.codehaus.tycho.resolver.DefaultTychoDependencyResolver;
 import org.sonatype.tycho.equinox.embedder.EquinoxEmbedder;
-import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
+import org.sonatype.tycho.resolver.TychoDependencyResolver;
 
 @Component( role = AbstractMavenLifecycleParticipant.class, hint = "TychoMavenLifecycleListener" )
 public class TychoMavenLifecycleParticipant
     extends AbstractMavenLifecycleParticipant
+    implements Disposable
 {
     @Requirement
     private Logger logger;
-
-    @Requirement
-    private TychoP2RuntimeLocator p2runtime;
-
-    @Requirement
-    private EquinoxRuntimeLocator equinoxLocator;
 
     @Requirement
     private EquinoxEmbedder equinoxEmbedder;
@@ -37,10 +33,9 @@ public class TychoMavenLifecycleParticipant
     private BundleReader bundleReader;
 
     @Requirement
-    private DefaultTychoDependencyResolver resolver;
+    private TychoDependencyResolver resolver;
 
-    @Requirement( role = TychoLifecycleParticipant.class )
-    private List<TychoLifecycleParticipant> lifecycleParticipants;
+    private File secureStorage;
 
     public void afterProjectsRead( MavenSession session )
         throws MavenExecutionException
@@ -55,19 +50,22 @@ public class TychoMavenLifecycleParticipant
             return;
         }
 
+        // XXX why do we need this here?
         System.setProperty( "osgi.framework.useSystemProperties", "false" ); //$NON-NLS-1$ //$NON-NLS-2$
 
         File localRepository = new File( session.getLocalRepository().getBasedir() );
         ( (DefaultBundleReader) bundleReader ).setLocationRepository( localRepository );
 
-        File p2Directory = p2runtime.locateTychoP2Runtime( session );
-        if ( p2Directory != null )
+        try
         {
-            equinoxLocator.addRuntimeLocation( p2Directory );
-            logger.debug( "Using P2 runtime at " + p2Directory );
+            secureStorage = File.createTempFile( "tycho", "secure_storage" );
+            secureStorage.deleteOnExit();
+        }
+        catch ( IOException e )
+        {
+            throw new MavenExecutionException( "Could not create Tycho secure store file", e );
         }
 
-        File secureStorage = new File( session.getLocalRepository().getBasedir(), ".meta/tycho.secure_storage" );
         List<String> nonFrameworkArgs = new ArrayList<String>();
         nonFrameworkArgs.add( "-eclipse.keyring" );
         nonFrameworkArgs.add( secureStorage.getAbsolutePath() );
@@ -80,11 +78,6 @@ public class TychoMavenLifecycleParticipant
         }
         equinoxEmbedder.setNonFrameworkArgs( nonFrameworkArgs.toArray( new String[0] ) );
 
-        for ( TychoLifecycleParticipant participant : lifecycleParticipants )
-        {
-            participant.configure( session );
-        }
-
         List<MavenProject> projects = session.getProjects();
 
         resolver.setupProjects( session, projects );
@@ -93,6 +86,11 @@ public class TychoMavenLifecycleParticipant
         {
             resolver.resolveProject( session, project );
         }
+    }
+
+    public void dispose()
+    {
+        secureStorage.delete();
     }
 
 }

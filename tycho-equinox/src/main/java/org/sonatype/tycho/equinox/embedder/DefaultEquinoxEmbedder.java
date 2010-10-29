@@ -1,7 +1,6 @@
 package org.sonatype.tycho.equinox.embedder;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,12 +14,16 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
+import org.sonatype.tycho.equinox.EquinoxRuntimeLocator;
 
 @Component( role = EquinoxEmbedder.class )
 public class DefaultEquinoxEmbedder
     extends AbstractLogEnabled
     implements EquinoxEmbedder
 {
+    @Requirement( role = EquinoxLifecycleListener.class )
+    private Map<String, EquinoxLifecycleListener> lifecycleListeners;
+
     @Requirement
     private EquinoxRuntimeLocator equinoxLocator;
 
@@ -28,8 +31,6 @@ public class DefaultEquinoxEmbedder
 
     private String[] nonFrameworkArgs;
 
-    private List<Runnable> afterStartCallbacks = new ArrayList<Runnable>();
-    
     public synchronized void start()
         throws Exception
     {
@@ -99,6 +100,21 @@ public class DefaultEquinoxEmbedder
         // TODO specific package names
         properties.put( "org.osgi.framework.bootdelegation", "*" );
 
+        List<String> packagesExtra = equinoxLocator.getSystemPackagesExtra();
+        if ( packagesExtra != null && !packagesExtra.isEmpty() )
+        {
+            StringBuilder sb = new StringBuilder();
+            for ( String pkg : packagesExtra )
+            {
+                if ( sb.length() > 0 )
+                {
+                    sb.append( ',' );
+                }
+                sb.append( pkg );
+            }
+            properties.put( "org.osgi.framework.system.packages.extra", sb.toString() );
+        }
+
         // properties.put( "eclipse.p2.data.area", dataArea.getAbsolutePath() );
 
         // debug
@@ -143,9 +159,9 @@ public class DefaultEquinoxEmbedder
         }
 
         frameworkContext.ungetService( packageAdminRef );
-        for ( Runnable callback  : afterStartCallbacks )
+        for ( EquinoxLifecycleListener listener : lifecycleListeners.values() )
         {
-            callback.run();
+            listener.afterFrameworkStarted( this );
         }
     }
 
@@ -220,12 +236,10 @@ public class DefaultEquinoxEmbedder
 
     public void setNonFrameworkArgs( String[] args )
     {
+        if ( frameworkContext != null )
+        {
+            throw new IllegalStateException( "Cannot set non-framework arguments after the framework was started" );
+        }
         nonFrameworkArgs = args;
     }
-
-    public void registerAfterStartCallback( Runnable callback )
-    {
-        this.afterStartCallbacks.add( callback );
-    }
-    
 }

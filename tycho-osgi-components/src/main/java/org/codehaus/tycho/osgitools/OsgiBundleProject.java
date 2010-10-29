@@ -17,10 +17,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactDescription;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.BundleProject;
-import org.codehaus.tycho.ClasspathEntry;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
@@ -38,8 +35,11 @@ import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.classpath.ClasspathEntry;
 
-@Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_PLUGIN )
+@Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN )
 public class OsgiBundleProject
     extends AbstractTychoProject
     implements BundleProject
@@ -73,13 +73,14 @@ public class OsgiBundleProject
             {
                 for ( ClasspathEntry entry : cp )
                 {
-                    ArtifactDescription artifact = platform.getArtifact( entry.getArtifactKey() );
+                    ArtifactDescriptor artifact = platform.getArtifact( entry.getArtifactKey() );
 
                     ArtifactKey key = artifact.getKey();
                     File location = artifact.getLocation();
                     MavenProject project = artifact.getMavenProject();
 
-                    PluginDescription plugin = new DefaultPluginDescription( key, location, project, null );
+                    PluginDescription plugin =
+                        new DefaultPluginDescription( key, location, project, null, artifact.getInstallableUnits() );
 
                     visitor.visitPlugin( plugin );
                 }
@@ -113,19 +114,31 @@ public class OsgiBundleProject
     @Override
     public void setupProject( MavenSession session, MavenProject project )
     {
-        Manifest mf = bundleReader.loadManifest( project.getBasedir() );
+        ArtifactKey key = readArtifactKey( project.getBasedir() );
+
+        if ( key == null )
+        {
+            throw new IllegalArgumentException( "Missing bundle symbolic name or version for project "
+                + project.toString() );
+        }
+        
+        project.setContextValue( CTX_ARTIFACT_KEY, key );
+    }
+
+    public ArtifactKey readArtifactKey( File location )
+    {
+        Manifest mf = bundleReader.loadManifest( location );
 
         ManifestElement[] id = bundleReader.parseHeader( Constants.BUNDLE_SYMBOLICNAME, mf );
         ManifestElement[] version = bundleReader.parseHeader( Constants.BUNDLE_VERSION, mf );
 
         if ( id == null || version == null )
         {
-            throw new IllegalArgumentException( "Missing bundle symbolic name or version for project "
-                + project.toString() );
+            return null;
         }
 
-        ArtifactKey key = new ArtifactKey( TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
-        project.setContextValue( CTX_ARTIFACT_KEY, key );
+        return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(),
+                                version[0].getValue() );
     }
 
     public String getManifestValue( String key, MavenProject project )
@@ -151,9 +164,9 @@ public class OsgiBundleProject
         List<ClasspathEntry> classpath = new ArrayList<ClasspathEntry>();
 
         // project itself
-        ArtifactDescription artifact = platform.getArtifact( project.getBasedir() );
-        classpath.add( new DefaultClasspathEntry( artifact.getKey(), getProjectClasspath( artifact, project, null ),
-                                                  null ) );
+        ArtifactDescriptor artifact = platform.getArtifact( project.getBasedir() );
+        classpath.add( new DefaultClasspathEntry( project, artifact.getKey(), getProjectClasspath( artifact, project,
+                                                                                                   null ), null ) );
 
         // build.properties/jars.extra.classpath
         addExtraClasspathEntries( classpath, project, platform );
@@ -162,7 +175,7 @@ public class OsgiBundleProject
         for ( DependencyEntry entry : dependencyComputer.computeDependencies( state.getStateHelper(), bundleDescription ) )
         {
             File location = new File( entry.desc.getLocation() );
-            ArtifactDescription otherArtifact = platform.getArtifact( location );
+            ArtifactDescriptor otherArtifact = platform.getArtifact( location );
             MavenProject otherProject = otherArtifact.getMavenProject();
             List<File> locations;
             if ( otherProject != null )
@@ -174,7 +187,7 @@ public class OsgiBundleProject
                 locations = getBundleClasspath( otherArtifact, null );
             }
 
-            classpath.add( new DefaultClasspathEntry( otherArtifact.getKey(), locations, entry.rules ) );
+            classpath.add( new DefaultClasspathEntry( otherProject, otherArtifact.getKey(), locations, entry.rules ) );
         }
         project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_CLASSPATH, classpath );
 
@@ -229,7 +242,7 @@ public class OsgiBundleProject
         return classpath;
     }
 
-    private List<File> getProjectClasspath( ArtifactDescription bundle, MavenProject project, String nestedPath )
+    private List<File> getProjectClasspath( ArtifactDescriptor bundle, MavenProject project, String nestedPath )
     {
         LinkedHashSet<File> classpath = new LinkedHashSet<File>();
 
@@ -307,7 +320,8 @@ public class OsgiBundleProject
                     // Log and
                     continue;
                 }
-                ArtifactDescription matchingBundle = platform.getArtifact( ECLIPSE_PLUGIN, bundleId, null );
+                ArtifactDescriptor matchingBundle =
+                    platform.getArtifact( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, bundleId, null );
                 if ( matchingBundle != null )
                 {
                     List<File> locations;
@@ -319,7 +333,8 @@ public class OsgiBundleProject
                     {
                         locations = getBundleClasspath( matchingBundle, path );
                     }
-                    classpath.add( new DefaultClasspathEntry( matchingBundle.getKey(), locations, null ) );
+                    classpath.add( new DefaultClasspathEntry( matchingBundle.getMavenProject(),
+                                                              matchingBundle.getKey(), locations, null ) );
                 }
                 else
                 {
@@ -329,7 +344,7 @@ public class OsgiBundleProject
         }
     }
 
-    private List<File> getBundleClasspath( ArtifactDescription bundle, String nestedPath )
+    private List<File> getBundleClasspath( ArtifactDescriptor bundle, String nestedPath )
     {
         LinkedHashSet<File> classpath = new LinkedHashSet<File>();
 
@@ -357,7 +372,7 @@ public class OsgiBundleProject
         return new ArrayList<File>( classpath );
     }
 
-    private String[] parseBundleClasspath( ArtifactDescription bundle )
+    private String[] parseBundleClasspath( ArtifactDescriptor bundle )
     {
         String[] result = new String[] { "." };
         Manifest mf = bundleReader.loadManifest( bundle.getLocation() );
@@ -373,7 +388,7 @@ public class OsgiBundleProject
         return result;
     }
 
-    private File getNestedJarOrDir( ArtifactDescription bundle, String cp )
+    private File getNestedJarOrDir( ArtifactDescriptor bundle, String cp )
     {
         return bundleReader.getEntry( bundle.getLocation(), cp );
     }

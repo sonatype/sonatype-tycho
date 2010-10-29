@@ -2,7 +2,7 @@ package org.codehaus.tycho.buildversion;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.tycho.TychoProject;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * Validates project Maven and OSGi versions. For SNAPSHOT versions, OSGi version qualifier must be ".qualifier" and
@@ -60,19 +60,19 @@ public class ValidateVersionMojo
 
         String packaging = project.getPackaging();
 
-        if ( TychoProject.ECLIPSE_PLUGIN.equals( packaging ) || TychoProject.ECLIPSE_TEST_PLUGIN.equals( packaging ) )
+        if ( ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( packaging ) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) )
         {
             return "META-INF/MANIFEST.MF";
         }
-        else if ( TychoProject.ECLIPSE_FEATURE.equals( packaging ) )
+        else if ( ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
         {
             return "feature.xml";
         }
-        else if ( TychoProject.ECLIPSE_APPLICATION.equals( packaging ) )
+        else if ( ArtifactKey.TYPE_ECLIPSE_APPLICATION.equals( packaging ) )
         {
             return project.getArtifactId() + ".product";
         }
-        else if ( TychoProject.ECLIPSE_REPOSITORY.equals( packaging ) )
+        else if ( ArtifactKey.TYPE_ECLIPSE_REPOSITORY.equals( packaging ) )
         {
             return project.getArtifactId();
         }

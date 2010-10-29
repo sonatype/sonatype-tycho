@@ -18,10 +18,10 @@ import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactDescription;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.buildversion.VersioningHelper;
+import org.sonatype.tycho.ArtifactDescriptor;
 
 /**
  * @requiresProject

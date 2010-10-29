@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.project.MavenProject;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 public interface TargetPlatform
 {
@@ -16,12 +18,12 @@ public interface TargetPlatform
     /**
      * Returns all artifacts.
      */
-    public List<ArtifactDescription> getArtifacts();
+    public List<ArtifactDescriptor> getArtifacts();
 
     /**
      * Returns all artifacts of the given type.
      */
-    public List<ArtifactDescription> getArtifacts( String type );
+    public List<ArtifactDescriptor> getArtifacts( String type );
 
     /**
      * Returns artifact of the given type and id and best matching version or null if no such artifact is found.
@@ -35,13 +37,13 @@ public interface TargetPlatform
      * <li>all other versions match artifact with that exact version, 1.2.3.foo is equivalent to [1.2.3.foo]
      * </ul>
      */
-    public ArtifactDescription getArtifact( String type, String id, String version );
+    public ArtifactDescriptor getArtifact( String type, String id, String version );
 
     public MavenProject getMavenProject( File location );
 
-    public ArtifactDescription getArtifact( File location );
+    public ArtifactDescriptor getArtifact( File location );
 
-    public ArtifactDescription getArtifact( ArtifactKey key );
+    public ArtifactDescriptor getArtifact( ArtifactKey key );
 
     /**
      * Set of IInstallableUnits that were used to construct this target platform or or <code>null</code> if the the

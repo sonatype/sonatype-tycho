@@ -9,17 +9,17 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Category;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.ProductConfiguration;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * An eclipse repository project produces a p2 repository where a set of products are published.
  */
-@Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_REPOSITORY )
+@Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_REPOSITORY )
 public class EclipseRepositoryProject
     extends AbstractArtifactBasedProject
 {
@@ -33,7 +33,7 @@ public class EclipseRepositoryProject
         String id = project.getArtifactId();
         String version = getOsgiVersion( project );
 
-        return new ArtifactKey( TychoProject.ECLIPSE_REPOSITORY, id, version );
+        return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_REPOSITORY, id, version );
     }
 
     @Override

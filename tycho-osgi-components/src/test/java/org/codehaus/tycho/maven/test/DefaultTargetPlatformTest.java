@@ -3,10 +3,11 @@ package org.codehaus.tycho.maven.test;
 import java.io.File;
 import java.io.IOException;
 
-import org.codehaus.tycho.ArtifactKey;
+import org.codehaus.tycho.osgitools.DefaultArtifactKey;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.junit.Assert;
 import org.junit.Test;
+import org.sonatype.tycho.ArtifactKey;
 
 public class DefaultTargetPlatformTest
 {
@@ -55,8 +56,8 @@ public class DefaultTargetPlatformTest
 
     private void addArtifact( DefaultTargetPlatform tp, String type, String id, String version )
     {
-        ArtifactKey key = new ArtifactKey( type, id, version );
-        tp.addArtifactFile( key, new File( version ) );
+        ArtifactKey key = new DefaultArtifactKey( type, id, version );
+        tp.addArtifactFile( key, new File( version ), null );
     }
 
     public void testRelativePath()
@@ -67,8 +68,8 @@ public class DefaultTargetPlatformTest
         File relative = new File( "relative.xml" );
         File canonical = new File( "canonical.xml" );
 
-        tp.addArtifactFile( new ArtifactKey( "foo", "relative", "1" ), relative );
-        tp.addArtifactFile( new ArtifactKey( "foo", "canonical", "1" ), canonical.getCanonicalFile() );
+        tp.addArtifactFile( new DefaultArtifactKey( "foo", "relative", "1" ), relative, null );
+        tp.addArtifactFile( new DefaultArtifactKey( "foo", "canonical", "1" ), canonical.getCanonicalFile(), null );
 
         Assert.assertNotNull( tp.getArtifact( relative.getCanonicalFile() ) );
         Assert.assertNotNull( tp.getArtifact( canonical ) );

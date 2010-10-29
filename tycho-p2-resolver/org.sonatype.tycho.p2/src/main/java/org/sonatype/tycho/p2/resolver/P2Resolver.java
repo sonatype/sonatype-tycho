@@ -11,30 +11,30 @@ import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
 public interface P2Resolver
 {
-    /** @see TychoProject */
+    /** @see org.sonatype.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_PLUGIN = "eclipse-plugin";
 
-    /** @see TychoProject */
+    /** @see org.sonatype.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_FEATURE = "eclipse-feature";
 
-    /** @see TychoProject */
+    /** @see org.sonatype.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_TEST_PLUGIN = "eclipse-test-plugin";
 
-    /** @see TychoProject */
+    /** @see org.sonatype.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_APPLICATION = "eclipse-application";
 
-    /** @see TychoProject */
+    /** @see org.sonatype.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_UPDATE_SITE = "eclipse-update-site";
 
-    /** @see TychoProject */
+    /** @see org.sonatype.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_REPOSITORY = "eclipse-repository";
-
-    public static final String ANY_QUALIFIER = "qualifier";
 
     /**
      * Pseudo artifact type used to denote P2 installable unit dependencies
      */
     public static final String TYPE_INSTALLABLE_UNIT = "p2-installable-unit";
+
+    public static final String ANY_QUALIFIER = "qualifier";
 
     public void addMavenProject( IArtifactFacade artifact );
 

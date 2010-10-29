@@ -8,11 +8,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.codehaus.plexus.util.cli.Commandline;
-import org.codehaus.plexus.util.cli.StreamConsumer;
-import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
+import org.sonatype.tycho.p2.facade.internal.P2ApplicationLauncher;
 
 public abstract class AbstractP2MetadataMojo
     extends AbstractMojo
@@ -66,14 +62,13 @@ public abstract class AbstractP2MetadataMojo
      */
     protected boolean generateP2Metadata;
 
-    /** 
-     * @parameter default-value="true" 
+    /**
+     * @parameter default-value="true"
      */
     private boolean compressRepository;
 
-
     /** @component */
-    private EquinoxRuntimeLocator equinoxLocator;
+    private P2ApplicationLauncher launcher;
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -107,68 +102,38 @@ public abstract class AbstractP2MetadataMojo
     private void generateMetadata()
         throws Exception
     {
-        Commandline cli = new Commandline();
+        P2ApplicationLauncher launcher = this.launcher;
 
-        cli.setWorkingDirectory( project.getBasedir() );
+        launcher.setWorkingDirectory( project.getBasedir() );
+        launcher.setApplicationName( getPublisherApplication() );
 
-        String executable = System.getProperty( "java.home" ) + File.separator + "bin" + File.separator + "java";
-        if ( File.separatorChar == '\\' )
-        {
-            executable = executable + ".exe";
-        }
-        cli.setExecutable( executable );
-
-        cli.addArguments( new String[] { "-jar", getEquinoxLauncher().getCanonicalPath(), } );
-        if ( getLog().isDebugEnabled() )
-        {
-            cli.addArguments( new String[] { "-debug", "-consoleLog" } );
-        }
-        cli.addArguments( new String[] { "-nosplash", //
-            "-application", getPublisherApplication(), } );
-
-        addArguments( cli );
+        addArguments( launcher );
 
         if ( argLine != null && argLine.trim().length() > 0 )
         {
-            cli.addArguments( new String[] { "-vmargs", argLine, } );
+            // TODO does this really do anything???
+            launcher.addArguments( "-vmargs", argLine );
         }
 
-        getLog().info( "Command line:\n\t" + cli.toString() );
-
-        StreamConsumer out = new StreamConsumer()
-        {
-            public void consumeLine( String line )
-            {
-                System.out.println( line );
-            }
-        };
-
-        StreamConsumer err = new StreamConsumer()
-        {
-            public void consumeLine( String line )
-            {
-                System.err.println( line );
-            }
-        };
-
-        int result = CommandLineUtils.executeCommandLine( cli, out, err, forkedProcessTimeoutInSeconds );
+        int result = launcher.execute( forkedProcessTimeoutInSeconds );
         if ( result != 0 )
         {
             throw new MojoFailureException( "P2 publisher return code was " + result );
         }
     }
 
-    protected void addArguments( Commandline cli )
+    protected void addArguments( P2ApplicationLauncher launcher )
         throws IOException, MalformedURLException
     {
-        cli.addArguments( new String[] { "-source", getUpdateSiteLocation().getCanonicalPath(), //
-            "-metadataRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
-            "-metadataRepositoryName", metadataRepositoryName, //
-            "-artifactRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
-            "-artifactRepositoryName", artifactRepositoryName, //
-            "-noDefaultIUs", } );
-        if (compressRepository) {
-        	cli.addArguments(new String[] {"-compress"});
+        launcher.addArguments( "-source", getUpdateSiteLocation().getCanonicalPath(), //
+                               "-metadataRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
+                               "-metadataRepositoryName", metadataRepositoryName, //
+                               "-artifactRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
+                               "-artifactRepositoryName", artifactRepositoryName, //
+                               "-noDefaultIUs" );
+        if ( compressRepository )
+        {
+            launcher.addArguments( new String[] { "-compress" } );
         }
     }
 
@@ -178,22 +143,4 @@ public abstract class AbstractP2MetadataMojo
     {
         return target;
     }
-
-    private File getEquinoxLauncher()
-        throws MojoFailureException
-    {
-        // XXX dirty hack
-        File p2location = equinoxLocator.getRuntimeLocations().get( 0 );
-        DirectoryScanner ds = new DirectoryScanner();
-        ds.setBasedir( p2location );
-        ds.setIncludes( new String[] { "plugins/org.eclipse.equinox.launcher_*.jar" } );
-        ds.scan();
-        String[] includedFiles = ds.getIncludedFiles();
-        if ( includedFiles == null || includedFiles.length != 1 )
-        {
-            throw new MojoFailureException( "Can't locate org.eclipse.equinox.launcher bundle in " + p2location );
-        }
-        return new File( p2location, includedFiles[0] );
-    }
-
 }

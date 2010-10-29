@@ -7,12 +7,12 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
-import org.codehaus.tycho.ArtifactKey;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.UpdateSite;
+import org.sonatype.tycho.ArtifactKey;
 
-@Component( role = TychoProject.class, hint = TychoProject.ECLIPSE_UPDATE_SITE )
+@Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE )
 public class UpdateSiteProject
     extends AbstractArtifactBasedProject
 {
@@ -46,6 +46,6 @@ public class UpdateSiteProject
 
     public ArtifactKey getArtifactKey( MavenProject project )
     {
-        return new ArtifactKey( TychoProject.ECLIPSE_UPDATE_SITE, project.getArtifactId(), getOsgiVersion( project ) );
+        return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE, project.getArtifactId(), getOsgiVersion( project ) );
     }
 }

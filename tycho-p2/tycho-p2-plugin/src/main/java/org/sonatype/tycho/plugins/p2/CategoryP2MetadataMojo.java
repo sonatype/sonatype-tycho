@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
-import org.codehaus.plexus.util.cli.Commandline;
+import org.sonatype.tycho.p2.facade.internal.P2ApplicationLauncher;
 
 /**
  * Adds category IUs to existing metadata repository.
@@ -27,10 +27,10 @@ public class CategoryP2MetadataMojo
     }
 
     @Override
-    protected void addArguments( Commandline cli )
+    protected void addArguments( P2ApplicationLauncher cli )
         throws IOException, MalformedURLException
     {
-        cli.addArguments( new String[] { "-metadataRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
-            "-categoryDefinition", categoryDefinition.toURL().toExternalForm() } );
+        cli.addArguments( "-metadataRepository", getUpdateSiteLocation().toURL().toExternalForm(), //
+                          "-categoryDefinition", categoryDefinition.toURL().toExternalForm() );
     }
 }

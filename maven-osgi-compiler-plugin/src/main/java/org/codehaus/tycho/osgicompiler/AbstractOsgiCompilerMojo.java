@@ -43,9 +43,6 @@ import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleProject;
-import org.codehaus.tycho.ClasspathEntry;
-import org.codehaus.tycho.ClasspathEntry.AccessRule;
-import org.codehaus.tycho.SourcepathEntry;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.UnknownEnvironmentException;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
@@ -57,8 +54,13 @@ import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 import org.codehaus.tycho.utils.ExecutionEnvironment;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.MavenArtifactRef;
+import org.sonatype.tycho.classpath.ClasspathEntry;
+import org.sonatype.tycho.classpath.ClasspathEntry.AccessRule;
+import org.sonatype.tycho.classpath.JavaCompilerConfiguration;
+import org.sonatype.tycho.classpath.SourcepathEntry;
+import org.sonatype.tycho.runtime.Adaptable;
 
-public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
+public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo implements JavaCompilerConfiguration, Adaptable {
 
     public static final String RULE_SEPARATOR = File.pathSeparator;
 
@@ -424,7 +426,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
                     }
                     ArrayList<File> bLocations = new ArrayList<File>();
                     bLocations.add(b.getFile()); // TODO properly handle multiple project locations maybe
-                    classpath.add(new DefaultClasspathEntry( null, bLocations, null));
+                    classpath.add(new DefaultClasspathEntry( bProject, null, bLocations, null));
                 }
             }
         }
@@ -472,5 +474,14 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo {
             }
         }
         return DEFAULT_TARGET_VERSION;
+    }
+
+    public <T> T getAdapter( Class<T> adapter )
+    {
+        if ( adapter.isAssignableFrom( JavaCompilerConfiguration.class ) )
+        {
+            return adapter.cast( this );
+        }
+        return null;
     }
 }

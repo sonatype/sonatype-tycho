@@ -10,6 +10,4 @@ public interface EquinoxEmbedder
     public <T> T getService( Class<T> clazz );
 
     public void setNonFrameworkArgs( String[] strings );
-
-    public void registerAfterStartCallback( Runnable callback );
 }

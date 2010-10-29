@@ -427,11 +427,14 @@
   </repositories>
 
   <modules>
+    <module>tycho-equinox-api</module>
     <module>tycho-equinox</module>
     <module>tycho-metadata-model</module>
+    <module>tycho-embedder-api</module>
     <module>tycho-osgi-components</module>
     <module>tycho-testing-harness</module>
     <module>tycho-maven-plugin</module>
+    <module>tycho-equinox-launching</module>
 
     <module>tycho-compiler-jdt</module>
     <module>maven-osgi-compiler-plugin</module>

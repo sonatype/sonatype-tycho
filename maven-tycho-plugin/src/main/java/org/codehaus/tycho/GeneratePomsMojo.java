@@ -39,6 +39,7 @@ import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.osgitools.BundleReader;
+import org.codehaus.tycho.osgitools.DefaultArtifactKey;
 import org.codehaus.tycho.osgitools.DependencyComputer;
 import org.codehaus.tycho.osgitools.EquinoxResolver;
 import org.codehaus.tycho.osgitools.targetplatform.DefaultTargetPlatform;
@@ -48,6 +49,8 @@ import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.sonatype.tycho.ArtifactDescriptor;
+import org.sonatype.tycho.ArtifactKey;
 
 /**
  * @goal generate-poms
@@ -201,8 +204,8 @@ public class GeneratePomsMojo extends AbstractMojo {
                     ManifestElement[] version = bundleReader.parseHeader( Constants.BUNDLE_VERSION, mf );
                     if ( id != null && version != null )
                     {
-                        ArtifactKey key = new ArtifactKey(TychoProject.ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue());
-    			        platform.addArtifactFile( key, dir );
+                        ArtifactKey key = new DefaultArtifactKey(org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue());
+    			        platform.addArtifactFile( key, dir, null );
                     }
                     else
                     {
@@ -219,7 +222,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		// testSuite
 		File testSuiteLocation = null;
 		if (testSuite != null) {
-			ArtifactDescription bundle = platform.getArtifact(TychoProject.ECLIPSE_PLUGIN, testSuite, null);
+			ArtifactDescriptor bundle = platform.getArtifact(org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, testSuite, null);
 			if (bundle != null) {
 				testSuiteLocation = bundle.getLocation();
 			}
@@ -638,7 +641,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 	}
 
 	private void generatePluginPom(Model parent, File basedir) throws MojoExecutionException {
-	    ArtifactDescription bundle = platform.getArtifact( basedir );
+	    ArtifactDescriptor bundle = platform.getArtifact( basedir );
         ArtifactKey key = bundle.getKey();
 		Model model;
         if ( (testSuffix != null && basedir.getName().endsWith(testSuffix)) 

@@ -3,20 +3,13 @@ package org.sonatype.tycho.plugins.p2.publisher;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.cli.CommandLineException;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
-import org.codehaus.plexus.util.cli.Commandline;
-import org.codehaus.plexus.util.cli.DefaultConsumer;
-import org.codehaus.plexus.util.cli.WriterStreamConsumer;
 import org.codehaus.tycho.TargetPlatform;
-import org.sonatype.tycho.equinox.embedder.EquinoxRuntimeLocator;
 import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
+import org.sonatype.tycho.p2.facade.internal.P2ApplicationLauncher;
 
 public abstract class AbstractPublishMojo
     extends AbstractP2Mojo
@@ -29,7 +22,7 @@ public abstract class AbstractPublishMojo
     private boolean compress;
 
     /** @component */
-    private EquinoxRuntimeLocator equinoxLocator;
+    private P2ApplicationLauncher launcher;
 
     /** @component */
     private P2MetadataRepositoryWriter metadataRepositoryWriter;
@@ -58,61 +51,32 @@ public abstract class AbstractPublishMojo
                 materializeRepository( new File( getProject().getBuild().getDirectory() ), getTargetPlatform(),
                                        getQualifier() );
 
-            Commandline cli = createOSGiCommandline( publishApplicationName );
-            cli.setWorkingDirectory( getProject().getBasedir() );
-            cli.addArguments( new String[] { "-artifactRepository", getRepositoryUrl(), //
-                "-metadataRepository", getRepositoryUrl(), //
-                "-contextMetadata", contextRepositoryUrl, //
-                "-append", //
-                "-publishArtifacts" } );
-            cli.addArguments( getCompressFlag() );
-            cli.addArguments( additionalArgs );
+            P2ApplicationLauncher launcher = this.launcher;
 
-            try
+            launcher.setWorkingDirectory( getProject().getBasedir() );
+            launcher.setApplicationName( publishApplicationName );
+            launcher.addArguments( "-artifactRepository", getRepositoryUrl(), //
+                                   "-metadataRepository", getRepositoryUrl(), //
+                                   "-contextMetadata", contextRepositoryUrl, //
+                                   "-append", //
+                                   "-publishArtifacts" );
+            launcher.addArguments( getCompressFlag() );
+            launcher.addArguments( additionalArgs );
+
+            int result = launcher.execute( forkedProcessTimeoutInSeconds );
+            if ( result != 0 )
             {
-                int result = executeCommandline( cli, forkedProcessTimeoutInSeconds );
-                if ( result != 0 )
-                {
-                    throw new MojoFailureException( "P2 publisher return code was " + result );
-                }
-            }
-            catch ( CommandLineException cle )
-            {
-                throw new MojoExecutionException( "P2 publisher failed to be executed ", cle );
+                throw new MojoFailureException( "P2 publisher return code was " + result );
             }
         }
-        catch ( IOException ioe )
+        catch ( MojoFailureException e )
+        {
+            throw e;
+        }
+        catch ( Exception ioe )
         {
             throw new MojoExecutionException( "Unable to execute the publisher", ioe );
         }
-    }
-
-    private int executeCommandline( Commandline cli, int timeout )
-        throws CommandLineException
-    {
-        getLog().info( "Command line:\n\t" + cli.toString() );
-        return CommandLineUtils.executeCommandLine( cli, new DefaultConsumer(),
-                                                    new WriterStreamConsumer( new OutputStreamWriter( System.err ) ),
-                                                    timeout );
-    }
-
-    static Commandline createOSGiCommandline( String applicationId, File equinoxLauncher )
-    {
-        Commandline cli = new Commandline();
-
-        String executable = System.getProperty( "java.home" ) + File.separator + "bin" + File.separator + "java";
-        cli.setExecutable( executable );
-        cli.addArguments( new String[] { "-jar", equinoxLauncher.getAbsolutePath() } );
-        cli.addArguments( new String[] { "-application", applicationId } );
-        cli.addArguments( new String[] { "-nosplash" } );
-        cli.addArguments( new String[] { "-consoleLog" } );
-        return cli;
-    }
-
-    private Commandline createOSGiCommandline( String applicationId )
-    {
-        File equinoxLauncher = getEquinoxLauncher( equinoxLocator );
-        return createOSGiCommandline( applicationId, equinoxLauncher );
     }
 
     String materializeRepository( File targetDirectory, TargetPlatform targetPlatform, String qualifier )
@@ -148,20 +112,4 @@ public abstract class AbstractPublishMojo
     {
         return getTargetRepositoryLocation().toURL().toExternalForm();
     }
-
-    private static File getEquinoxLauncher( EquinoxRuntimeLocator equinoxLocator )
-    {
-        File p2location = equinoxLocator.getRuntimeLocations().get(0);
-        DirectoryScanner ds = new DirectoryScanner();
-        ds.setBasedir( p2location );
-        ds.setIncludes( new String[] { "plugins/org.eclipse.equinox.launcher_*.jar" } );
-        ds.scan();
-        String[] includedFiles = ds.getIncludedFiles();
-        if ( includedFiles == null || includedFiles.length != 1 )
-        {
-            throw new IllegalStateException( "Can't locate org.eclipse.equinox.launcher bundle in " + p2location );
-        }
-        return new File( p2location, includedFiles[0] );
-    }
-
 }

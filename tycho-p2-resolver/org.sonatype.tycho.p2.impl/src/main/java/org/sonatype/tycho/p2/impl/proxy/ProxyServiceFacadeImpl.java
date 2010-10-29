@@ -9,8 +9,6 @@ import org.eclipse.core.internal.net.Activator;
 import org.eclipse.core.internal.net.ProxyData;
 import org.eclipse.core.net.proxy.IProxyData;
 import org.eclipse.core.net.proxy.IProxyService;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 import org.sonatype.tycho.p2.ProxyServiceFacade;
@@ -24,19 +22,6 @@ public class ProxyServiceFacadeImpl
     private static final Pattern NON_PROXY_DELIMITERS = Pattern.compile( "\\s*[|,]\\s*" );
 
     private IProxyService proxyService;
-
-    public ProxyServiceFacadeImpl( BundleContext context )
-    {
-        ServiceReference proxyServiceRef = context.getServiceReference( IProxyService.class.getName() );
-        if ( proxyServiceRef != null )
-        {
-            proxyService = (IProxyService) context.getService( proxyServiceRef );
-        }
-        if ( proxyService == null )
-        {
-            throw new IllegalStateException( "Could not get service " + IProxyService.class.getName() );
-        }
-    }
 
     public void configureProxy( String protocol, String host, int port, String user, String password,
                                 String nonProxyHosts )
@@ -58,7 +43,7 @@ public class ProxyServiceFacadeImpl
             // org.eclipse.ui.net only ...
             registerAuthenticator( user, password );
             proxyService.setProxiesEnabled( true );
-            // disable the eclipse native proxy providers 
+            // disable the eclipse native proxy providers
             proxyService.setSystemProxiesEnabled( false );
         }
         catch ( Throwable e )
@@ -135,4 +120,13 @@ public class ProxyServiceFacadeImpl
         preferences.clear();
     }
 
+    public void setProxyServer( IProxyService proxyService )
+    {
+        this.proxyService = proxyService;
+    }
+
+    public void unsetProxyServer( IProxyService proxyService )
+    {
+        this.proxyService = null;
+    }
 }

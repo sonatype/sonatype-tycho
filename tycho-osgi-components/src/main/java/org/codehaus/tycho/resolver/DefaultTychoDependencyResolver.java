@@ -10,6 +10,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
+import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
@@ -18,9 +19,12 @@ import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.MavenDependencyCollector;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.DebugUtils;
+import org.sonatype.tycho.resolver.DependencyVisitor;
+import org.sonatype.tycho.resolver.TychoDependencyResolver;
 
-@Component( role = DefaultTychoDependencyResolver.class )
+@Component( role = TychoDependencyResolver.class )
 public class DefaultTychoDependencyResolver
+    implements TychoDependencyResolver
 {
     @Requirement
     private Logger logger;
@@ -94,4 +98,29 @@ public class DefaultTychoDependencyResolver
             }
         }
     }
+
+    public void traverse( MavenProject project, final DependencyVisitor visitor )
+    {
+        TychoProject tychoProject = projectTypes.get( project.getPackaging() );
+        if ( tychoProject != null )
+        {
+            tychoProject.getDependencyWalker( project ).walk( new ArtifactDependencyVisitor()
+            {
+                public void visitPlugin( org.codehaus.tycho.PluginDescription plugin )
+                {
+                    visitor.visit( plugin );
+                };
+
+                public boolean visitFeature( org.codehaus.tycho.FeatureDescription feature )
+                {
+                    return visitor.visit( feature );
+                };
+            } );
+        }
+        else
+        {
+            // TODO do something!
+        }
+    }
+
 }

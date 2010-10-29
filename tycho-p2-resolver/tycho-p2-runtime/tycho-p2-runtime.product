@@ -69,9 +69,6 @@
       <plugin id="org.sat4j.core" version="2.2.0.v20100429"/>
       <plugin id="org.sat4j.pb" version="2.2.0.v20100429"/>
 
-      <plugin id="org.sonatype.tycho.p2"/>
-      <plugin id="org.sonatype.tycho.p2.impl"/>
-      <plugin id="org.sonatype.tycho.p2.maven.repository"/>
       <plugin id="org.sonatype.tycho.noopsecurity"/>
    </plugins>
 

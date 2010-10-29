@@ -3,6 +3,7 @@ package org.codehaus.tycho;
 import java.util.List;
 
 import org.apache.maven.project.MavenProject;
+import org.sonatype.tycho.classpath.ClasspathEntry;
 
 public interface BundleProject
     extends TychoProject
