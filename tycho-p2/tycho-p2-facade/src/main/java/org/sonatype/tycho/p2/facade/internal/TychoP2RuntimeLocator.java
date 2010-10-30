@@ -151,6 +151,7 @@ public class TychoP2RuntimeLocator
     }
 
     private File resolveArtifact( MavenSession session, Artifact artifact )
+        throws MavenExecutionException
     {
         List<ArtifactRepository> repositories = new ArrayList<ArtifactRepository>();
         for ( MavenProject project : session.getProjects() )
@@ -176,15 +177,7 @@ public class TychoP2RuntimeLocator
         }
         catch ( ArtifactResolutionException e )
         {
-            if ( logger.isDebugEnabled() )
-            {
-                logger.warn( "Could not resolve tycho-p2-runtime", e );
-            }
-            else
-            {
-                logger.warn( "Could not resolve tycho-p2-runtime" );
-            }
-            return null;
+            throw new MavenExecutionException( "Could not resolve tycho-p2-runtime", e );
         }
 
         return artifact.getFile();
