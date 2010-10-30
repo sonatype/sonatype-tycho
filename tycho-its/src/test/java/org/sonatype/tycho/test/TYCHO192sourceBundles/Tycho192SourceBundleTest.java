@@ -7,12 +7,13 @@ import java.util.jar.JarFile;
 
 import org.apache.maven.it.Verifier;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 	
-	@Test
+	@Test @Ignore
 	public void testDefaultSourceBundleSuffix() throws Exception {
 		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
 		verifier.getCliOptions().add("-PtestDefaultSuffix");
@@ -38,7 +39,7 @@ public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 		}
 	}
 
-	@Test
+	@Test @Ignore
 	public void testCustomSourceBundleSuffix() throws Exception {
 		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
 		List<String> cliOptions = verifier.getCliOptions();
