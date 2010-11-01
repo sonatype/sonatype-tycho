@@ -5,15 +5,15 @@ import java.util.List;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 /**
- * Target platform content resolver.
- * 
- * TODO This interface and its implementations require further refinement.
- *      I need to decide if new resolver instance is required for each project.
+ * Target platform content resolver. TODO This interface and its implementations require further refinement. I need to
+ * decide if new resolver instance is required for each project.
  */
 public interface TargetPlatformResolver
 {
-    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies );
+    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
+                                           List<DependentMavenProjectProxy> reactorProjects,
+                                           List<Dependency> dependencies );
 }

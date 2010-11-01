@@ -3,11 +3,11 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 import java.util.Set;
 
-import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 public class DefaultFeatureDescription
     extends DefaultArtifactDescriptor
@@ -17,7 +17,7 @@ public class DefaultFeatureDescription
 
     private FeatureRef featureRef;
 
-    public DefaultFeatureDescription( ArtifactKey key, File location, MavenProject project, Feature feature,
+    public DefaultFeatureDescription( ArtifactKey key, File location, DependentMavenProjectProxy project, Feature feature,
                                       FeatureRef featureRef, Set<Object> installableUnits )
     {
         super( key, location, project, installableUnits );

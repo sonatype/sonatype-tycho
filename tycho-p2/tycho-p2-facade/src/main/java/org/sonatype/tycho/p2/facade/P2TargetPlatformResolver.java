@@ -63,6 +63,7 @@ import org.sonatype.tycho.p2.resolver.P2Logger;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
 import org.sonatype.tycho.p2.resolver.P2Resolver;
 import org.sonatype.tycho.p2.resolver.P2ResolverFactory;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 @Component( role = TargetPlatformResolver.class, hint = P2TargetPlatformResolver.ROLE_HINT, instantiationStrategy = "per-lookup" )
 public class P2TargetPlatformResolver
@@ -96,13 +97,15 @@ public class P2TargetPlatformResolver
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
 
-    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
+    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
+                                           List<DependentMavenProjectProxy> reactorProjects,
+                                           List<Dependency> dependencies )
     {
         P2Resolver resolver = resolverFactory.createResolver();
 
         try
         {
-            return doResolvePlatform( session, project, dependencies, resolver );
+            return doResolvePlatform( session, project, reactorProjects, dependencies, resolver );
         }
         finally
         {
@@ -111,6 +114,7 @@ public class P2TargetPlatformResolver
     }
 
     protected TargetPlatform doResolvePlatform( final MavenSession session, final MavenProject project,
+                                                List<DependentMavenProjectProxy> reactorProjects,
                                                 List<Dependency> dependencies, P2Resolver resolver )
     {
         TargetPlatformConfiguration configuration =
@@ -144,13 +148,13 @@ public class P2TargetPlatformResolver
             }
         } );
 
-        Map<File, MavenProject> projects = new HashMap<File, MavenProject>();
+        Map<File, DependentMavenProjectProxy> projects = new HashMap<File, DependentMavenProjectProxy>();
 
         resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
 
         resolver.setEnvironments( getEnvironments( configuration ) );
 
-        for ( MavenProject otherProject : session.getProjects() )
+        for ( DependentMavenProjectProxy otherProject : reactorProjects )
         {
             if ( getLogger().isDebugEnabled() )
             {
@@ -170,8 +174,8 @@ public class P2TargetPlatformResolver
 
         if ( TargetPlatformConfiguration.POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
         {
-            Set<String> projectIds = new HashSet<String>( session.getProjects().size() * 2 );
-            for ( MavenProject p : session.getProjects() )
+            Set<String> projectIds = new HashSet<String>();
+            for ( DependentMavenProjectProxy p : reactorProjects )
             {
                 String key = ArtifactUtils.key( p.getGroupId(), p.getArtifactId(), p.getVersion() );
                 projectIds.add( key );
@@ -434,7 +438,8 @@ public class P2TargetPlatformResolver
     {
         String packaging = project.getPackaging();
 
-        if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE.equals( packaging ) || org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
+        if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE.equals( packaging )
+            || org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
         {
             Boolean allow = configuration.getAllowConflictingDependencies();
             if ( allow != null )
@@ -447,7 +452,8 @@ public class P2TargetPlatformResolver
         return false;
     }
 
-    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session, Map<File, MavenProject> projects,
+    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session,
+                                                              Map<File, DependentMavenProjectProxy> projects,
                                                               P2ResolutionResult result )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
@@ -459,7 +465,7 @@ public class P2TargetPlatformResolver
         for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
         {
             ArtifactKey key = new DefaultArtifactKey( entry.getType(), entry.getId(), entry.getVersion() );
-            MavenProject otherProject = projects.get( entry.getLocation() );
+            DependentMavenProjectProxy otherProject = projects.get( entry.getLocation() );
             if ( otherProject != null )
             {
                 platform.addMavenProject( key, otherProject, entry.getInstallableUnits() );

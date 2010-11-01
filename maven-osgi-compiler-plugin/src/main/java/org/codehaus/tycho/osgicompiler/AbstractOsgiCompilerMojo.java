@@ -48,6 +48,7 @@ import org.codehaus.tycho.UnknownEnvironmentException;
 import org.codehaus.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.osgitools.DefaultClasspathEntry;
+import org.codehaus.tycho.osgitools.DefaultDependentMavenProjectProxy;
 import org.codehaus.tycho.osgitools.OsgiBundleProject;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
@@ -426,7 +427,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo impl
                     }
                     ArrayList<File> bLocations = new ArrayList<File>();
                     bLocations.add(b.getFile()); // TODO properly handle multiple project locations maybe
-                    classpath.add(new DefaultClasspathEntry( bProject, null, bLocations, null));
+                    classpath.add(new DefaultClasspathEntry( DefaultDependentMavenProjectProxy.adapt(bProject), null, bLocations, null));
                 }
             }
         }

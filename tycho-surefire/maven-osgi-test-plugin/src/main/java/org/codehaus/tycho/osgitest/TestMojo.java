@@ -49,6 +49,7 @@ import org.sonatype.tycho.equinox.launching.EquinoxInstallationFactory;
 import org.sonatype.tycho.equinox.launching.EquinoxLauncher;
 import org.sonatype.tycho.equinox.launching.internal.EquinoxLaunchConfiguration;
 import org.sonatype.tycho.launching.LaunchConfiguration;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 import org.sonatype.tycho.runtime.Adaptable;
 
 /**
@@ -330,7 +331,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 			}
 		}
 
-		EquinoxInstallation testRuntime = createEclipseInstallation(false);
+		EquinoxInstallation testRuntime = createEclipseInstallation(false, getReactorProjects(session));
 
 		String testBundle = null;
 		boolean succeeded = runTest(testRuntime, testBundle);
@@ -342,7 +343,13 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		}
 	}
 
-    private EquinoxInstallation createEclipseInstallation(boolean includeReactorProjects)
+    private List<DependentMavenProjectProxy> getReactorProjects( MavenSession session2 )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    private EquinoxInstallation createEclipseInstallation(boolean includeReactorProjects, List<DependentMavenProjectProxy> reactorProjects)
         throws MojoExecutionException
     {
         TargetPlatformResolver platformResolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
@@ -356,7 +363,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 
 		dependencies.addAll( getTestDependencies() );
 
-		TargetPlatform testTargetPlatform = platformResolver.resolvePlatform( session, project, dependencies );
+		TargetPlatform testTargetPlatform = platformResolver.resolvePlatform( session, project, reactorProjects, dependencies );
 
 		if (testTargetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
@@ -384,13 +391,13 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		    // note that this project is added as directory structure rooted at project basedir.
 		    // project classes and test-classes are added via dev.properties file (see #createDevProperties())
 		    // all other projects are added as bundle jars.
-		    MavenProject otherProject = artifact.getMavenProject();
+		    DependentMavenProjectProxy otherProject = artifact.getMavenProject();
 		    if (otherProject == project) {
                 testRuntime.addBundle(artifact.getKey(), project.getBasedir());
                 continue;
 		    } else 
 		        if (otherProject != null) {
-                File file = otherProject.getArtifact().getFile();
+                File file = otherProject.getArtifact();
                 if (file != null) {
                     testRuntime.addBundle(artifact.getKey(), file);
                     continue;

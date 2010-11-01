@@ -12,16 +12,17 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.maven.project.MavenProject;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 public class EclipsePluginProjectImpl implements EclipsePluginProject {
 
-	private final MavenProject project;
+	private final DependentMavenProjectProxy project;
 	private final Properties buildProperties;
 
 	private final LinkedHashMap<String, BuildOutputJar> outputJars = new LinkedHashMap<String, BuildOutputJar>();
 	private final BuildOutputJar dotOutputJar;
 
-	public EclipsePluginProjectImpl(MavenProject project) throws IOException {
+	public EclipsePluginProjectImpl(DependentMavenProjectProxy project) throws IOException {
 		this.project = project;
 		this.buildProperties = loadProperties(project);
 
@@ -90,7 +91,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 		return result;
 	}
 
-	private static Properties loadProperties(MavenProject project) throws IOException {
+	private static Properties loadProperties(DependentMavenProjectProxy project) throws IOException {
 		File file = new File(project.getBasedir(), "build.properties");
 
 		Properties buildProperties = new Properties();
@@ -113,7 +114,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 		return buildProperties;
 	}
 
-	public MavenProject getMavenProject() {
+	public DependentMavenProjectProxy getMavenProject() {
 		return project;
 	}
 

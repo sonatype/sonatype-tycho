@@ -38,6 +38,7 @@ import org.osgi.framework.Constants;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.classpath.ClasspathEntry;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 @Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN )
 public class OsgiBundleProject
@@ -77,7 +78,7 @@ public class OsgiBundleProject
 
                     ArtifactKey key = artifact.getKey();
                     File location = artifact.getLocation();
-                    MavenProject project = artifact.getMavenProject();
+                    DependentMavenProjectProxy project = artifact.getMavenProject();
 
                     PluginDescription plugin =
                         new DefaultPluginDescription( key, location, project, null, artifact.getInstallableUnits() );
@@ -176,7 +177,7 @@ public class OsgiBundleProject
         {
             File location = new File( entry.desc.getLocation() );
             ArtifactDescriptor otherArtifact = platform.getArtifact( location );
-            MavenProject otherProject = otherArtifact.getMavenProject();
+            DependentMavenProjectProxy otherProject = otherArtifact.getMavenProject();
             List<File> locations;
             if ( otherProject != null )
             {
@@ -212,16 +213,21 @@ public class OsgiBundleProject
         }
     }
 
-    public EclipsePluginProjectImpl getEclipsePluginProject( MavenProject project )
+//    public EclipsePluginProjectImpl getEclipsePluginProject( MavenProject otherProject )
+//    {
+//        
+//    }
+    
+    public EclipsePluginProjectImpl getEclipsePluginProject( DependentMavenProjectProxy otherProject )
     {
         EclipsePluginProjectImpl pdeProject =
-            (EclipsePluginProjectImpl) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
+            (EclipsePluginProjectImpl) otherProject.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
         if ( pdeProject == null )
         {
             try
             {
-                pdeProject = new EclipsePluginProjectImpl( project );
-                project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT, pdeProject );
+                pdeProject = new EclipsePluginProjectImpl( otherProject );
+                otherProject.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT, pdeProject );
             }
             catch ( IOException e )
             {
@@ -242,11 +248,11 @@ public class OsgiBundleProject
         return classpath;
     }
 
-    private List<File> getProjectClasspath( ArtifactDescriptor bundle, MavenProject project, String nestedPath )
+    private List<File> getProjectClasspath( ArtifactDescriptor bundle, DependentMavenProjectProxy otherProject, String nestedPath )
     {
         LinkedHashSet<File> classpath = new LinkedHashSet<File>();
 
-        EclipsePluginProject pdeProject = getEclipsePluginProject( project );
+        EclipsePluginProject pdeProject = getEclipsePluginProject( otherProject );
 
         Map<String, BuildOutputJar> outputJars = pdeProject.getOutputJarMap();
         if ( nestedPath == null )
@@ -260,14 +266,14 @@ public class OsgiBundleProject
                 }
                 else
                 {
-                    File jar = new File( project.getBasedir(), cp );
+                    File jar = new File( otherProject.getBasedir(), cp );
                     if ( jar.exists() )
                     {
                         classpath.add( jar );
                     }
                     else
                     {
-                        getLogger().warn( "Missing classpath entry " + cp + " " + project.toString() );
+                        getLogger().warn( "Missing classpath entry " + cp + " " + otherProject.toString() );
                     }
                 }
             }
@@ -275,7 +281,7 @@ public class OsgiBundleProject
         else
         /* nestedPath != null */
         {
-            File jar = new File( project.getBasedir(), nestedPath );
+            File jar = new File( otherProject.getBasedir(), nestedPath );
 
             // TODO ideally, we need to honour build.properties/bin.includes
             // but for now lets just assume nestedPath is included
@@ -285,7 +291,7 @@ public class OsgiBundleProject
             }
             else
             {
-                getLogger().warn( "Missing classpath entry " + nestedPath + " " + project.toString() );
+                getLogger().warn( "Missing classpath entry " + nestedPath + " " + otherProject.toString() );
             }
         }
 

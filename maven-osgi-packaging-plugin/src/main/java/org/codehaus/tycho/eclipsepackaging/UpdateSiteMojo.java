@@ -14,6 +14,7 @@ import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.model.UpdateSite.SiteFeatureRef;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 /**
  * @goal update-site
@@ -63,7 +64,7 @@ public class UpdateSiteMojo
                 {
                     FeatureRef featureRef = feature.getFeatureRef();
                     String id = featureRef.getId();
-                    MavenProject otherProject = feature.getMavenProject();
+                    DependentMavenProjectProxy otherProject = feature.getMavenProject();
                     String version;
                     if ( otherProject != null )
                     {

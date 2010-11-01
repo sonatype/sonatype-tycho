@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.PluginDescription;
@@ -24,6 +23,7 @@ import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 public abstract class AbstractArtifactDependencyWalker
     implements ArtifactDependencyWalker
@@ -73,7 +73,7 @@ public abstract class AbstractArtifactDependencyWalker
         }
 
         ArtifactKey key = artifact.getKey();
-        MavenProject project = artifact.getMavenProject();
+        DependentMavenProjectProxy project = artifact.getMavenProject();
 
         DefaultFeatureDescription description =
             new DefaultFeatureDescription( key, location, project, feature, featureRef, artifact.getInstallableUnits() );
@@ -222,7 +222,7 @@ public abstract class AbstractArtifactDependencyWalker
 
             File location = artifact.getLocation();
 
-            MavenProject project = platform.getMavenProject( location );
+            DependentMavenProjectProxy project = platform.getMavenProject( location );
             PluginDescription description =
                 new DefaultPluginDescription( key, location, project, ref, artifact.getInstallableUnits() );
             visited.enter( description );

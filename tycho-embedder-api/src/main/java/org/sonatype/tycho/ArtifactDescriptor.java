@@ -3,7 +3,7 @@ package org.sonatype.tycho;
 import java.io.File;
 import java.util.Set;
 
-import org.apache.maven.project.MavenProject;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 public interface ArtifactDescriptor
 {
@@ -11,7 +11,7 @@ public interface ArtifactDescriptor
 
     public File getLocation();
 
-    public MavenProject getMavenProject();
+    public DependentMavenProjectProxy getMavenProject();
 
     // TODO should this come from separate P2ArtifactDescriptor interface?
     public Set<Object> getInstallableUnits();

@@ -24,6 +24,7 @@ import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 /**
  * @phase package
@@ -169,10 +170,10 @@ public class PackageFeatureMojo
 
                 File location = plugin.getLocation();
 
-                MavenProject bundleProject = plugin.getMavenProject();
+                DependentMavenProjectProxy bundleProject = plugin.getMavenProject();
                 if ( bundleProject != null )
                 {
-                    location = bundleProject.getArtifact().getFile();
+                    location = bundleProject.getArtifact();
 
                     if ( location == null || location.isDirectory() )
                     {
@@ -219,7 +220,7 @@ public class PackageFeatureMojo
                 else
                 {
                     // included feature
-                    MavenProject otherProject = feature.getMavenProject();
+                    DependentMavenProjectProxy otherProject = feature.getMavenProject();
                     if ( otherProject != null )
                     {
                         TychoProject projectType = getTychoProjectFacet( otherProject.getPackaging() );

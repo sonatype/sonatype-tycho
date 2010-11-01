@@ -26,6 +26,7 @@ import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.utils.SourceBundleUtils;
+import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 /**
  * Assembles standard eclipse update site directory structure on local filesystem.
@@ -75,13 +76,13 @@ public class UpdateSiteAssembler
         String artifactId = feature.getKey().getId();
         String version = feature.getKey().getVersion();
 
-        MavenProject featureProject = feature.getMavenProject();
+        DependentMavenProjectProxy featureProject = feature.getMavenProject();
 
         if ( featureProject != null )
         {
             version = VersioningHelper.getExpandedVersion( featureProject, version );
 
-            location = featureProject.getArtifact().getFile();
+            location = featureProject.getArtifact();
 
             if ( location.isDirectory() )
             {
@@ -148,23 +149,18 @@ public class UpdateSiteAssembler
             throw new IllegalStateException( "Unresolved bundle reference " + bundleId + "_" + version );
         }
 
-        MavenProject bundleProject = plugin.getMavenProject();
+        DependentMavenProjectProxy bundleProject = plugin.getMavenProject();
         File location = null;
         if ( bundleProject != null )
         {
         	if (isSourceBundle(bundleProject, bundleId)) {
-        		for (Artifact attachedArtifact : bundleProject.getAttachedArtifacts()) {
-        			if (SourceBundleUtils.ARTIFACT_CLASSIFIER.equals(attachedArtifact.getClassifier())) {
-        				location = attachedArtifact.getFile();
-        				break;
-        			}
-        		}
+        	    location = bundleProject.getArtifact(SourceBundleUtils.ARTIFACT_CLASSIFIER);
         		if (location == null) {
 					throw new IllegalStateException(bundleProject
 							+ " is a source bundle but does not provide an artifact with classifier 'sources'");
         		}
         	} else {
-              location = bundleProject.getArtifact().getFile();
+              location = bundleProject.getArtifact();
         	}
             if ( location.isDirectory() )
             {
