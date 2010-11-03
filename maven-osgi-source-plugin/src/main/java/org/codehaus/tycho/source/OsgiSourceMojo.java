@@ -23,6 +23,7 @@ import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;
 import org.osgi.framework.Version;
 import org.sonatype.tycho.ArtifactKey;
@@ -226,7 +227,7 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
     private void addSourceBundleManifestEntries(MavenArchiveConfiguration mavenArchiveConfiguration)
     {
         TychoProject projectType = projectTypes.get( project.getPackaging() );
-        ArtifactKey artifactKey = projectType.getArtifactKey( project );
+        ArtifactKey artifactKey = projectType.getArtifactKey( DefaultReactorProject.adapt( project ) );
         String symbolicName = artifactKey.getId();
         String version = artifactKey.getVersion();
 

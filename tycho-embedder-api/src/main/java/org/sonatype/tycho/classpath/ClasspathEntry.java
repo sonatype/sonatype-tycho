@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * @author igor
@@ -31,7 +31,7 @@ public interface ClasspathEntry
     /**
      * MavenProject that corresponds to this classpath entry or null, if no such project.
      */
-    public DependentMavenProjectProxy getMavenProject();
+    public ReactorProject getMavenProject();
 
     /**
      * Jar files and/or class folders that correspond to this classpath entry. Projects and bundles with nested jars

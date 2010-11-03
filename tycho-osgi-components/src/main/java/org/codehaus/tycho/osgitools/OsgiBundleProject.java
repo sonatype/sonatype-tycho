@@ -37,8 +37,8 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.classpath.ClasspathEntry;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 @Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN )
 public class OsgiBundleProject
@@ -78,7 +78,7 @@ public class OsgiBundleProject
 
                     ArtifactKey key = artifact.getKey();
                     File location = artifact.getLocation();
-                    DependentMavenProjectProxy project = artifact.getMavenProject();
+                    ReactorProject project = artifact.getMavenProject();
 
                     PluginDescription plugin =
                         new DefaultPluginDescription( key, location, project, null, artifact.getInstallableUnits() );
@@ -101,7 +101,7 @@ public class OsgiBundleProject
         };
     }
 
-    public ArtifactKey getArtifactKey( MavenProject project )
+    public ArtifactKey getArtifactKey( ReactorProject project )
     {
         ArtifactKey key = (ArtifactKey) project.getContextValue( CTX_ARTIFACT_KEY );
         if ( key == null )
@@ -166,18 +166,19 @@ public class OsgiBundleProject
 
         // project itself
         ArtifactDescriptor artifact = platform.getArtifact( project.getBasedir() );
-        classpath.add( new DefaultClasspathEntry( project, artifact.getKey(), getProjectClasspath( artifact, project,
-                                                                                                   null ), null ) );
+        ReactorProject projectProxy = DefaultReactorProject.adapt( project );
+        List<File> projectClasspath = getProjectClasspath( artifact, projectProxy, null );
+        classpath.add( new DefaultClasspathEntry( projectProxy, artifact.getKey(), projectClasspath, null ) );
 
         // build.properties/jars.extra.classpath
-        addExtraClasspathEntries( classpath, project, platform );
+        addExtraClasspathEntries( classpath, projectProxy, platform );
 
         // dependencies
         for ( DependencyEntry entry : dependencyComputer.computeDependencies( state.getStateHelper(), bundleDescription ) )
         {
             File location = new File( entry.desc.getLocation() );
             ArtifactDescriptor otherArtifact = platform.getArtifact( location );
-            DependentMavenProjectProxy otherProject = otherArtifact.getMavenProject();
+            ReactorProject otherProject = otherArtifact.getMavenProject();
             List<File> locations;
             if ( otherProject != null )
             {
@@ -218,7 +219,7 @@ public class OsgiBundleProject
 //        
 //    }
     
-    public EclipsePluginProjectImpl getEclipsePluginProject( DependentMavenProjectProxy otherProject )
+    public EclipsePluginProjectImpl getEclipsePluginProject( ReactorProject otherProject )
     {
         EclipsePluginProjectImpl pdeProject =
             (EclipsePluginProjectImpl) otherProject.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
@@ -248,7 +249,7 @@ public class OsgiBundleProject
         return classpath;
     }
 
-    private List<File> getProjectClasspath( ArtifactDescriptor bundle, DependentMavenProjectProxy otherProject, String nestedPath )
+    private List<File> getProjectClasspath( ArtifactDescriptor bundle, ReactorProject otherProject, String nestedPath )
     {
         LinkedHashSet<File> classpath = new LinkedHashSet<File>();
 
@@ -298,7 +299,7 @@ public class OsgiBundleProject
         return new ArrayList<File>( classpath );
     }
 
-    private void addExtraClasspathEntries( List<ClasspathEntry> classpath, MavenProject project, TargetPlatform platform )
+    private void addExtraClasspathEntries( List<ClasspathEntry> classpath, ReactorProject project, TargetPlatform platform )
     {
         EclipsePluginProject pdeProject = getEclipsePluginProject( project );
         Collection<BuildOutputJar> outputJars = pdeProject.getOutputJarMap().values();

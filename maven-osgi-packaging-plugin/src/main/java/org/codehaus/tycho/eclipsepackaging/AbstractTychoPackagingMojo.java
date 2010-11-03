@@ -21,7 +21,7 @@ import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.buildversion.VersioningHelper;
-import org.sonatype.tycho.ArtifactDescriptor;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 
 /**
  * @requiresProject
@@ -120,7 +120,8 @@ public abstract class AbstractTychoPackagingMojo
 
     protected void expandVersion()
     {
-        String originalVersion = getTychoProjectFacet().getArtifactKey( project ).getVersion();
+        String originalVersion =
+            getTychoProjectFacet().getArtifactKey( DefaultReactorProject.adapt( project ) ).getVersion();
 
         VersioningHelper.setExpandedVersion( project, originalVersion, qualifier );
     }

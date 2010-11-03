@@ -7,6 +7,7 @@ import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
+import org.sonatype.tycho.ReactorProject;
 
 public abstract class AbstractArtifactBasedProject
     extends AbstractTychoProject
@@ -45,7 +46,7 @@ public abstract class AbstractArtifactBasedProject
         } );
     }
 
-    protected String getOsgiVersion( MavenProject project )
+    protected String getOsgiVersion( ReactorProject project )
     {
         String version = project.getVersion();
         if ( version.endsWith( SNAPSHOT_VERSION ) )

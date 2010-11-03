@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 
 public abstract class AbstractVersionMojo
     extends AbstractMojo
@@ -37,7 +38,7 @@ public abstract class AbstractVersionMojo
             return null;
         }
 
-        return projectType.getArtifactKey( project ).getVersion();
+        return projectType.getArtifactKey( DefaultReactorProject.adapt( project ) ).getVersion();
     }
 
 }

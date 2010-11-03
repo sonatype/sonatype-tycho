@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.buildversion.VersioningHelper;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.codehaus.tycho.osgitools.project.BuildOutputJar;
 import org.codehaus.tycho.osgitools.project.EclipsePluginProject;
 
@@ -164,7 +165,8 @@ public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 		    attributes.put(Name.MANIFEST_VERSION, "1.0");
 		}
 
-		String originalVersion = getTychoProjectFacet().getArtifactKey( project ).getVersion();
+        String originalVersion =
+            getTychoProjectFacet().getArtifactKey( DefaultReactorProject.adapt( project ) ).getVersion();
         attributes.putValue("Bundle-Version", VersioningHelper.getExpandedVersion( project, originalVersion));
 
 		mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");

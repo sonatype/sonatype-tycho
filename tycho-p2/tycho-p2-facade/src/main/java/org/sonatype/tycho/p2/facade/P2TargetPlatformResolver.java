@@ -52,6 +52,7 @@ import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
@@ -63,7 +64,6 @@ import org.sonatype.tycho.p2.resolver.P2Logger;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
 import org.sonatype.tycho.p2.resolver.P2Resolver;
 import org.sonatype.tycho.p2.resolver.P2ResolverFactory;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 @Component( role = TargetPlatformResolver.class, hint = P2TargetPlatformResolver.ROLE_HINT, instantiationStrategy = "per-lookup" )
 public class P2TargetPlatformResolver
@@ -98,7 +98,7 @@ public class P2TargetPlatformResolver
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
-                                           List<DependentMavenProjectProxy> reactorProjects,
+                                           List<ReactorProject> reactorProjects,
                                            List<Dependency> dependencies )
     {
         P2Resolver resolver = resolverFactory.createResolver();
@@ -114,7 +114,7 @@ public class P2TargetPlatformResolver
     }
 
     protected TargetPlatform doResolvePlatform( final MavenSession session, final MavenProject project,
-                                                List<DependentMavenProjectProxy> reactorProjects,
+                                                List<ReactorProject> reactorProjects,
                                                 List<Dependency> dependencies, P2Resolver resolver )
     {
         TargetPlatformConfiguration configuration =
@@ -148,13 +148,13 @@ public class P2TargetPlatformResolver
             }
         } );
 
-        Map<File, DependentMavenProjectProxy> projects = new HashMap<File, DependentMavenProjectProxy>();
+        Map<File, ReactorProject> projects = new HashMap<File, ReactorProject>();
 
         resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
 
         resolver.setEnvironments( getEnvironments( configuration ) );
 
-        for ( DependentMavenProjectProxy otherProject : reactorProjects )
+        for ( ReactorProject otherProject : reactorProjects )
         {
             if ( getLogger().isDebugEnabled() )
             {
@@ -175,7 +175,7 @@ public class P2TargetPlatformResolver
         if ( TargetPlatformConfiguration.POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
         {
             Set<String> projectIds = new HashSet<String>();
-            for ( DependentMavenProjectProxy p : reactorProjects )
+            for ( ReactorProject p : reactorProjects )
             {
                 String key = ArtifactUtils.key( p.getGroupId(), p.getArtifactId(), p.getVersion() );
                 projectIds.add( key );
@@ -453,7 +453,7 @@ public class P2TargetPlatformResolver
     }
 
     protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session,
-                                                              Map<File, DependentMavenProjectProxy> projects,
+                                                              Map<File, ReactorProject> projects,
                                                               P2ResolutionResult result )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
@@ -465,7 +465,7 @@ public class P2TargetPlatformResolver
         for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
         {
             ArtifactKey key = new DefaultArtifactKey( entry.getType(), entry.getId(), entry.getVersion() );
-            DependentMavenProjectProxy otherProject = projects.get( entry.getLocation() );
+            ReactorProject otherProject = projects.get( entry.getLocation() );
             if ( otherProject != null )
             {
                 platform.addMavenProject( key, otherProject, entry.getInstallableUnits() );

@@ -9,9 +9,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.gzip.GZipCompressor;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
@@ -22,11 +20,10 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.PluginDescription;
-import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.utils.SourceBundleUtils;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * Assembles standard eclipse update site directory structure on local filesystem.
@@ -76,11 +73,11 @@ public class UpdateSiteAssembler
         String artifactId = feature.getKey().getId();
         String version = feature.getKey().getVersion();
 
-        DependentMavenProjectProxy featureProject = feature.getMavenProject();
+        ReactorProject featureProject = feature.getMavenProject();
 
         if ( featureProject != null )
         {
-            version = VersioningHelper.getExpandedVersion( featureProject, version );
+            version = featureProject.getExpandedVersion();
 
             location = featureProject.getArtifact();
 
@@ -149,7 +146,7 @@ public class UpdateSiteAssembler
             throw new IllegalStateException( "Unresolved bundle reference " + bundleId + "_" + version );
         }
 
-        DependentMavenProjectProxy bundleProject = plugin.getMavenProject();
+        ReactorProject bundleProject = plugin.getMavenProject();
         File location = null;
         if ( bundleProject != null )
         {
@@ -167,7 +164,7 @@ public class UpdateSiteAssembler
                 throw new RuntimeException( "Bundle project " + bundleProject.getId()
                     + " artifact is a directory. The build should at least run ``package'' phase." );
             }
-            version = VersioningHelper.getExpandedVersion( bundleProject, version );
+            version = bundleProject.getExpandedVersion();
         } else {
         	 location = plugin.getLocation();
         }
@@ -207,7 +204,7 @@ public class UpdateSiteAssembler
         }
     }
 
-	protected boolean isSourceBundle(MavenProject bundleProject, String bundleId) {
+	protected boolean isSourceBundle(ReactorProject bundleProject, String bundleId) {
 		String suffix = SourceBundleUtils.getSourceBundleSuffix(bundleProject);
 		return bundleId.equals(bundleProject.getArtifactId() + suffix);
 	}

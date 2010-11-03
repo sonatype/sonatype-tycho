@@ -11,6 +11,7 @@ import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 @Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION )
 public class EclipseApplicationProject
@@ -19,7 +20,7 @@ public class EclipseApplicationProject
     @Override
     protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
     {
-        final ProductConfiguration product = loadProduct( project );
+        final ProductConfiguration product = loadProduct( DefaultReactorProject.adapt( project ) );
         return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ),
                                                      getEnvironments( project, environment ) )
         {
@@ -30,7 +31,7 @@ public class EclipseApplicationProject
         };
     }
 
-    protected ProductConfiguration loadProduct( final MavenProject project )
+    protected ProductConfiguration loadProduct( final ReactorProject project )
     {
         File file = new File( project.getBasedir(), project.getArtifactId() + ".product" );
         try
@@ -43,7 +44,7 @@ public class EclipseApplicationProject
         }
     }
 
-    public ArtifactKey getArtifactKey( MavenProject project )
+    public ArtifactKey getArtifactKey( ReactorProject project )
     {
         ProductConfiguration product = loadProduct( project );
         String id = product.getId() != null ? product.getId() : project.getArtifactId();

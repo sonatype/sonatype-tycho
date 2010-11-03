@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.tycho.osgitools.DefaultDependentMavenProjectProxy;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.junit.Test;
 import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
 
@@ -18,7 +18,7 @@ public class MavenProjectFacadeTest {
 		sourcePlugin.setArtifactId("maven-osgi-source-plugin");
 		sourcePlugin.setGroupId("org.sonatype.tycho");
 		wrapped.getBuild().addPlugin(sourcePlugin);
-		MavenProjectFacade mavenProjectFacade = new MavenProjectFacade(DefaultDependentMavenProjectProxy.adapt(wrapped));
+		MavenProjectFacade mavenProjectFacade = new MavenProjectFacade(DefaultReactorProject.adapt(wrapped));
 		assertTrue(mavenProjectFacade.hasSourceBundle());
 		
 	}

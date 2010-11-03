@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 public class DefaultArtifactDescriptor
     implements ArtifactDescriptor
@@ -15,11 +15,11 @@ public class DefaultArtifactDescriptor
 
     private final File location;
 
-    private final DependentMavenProjectProxy project;
+    private final ReactorProject project;
 
     private final Set<Object> installableUnits;
 
-    public DefaultArtifactDescriptor( ArtifactKey key, File location, DependentMavenProjectProxy project, Set<Object> installableUnits )
+    public DefaultArtifactDescriptor( ArtifactKey key, File location, ReactorProject project, Set<Object> installableUnits )
     {
         this.key = key;
         this.location = location;
@@ -37,7 +37,7 @@ public class DefaultArtifactDescriptor
         return location;
     }
 
-    public DependentMavenProjectProxy getMavenProject()
+    public ReactorProject getMavenProject()
     {
         return project;
     }

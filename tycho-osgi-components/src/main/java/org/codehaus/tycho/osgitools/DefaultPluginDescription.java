@@ -6,7 +6,7 @@ import java.util.Set;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.model.PluginRef;
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 public class DefaultPluginDescription
     extends DefaultArtifactDescriptor
@@ -15,7 +15,7 @@ public class DefaultPluginDescription
 
     private PluginRef pluginRef;
 
-    public DefaultPluginDescription( ArtifactKey key, File location, DependentMavenProjectProxy project, PluginRef pluginRef,
+    public DefaultPluginDescription( ArtifactKey key, File location, ReactorProject project, PluginRef pluginRef,
                                      Set<Object> installableUnits )
     {
         super( key, location, project, installableUnits );

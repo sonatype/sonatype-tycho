@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * Target platform content resolver. TODO This interface and its implementations require further refinement. I need to
@@ -14,6 +14,6 @@ import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 public interface TargetPlatformResolver
 {
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
-                                           List<DependentMavenProjectProxy> reactorProjects,
+                                           List<ReactorProject> reactorProjects,
                                            List<Dependency> dependencies );
 }

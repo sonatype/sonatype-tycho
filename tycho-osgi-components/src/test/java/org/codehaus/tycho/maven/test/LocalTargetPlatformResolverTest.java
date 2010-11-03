@@ -12,6 +12,7 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.sonatype.aether.util.DefaultRepositorySystemSession;
@@ -26,7 +27,8 @@ public class LocalTargetPlatformResolverTest
     {
         TargetPlatform platform = getTargetPlatform( new File( "src/test/resources/targetplatforms/basic" ) );
 
-        ArtifactDescriptor artifact = platform.getArtifact( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, "bundle01", null );
+        ArtifactDescriptor artifact =
+            platform.getArtifact( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, "bundle01", null );
         ArtifactKey key = artifact.getKey();
         assertEquals( "bundle01", key.getId() );
         assertEquals( "0.0.1", key.getVersion() );
@@ -51,7 +53,8 @@ public class LocalTargetPlatformResolverTest
 
         resolver.setLocation( location );
 
-        TargetPlatform platform = resolver.resolvePlatform( session, project, null );
+        TargetPlatform platform =
+            resolver.resolvePlatform( session, project, DefaultReactorProject.adapt( session ), null );
         return platform;
     }
 

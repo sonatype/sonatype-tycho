@@ -19,8 +19,8 @@ import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.MavenDependencyCollector;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.DebugUtils;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.resolver.DependencyVisitor;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 import org.sonatype.tycho.resolver.TychoDependencyResolver;
 
 @Component( role = TychoDependencyResolver.class )
@@ -44,25 +44,27 @@ public class DefaultTychoDependencyResolver
         for ( MavenProject project : projects )
         {
             AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
-            if ( dr != null )
+            if ( dr == null )
             {
-                dr.setupProject( session, project );
+                continue;
             }
+
+            Properties properties = new Properties();
+            properties.putAll( project.getProperties() );
+            properties.putAll( session.getSystemProperties() ); // session wins
+            properties.putAll( session.getUserProperties() );
+            project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
+
+            TargetPlatformConfiguration configuration =
+                configurationReader.getTargetPlatformConfiguration( session, project );
+            project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION, configuration );
+                
+            dr.setupProject( session, project );
         }
     }
 
     public void resolveProject( MavenSession session, MavenProject project )
     {
-        Properties properties = new Properties();
-        properties.putAll( project.getProperties() );
-        properties.putAll( session.getSystemProperties() ); // session wins
-        properties.putAll( session.getUserProperties() );
-        project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
-
-        TargetPlatformConfiguration configuration =
-            configurationReader.getTargetPlatformConfiguration( session, project );
-        project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION, configuration );
-
         TargetPlatformResolver resolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
 
         AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
@@ -101,7 +103,7 @@ public class DefaultTychoDependencyResolver
         }
     }
 
-    private List<DependentMavenProjectProxy> getReactorProjects( MavenSession session )
+    private List<ReactorProject> getReactorProjects( MavenSession session )
     {
         // TODO Auto-generated method stub
         return null;

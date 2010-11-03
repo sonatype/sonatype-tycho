@@ -21,7 +21,7 @@ import org.codehaus.tycho.osgitools.DefaultArtifactKey;
 import org.osgi.framework.Version;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 public class DefaultTargetPlatform
     implements TargetPlatform
@@ -217,13 +217,13 @@ public class DefaultTargetPlatform
         return v1.getMajor() == v2.getMajor() && v1.getMinor() == v2.getMinor() && v1.getMicro() == v2.getMicro();
     }
 
-    public void addMavenProject( ArtifactKey key, DependentMavenProjectProxy otherProject, Set<Object> installableUnits )
+    public void addMavenProject( ArtifactKey key, ReactorProject otherProject, Set<Object> installableUnits )
     {
         DefaultArtifactDescriptor artifact = new DefaultArtifactDescriptor( key, otherProject.getBasedir(), otherProject, installableUnits );
         addArtifact( artifact );
     }
 
-    public DependentMavenProjectProxy getMavenProject( File location )
+    public ReactorProject getMavenProject( File location )
     {
         ArtifactDescriptor artifact = getArtifact( location );
         return artifact != null ? artifact.getMavenProject() : null;
@@ -277,7 +277,7 @@ public class DefaultTargetPlatform
             sb.append( linePrefix );
             sb.append( artifact.getKey().toString() );
             sb.append( ": " );
-            DependentMavenProjectProxy project = artifact.getMavenProject();
+            ReactorProject project = artifact.getMavenProject();
             if ( project != null )
             {
                 sb.append( project.toString() );

@@ -19,6 +19,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.osgitools.AbstractArtifactDependencyWalker;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.sonatype.aether.util.DefaultRepositorySystemSession;
@@ -55,7 +56,6 @@ public class ArtifactDependencyWalkerTest
 
         assertEquals( AbstractArtifactDependencyWalker.EQUINOX_LAUNCHER, plugins.get( 1 ).getKey().getId() );
     }
-    
 
     protected void walkProduct( String productFile, final ArrayList<PluginDescription> plugins,
                                 final ArrayList<FeatureDescription> features )
@@ -106,7 +106,8 @@ public class ArtifactDependencyWalkerTest
 
         resolver.setLocation( new File( "src/test/resources/targetplatforms/basic" ) );
 
-        TargetPlatform platform = resolver.resolvePlatform( session, project, null );
+        TargetPlatform platform =
+            resolver.resolvePlatform( session, project, DefaultReactorProject.adapt( session ), null );
         return platform;
     }
 }

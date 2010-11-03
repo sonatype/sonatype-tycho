@@ -2,6 +2,7 @@ package org.codehaus.tycho.utils;
 
 import org.apache.maven.project.MavenProject;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 public class SourceBundleUtils {
 
@@ -13,8 +14,8 @@ public class SourceBundleUtils {
 		// no instances
 	}
 
-	public static String getSourceBundleSuffix(MavenProject project) {
-		String packaging = project.getPackaging();
+	public static String getSourceBundleSuffix(ReactorProject bundleProject) {
+		String packaging = bundleProject.getPackaging();
 		if (!(ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals(packaging) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN
 				.equals(packaging))) {
 			return null;
@@ -24,7 +25,7 @@ public class SourceBundleUtils {
 		if (suffix != null) {
 			return suffix;
 		} 
-		suffix = project.getProperties().getProperty(SUFFIX_PROPERTY);
+		suffix = bundleProject.getProperties().getProperty(SUFFIX_PROPERTY);
 		if (suffix != null) {
 			return suffix;
 		} 

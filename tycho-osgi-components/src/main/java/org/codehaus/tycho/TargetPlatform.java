@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 public interface TargetPlatform
 {
@@ -39,7 +39,7 @@ public interface TargetPlatform
      */
     public ArtifactDescriptor getArtifact( String type, String id, String version );
 
-    public DependentMavenProjectProxy getMavenProject( File location );
+    public ReactorProject getMavenProject( File location );
 
     public ArtifactDescriptor getArtifact( File location );
 

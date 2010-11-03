@@ -5,14 +5,14 @@ import java.io.File;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.utils.SourceBundleUtils;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.p2.IArtifactFacade;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
 
 public class MavenProjectFacade implements IArtifactFacade {
 
-	protected DependentMavenProjectProxy wrappedProject;
+	protected ReactorProject wrappedProject;
 
-	public MavenProjectFacade(DependentMavenProjectProxy otherProject) {
+	public MavenProjectFacade(ReactorProject otherProject) {
 		this.wrappedProject = otherProject;
 	}
 

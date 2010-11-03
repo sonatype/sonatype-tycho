@@ -14,7 +14,7 @@ import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.model.PluginRef;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * Generates list of Maven dependencies from project OSGi/Eclipse dependencies
@@ -107,7 +107,7 @@ public class MavenDependencyCollector
         return dependency;
     }
 
-    protected Dependency newProjectDependency( DependentMavenProjectProxy dependentMavenProjectProxy )
+    protected Dependency newProjectDependency( ReactorProject dependentMavenProjectProxy )
     {
         if ( dependentMavenProjectProxy == null )
         {

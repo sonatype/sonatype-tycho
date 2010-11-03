@@ -23,7 +23,7 @@ import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
-import org.sonatype.tycho.resolver.DependentMavenProjectProxy;
+import org.sonatype.tycho.ReactorProject;
 
 public abstract class AbstractArtifactDependencyWalker
     implements ArtifactDependencyWalker
@@ -73,7 +73,7 @@ public abstract class AbstractArtifactDependencyWalker
         }
 
         ArtifactKey key = artifact.getKey();
-        DependentMavenProjectProxy project = artifact.getMavenProject();
+        ReactorProject project = artifact.getMavenProject();
 
         DefaultFeatureDescription description =
             new DefaultFeatureDescription( key, location, project, feature, featureRef, artifact.getInstallableUnits() );
@@ -222,7 +222,7 @@ public abstract class AbstractArtifactDependencyWalker
 
             File location = artifact.getLocation();
 
-            DependentMavenProjectProxy project = platform.getMavenProject( location );
+            ReactorProject project = platform.getMavenProject( location );
             PluginDescription description =
                 new DefaultPluginDescription( key, location, project, ref, artifact.getInstallableUnits() );
             visited.enter( description );
