@@ -8,9 +8,10 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.P2Generator;
-import org.sonatype.tycho.p2.facade.internal.ProjectArtifactFacade;
+import org.sonatype.tycho.p2.facade.internal.ReactorArtifactFacade;
 import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 
 /**
@@ -73,24 +74,19 @@ public class P2MetadataMojo
 
         try
         {
-            getP2Generator().generateMetadata( new ProjectArtifactFacade(project),
-                                               content,
-                                               artifacts );
+            getP2Generator().generateMetadata( new ReactorArtifactFacade( DefaultReactorProject.adapt( project ), null ),
+                                               content, artifacts );
         }
         catch ( IOException e )
         {
             throw new MojoExecutionException( "Could not generate P2 metadata", e );
         }
 
-        projectHelper.attachArtifact( project,
-                                      RepositoryLayoutHelper.EXTENSION_P2_METADATA,
-                                      RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                                      content );
+        projectHelper.attachArtifact( project, RepositoryLayoutHelper.EXTENSION_P2_METADATA,
+                                      RepositoryLayoutHelper.CLASSIFIER_P2_METADATA, content );
 
-        projectHelper.attachArtifact( project,
-                                      RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS,
-                                      RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
-                                      artifacts );
+        projectHelper.attachArtifact( project, RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS,
+                                      RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS, artifacts );
     }
 
 }

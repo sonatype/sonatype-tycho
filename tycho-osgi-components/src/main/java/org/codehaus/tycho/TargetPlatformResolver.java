@@ -13,7 +13,8 @@ import org.sonatype.tycho.ReactorProject;
  */
 public interface TargetPlatformResolver
 {
+    public void setupProjects( MavenSession session, MavenProject project, ReactorProject reactorProject );
+
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
-                                           List<ReactorProject> reactorProjects,
-                                           List<Dependency> dependencies );
+                                           List<ReactorProject> reactorProjects, List<Dependency> dependencies );
 }

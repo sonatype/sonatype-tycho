@@ -19,6 +19,7 @@ import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.MavenDependencyCollector;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.DebugUtils;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.resolver.DependencyVisitor;
 import org.sonatype.tycho.resolver.TychoDependencyResolver;
@@ -29,7 +30,7 @@ public class DefaultTychoDependencyResolver
 {
     @Requirement
     private Logger logger;
-    
+
     @Requirement
     private DefaultTargetPlatformConfigurationReader configurationReader;
 
@@ -38,7 +39,7 @@ public class DefaultTychoDependencyResolver
 
     @Requirement( role = TychoProject.class )
     private Map<String, TychoProject> projectTypes;
-    
+
     public void setupProjects( MavenSession session, List<MavenProject> projects )
     {
         for ( MavenProject project : projects )
@@ -49,6 +50,12 @@ public class DefaultTychoDependencyResolver
                 continue;
             }
 
+            // generic Eclipse/OSGi metadata
+
+            dr.setupProject( session, project );
+
+            // p2 metadata
+
             Properties properties = new Properties();
             properties.putAll( project.getProperties() );
             properties.putAll( session.getSystemProperties() ); // session wins
@@ -58,48 +65,51 @@ public class DefaultTychoDependencyResolver
             TargetPlatformConfiguration configuration =
                 configurationReader.getTargetPlatformConfiguration( session, project );
             project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION, configuration );
-                
-            dr.setupProject( session, project );
+
+            TargetPlatformResolver resolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
+
+            resolver.setupProjects( session, project, DefaultReactorProject.adapt( project ) );
         }
     }
 
     public void resolveProject( MavenSession session, MavenProject project )
     {
+        AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
+        if ( dr == null )
+        {
+            return;
+        }
+
         TargetPlatformResolver resolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
 
-        AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
-        
-        if ( dr != null )
+        logger.info( "Resolving target platform for project " + project );
+        TargetPlatform targetPlatform =
+            resolver.resolvePlatform( session, project, getReactorProjects( session ), null );
+
+        if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
         {
-            logger.info( "Resolving target platform for project " + project );
-            TargetPlatform targetPlatform =
-                resolver.resolvePlatform( session, project, getReactorProjects(session), null );
+            StringBuilder sb = new StringBuilder();
+            sb.append( "Resolved target platform for project " ).append( project ).append( "\n" );
+            targetPlatform.toDebugString( sb, "  " );
+            logger.debug( sb.toString() );
+        }
 
-            if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
+        dr.setTargetPlatform( session, project, targetPlatform );
+
+        dr.resolve( session, project );
+
+        MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
+        dr.getDependencyWalker( project ).walk( dependencyCollector );
+
+        if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append( "Injected dependencies for " ).append( project.toString() ).append( "\n" );
+            for ( Dependency dependency : project.getDependencies() )
             {
-                StringBuilder sb = new StringBuilder();
-                sb.append( "Resolved target platform for project " ).append( project ).append( "\n" );
-                targetPlatform.toDebugString( sb, "  " );
-                logger.debug( sb.toString() );
+                sb.append( "  " ).append( dependency.toString() );
             }
-
-            dr.setTargetPlatform( session, project, targetPlatform );
-
-            dr.resolve( session, project );
-
-            MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
-            dr.getDependencyWalker( project ).walk( dependencyCollector );
-
-            if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.append( "Injected dependencies for " ).append( project.toString() ).append( "\n" );
-                for ( Dependency dependency : project.getDependencies() )
-                {
-                    sb.append( "  " ).append( dependency.toString() );
-                }
-                logger.debug( sb.toString() );
-            }
+            logger.debug( sb.toString() );
         }
     }
 

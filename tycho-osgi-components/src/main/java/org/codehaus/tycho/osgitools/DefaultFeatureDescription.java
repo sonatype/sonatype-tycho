@@ -17,10 +17,10 @@ public class DefaultFeatureDescription
 
     private FeatureRef featureRef;
 
-    public DefaultFeatureDescription( ArtifactKey key, File location, ReactorProject project, Feature feature,
-                                      FeatureRef featureRef, Set<Object> installableUnits )
+    public DefaultFeatureDescription( ArtifactKey key, File location, ReactorProject project, String classifier,
+                                      Feature feature, FeatureRef featureRef, Set<Object> installableUnits )
     {
-        super( key, location, project, installableUnits );
+        super( key, location, project, classifier, installableUnits );
         this.feature = feature;
         this.featureRef = featureRef;
     }

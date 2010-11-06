@@ -17,13 +17,17 @@ public class DefaultArtifactDescriptor
 
     private final ReactorProject project;
 
+    private final String classifier;
+
     private final Set<Object> installableUnits;
 
-    public DefaultArtifactDescriptor( ArtifactKey key, File location, ReactorProject project, Set<Object> installableUnits )
+    public DefaultArtifactDescriptor( ArtifactKey key, File location, ReactorProject project, String classifier,
+                                      Set<Object> installableUnits )
     {
         this.key = key;
         this.location = location;
         this.project = project;
+        this.classifier = classifier;
         this.installableUnits = installableUnits;
     }
 
@@ -40,6 +44,11 @@ public class DefaultArtifactDescriptor
     public ReactorProject getMavenProject()
     {
         return project;
+    }
+
+    public String getClassifier()
+    {
+        return classifier;
     }
 
     public Set<Object> getInstallableUnits()

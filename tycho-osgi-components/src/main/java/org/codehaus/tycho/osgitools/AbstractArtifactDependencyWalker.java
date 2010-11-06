@@ -74,9 +74,11 @@ public abstract class AbstractArtifactDependencyWalker
 
         ArtifactKey key = artifact.getKey();
         ReactorProject project = artifact.getMavenProject();
+        String classifier = artifact.getClassifier();
+        Set<Object> installableUnits = artifact.getInstallableUnits();
 
         DefaultFeatureDescription description =
-            new DefaultFeatureDescription( key, location, project, feature, featureRef, artifact.getInstallableUnits() );
+            new DefaultFeatureDescription( key, location, project, classifier, feature, featureRef, installableUnits );
 
         if ( visitor.visitFeature( description ) )
         {
@@ -221,10 +223,12 @@ public abstract class AbstractArtifactDependencyWalker
             }
 
             File location = artifact.getLocation();
+            ReactorProject project = artifact.getMavenProject();
+            String classifier = artifact.getClassifier();
+            Set<Object> installableUnits = artifact.getInstallableUnits();
 
-            ReactorProject project = platform.getMavenProject( location );
             PluginDescription description =
-                new DefaultPluginDescription( key, location, project, ref, artifact.getInstallableUnits() );
+                new DefaultPluginDescription( key, location, project, classifier, ref, installableUnits );
             visited.enter( description );
             try
             {

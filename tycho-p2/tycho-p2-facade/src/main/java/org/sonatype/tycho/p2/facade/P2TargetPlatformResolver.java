@@ -54,10 +54,11 @@ import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
+import org.sonatype.tycho.p2.DependencyMetadataGenerator;
 import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
-import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
+import org.sonatype.tycho.p2.facade.internal.ReactorArtifactFacade;
 import org.sonatype.tycho.p2.repository.DefaultTychoRepositoryIndex;
 import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.resolver.P2Logger;
@@ -82,8 +83,6 @@ public class P2TargetPlatformResolver
     @Requirement
     private RepositorySystem repositorySystem;
 
-    private P2ResolverFactory resolverFactory;
-
     @Requirement( hint = "p2" )
     private ArtifactRepositoryLayout p2layout;
 
@@ -93,13 +92,26 @@ public class P2TargetPlatformResolver
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
 
+    private P2ResolverFactory resolverFactory;
+
+    private DependencyMetadataGenerator generator;
+
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
 
+    public void setupProjects( MavenSession session, MavenProject project, ReactorProject reactorProject )
+    {
+        TargetPlatformConfiguration configuration =
+            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        List<Map<String, String>> environments = getEnvironments( configuration );
+        Set<Object> metadata =
+            generator.generateMetadata( new ReactorArtifactFacade( reactorProject, null ), environments );
+        reactorProject.setDependencyMetadata( null, metadata );
+    }
+
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
-                                           List<ReactorProject> reactorProjects,
-                                           List<Dependency> dependencies )
+                                           List<ReactorProject> reactorProjects, List<Dependency> dependencies )
     {
         P2Resolver resolver = resolverFactory.createResolver();
 
@@ -114,8 +126,8 @@ public class P2TargetPlatformResolver
     }
 
     protected TargetPlatform doResolvePlatform( final MavenSession session, final MavenProject project,
-                                                List<ReactorProject> reactorProjects,
-                                                List<Dependency> dependencies, P2Resolver resolver )
+                                                List<ReactorProject> reactorProjects, List<Dependency> dependencies,
+                                                P2Resolver resolver )
     {
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
@@ -161,7 +173,12 @@ public class P2TargetPlatformResolver
                 getLogger().debug( "P2resolver.addMavenProject " + otherProject.toString() );
             }
             projects.put( otherProject.getBasedir(), otherProject );
-            resolver.addMavenProject( new MavenProjectFacade( otherProject ) );
+            resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, null ) );
+
+            for ( String classifier : otherProject.getClassifiers() )
+            {
+                resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, classifier ) );
+            }
         }
 
         if ( dependencies != null )
@@ -452,8 +469,7 @@ public class P2TargetPlatformResolver
         return false;
     }
 
-    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session,
-                                                              Map<File, ReactorProject> projects,
+    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session, Map<File, ReactorProject> projects,
                                                               P2ResolutionResult result )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
@@ -468,7 +484,7 @@ public class P2TargetPlatformResolver
             ReactorProject otherProject = projects.get( entry.getLocation() );
             if ( otherProject != null )
             {
-                platform.addMavenProject( key, otherProject, entry.getInstallableUnits() );
+                platform.addReactorArtifact( key, otherProject, entry.getClassifier(), entry.getInstallableUnits() );
             }
             else
             {
@@ -533,5 +549,6 @@ public class P2TargetPlatformResolver
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );
+        this.generator = equinox.getService( DependencyMetadataGenerator.class );
     }
 }

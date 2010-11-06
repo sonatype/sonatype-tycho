@@ -2,6 +2,7 @@ package org.codehaus.tycho.osgitools;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
@@ -14,6 +15,37 @@ public class DefaultReactorProject
     public DefaultReactorProject( MavenProject project )
     {
 
+    }
+
+    public static ReactorProject adapt( MavenProject project )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public static List<ReactorProject> adapt( MavenSession session )
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public static boolean sameProject( ReactorProject otherProject, MavenProject project )
+    {
+        // TODO Auto-generated method stub
+        return false;
+    }
+    
+    
+    public File getBasedir()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public String getPackaging()
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public String getGroupId()
@@ -34,31 +66,19 @@ public class DefaultReactorProject
         return null;
     }
 
-    public File getBasedir()
+    public File getOutputDirectory()
     {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public String getPackaging()
+    public File getBuildDirectory()
     {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public Object getContextValue( String key )
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void setContextValue( String key, Object value )
-    {
-        // TODO Auto-generated method stub
-
-    }
-
-    public static ReactorProject adapt( MavenProject project )
+    public File getTestOutputDirectory()
     {
         // TODO Auto-generated method stub
         return null;
@@ -76,25 +96,37 @@ public class DefaultReactorProject
         return null;
     }
 
-    public File getOutputDirectory()
+    public Object getContextValue( String key )
     {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public File getBuildDirectory()
+    public void setContextValue( String key, Object value )
+    {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public Set<String> getClassifiers()
     {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public static List<ReactorProject> adapt( MavenSession session )
+    public void setDependencyMetadata( String classifier, Set<Object> installableUnits )
+    {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public Set<Object> getDependencyMetadata( String classifier )
     {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public File getTestOutputDirectory()
+    public Set<Object> getRuntimeMetadata( String classifier )
     {
         // TODO Auto-generated method stub
         return null;
@@ -116,12 +148,6 @@ public class DefaultReactorProject
     {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    public static boolean sameProject( ReactorProject reactorProject, MavenProject mavenProject )
-    {
-        // TODO Auto-generated method stub
-        return false;
     }
 
 }

@@ -15,10 +15,10 @@ public class DefaultPluginDescription
 
     private PluginRef pluginRef;
 
-    public DefaultPluginDescription( ArtifactKey key, File location, ReactorProject project, PluginRef pluginRef,
-                                     Set<Object> installableUnits )
+    public DefaultPluginDescription( ArtifactKey key, File location, ReactorProject project, String classifier,
+                                     PluginRef pluginRef, Set<Object> installableUnits )
     {
-        super( key, location, project, installableUnits );
+        super( key, location, project, classifier, installableUnits );
         this.pluginRef = pluginRef;
     }
 

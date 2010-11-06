@@ -22,7 +22,6 @@ import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.codehaus.tycho.model.PluginRef;
-import org.codehaus.tycho.utils.SourceBundleUtils;
 import org.sonatype.tycho.ReactorProject;
 
 /**
@@ -141,7 +140,7 @@ public class UpdateSiteAssembler
             return;
         }
 
-        if (  plugin.getLocation() == null )
+        if ( plugin.getLocation() == null )
         {
             throw new IllegalStateException( "Unresolved bundle reference " + bundleId + "_" + version );
         }
@@ -150,23 +149,22 @@ public class UpdateSiteAssembler
         File location = null;
         if ( bundleProject != null )
         {
-        	if (isSourceBundle(bundleProject, bundleId)) {
-        	    location = bundleProject.getArtifact(SourceBundleUtils.ARTIFACT_CLASSIFIER);
-        		if (location == null) {
-					throw new IllegalStateException(bundleProject
-							+ " is a source bundle but does not provide an artifact with classifier 'sources'");
-        		}
-        	} else {
-              location = bundleProject.getArtifact();
-        	}
+            location = bundleProject.getArtifact( plugin.getClassifier() );
+            if ( location == null )
+            {
+                throw new IllegalStateException( bundleProject + " does not provide an artifact with classifier '"
+                    + plugin.getClassifier() + "'" );
+            }
             if ( location.isDirectory() )
             {
                 throw new RuntimeException( "Bundle project " + bundleProject.getId()
                     + " artifact is a directory. The build should at least run ``package'' phase." );
             }
             version = bundleProject.getExpandedVersion();
-        } else {
-        	 location = plugin.getLocation();
+        }
+        else
+        {
+            location = plugin.getLocation();
         }
 
         if ( unpackPlugins && isDirectoryShape( plugin, location ) )
@@ -197,19 +195,14 @@ public class UpdateSiteAssembler
                 copyFile( location, outputJar );
             }
 
-//            if ( pack200 )
-//            {
-//                shipPack200( outputJar );
-//            }
+            // if ( pack200 )
+            // {
+            // shipPack200( outputJar );
+            // }
         }
     }
 
-	protected boolean isSourceBundle(ReactorProject bundleProject, String bundleId) {
-		String suffix = SourceBundleUtils.getSourceBundleSuffix(bundleProject);
-		return bundleId.equals(bundleProject.getArtifactId() + suffix);
-	}
-
-	protected boolean isDirectoryShape( PluginDescription plugin, File location )
+    protected boolean isDirectoryShape( PluginDescription plugin, File location )
     {
         PluginRef pluginRef = plugin.getPluginRef();
         return ( ( pluginRef != null && pluginRef.isUnpack() ) || location.isDirectory() );

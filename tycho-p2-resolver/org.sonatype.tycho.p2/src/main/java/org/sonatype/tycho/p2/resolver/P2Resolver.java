@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.sonatype.tycho.p2.IArtifactFacade;
+import org.sonatype.tycho.p2.IReactorArtifactFacade;
 import org.sonatype.tycho.p2.repository.RepositoryReader;
 import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 
@@ -36,7 +37,7 @@ public interface P2Resolver
 
     public static final String ANY_QUALIFIER = "qualifier";
 
-    public void addMavenProject( IArtifactFacade artifact );
+    public void addReactorArtifact( IReactorArtifactFacade project );
 
     public void addMavenArtifact( IArtifactFacade artifact );
 

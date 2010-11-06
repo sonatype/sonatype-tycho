@@ -50,7 +50,7 @@ import org.sonatype.tycho.equinox.launching.EquinoxInstallationFactory;
 import org.sonatype.tycho.equinox.launching.EquinoxLauncher;
 import org.sonatype.tycho.equinox.launching.internal.EquinoxLaunchConfiguration;
 import org.sonatype.tycho.launching.LaunchConfiguration;
-import org.sonatype.tycho.runtime.Adaptable;
+import org.sonatype.tycho.launching.LaunchConfigurationFactory;
 
 /**
  * @phase integration-test
@@ -58,7 +58,7 @@ import org.sonatype.tycho.runtime.Adaptable;
  * @requiresProject true
  * @requiresDependencyResolution runtime
  */
-public class TestMojo extends AbstractMojo implements Adaptable {
+public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory {
 
     /**
 	 * @parameter default-value="${project.build.directory}/work"
@@ -783,20 +783,11 @@ public class TestMojo extends AbstractMojo implements Adaptable {
         return files;
     }
 
-    public <T> T getAdapter(Class<T> adapter)
-    {
-        if ( adapter.equals( LaunchConfiguration.class ) )
-        {
-            return adapter.cast( createTestLaunchConfiguration() );
-        }
-        return null;
-    }
-
-    private LaunchConfiguration createTestLaunchConfiguration()
+    public LaunchConfiguration createLaunchConfiguration(List<ReactorProject> reactorProjects)
     {
         try
         {
-            EquinoxInstallation testRuntime = createEclipseInstallation(true);
+            EquinoxInstallation testRuntime = createEclipseInstallation(true, reactorProjects);
     
             return createCommandLine( testRuntime, work );
         }
@@ -808,6 +799,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
         {
             getLog().error( e );
         }
+
         return null;
     }
 }

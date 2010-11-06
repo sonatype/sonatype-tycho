@@ -61,7 +61,7 @@ public class DefaultTargetPlatform
 
     public void addArtifactFile( ArtifactKey key, File location, Set<Object> installableUnits )
     {
-        addArtifact( new DefaultArtifactDescriptor( key, location, null, installableUnits ) );
+        addArtifact( new DefaultArtifactDescriptor( key, location, null, null, installableUnits ) );
     }
 
     public void addArtifact( ArtifactDescriptor artifact )
@@ -103,7 +103,7 @@ public class DefaultTargetPlatform
             if ( !location.equals( artifact.getLocation() ) )
             {
                 return new DefaultArtifactDescriptor( artifact.getKey(), location, artifact.getMavenProject(),
-                                                      artifact.getInstallableUnits() );
+                                                      artifact.getClassifier(), artifact.getInstallableUnits() );
             }
             return artifact;
         }
@@ -217,9 +217,11 @@ public class DefaultTargetPlatform
         return v1.getMajor() == v2.getMajor() && v1.getMinor() == v2.getMinor() && v1.getMicro() == v2.getMicro();
     }
 
-    public void addMavenProject( ArtifactKey key, ReactorProject otherProject, Set<Object> installableUnits )
+    public void addReactorArtifact( ArtifactKey key, ReactorProject project, String classifier,
+                                    Set<Object> installableUnits )
     {
-        DefaultArtifactDescriptor artifact = new DefaultArtifactDescriptor( key, otherProject.getBasedir(), otherProject, installableUnits );
+        DefaultArtifactDescriptor artifact =
+            new DefaultArtifactDescriptor( key, project.getBasedir(), project, classifier, installableUnits );
         addArtifact( artifact );
     }
 

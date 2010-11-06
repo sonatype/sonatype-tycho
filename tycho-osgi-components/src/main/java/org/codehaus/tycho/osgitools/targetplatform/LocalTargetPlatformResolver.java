@@ -77,7 +77,7 @@ public class LocalTargetPlatformResolver
 
                 platform.removeAll( key.getType(), key.getId() );
 
-                platform.addMavenProject( key, projectProxy, null );
+                platform.addReactorArtifact( key, projectProxy, null, null );
 
                 if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
                 {
@@ -90,8 +90,7 @@ public class LocalTargetPlatformResolver
     }
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
-                                           List<ReactorProject> reactorProjects,
-                                           List<Dependency> dependencies )
+                                           List<ReactorProject> reactorProjects, List<Dependency> dependencies )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
@@ -160,8 +159,8 @@ public class LocalTargetPlatformResolver
                         if ( artifactKey != null )
                         {
                             platform.removeAll( artifactKey.getType(), artifactKey.getId() );
-                            platform.addMavenProject( artifactKey,
-                                                      DefaultReactorProject.adapt( dependent ), null );
+                            ReactorProject projectProxy = DefaultReactorProject.adapt( dependent );
+                            platform.addReactorArtifact( artifactKey, projectProxy, null, null );
                             if ( getLogger().isDebugEnabled() )
                             {
                                 getLogger().debug( "Add Maven project " + artifactKey );
@@ -276,5 +275,11 @@ public class LocalTargetPlatformResolver
         throws IOException
     {
         layout.setLocation( location.getCanonicalFile() );
+    }
+
+    public void setupProjects( MavenSession session, MavenProject project, ReactorProject reactorProject )
+    {
+        // TODO Auto-generated method stub
+
     }
 }
