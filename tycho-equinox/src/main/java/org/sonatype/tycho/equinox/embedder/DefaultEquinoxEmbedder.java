@@ -215,6 +215,11 @@ public class DefaultEquinoxEmbedder
 
     public <T> T getService( Class<T> clazz )
     {
+        return getService( clazz, null );
+    }
+
+    public <T> T getService( Class<T> clazz, String filter )
+    {
         try
         {
             start();

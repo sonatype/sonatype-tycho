@@ -66,7 +66,7 @@ public class MavenDependencyCollector
         Dependency dependency = null;
         if ( artifact.getMavenProject() != null )
         {
-            if ( !project.equals( artifact.getMavenProject() ) )
+            if ( !artifact.getMavenProject().sameProject( project ) )
             {
                 dependency = newProjectDependency( artifact.getMavenProject() );
             }

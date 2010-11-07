@@ -18,10 +18,10 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.PluginDescription;
-import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.sonatype.tycho.ReactorProject;
 
 /**
@@ -209,8 +209,8 @@ public class PackageFeatureMojo
                 if ( featureRef == null )
                 {
                     // this feature
-                    feature.getFeature().setVersion( VersioningHelper.getExpandedVersion( project,
-                                                                                          feature.getKey().getVersion() ) );
+                    ReactorProject reactorProject = DefaultReactorProject.adapt( project );
+                    feature.getFeature().setVersion( reactorProject.getExpandedVersion() );
                     return true; // keep visiting
                 }
                 else

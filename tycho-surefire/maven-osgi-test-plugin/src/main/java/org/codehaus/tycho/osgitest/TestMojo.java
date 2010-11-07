@@ -331,7 +331,7 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 			}
 		}
 
-		EquinoxInstallation testRuntime = createEclipseInstallation(false, getReactorProjects(session));
+		EquinoxInstallation testRuntime = createEclipseInstallation(false, DefaultReactorProject.adapt(session));
 
 		String testBundle = null;
 		boolean succeeded = runTest(testRuntime, testBundle);
@@ -342,12 +342,6 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 	        throw new MojoFailureException("There are test failures.\n\nPlease refer to " + reportsDirectory + " for the individual test results.");
 		}
 	}
-
-    private List<ReactorProject> getReactorProjects( MavenSession session )
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     private EquinoxInstallation createEclipseInstallation(boolean includeReactorProjects, List<ReactorProject> reactorProjects)
         throws MojoExecutionException
@@ -392,15 +386,16 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 		    // project classes and test-classes are added via dev.properties file (see #createDevProperties())
 		    // all other projects are added as bundle jars.
 		    ReactorProject otherProject = artifact.getMavenProject();
-		    if (DefaultReactorProject.sameProject(otherProject, project)) {
-                testRuntime.addBundle(artifact.getKey(), project.getBasedir());
-                continue;
-		    } else if (otherProject != null) {
+		    if (otherProject != null) {
+		        if (otherProject.sameProject(project)) {
+	                testRuntime.addBundle(artifact.getKey(), project.getBasedir());
+	                continue;
+	            }
                 File file = otherProject.getArtifact();
                 if (file != null) {
                     testRuntime.addBundle(artifact.getKey(), file);
                     continue;
-                } 
+                }
 		    }
             testRuntime.addBundle(artifact);
 		}

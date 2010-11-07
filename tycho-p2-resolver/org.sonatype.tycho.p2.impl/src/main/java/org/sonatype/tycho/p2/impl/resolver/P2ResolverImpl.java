@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,6 +74,9 @@ import org.sonatype.tycho.p2.resolver.P2Resolver;
 public class P2ResolverImpl
     implements P2Resolver
 {
+    // BundlesAction.CAPABILITY_NS_OSGI_BUNDLE
+    private static final String CAPABILITY_NS_OSGI_BUNDLE = "osgi.bundle";
+    
     private static final IArtifactRequest[] ARTIFACT_REQUEST_ARRAY = new IArtifactRequest[0];
 
     private final P2GeneratorImpl generator = new P2GeneratorImpl( true );
@@ -149,6 +153,11 @@ public class P2ResolverImpl
 
     private static <T> Set<T> toSet( Collection<Object> collection, Class<T> targetType )
     {
+        if ( collection == null || collection.isEmpty() )
+        {
+            return Collections.emptySet();
+        }
+
         LinkedHashSet<T> set = new LinkedHashSet<T>();
 
         for ( Object o : collection )
@@ -346,7 +355,8 @@ public class P2ResolverImpl
         List<MavenMirrorRequest> requests = new ArrayList<MavenMirrorRequest>();
         for ( IInstallableUnit iu : newState )
         {
-            if ( !isReactorInstallableUnit( iu ) )
+            // maven IUs either come from reactor or local maven repository, no need to download them from p2 repos
+            if ( getMavenArtifact( iu ) == null )
             {
                 Collection<IArtifactKey> artifactKeys = iu.getArtifacts();
                 for ( IArtifactKey key : artifactKeys )
@@ -521,8 +531,7 @@ public class P2ResolverImpl
         File location = mavenArtifact.getLocation();
         String mavenClassidier = mavenArtifact.getClassidier();
 
-        // TODO should we use mavenArtifact.getId instead?
-        if ( TYPE_ECLIPSE_FEATURE.equals( mavenArtifact.getPackagingType() ) )
+        if ( TYPE_ECLIPSE_FEATURE.equals( type ) )
         {
             id = getFeatureId( iu );
             if ( id == null )
@@ -530,6 +539,12 @@ public class P2ResolverImpl
                 throw new IllegalStateException( "Feature id is null for maven artifact at "
                     + mavenArtifact.getLocation() + " with classifier " + mavenArtifact.getClassidier() );
             }
+        }
+        else if ( "jar".equals( type ) )
+        {
+            // this must be an OSGi bundle coming from a maven repository
+            // TODO check if iu actually provides CAPABILITY_NS_OSGI_BUNDLE capability
+            type = TYPE_ECLIPSE_PLUGIN;
         }
 
         platform.addArtifact( type, id, version, location, mavenClassidier, iu );
@@ -588,16 +603,14 @@ public class P2ResolverImpl
             {
                 IInstallableUnit iu = it.next();
 
-                if ( !isPartialIU( iu ) )
-                {
-                    if ( !isReactorInstallableUnit( iu ) )
-                    {
-                        result.add( iu );
-                    }
-                }
-                else
+                if ( isPartialIU( iu ) )
                 {
                     System.out.println( "PARTIAL IU: " + iu );
+                    continue;
+                }
+                if ( !isReactorInstallableUnit( iu ) )
+                {
+                    result.add( iu );
                 }
             }
         }
@@ -664,8 +677,7 @@ public class P2ResolverImpl
         }
         else if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) )
         {
-            // BundlesAction#CAPABILITY_NS_OSGI_BUNDLE
-            additionalRequirements.add( MetadataFactory.createRequirement( "osgi.bundle", id,
+            additionalRequirements.add( MetadataFactory.createRequirement( CAPABILITY_NS_OSGI_BUNDLE, id,
                                                                            new VersionRange( version ), null, false,
                                                                            true ) );
         }

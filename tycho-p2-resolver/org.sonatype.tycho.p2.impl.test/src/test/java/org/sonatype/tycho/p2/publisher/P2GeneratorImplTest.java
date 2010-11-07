@@ -5,7 +5,10 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -13,34 +16,23 @@ import java.util.jar.Manifest;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.ITouchpointData;
 import org.eclipse.equinox.p2.metadata.Version;
-import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.junit.Test;
-import org.sonatype.tycho.p2.impl.publisher.P2GeneratorImpl;
+import org.sonatype.tycho.p2.DependencyMetadataGenerator;
+import org.sonatype.tycho.p2.impl.publisher.SourcesBundleDependencyMetadataGenerator;
 import org.sonatype.tycho.p2.impl.test.ArtifactMock;
 
 public class P2GeneratorImplTest {
 
 	@Test
-	public void testCreateId() throws Exception {
-		P2GeneratorImpl p2GeneratorImpl = new P2GeneratorImpl(true);
-		long id = p2GeneratorImpl.createId("test", "1.0.0");
-		assertEquals("1.0.0".hashCode(), (int) (id >> 32));
-		assertEquals("test".hashCode(), (int) (id));
-	}
-
-	@Test
 	public void testGenerateSourceBundleMetadata() throws Exception {
-		P2GeneratorImpl p2GeneratorImpl = new P2GeneratorImpl(true);
-		LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-		LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
+	    DependencyMetadataGenerator p2GeneratorImpl = new SourcesBundleDependencyMetadataGenerator();
 		File location = new File("resources/generator/bundle")
 				.getCanonicalFile();
 		ArtifactMock artifactMock = new ArtifactMock(location, "org.acme",
-				"foo", "0.0.1", "eclipse-plugin", ".suffix", true);
-		p2GeneratorImpl.generateMetadata(artifactMock, null, units,
-				artifactDescriptors);
-		assertEquals(2, units.size());
-		IInstallableUnit sourceBundleUnit = getUnit("foo.suffix", units);
+				"foo", "0.0.1", "eclipse-plugin");
+		Set<Object> units = p2GeneratorImpl.generateMetadata(artifactMock, getEnvironments());
+		assertEquals(1, units.size());
+		IInstallableUnit sourceBundleUnit = getUnit("foo.source", units);
 		assertNotNull(sourceBundleUnit);
 		assertEquals(Version.create("0.0.1"), sourceBundleUnit.getVersion());
 		assertEquals("sources", sourceBundleUnit
@@ -52,31 +44,15 @@ public class P2GeneratorImplTest {
 		Manifest manifest = new Manifest(new ByteArrayInputStream(
 				manifestContent.getBytes("UTF-8")));
 		Attributes attributes = manifest.getMainAttributes();
-		assertEquals("foo.suffix",
+		assertEquals("foo.source",
 				attributes.getValue("Bundle-SymbolicName"));
 		assertEquals("foo;version=0.0.1;roots:=\".\"",
 				attributes.getValue("Eclipse-SourceBundle"));
 	}
 
-	@Test
-	public void testNoSourceBundleMetadata() throws Exception {
-		P2GeneratorImpl p2GeneratorImpl = new P2GeneratorImpl(true);
-		LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-		LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
-		File location = new File("resources/generator/bundle")
-				.getCanonicalFile();
-		boolean generateSourceBundle = false;
-		ArtifactMock artifactMock = new ArtifactMock(location, "org.acme",
-				"foo", "0.0.1", "eclipse-plugin", ".suffix", generateSourceBundle);
-		p2GeneratorImpl.generateMetadata(artifactMock, null, units,
-				artifactDescriptors);
-		assertEquals(1, units.size());
-		IInstallableUnit unit = units.iterator().next();
-		assertEquals("org.sonatype.tycho.p2.impl.test.bundle", unit.getId());
-	}
-
-	private IInstallableUnit getUnit(String id, Set<IInstallableUnit> units) {
-		for (IInstallableUnit unit : units) {
+	private IInstallableUnit getUnit(String id, Set<Object> units) {
+		for (Object obj : units) {
+		    IInstallableUnit unit = (IInstallableUnit) obj;
 			if (id.equals(unit.getId())) {
 				return unit;
 			}
@@ -84,4 +60,18 @@ public class P2GeneratorImplTest {
 		return null;
 	}
 
+    private List<Map<String, String>> getEnvironments()
+    {
+        ArrayList<Map<String, String>> environments = new ArrayList<Map<String, String>>();
+
+        Map<String, String> properties = new LinkedHashMap<String, String>();
+        properties.put( "osgi.os", "linux" );
+        properties.put( "osgi.ws", "gtk" );
+        properties.put( "osgi.arch", "x86_64" );
+
+        environments.add( properties );
+
+        return environments;
+    }
+	
 }

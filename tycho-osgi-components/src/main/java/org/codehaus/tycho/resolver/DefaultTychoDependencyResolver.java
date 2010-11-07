@@ -20,7 +20,6 @@ import org.codehaus.tycho.maven.MavenDependencyCollector;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.DefaultReactorProject;
-import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.resolver.DependencyVisitor;
 import org.sonatype.tycho.resolver.TychoDependencyResolver;
 
@@ -84,7 +83,7 @@ public class DefaultTychoDependencyResolver
 
         logger.info( "Resolving target platform for project " + project );
         TargetPlatform targetPlatform =
-            resolver.resolvePlatform( session, project, getReactorProjects( session ), null );
+            resolver.resolvePlatform( session, project, DefaultReactorProject.adapt( session ), null );
 
         if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
         {
@@ -111,12 +110,6 @@ public class DefaultTychoDependencyResolver
             }
             logger.debug( sb.toString() );
         }
-    }
-
-    private List<ReactorProject> getReactorProjects( MavenSession session )
-    {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     public void traverse( MavenProject project, final DependencyVisitor visitor )

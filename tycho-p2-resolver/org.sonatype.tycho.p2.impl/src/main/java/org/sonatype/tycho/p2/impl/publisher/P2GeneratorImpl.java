@@ -23,7 +23,6 @@ import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction;
 import org.eclipse.equinox.p2.publisher.eclipse.ProductAction;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
-import org.sonatype.tycho.p2.DependencyMetadataGenerator;
 import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.P2Generator;
 import org.sonatype.tycho.p2.impl.publisher.model.ProductFile2;
@@ -34,7 +33,7 @@ import org.sonatype.tycho.p2.resolver.P2Resolver;
 @SuppressWarnings( "restriction" )
 public class P2GeneratorImpl
     extends AbstractMetadataGenerator
-    implements P2Generator, DependencyMetadataGenerator
+    implements P2Generator
 {
     private static final String[] SUPPORTED_TYPES = { P2Resolver.TYPE_ECLIPSE_PLUGIN,
         P2Resolver.TYPE_ECLIPSE_TEST_PLUGIN, P2Resolver.TYPE_ECLIPSE_FEATURE, P2Resolver.TYPE_ECLIPSE_UPDATE_SITE,
@@ -232,15 +231,4 @@ public class P2GeneratorImpl
         advice.add( getExtraEntriesAdvice( artifact ) );
         return advice;
     }
-
-    public Set<Object> generateMetadata( IArtifactFacade artifact, List<Map<String, String>> environments )
-    {
-        LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-        LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
-
-        super.generateMetadata( artifact, environments, units, artifactDescriptors );
-
-        return new LinkedHashSet<Object>( units );
-    }
-
 }

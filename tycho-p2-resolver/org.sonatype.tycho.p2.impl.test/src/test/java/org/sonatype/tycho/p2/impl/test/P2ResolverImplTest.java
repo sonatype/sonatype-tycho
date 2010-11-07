@@ -14,8 +14,9 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.sonatype.tycho.p2.impl.publisher.P2GeneratorImpl;
-import org.sonatype.tycho.p2.impl.publisher.SourcesBundleMetadataGenerator;
+import org.sonatype.tycho.p2.DependencyMetadataGenerator;
+import org.sonatype.tycho.p2.impl.publisher.DefaultDependencyMetadataGenerator;
+import org.sonatype.tycho.p2.impl.publisher.SourcesBundleDependencyMetadataGenerator;
 import org.sonatype.tycho.p2.impl.resolver.DuplicateReactorIUsException;
 import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
@@ -26,7 +27,7 @@ public class P2ResolverImplTest
 {
     private HttpServer server;
 
-    private P2GeneratorImpl generator = new P2GeneratorImpl( true );
+    private DependencyMetadataGenerator generator = new DefaultDependencyMetadataGenerator();
 
     @After
     public void stopHttpServer()
@@ -316,7 +317,7 @@ public class P2ResolverImplTest
 
         ArtifactMock sb =
             new ArtifactMock( bundle, bundleId, bundleId, bundleVersion, P2Resolver.TYPE_ECLIPSE_PLUGIN, "sources" );
-        sb.setDependencyMetadata( new SourcesBundleMetadataGenerator().generateMetadata( sb, getEnvironments() ) );
+        sb.setDependencyMetadata( new SourcesBundleDependencyMetadataGenerator().generateMetadata( sb, getEnvironments() ) );
         impl.addReactorArtifact( sb );
 
         impl.setEnvironments( getEnvironments() );

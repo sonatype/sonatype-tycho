@@ -21,7 +21,7 @@ import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.IReactorArtifactFacade;
 
 @SuppressWarnings( "restriction" )
-public class SourcesBundleMetadataGenerator
+public class SourcesBundleDependencyMetadataGenerator
     extends AbstractMetadataGenerator
     implements DependencyMetadataGenerator
 {

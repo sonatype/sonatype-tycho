@@ -13,7 +13,7 @@ import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 	
-	@Test @Ignore
+	@Test
 	public void testDefaultSourceBundleSuffix() throws Exception {
 		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
 		verifier.getCliOptions().add("-PtestDefaultSuffix");
@@ -39,7 +39,7 @@ public class Tycho192SourceBundleTest extends AbstractTychoIntegrationTest {
 		}
 	}
 
-	@Test @Ignore
+	@Test
 	public void testCustomSourceBundleSuffix() throws Exception {
 		Verifier verifier = getVerifier("/TYCHO192sourceBundles", false);
 		List<String> cliOptions = verifier.getCliOptions();

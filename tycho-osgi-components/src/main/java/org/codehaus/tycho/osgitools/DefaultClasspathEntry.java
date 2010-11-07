@@ -3,7 +3,6 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 import java.util.List;
 
-import org.apache.maven.project.MavenProject;
 import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.classpath.ClasspathEntry;

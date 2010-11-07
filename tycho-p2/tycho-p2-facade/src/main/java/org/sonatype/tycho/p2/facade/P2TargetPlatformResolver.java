@@ -28,6 +28,7 @@ import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.MultipleArtifactsNotFoundException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.settings.Mirror;
@@ -96,6 +97,8 @@ public class P2TargetPlatformResolver
 
     private DependencyMetadataGenerator generator;
 
+    private DependencyMetadataGenerator sourcesGenerator;
+
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
@@ -108,6 +111,28 @@ public class P2TargetPlatformResolver
         Set<Object> metadata =
             generator.generateMetadata( new ReactorArtifactFacade( reactorProject, null ), environments );
         reactorProject.setDependencyMetadata( null, metadata );
+
+        // TODO sources bundle metadata
+        if ( hasSourceBundle( project ) )
+        {
+            ReactorArtifactFacade sourcesArtifact = new ReactorArtifactFacade( reactorProject, "sources" );
+            Set<Object> sourcesMetadata = sourcesGenerator.generateMetadata( sourcesArtifact, environments );
+            reactorProject.setDependencyMetadata( sourcesArtifact.getClassidier(), sourcesMetadata );
+        }
+    }
+
+    private static boolean hasSourceBundle( MavenProject project )
+    {
+        // TODO this is a fragile way of checking whether we generate a source bundle
+        // should we rather use MavenSession to get the actual configured mojo instance?
+        for ( Plugin plugin : project.getBuildPlugins() )
+        {
+            if ( "org.sonatype.tycho:maven-osgi-source-plugin".equals( plugin.getKey() ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
@@ -170,7 +195,7 @@ public class P2TargetPlatformResolver
         {
             if ( getLogger().isDebugEnabled() )
             {
-                getLogger().debug( "P2resolver.addMavenProject " + otherProject.toString() );
+                getLogger().debug( "P2resolver.addMavenProject " + otherProject.getId() );
             }
             projects.put( otherProject.getBasedir(), otherProject );
             resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, null ) );
@@ -549,6 +574,7 @@ public class P2TargetPlatformResolver
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );
-        this.generator = equinox.getService( DependencyMetadataGenerator.class );
+        this.generator = equinox.getService( DependencyMetadataGenerator.class, "(role-hint=dependency-only)" );
+        this.sourcesGenerator = equinox.getService( DependencyMetadataGenerator.class, "(role-hint=source-bundle)" );
     }
 }

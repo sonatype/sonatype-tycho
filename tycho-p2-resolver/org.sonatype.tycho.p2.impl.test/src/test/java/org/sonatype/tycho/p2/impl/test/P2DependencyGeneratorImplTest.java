@@ -2,7 +2,6 @@ package org.sonatype.tycho.p2.impl.test;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
