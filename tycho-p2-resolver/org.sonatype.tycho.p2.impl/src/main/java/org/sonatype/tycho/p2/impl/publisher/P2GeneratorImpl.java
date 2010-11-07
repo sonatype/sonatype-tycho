@@ -54,16 +54,19 @@ public class P2GeneratorImpl
         this( false );
     }
 
-    public void generateMetadata( IArtifactFacade artifact, File content, File artifacts )
+    public void generateMetadata( List<IArtifactFacade> artifacts, File contentFile, File artifactsFile )
         throws IOException
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
         LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
 
-        super.generateMetadata( artifact, null, units, artifactDescriptors );
+        for ( IArtifactFacade artifact : artifacts )
+        {
+            super.generateMetadata( artifact, null, units, artifactDescriptors );
+        }
 
-        new MetadataIO().writeXML( units, content );
-        new ArtifactsIO().writeXML( artifactDescriptors, artifacts );
+        new MetadataIO().writeXML( units, contentFile );
+        new ArtifactsIO().writeXML( artifactDescriptors, artifactsFile );
     }
 
     @Override

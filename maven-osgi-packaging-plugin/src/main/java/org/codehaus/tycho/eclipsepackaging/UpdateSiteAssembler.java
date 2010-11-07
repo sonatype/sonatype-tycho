@@ -152,7 +152,7 @@ public class UpdateSiteAssembler
             location = bundleProject.getArtifact( plugin.getClassifier() );
             if ( location == null )
             {
-                throw new IllegalStateException( bundleProject + " does not provide an artifact with classifier '"
+                throw new IllegalStateException( bundleProject.getId() + " does not provide an artifact with classifier '"
                     + plugin.getClassifier() + "'" );
             }
             if ( location.isDirectory() )

@@ -43,6 +43,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.DefaultArtifactKey;
@@ -112,13 +113,19 @@ public class P2TargetPlatformResolver
             generator.generateMetadata( new ReactorArtifactFacade( reactorProject, null ), environments );
         reactorProject.setDependencyMetadata( null, metadata );
 
-        // TODO sources bundle metadata
-        if ( hasSourceBundle( project ) )
+        // TODO this should be moved to osgi-sources-plugin somehow
+        if ( isBundleProject( project ) && hasSourceBundle( project ) )
         {
             ReactorArtifactFacade sourcesArtifact = new ReactorArtifactFacade( reactorProject, "sources" );
             Set<Object> sourcesMetadata = sourcesGenerator.generateMetadata( sourcesArtifact, environments );
             reactorProject.setDependencyMetadata( sourcesArtifact.getClassidier(), sourcesMetadata );
         }
+    }
+
+    private static boolean isBundleProject( MavenProject project )
+    {
+        String type = project.getPackaging();
+        return ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( type ) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals( type );
     }
 
     private static boolean hasSourceBundle( MavenProject project )
@@ -200,9 +207,13 @@ public class P2TargetPlatformResolver
             projects.put( otherProject.getBasedir(), otherProject );
             resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, null ) );
 
-            for ( String classifier : otherProject.getClassifiers() )
+            Map<String, Set<Object>> dependencyMetadata = otherProject.getDependencyMetadata();
+            if ( dependencyMetadata != null )
             {
-                resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, classifier ) );
+                for ( String classifier : dependencyMetadata.keySet() )
+                {
+                    resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, classifier ) );
+                }
             }
         }
 

@@ -113,14 +113,21 @@ public class DefaultReactorProject
 
     public File getArtifact( String artifactClassifier )
     {
-        Artifact artifact;
+        Artifact artifact = null;
         if ( artifactClassifier == null )
         {
             artifact = project.getArtifact();
         }
         else
         {
-            artifact = project.getArtifactMap().get( artifactClassifier );
+            for ( Artifact attached : project.getAttachedArtifacts() )
+            {
+                if ( artifactClassifier.equals( attached.getClassifier() ) )
+                {
+                    artifact = attached;
+                    break;
+                }
+            }
         }
         return artifact != null ? artifact.getFile() : null;
     }
@@ -135,16 +142,9 @@ public class DefaultReactorProject
         project.setContextValue( key, value );
     }
 
-    public Set<String> getClassifiers()
-    {
-        return project.getArtifactMap().keySet();
-    }
-
     public void setDependencyMetadata( String classifier, Set<Object> installableUnits )
     {
-        @SuppressWarnings( "unchecked" )
-        Map<String, Set<Object>> metadata =
-            (Map<String, Set<Object>>) project.getContextValue( ATTR_DEPENDENCY_METADATA );
+        Map<String, Set<Object>> metadata = getDependencyMetadata();
 
         if ( metadata == null )
         {
@@ -155,11 +155,17 @@ public class DefaultReactorProject
         metadata.put( classifier, installableUnits );
     }
 
-    public Set<Object> getDependencyMetadata( String classifier )
+    public Map<String, Set<Object>> getDependencyMetadata()
     {
         @SuppressWarnings( "unchecked" )
         Map<String, Set<Object>> metadata =
             (Map<String, Set<Object>>) project.getContextValue( ATTR_DEPENDENCY_METADATA );
+        return metadata;
+    }
+
+    public Set<Object> getDependencyMetadata( String classifier )
+    {
+        Map<String, Set<Object>> metadata = getDependencyMetadata();
 
         if ( metadata == null )
         {
