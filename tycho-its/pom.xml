@@ -223,6 +223,11 @@
       <artifactId>org.sonatype.tycho.p2.maven.repository</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.sonatype.tycho</groupId>
+      <artifactId>org.sonatype.tycho.p2.tools.impl</artifactId>
+      <version>${tycho-build-version}</version>
+    </dependency>
 
   </dependencies>
 

@@ -10,8 +10,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
-import org.sonatype.tycho.p2.DirectorApplicationWrapper;
 import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
+import org.sonatype.tycho.p2.tools.director.DirectorApplicationWrapper;
 
 /**
  * @phase package

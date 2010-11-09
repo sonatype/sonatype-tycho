@@ -1,7 +1,7 @@
-package org.sonatype.tycho.p2.impl.director;
+package org.sonatype.tycho.p2.tools.impl.director;
 
 import org.eclipse.equinox.internal.p2.director.app.DirectorApplication;
-import org.sonatype.tycho.p2.DirectorApplicationWrapper;
+import org.sonatype.tycho.p2.tools.director.DirectorApplicationWrapper;
 
 @SuppressWarnings( "restriction" )
 public final class DirectorApplicationWrapperImpl

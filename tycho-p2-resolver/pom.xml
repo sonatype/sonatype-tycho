@@ -19,11 +19,16 @@
     <module>org.sonatype.tycho.p2.impl</module>
     <module>org.sonatype.tycho.p2.maven.repository</module>
     <module>org.sonatype.tycho.noopsecurity</module>
-    <module>tycho-p2-runtime</module>
-    
+
     <!-- unit tests -->
     <module>org.sonatype.tycho.p2.impl.test</module>
     <module>org.sonatype.tycho.p2.maven.repository.tests</module>
+
+    <module>org.sonatype.tycho.p2.tools.facade</module>
+    <module>org.sonatype.tycho.p2.tools.impl</module>
+
+    <!-- OSGi runtime for Tycho -->
+    <module>tycho-p2-runtime</module>
   </modules>
 
   <properties>
