@@ -2,10 +2,8 @@ package org.sonatype.tycho.plugins.p2.publisher;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.testing.TestUtil;
 import org.junit.After;
@@ -16,8 +14,6 @@ import org.sonatype.tycho.plugins.p2.publisher.PublishProductMojo.Product;
 
 public class PublishProductMojoUnitTest
 {
-    private PublishProductMojo subject;
-
     private File tempDir;
 
     private File sourceDirectory;
@@ -33,7 +29,6 @@ public class PublishProductMojoUnitTest
         sourceDirectory.mkdirs();
         targetDirectory = new File( tempDir, "target" );
         targetDirectory.mkdirs();
-        subject = new PublishProductMojo();
     }
 
     @After
@@ -85,7 +80,7 @@ public class PublishProductMojoUnitTest
 
     @Test
     public void testPrepareBuildProduct()
-        throws IOException
+        throws Exception
     {
         File basedir = TestUtil.getBasedir( "unitTestResources" );
         File productFile = new File( basedir, "test.product" );
@@ -107,35 +102,17 @@ public class PublishProductMojoUnitTest
         File productFile = new File( sourceDirectory, "test.product" );
         productFile.createNewFile();
 
-        File p2InfTarget = new File(targetDirectory,"p2.inf");
-        PublishProductMojo.copyP2Inf( Product.getSourceP2InfFile( productFile), p2InfTarget );
+        File p2InfTarget = new File( targetDirectory, "p2.inf" );
+        PublishProductMojo.copyP2Inf( Product.getSourceP2InfFile( productFile ), p2InfTarget );
         Assert.assertFalse( p2InfTarget.exists() );
     }
 
     @Test
-    public void testGetSourceP2InfFile() throws IOException
+    public void testGetSourceP2InfFile()
+        throws IOException
     {
         String p2InfFile = Product.getSourceP2InfFile( new File( "./test/test.product" ) ).getCanonicalPath();
         Assert.assertEquals( new File( "./test/test.p2.inf" ).getCanonicalPath(), p2InfFile );
-    }
-
-    @Test
-    public void testGetConfigsParameter()
-    {
-        String[] configsParameter =
-            subject.getConfigsParameter( Arrays.asList( new TargetEnvironment( "os", "ws", "arch", "nl" ) ) );
-        Assert.assertEquals( "-configs", configsParameter[0] );
-        Assert.assertEquals( "ws.os.arch", configsParameter[1] );
-    }
-
-    @Test
-    public void testGetConfigsParameterTwoOSes()
-    {
-        String[] configsParameter =
-            subject.getConfigsParameter( Arrays.asList( new TargetEnvironment( "os", "ws", "arch", "nl" ),
-                                                        new TargetEnvironment( "os2", "ws", "arch", "nl2" ) ) );
-        Assert.assertEquals( "-configs", configsParameter[0] );
-        Assert.assertEquals( "ws.os.arch,ws.os2.arch", configsParameter[1] );
     }
 
     private File createTempDir( String prefix )

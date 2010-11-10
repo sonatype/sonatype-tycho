@@ -5,4 +5,6 @@ Bundle-ManifestVersion: 2
 Bundle-Description: Exposes tools for manipulating p2 data, which are implemented in OSGi bundles, to Maven plug-ins
 Bundle-SymbolicName: org.sonatype.tycho.p2.tools.facade
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Export-Package: org.sonatype.tycho.p2.tools.director
+Export-Package: org.sonatype.tycho.p2.tools,
+ org.sonatype.tycho.p2.tools.director,
+ org.sonatype.tycho.p2.tools.publisher

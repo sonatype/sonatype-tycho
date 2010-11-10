@@ -9,6 +9,7 @@
 
 	<properties>
 		<tycho-groupid>org.sonatype.tycho</tycho-groupid>
+		<forceContextQualifier>12345-forcedQualifier</forceContextQualifier>
 	</properties>
 
 	<modules>

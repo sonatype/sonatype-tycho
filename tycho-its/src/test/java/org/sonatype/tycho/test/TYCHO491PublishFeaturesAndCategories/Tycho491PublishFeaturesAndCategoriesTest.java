@@ -32,6 +32,8 @@ public class Tycho491PublishFeaturesAndCategoriesTest
 
     private static final String VERSION = "1.0.0-SNAPSHOT";
 
+    private static final String QUALIFIER = "12345-forcedQualifier";
+
     @Test
     public void testProductPublisher()
         throws Exception
@@ -49,10 +51,8 @@ public class Tycho491PublishFeaturesAndCategoriesTest
 
         Document contentXml = Util.openXmlFromZip( contentJar, "content.xml" );
 
-        File categoryDir = new File( verifier.getBasedir(), MODULE + "/target/category.xml" );
+        assertCategoryIU( contentXml, QUALIFIER + ".example.category", "example.feature.feature.group" );
 
-        assertCategoryIU( contentXml, categoryDir.toURI().toString() + ".example.category",
-                          "example.feature.feature.group" );
         assertFeatureIU( verifier, contentXml, "example.feature", "example.included.feature.feature.group",
                          "example.bundle" );
         assertBundleIU( verifier, contentXml, "example.bundle" );
@@ -118,7 +118,7 @@ public class Tycho491PublishFeaturesAndCategoriesTest
     {
         ZipFile zipFile = new ZipFile( file );
 
-        for ( final Enumeration entries = zipFile.getEntries(); entries.hasMoreElements(); )
+        for ( final Enumeration<?> entries = zipFile.getEntries(); entries.hasMoreElements(); )
         {
             final ZipEntry entry = (ZipEntry) entries.nextElement();
             if ( entry.getName().startsWith( prefix ) )

@@ -1,13 +1,11 @@
 package org.sonatype.tycho.plugins.p2.publisher;
 
 import java.io.File;
-import java.util.List;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
@@ -40,7 +38,7 @@ public abstract class AbstractP2Mojo
     {
         return session;
     }
-    
+
     protected String getQualifier()
     {
         return qualifier;
@@ -75,12 +73,7 @@ public abstract class AbstractP2Mojo
         return getTychoProjectFacet().getTargetPlatform( project );
     }
 
-    protected List<TargetEnvironment> getEnvironments()
-    {
-        return getTargetPlatformConfiguration().getEnvironments();
-    }
-
-    private TargetPlatformConfiguration getTargetPlatformConfiguration()
+    protected TargetPlatformConfiguration getTargetPlatformConfiguration()
     {
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );

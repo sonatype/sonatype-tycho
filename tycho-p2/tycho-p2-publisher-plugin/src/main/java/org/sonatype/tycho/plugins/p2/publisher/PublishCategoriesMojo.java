@@ -2,12 +2,13 @@ package org.sonatype.tycho.plugins.p2.publisher;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.tycho.model.Category;
+import org.sonatype.tycho.p2.tools.FacadeException;
+import org.sonatype.tycho.p2.tools.publisher.PublisherService;
 
 /**
  * This goal invokes the category publisher and publishes category information.
@@ -18,8 +19,6 @@ import org.codehaus.tycho.model.Category;
 public class PublishCategoriesMojo
     extends AbstractPublishMojo
 {
-    private static String CATEGORY_PUBLISHER_APP_NAME = PUBLISHER_BUNDLE_ID + ".CategoryPublisher";
-
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
@@ -27,36 +26,49 @@ public class PublishCategoriesMojo
     }
 
     private void publishCategories()
-        throws MojoExecutionException, MojoFailureException
+        throws MojoExecutionException
     {
+        PublisherService publisherService = createPublisherService();
         try
         {
             for ( Category category : getCategories() )
             {
                 final File buildCategoryFile =
-                    prepareBuildCategory( category, new File( getProject().getBuild().getDirectory() ), getQualifier() );
+                    prepareBuildCategory( category, new File( getProject().getBuild().getDirectory() ) );
 
-                List<String> categoryArgs = new ArrayList<String>();
-                categoryArgs.add( "-categoryDefinition" );
-                categoryArgs.add( buildCategoryFile.toURL().toExternalForm() );
-
-                executePublisherApplication( CATEGORY_PUBLISHER_APP_NAME,
-                                             (String[]) categoryArgs.toArray( new String[categoryArgs.size()] ) );
+                publisherService.publishCategories( buildCategoryFile );
             }
         }
-        catch ( IOException ioe )
+        catch ( FacadeException e )
         {
-            throw new MojoExecutionException( "Unable to execute the publisher", ioe );
+            throw new MojoExecutionException( "Exception while publishing categories: " + e.getMessage(), e );
+        }
+        finally
+        {
+            publisherService.stop();
         }
     }
 
-    private File prepareBuildCategory( Category category, File buildFolder, String qualifier )
-        throws IOException
+    /**
+     * Writes the Tycho-internal representation of categories back to a category.xml.
+     * 
+     * @param category a category, with "qualifier" literals already replaced by the build
+     *            qualifier.
+     */
+    private File prepareBuildCategory( Category category, File buildFolder )
+        throws MojoExecutionException
     {
-        File ret = new File( buildFolder, "category.xml" );
-        buildFolder.mkdirs();
-        Category.write( category, ret );
-        return ret;
+        try
+        {
+            File ret = new File( buildFolder, "category.xml" );
+            buildFolder.mkdirs();
+            Category.write( category, ret );
+            return ret;
+        }
+        catch ( IOException e )
+        {
+            throw new MojoExecutionException( "I/O exception while writing category definition to disk", e );
+        }
     }
 
     private List<Category> getCategories()

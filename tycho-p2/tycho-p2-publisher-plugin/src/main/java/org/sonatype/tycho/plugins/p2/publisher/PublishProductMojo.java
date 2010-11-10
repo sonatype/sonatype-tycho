@@ -3,7 +3,6 @@ package org.sonatype.tycho.plugins.p2.publisher;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -11,26 +10,24 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.p2.tools.FacadeException;
+import org.sonatype.tycho.p2.tools.publisher.PublisherService;
 
 /**
  * This goal invokes the product publisher for each product file found.
- *
+ * 
  * @see http://wiki.eclipse.org/Equinox/p2/Publisher
  * @goal publish-products
  */
 public final class PublishProductMojo
     extends AbstractPublishMojo
 {
-
-    private static String PRODUCT_PUBLISHER_APP_NAME = PUBLISHER_BUNDLE_ID + ".ProductPublisher";
-
 
     /**
      * @parameter default-value="tooling"
@@ -51,31 +48,30 @@ public final class PublishProductMojo
     private void publishProducts()
         throws MojoExecutionException, MojoFailureException
     {
+        PublisherService publisherService = createPublisherService();
         try
         {
             for ( Product product : getProducts() )
             {
-                final Product buildProduct =
-                    prepareBuildProduct( product, new File( getProject().getBuild().getDirectory() ), getQualifier() );
+                try
+                {
+                    final Product buildProduct =
+                        prepareBuildProduct( product, new File( getProject().getBuild().getDirectory() ),
+                                             getQualifier() );
 
-                List<String> productArgs = new ArrayList<String>();
-                productArgs.add( "-productFile" );
-                productArgs.add( buildProduct.productFile.getCanonicalPath() );
-                productArgs.add( "-executables" );
-                productArgs.add( getEquinoxExecutableFeature() );
-                productArgs.add( "-flavor" );
-                productArgs.add( flavor );
-                productArgs.addAll( Arrays.asList( getConfigsParameter( getEnvironments() ) ) );
-
-                executePublisherApplication( PRODUCT_PUBLISHER_APP_NAME,
-                                             (String[]) productArgs.toArray( new String[productArgs.size()] ) );
+                    publisherService.publishProduct( buildProduct.productFile, getEquinoxExecutableFeature(), flavor );
+                }
+                catch ( FacadeException e )
+                {
+                    throw new MojoExecutionException( "Exception while publishing product "
+                        + product.getProductFile().getAbsolutePath(), e );
+                }
             }
         }
-        catch ( IOException ioe )
+        finally
         {
-            throw new MojoExecutionException( "Unable to execute the publisher", ioe );
+            publisherService.stop();
         }
-
     }
 
     /**
@@ -87,22 +83,28 @@ public final class PublishProductMojo
      * </p>
      */
     static Product prepareBuildProduct( Product product, File targetDir, String qualifier )
-        throws IOException
+        throws MojoExecutionException
     {
+        try
+        {
+            ProductConfiguration productConfiguration = ProductConfiguration.read( product.productFile );
 
-        ProductConfiguration productConfiguration = ProductConfiguration.read( product.productFile );
+            qualifyVersions( productConfiguration, qualifier );
 
-        qualifyVersions( productConfiguration, qualifier );
+            File buildProductDir = new File( targetDir, "products/" + productConfiguration.getId() );
+            buildProductDir.mkdirs();
+            final Product buildProduct =
+                new Product( new File( buildProductDir, product.getProductFile().getName() ),
+                             new File( buildProductDir, "p2.inf" ) );
+            ProductConfiguration.write( productConfiguration, buildProduct.productFile );
+            copyP2Inf( product.p2infFile, buildProduct.p2infFile );
 
-        File buildProductDir = new File( targetDir, "products/" + productConfiguration.getId() );
-        buildProductDir.mkdirs();
-        final Product buildProduct =
-            new Product( new File( buildProductDir, product.getProductFile().getName() ), new File( buildProductDir,
-                                                                                                    "p2.inf" ) );
-        ProductConfiguration.write( productConfiguration, buildProduct.productFile );
-        copyP2Inf( product.p2infFile, buildProduct.p2infFile );
-
-        return buildProduct;
+            return buildProduct;
+        }
+        catch ( IOException e )
+        {
+            throw new MojoExecutionException( "I/O exception while writing product definition to disk", e );
+        }
     }
 
     static void copyP2Inf( final File sourceP2Inf, final File buildP2Inf )
@@ -186,33 +188,10 @@ public final class PublishProductMojo
         }
     }
 
-
-    /**
-     * @return the value of the -configs argument: a list of config identifiers separated by a
-     *         comma.
-     */
-    String[] getConfigsParameter( List<TargetEnvironment> envs )
-    {
-        if ( envs.isEmpty() )
-        {
-            return new String[0];
-        }
-        StringBuilder sb = new StringBuilder();
-        for ( TargetEnvironment env : envs )
-        {
-            if ( sb.length() > 0 )
-            {
-                sb.append( "," );
-            }
-            sb.append( env.getWs() + "." + env.getOs() + "." + env.getArch() );
-        }
-        return new String[] { "-configs", sb.toString() };
-    }
-
     /**
      * Same code than in the ProductExportMojo. Needed to get the launcher binaries.
      */
-    private String getEquinoxExecutableFeature()
+    private File getEquinoxExecutableFeature()
         throws MojoExecutionException, MojoFailureException
     {
         ArtifactDescriptor artifact =
@@ -226,7 +205,7 @@ public final class PublishProductMojo
         File equinoxExecFeature = artifact.getLocation();
         if ( equinoxExecFeature.isDirectory() )
         {
-            return equinoxExecFeature.getAbsolutePath();
+            return equinoxExecFeature.getAbsoluteFile();
         }
         else
         {
@@ -235,7 +214,7 @@ public final class PublishProductMojo
                     + artifact.getKey().getVersion() );
             if ( unzipped.exists() )
             {
-                return unzipped.getAbsolutePath();
+                return unzipped.getAbsoluteFile();
             }
             try
             {
@@ -244,7 +223,7 @@ public final class PublishProductMojo
                 deflater.setSourceFile( equinoxExecFeature );
                 deflater.setDestDirectory( unzipped );
                 deflater.extract();
-                return unzipped.getAbsolutePath();
+                return unzipped.getAbsoluteFile();
             }
             catch ( ArchiverException e )
             {
