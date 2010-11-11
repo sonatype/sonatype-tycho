@@ -9,6 +9,16 @@ import org.apache.maven.project.MavenProject;
 public interface ReactorProject
 {
     /**
+     * Conventional key used to store ReactorProject in MavenProject.context
+     */
+    public static final String CTX_REACTOR_PROJECT = "tycho.reactor-project";
+
+    /**
+     * Conventional key used to store dependency metadata in MavenProject.context
+     */
+    public static final String CTX_DEPENDENCY_METADATA = "tycho.dependency-metadata";
+
+    /**
      * Conventional sources jar Maven artifact classifier.
      */
     public static final String SOURCE_ARTIFACT_CLASSIFIER = "sources";
@@ -57,7 +67,7 @@ public interface ReactorProject
      * Returns live set of Manve artifact classifiers that have been (or will be) attached to the project during the
      * build. Main project artifact classifier is always <code>null</null> and is NOT included in the returned set.
      */
-    //public Set<String> getClassifiers();
+    // public Set<String> getClassifiers();
 
     public void setDependencyMetadata( String classifier, Set<Object /* IInstallableUnit */> installableUnits );
 
@@ -80,9 +90,9 @@ public interface ReactorProject
     public void setExpandedVersion( String originalVersion, String qualifier );
 
     // misc
-    
+
     /**
-     *  human-readable id used in error messages
+     * human-readable id used in error messages
      */
     public String getId();
 

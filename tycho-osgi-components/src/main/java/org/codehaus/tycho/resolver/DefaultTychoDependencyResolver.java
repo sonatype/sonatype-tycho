@@ -19,7 +19,7 @@ import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.MavenDependencyCollector;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
 import org.codehaus.tycho.osgitools.DebugUtils;
-import org.codehaus.tycho.osgitools.DefaultReactorProject;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.resolver.DependencyVisitor;
 import org.sonatype.tycho.resolver.TychoDependencyResolver;
 
@@ -39,39 +39,36 @@ public class DefaultTychoDependencyResolver
     @Requirement( role = TychoProject.class )
     private Map<String, TychoProject> projectTypes;
 
-    public void setupProjects( MavenSession session, List<MavenProject> projects )
+    public void setupProject( MavenSession session, MavenProject project, ReactorProject reactorProject )
     {
-        for ( MavenProject project : projects )
+        AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
+        if ( dr == null )
         {
-            AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
-            if ( dr == null )
-            {
-                continue;
-            }
-
-            // generic Eclipse/OSGi metadata
-
-            dr.setupProject( session, project );
-
-            // p2 metadata
-
-            Properties properties = new Properties();
-            properties.putAll( project.getProperties() );
-            properties.putAll( session.getSystemProperties() ); // session wins
-            properties.putAll( session.getUserProperties() );
-            project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
-
-            TargetPlatformConfiguration configuration =
-                configurationReader.getTargetPlatformConfiguration( session, project );
-            project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION, configuration );
-
-            TargetPlatformResolver resolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
-
-            resolver.setupProjects( session, project, DefaultReactorProject.adapt( project ) );
+            return;
         }
+
+        // generic Eclipse/OSGi metadata
+
+        dr.setupProject( session, project );
+
+        // p2 metadata
+
+        Properties properties = new Properties();
+        properties.putAll( project.getProperties() );
+        properties.putAll( session.getSystemProperties() ); // session wins
+        properties.putAll( session.getUserProperties() );
+        project.setContextValue( TychoConstants.CTX_MERGED_PROPERTIES, properties );
+
+        TargetPlatformConfiguration configuration =
+            configurationReader.getTargetPlatformConfiguration( session, project );
+        project.setContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION, configuration );
+
+        TargetPlatformResolver resolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
+
+        resolver.setupProjects( session, project, reactorProject );
     }
 
-    public void resolveProject( MavenSession session, MavenProject project )
+    public void resolveProject( MavenSession session, MavenProject project, List<ReactorProject> reactorProjects )
     {
         AbstractTychoProject dr = (AbstractTychoProject) projectTypes.get( project.getPackaging() );
         if ( dr == null )
@@ -83,7 +80,7 @@ public class DefaultTychoDependencyResolver
 
         logger.info( "Resolving target platform for project " + project );
         TargetPlatform targetPlatform =
-            resolver.resolvePlatform( session, project, DefaultReactorProject.adapt( session ), null );
+            resolver.resolvePlatform( session, project, reactorProjects, null );
 
         if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
         {

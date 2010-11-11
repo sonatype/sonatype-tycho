@@ -17,11 +17,6 @@ import org.sonatype.tycho.ReactorProject;
 public class DefaultReactorProject
     implements ReactorProject
 {
-
-    public static final String ATTR_REACTOR_PROJECT = "tycho.reactor-project";
-
-    public static final String ATTR_DEPENDENCY_METADATA = "tycho.dependency-metadata";
-
     private final MavenProject project;
 
     public DefaultReactorProject( MavenProject project )
@@ -41,11 +36,11 @@ public class DefaultReactorProject
             return null;
         }
 
-        ReactorProject reactorProject = (ReactorProject) project.getContextValue( ATTR_REACTOR_PROJECT );
+        ReactorProject reactorProject = (ReactorProject) project.getContextValue( CTX_REACTOR_PROJECT );
         if ( reactorProject == null )
         {
             reactorProject = new DefaultReactorProject( project );
-            project.setContextValue( ATTR_REACTOR_PROJECT, reactorProject );
+            project.setContextValue( CTX_REACTOR_PROJECT, reactorProject );
         }
         return reactorProject;
     }
@@ -149,7 +144,7 @@ public class DefaultReactorProject
         if ( metadata == null )
         {
             metadata = new HashMap<String, Set<Object>>();
-            project.setContextValue( ATTR_DEPENDENCY_METADATA, metadata );
+            project.setContextValue( CTX_DEPENDENCY_METADATA, metadata );
         }
 
         metadata.put( classifier, installableUnits );
@@ -159,7 +154,7 @@ public class DefaultReactorProject
     {
         @SuppressWarnings( "unchecked" )
         Map<String, Set<Object>> metadata =
-            (Map<String, Set<Object>>) project.getContextValue( ATTR_DEPENDENCY_METADATA );
+            (Map<String, Set<Object>>) project.getContextValue( CTX_DEPENDENCY_METADATA );
         return metadata;
     }
 
