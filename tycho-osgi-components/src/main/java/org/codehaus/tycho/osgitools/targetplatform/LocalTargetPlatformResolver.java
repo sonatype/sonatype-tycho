@@ -29,9 +29,11 @@ import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.osgitools.DefaultArtifactKey;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.Constants;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * Creates target platform based on local eclipse installation.
@@ -67,15 +69,16 @@ public class LocalTargetPlatformResolver
 
         for ( MavenProject project : session.getProjects() )
         {
+            ReactorProject projectProxy = DefaultReactorProject.adapt( project );
             TychoProject dr = projectTypes.get( project.getPackaging() );
             if ( dr != null )
             {
-                ArtifactKey key = dr.getArtifactKey( project );
-    
+                ArtifactKey key = dr.getArtifactKey( projectProxy );
+
                 platform.removeAll( key.getType(), key.getId() );
-    
-                platform.addMavenProject( key, project, null );
-    
+
+                platform.addReactorArtifact( key, projectProxy, null, null );
+
                 if ( parentDir == null || isSubdir( project.getBasedir(), parentDir ) )
                 {
                     parentDir = project.getBasedir();
@@ -86,7 +89,8 @@ public class LocalTargetPlatformResolver
         platform.addSite( parentDir );
     }
 
-    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
+    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
+                                           List<ReactorProject> reactorProjects, List<Dependency> dependencies )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
 
@@ -107,7 +111,9 @@ public class LocalTargetPlatformResolver
             for ( File feature : layout.getFeatures( site ) )
             {
                 Feature desc = Feature.loadFeature( feature );
-                ArtifactKey key = new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, desc.getId(), desc.getVersion() );
+                ArtifactKey key =
+                    new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, desc.getId(),
+                                            desc.getVersion() );
 
                 platform.addArtifactFile( key, feature, null );
             }
@@ -144,7 +150,8 @@ public class LocalTargetPlatformResolver
             {
                 if ( Artifact.SCOPE_COMPILE.equals( dependency.getScope() ) )
                 {
-                    String key = ArtifactUtils.key( dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion() );
+                    String key =
+                        ArtifactUtils.key( dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion() );
                     if ( projectIds.containsKey( key ) )
                     {
                         MavenProject dependent = projectIds.get( key );
@@ -152,13 +159,14 @@ public class LocalTargetPlatformResolver
                         if ( artifactKey != null )
                         {
                             platform.removeAll( artifactKey.getType(), artifactKey.getId() );
-                            platform.addMavenProject( artifactKey, dependent, null );
+                            ReactorProject projectProxy = DefaultReactorProject.adapt( dependent );
+                            platform.addReactorArtifact( artifactKey, projectProxy, null, null );
                             if ( getLogger().isDebugEnabled() )
                             {
                                 getLogger().debug( "Add Maven project " + artifactKey );
                             }
                         }
-                    }                    
+                    }
                 }
             }
             // handle rest of dependencies
@@ -234,7 +242,9 @@ public class LocalTargetPlatformResolver
             return null;
         }
 
-        ArtifactKey key = new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
+        ArtifactKey key =
+            new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(),
+                                    version[0].getValue() );
         return key;
     }
 
@@ -255,7 +265,9 @@ public class LocalTargetPlatformResolver
             return null;
         }
 
-        ArtifactKey key = new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(), version[0].getValue() );
+        ArtifactKey key =
+            new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id[0].getValue(),
+                                    version[0].getValue() );
         return key;
     }
 
@@ -263,5 +275,11 @@ public class LocalTargetPlatformResolver
         throws IOException
     {
         layout.setLocation( location.getCanonicalFile() );
+    }
+
+    public void setupProjects( MavenSession session, MavenProject project, ReactorProject reactorProject )
+    {
+        // TODO Auto-generated method stub
+
     }
 }

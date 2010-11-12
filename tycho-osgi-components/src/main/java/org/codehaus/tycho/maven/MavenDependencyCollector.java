@@ -14,6 +14,7 @@ import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.model.PluginRef;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * Generates list of Maven dependencies from project OSGi/Eclipse dependencies
@@ -65,7 +66,7 @@ public class MavenDependencyCollector
         Dependency dependency = null;
         if ( artifact.getMavenProject() != null )
         {
-            if ( !project.equals( artifact.getMavenProject() ) )
+            if ( !artifact.getMavenProject().sameProject( project ) )
             {
                 dependency = newProjectDependency( artifact.getMavenProject() );
             }
@@ -106,18 +107,18 @@ public class MavenDependencyCollector
         return dependency;
     }
 
-    protected Dependency newProjectDependency( MavenProject otherProject )
+    protected Dependency newProjectDependency( ReactorProject dependentMavenProjectProxy )
     {
-        if ( otherProject == null )
+        if ( dependentMavenProjectProxy == null )
         {
             return null;
         }
 
         Dependency dependency = new Dependency();
-        dependency.setArtifactId( otherProject.getArtifactId() );
-        dependency.setGroupId( otherProject.getGroupId() );
-        dependency.setVersion( otherProject.getVersion() );
-        dependency.setType( otherProject.getPackaging() );
+        dependency.setArtifactId( dependentMavenProjectProxy.getArtifactId() );
+        dependency.setGroupId( dependentMavenProjectProxy.getGroupId() );
+        dependency.setVersion( dependentMavenProjectProxy.getVersion() );
+        dependency.setType( dependentMavenProjectProxy.getPackaging() );
         dependency.setScope( Artifact.SCOPE_PROVIDED );
         return dependency;
     }

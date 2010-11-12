@@ -15,6 +15,8 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Disposable;
 import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.osgitools.DefaultBundleReader;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.equinox.embedder.EquinoxEmbedder;
 import org.sonatype.tycho.resolver.TychoDependencyResolver;
 
@@ -80,11 +82,16 @@ public class TychoMavenLifecycleParticipant
 
         List<MavenProject> projects = session.getProjects();
 
-        resolver.setupProjects( session, projects );
+        for ( MavenProject project : projects )
+        {
+            resolver.setupProject( session, project, DefaultReactorProject.adapt( project ) );
+        }
+
+        List<ReactorProject> reactorProjects = DefaultReactorProject.adapt( session );
 
         for ( MavenProject project : projects )
         {
-            resolver.resolveProject( session, project );
+            resolver.resolveProject( session, project, reactorProjects );
         }
     }
 

@@ -2,6 +2,7 @@ package org.codehaus.tycho;
 
 import org.apache.maven.project.MavenProject;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 
 /**
@@ -34,6 +35,6 @@ public interface TychoProject
     public TargetPlatform getTargetPlatform( MavenProject project, TargetEnvironment environment );
 
     // implementation must not depend on target platform
-    public ArtifactKey getArtifactKey( MavenProject project );
+    public ArtifactKey getArtifactKey( ReactorProject project );
 
 }

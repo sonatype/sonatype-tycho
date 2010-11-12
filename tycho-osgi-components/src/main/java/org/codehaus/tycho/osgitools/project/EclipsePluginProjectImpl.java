@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.maven.project.MavenProject;
+import org.sonatype.tycho.ReactorProject;
 
 public class EclipsePluginProjectImpl implements EclipsePluginProject {
 
-	private final MavenProject project;
+	private final ReactorProject project;
 	private final Properties buildProperties;
 
 	private final LinkedHashMap<String, BuildOutputJar> outputJars = new LinkedHashMap<String, BuildOutputJar>();
 	private final BuildOutputJar dotOutputJar;
 
-	public EclipsePluginProjectImpl(MavenProject project) throws IOException {
+	public EclipsePluginProjectImpl(ReactorProject project) throws IOException {
 		this.project = project;
 		this.buildProperties = loadProperties(project);
 
@@ -61,8 +61,8 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 			}
 			
 			File outputDirectory = jarName.equals(dotJarName)
-					? new File(project.getBuild().getOutputDirectory())
-					: new File(project.getBuild().getDirectory(), jarName + "-classes");
+					? project.getOutputDirectory()
+					: new File(project.getBuildDirectory(), jarName + "-classes");
 			List<File> sourceFolders = toFileList(project.getBasedir(), value.split(","));
 			
 			List<String> extraEntries = new ArrayList<String>();
@@ -90,7 +90,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 		return result;
 	}
 
-	private static Properties loadProperties(MavenProject project) throws IOException {
+	private static Properties loadProperties(ReactorProject project) throws IOException {
 		File file = new File(project.getBasedir(), "build.properties");
 
 		Properties buildProperties = new Properties();
@@ -113,7 +113,7 @@ public class EclipsePluginProjectImpl implements EclipsePluginProject {
 		return buildProperties;
 	}
 
-	public MavenProject getMavenProject() {
+	public ReactorProject getMavenProject() {
 		return project;
 	}
 

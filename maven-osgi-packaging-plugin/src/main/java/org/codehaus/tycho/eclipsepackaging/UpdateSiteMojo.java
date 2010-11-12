@@ -5,15 +5,13 @@ import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.FeatureDescription;
-import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.model.UpdateSite.SiteFeatureRef;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * @goal update-site
@@ -63,13 +61,11 @@ public class UpdateSiteMojo
                 {
                     FeatureRef featureRef = feature.getFeatureRef();
                     String id = featureRef.getId();
-                    MavenProject otherProject = feature.getMavenProject();
+                    ReactorProject otherProject = feature.getMavenProject();
                     String version;
                     if ( otherProject != null )
                     {
-                        TychoProject projectType = getTychoProjectFacet( otherProject.getPackaging() );
-                        String otherVersion = projectType.getArtifactKey( otherProject ).getVersion();
-                        version = VersioningHelper.getExpandedVersion( otherProject, otherVersion );
+                        version = otherProject.getExpandedVersion();
                     }
                     else
                     {

@@ -15,6 +15,7 @@ import org.codehaus.tycho.model.Category;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * An eclipse repository project produces a p2 repository where a set of products are published.
@@ -28,7 +29,7 @@ public class EclipseRepositoryProject
      * The published repository is always under the id of the maven project: this published
      * repository can contain multiple products.
      */
-    public ArtifactKey getArtifactKey( MavenProject project )
+    public ArtifactKey getArtifactKey( ReactorProject project )
     {
         String id = project.getArtifactId();
         String version = getOsgiVersion( project );

@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.maven.project.MavenProject;
+import org.sonatype.tycho.ReactorProject;
 
 public interface EclipsePluginProject {
 
-	public MavenProject getMavenProject();
+	public ReactorProject getMavenProject();
 
 	/**
 	 * http://help.eclipse.org/ganymede/index.jsp?topic=/org.eclipse.pde.doc.user/reference/pde_feature_generating_build.htm 

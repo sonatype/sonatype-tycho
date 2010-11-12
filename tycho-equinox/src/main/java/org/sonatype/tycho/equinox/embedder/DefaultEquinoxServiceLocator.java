@@ -15,4 +15,9 @@ public class DefaultEquinoxServiceLocator
     {
         return equinox.getService( clazz );
     }
+
+    public <T> T getService( Class<T> clazz, String filter )
+    {
+        return equinox.getService( clazz, filter );
+    }
 }

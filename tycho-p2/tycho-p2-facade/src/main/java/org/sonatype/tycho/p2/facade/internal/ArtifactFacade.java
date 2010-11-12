@@ -33,12 +33,9 @@ public class ArtifactFacade implements IArtifactFacade {
 		return wrappedArtifact.getType();
 	}
 
-	public String getSourceBundleSuffix() {
-		return null;
-	}
-
-	public boolean hasSourceBundle() {
-		return false;
-	}
+    public String getClassidier()
+    {
+        return wrappedArtifact.getClassifier();
+    }
 
 }

@@ -3,10 +3,10 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 import java.util.Set;
 
-import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.model.PluginRef;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 public class DefaultPluginDescription
     extends DefaultArtifactDescriptor
@@ -15,10 +15,10 @@ public class DefaultPluginDescription
 
     private PluginRef pluginRef;
 
-    public DefaultPluginDescription( ArtifactKey key, File location, MavenProject project, PluginRef pluginRef,
-                                     Set<Object> installableUnits )
+    public DefaultPluginDescription( ArtifactKey key, File location, ReactorProject project, String classifier,
+                                     PluginRef pluginRef, Set<Object> installableUnits )
     {
-        super( key, location, project, installableUnits );
+        super( key, location, project, classifier, installableUnits );
         this.pluginRef = pluginRef;
     }
 

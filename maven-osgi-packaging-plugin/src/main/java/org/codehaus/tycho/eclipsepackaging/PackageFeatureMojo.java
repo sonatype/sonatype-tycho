@@ -13,17 +13,16 @@ import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.FeatureDescription;
 import org.codehaus.tycho.PluginDescription;
-import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.buildversion.VersioningHelper;
 import org.codehaus.tycho.model.Feature;
 import org.codehaus.tycho.model.FeatureRef;
 import org.codehaus.tycho.model.PluginRef;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * @phase package
@@ -169,19 +168,17 @@ public class PackageFeatureMojo
 
                 File location = plugin.getLocation();
 
-                MavenProject bundleProject = plugin.getMavenProject();
+                ReactorProject bundleProject = plugin.getMavenProject();
                 if ( bundleProject != null )
                 {
-                    location = bundleProject.getArtifact().getFile();
+                    location = bundleProject.getArtifact();
 
                     if ( location == null || location.isDirectory() )
                     {
                         throw new IllegalStateException( "At least ``package'' phase execution is required" );
                     }
 
-                    TychoProject projectType = getTychoProjectFacet( bundleProject.getPackaging() );
-                    String version = projectType.getArtifactKey( bundleProject ).getVersion();
-                    pluginRef.setVersion( VersioningHelper.getExpandedVersion( bundleProject, version ) );
+                    pluginRef.setVersion( bundleProject.getExpandedVersion() );
                 }
                 else
                 {
@@ -212,19 +209,17 @@ public class PackageFeatureMojo
                 if ( featureRef == null )
                 {
                     // this feature
-                    feature.getFeature().setVersion( VersioningHelper.getExpandedVersion( project,
-                                                                                          feature.getKey().getVersion() ) );
+                    ReactorProject reactorProject = DefaultReactorProject.adapt( project );
+                    feature.getFeature().setVersion( reactorProject.getExpandedVersion() );
                     return true; // keep visiting
                 }
                 else
                 {
                     // included feature
-                    MavenProject otherProject = feature.getMavenProject();
+                    ReactorProject otherProject = feature.getMavenProject();
                     if ( otherProject != null )
                     {
-                        TychoProject projectType = getTychoProjectFacet( otherProject.getPackaging() );
-                        String version = projectType.getArtifactKey( otherProject ).getVersion();
-                        featureRef.setVersion( VersioningHelper.getExpandedVersion( otherProject, version ) );
+                        featureRef.setVersion( otherProject.getExpandedVersion() );
                     }
                     else
                     {

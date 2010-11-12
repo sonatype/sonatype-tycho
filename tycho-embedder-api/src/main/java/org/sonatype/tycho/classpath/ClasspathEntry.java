@@ -3,8 +3,8 @@ package org.sonatype.tycho.classpath;
 import java.io.File;
 import java.util.List;
 
-import org.apache.maven.project.MavenProject;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * @author igor
@@ -31,7 +31,7 @@ public interface ClasspathEntry
     /**
      * MavenProject that corresponds to this classpath entry or null, if no such project.
      */
-    public MavenProject getMavenProject();
+    public ReactorProject getMavenProject();
 
     /**
      * Jar files and/or class folders that correspond to this classpath entry. Projects and bundles with nested jars

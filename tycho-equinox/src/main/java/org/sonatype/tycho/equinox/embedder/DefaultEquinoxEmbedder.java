@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.adaptor.EclipseStarter;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.sonatype.tycho.equinox.EquinoxRuntimeLocator;
@@ -215,6 +216,11 @@ public class DefaultEquinoxEmbedder
 
     public <T> T getService( Class<T> clazz )
     {
+        return getService( clazz, null );
+    }
+
+    public <T> T getService( Class<T> clazz, String filter )
+    {
         try
         {
             start();
@@ -225,14 +231,28 @@ public class DefaultEquinoxEmbedder
         }
 
         // TODO technically, we're leaking service references here
-        ServiceReference serviceReference = frameworkContext.getServiceReference( clazz.getName() );
-
-        if ( serviceReference == null )
+        ServiceReference[] serviceReferences;
+        try
         {
-            throw new IllegalStateException( "Service is not registered " + clazz );
+            serviceReferences = frameworkContext.getServiceReferences( clazz.getName(), filter );
+        }
+        catch ( InvalidSyntaxException e )
+        {
+            throw new IllegalArgumentException( e );
         }
 
-        return clazz.cast( frameworkContext.getService( serviceReference ) );
+        if ( serviceReferences == null || serviceReferences.length == 0 )
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Service is not registered class='").append(clazz).append("'");
+            if ( filter != null )
+            {
+                sb.append("filter='").append(filter).append("'");
+            }
+            throw new IllegalStateException( sb.toString() );
+        }
+
+        return clazz.cast( frameworkContext.getService( serviceReferences[0] ) );
     }
 
     public void setNonFrameworkArgs( String[] args )

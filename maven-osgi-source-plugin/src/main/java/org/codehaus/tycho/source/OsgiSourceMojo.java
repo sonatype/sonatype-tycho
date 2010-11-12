@@ -23,9 +23,10 @@ import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.utils.SourceBundleUtils;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.osgi.framework.Version;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * Goal to create a JAR-package containing all the source files of a osgi
@@ -92,7 +93,6 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
     private Map<String, TychoProject> projectTypes;
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
 	protected List<String> getSources(MavenProject p)
 			throws MojoExecutionException {
 		if (usePdeSourceRoots) {
@@ -123,17 +123,16 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
-	protected List getResources(MavenProject p) throws MojoExecutionException {
+	protected List<Resource> getResources(MavenProject p) throws MojoExecutionException {
 		if (excludeResources) {
-			return Collections.EMPTY_LIST;
+            return Collections.emptyList();
 		}
 		if (usePdeSourceRoots) {
 			Properties props = getBuildProperties();
 			String srcIncludes = props.getProperty("src.includes");
 			if (srcIncludes == null)
 			{
-				return Collections.EMPTY_LIST;
+				return Collections.emptyList();
 			}
 			List<String> srcInludesList = toFilePattern(props.getProperty("src.includes"));
 			List<String> srcExcludesList = toFilePattern(props.getProperty("src.excludes"));
@@ -187,7 +186,7 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
 
 	/** {@inheritDoc} */
 	protected String getClassifier() {
-		return SourceBundleUtils.ARTIFACT_CLASSIFIER;
+		return ReactorProject.SOURCE_ARTIFACT_CLASSIFIER;
 	}
 
 	// TODO check how to fix this code duplicated
@@ -226,7 +225,7 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
     private void addSourceBundleManifestEntries(MavenArchiveConfiguration mavenArchiveConfiguration)
     {
         TychoProject projectType = projectTypes.get( project.getPackaging() );
-        ArtifactKey artifactKey = projectType.getArtifactKey( project );
+        ArtifactKey artifactKey = projectType.getArtifactKey( DefaultReactorProject.adapt( project ) );
         String symbolicName = artifactKey.getId();
         String version = artifactKey.getVersion();
 

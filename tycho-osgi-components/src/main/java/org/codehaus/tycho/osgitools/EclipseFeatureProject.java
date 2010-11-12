@@ -10,6 +10,7 @@ import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Feature;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 @Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE )
 public class EclipseFeatureProject
@@ -30,7 +31,7 @@ public class EclipseFeatureProject
         };
     }
 
-    public ArtifactKey getArtifactKey( MavenProject project )
+    public ArtifactKey getArtifactKey( ReactorProject project )
     {
         Feature feature = Feature.loadFeature( project.getBasedir() );
         return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );

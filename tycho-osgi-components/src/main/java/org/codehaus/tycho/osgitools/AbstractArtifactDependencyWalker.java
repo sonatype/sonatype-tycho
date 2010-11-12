@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.PluginDescription;
@@ -24,6 +23,7 @@ import org.codehaus.tycho.model.UpdateSite;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 public abstract class AbstractArtifactDependencyWalker
     implements ArtifactDependencyWalker
@@ -73,10 +73,12 @@ public abstract class AbstractArtifactDependencyWalker
         }
 
         ArtifactKey key = artifact.getKey();
-        MavenProject project = artifact.getMavenProject();
+        ReactorProject project = artifact.getMavenProject();
+        String classifier = artifact.getClassifier();
+        Set<Object> installableUnits = artifact.getInstallableUnits();
 
         DefaultFeatureDescription description =
-            new DefaultFeatureDescription( key, location, project, feature, featureRef, artifact.getInstallableUnits() );
+            new DefaultFeatureDescription( key, location, project, classifier, feature, featureRef, installableUnits );
 
         if ( visitor.visitFeature( description ) )
         {
@@ -221,10 +223,12 @@ public abstract class AbstractArtifactDependencyWalker
             }
 
             File location = artifact.getLocation();
+            ReactorProject project = artifact.getMavenProject();
+            String classifier = artifact.getClassifier();
+            Set<Object> installableUnits = artifact.getInstallableUnits();
 
-            MavenProject project = platform.getMavenProject( location );
             PluginDescription description =
-                new DefaultPluginDescription( key, location, project, ref, artifact.getInstallableUnits() );
+                new DefaultPluginDescription( key, location, project, classifier, ref, installableUnits );
             visited.enter( description );
             try
             {

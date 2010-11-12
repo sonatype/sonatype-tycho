@@ -11,6 +11,7 @@ import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.UpdateSite;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 @Component( role = TychoProject.class, hint = org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE )
 public class UpdateSiteProject
@@ -44,7 +45,7 @@ public class UpdateSiteProject
         }
     }
 
-    public ArtifactKey getArtifactKey( MavenProject project )
+    public ArtifactKey getArtifactKey( ReactorProject project )
     {
         return new DefaultArtifactKey( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE, project.getArtifactId(), getOsgiVersion( project ) );
     }

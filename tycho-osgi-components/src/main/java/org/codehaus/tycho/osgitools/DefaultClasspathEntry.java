@@ -3,14 +3,14 @@ package org.codehaus.tycho.osgitools;
 import java.io.File;
 import java.util.List;
 
-import org.apache.maven.project.MavenProject;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.classpath.ClasspathEntry;
 
 public class DefaultClasspathEntry
     implements ClasspathEntry
 {
-    private final MavenProject project;
+    private final ReactorProject project;
 
     private final ArtifactKey key;
 
@@ -57,7 +57,7 @@ public class DefaultClasspathEntry
 
     }
 
-    public DefaultClasspathEntry( MavenProject project, ArtifactKey key, List<File> locations, List<AccessRule> rules )
+    public DefaultClasspathEntry( ReactorProject project, ArtifactKey key, List<File> locations, List<AccessRule> rules )
     {
         this.project = project;
         this.key = key;
@@ -80,7 +80,7 @@ public class DefaultClasspathEntry
         return key;
     }
 
-    public MavenProject getMavenProject()
+    public ReactorProject getMavenProject()
     {
         return project;
     }

@@ -3,9 +3,7 @@ package org.sonatype.tycho.p2.resolver;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,13 +24,15 @@ public class P2ResolutionResult
 
         private Set<Object> installableUnits;
 
-        public Entry( String type, String id, String version, File location, Set<Object> installableUnits )
+        private final String classifier;
+
+        public Entry( String type, String id, String version, File location, String classifier )
         {
             this.type = type;
             this.id = id;
             this.version = version;
             this.location = location;
-            this.installableUnits = installableUnits;
+            this.classifier = classifier;
         }
 
         public String getType()
@@ -60,53 +60,68 @@ public class P2ResolutionResult
             return installableUnits;
         }
 
-        void setInstallableUnits( Set<Object> installableUnits )
+        void addInstallableUnit( Object installableUnit )
         {
-            this.installableUnits = installableUnits;
+            if ( installableUnits == null )
+            {
+                installableUnits = new LinkedHashSet<Object>();
+            }
+            installableUnits.add( installableUnit );
+        }
+
+        public String getClassifier()
+        {
+            return classifier;
         }
     }
 
-    private final List<Entry> artifacts = new ArrayList<Entry>();
-
-    private final Map<File, Entry> locations = new HashMap<File, Entry>();
+    private final Map<List<String>, Entry> entries = new HashMap<List<String>, Entry>();
 
     private final Set<Object/* IInstallableUnit */> installableUnits = new LinkedHashSet<Object>();
 
-    public void addArtifact( String type, String id, String version, File location, Object installableUnit )
+    /**
+     * @param type is one of P2Resolver.TYPE_* constants
+     * @param id is Eclipse/OSGi artifact id
+     * @param version is Eclipse/OSGi artifact version
+     */
+    public void addArtifact( String type, String id, String version, File location, String classifier,
+                             Object installableUnit )
     {
-        Entry entry = null;
-        if ( location != null )
-        {
-            entry = locations.get( location );
-        }
+        // {type,id,version} is unique and not null
+        // {location,classifier} is unique but can be null for metadata-only results
 
-        if ( entry != null )
-        {
-            if ( !entry.getType().equals( type ) || !entry.getId().equals( id ) || !entry.getVersion().equals( version ) )
-            {
-                throw new IllegalArgumentException( "Conflicting results for artifact at location " + location );
-            }
+        List<String> key = newKey( type, id, version );
 
-            // merge installable units
-            Set<Object> installableUnits = new HashSet<Object>();
-            installableUnits.addAll( entry.getInstallableUnits() );
-            installableUnits.add( installableUnit );
-            entry.setInstallableUnits( installableUnits );
+        Entry entry = entries.get( key );
+
+        if ( entry == null )
+        {
+            entry = new Entry( type, id, version, location, classifier );
+            entries.put( key, entry );
         }
         else
         {
-            entry = new Entry( type, id, version, location, Collections.singleton( installableUnit ) );
-            artifacts.add( entry );
-            if ( location != null )
+            if ( !eq( entry.getLocation(), location ) || !eq( entry.getClassifier(), classifier ) )
             {
-                locations.put( location, entry );
+                throw new IllegalArgumentException( "Conflicting results for artifact at location " + location );
             }
         }
+
+        entry.addInstallableUnit( installableUnit );
+    }
+
+    private List<String> newKey( String type, String id, String version )
+    {
+        ArrayList<String> key = new ArrayList<String>();
+        key.add( type );
+        key.add( id );
+        key.add( version );
+        return key;
     }
 
     public Collection<Entry> getArtifacts()
     {
-        return artifacts;
+        return entries.values();
     }
 
     public Set<Object> getInstallableUnits()
@@ -118,4 +133,10 @@ public class P2ResolutionResult
     {
         this.installableUnits.addAll( installableUnits );
     }
+
+    static <T> boolean eq( T a, T b )
+    {
+        return a != null ? a.equals( b ) : b == null;
+    }
+
 }

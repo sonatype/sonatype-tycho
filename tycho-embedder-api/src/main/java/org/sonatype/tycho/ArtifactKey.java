@@ -1,7 +1,8 @@
 package org.sonatype.tycho;
 
 /**
- * @author igor
+ * Eclipse/OSGi artifact key (a.k.a "coordinates"), that uniquely identify artifacts in project build target platform.
+ * 
  * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface ArtifactKey
@@ -19,14 +20,8 @@ public interface ArtifactKey
 
     public static final String TYPE_ECLIPSE_REPOSITORY = "eclipse-repository";
 
-    public static final String[] PROJECT_TYPES = {
-        TYPE_ECLIPSE_PLUGIN,
-        TYPE_ECLIPSE_TEST_PLUGIN,
-        TYPE_ECLIPSE_FEATURE,
-        TYPE_ECLIPSE_UPDATE_SITE,
-        TYPE_ECLIPSE_APPLICATION,
-        TYPE_ECLIPSE_REPOSITORY
-    };
+    public static final String[] PROJECT_TYPES = { TYPE_ECLIPSE_PLUGIN, TYPE_ECLIPSE_TEST_PLUGIN, TYPE_ECLIPSE_FEATURE,
+        TYPE_ECLIPSE_UPDATE_SITE, TYPE_ECLIPSE_APPLICATION, TYPE_ECLIPSE_REPOSITORY };
 
     /**
      * Artifact type. One of TYPE_* constants above.

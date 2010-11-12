@@ -28,6 +28,7 @@ import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.MultipleArtifactsNotFoundException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.settings.Mirror;
@@ -42,6 +43,7 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.DefaultArtifactKey;
@@ -52,11 +54,13 @@ import org.codehaus.tycho.p2.P2ArtifactRepositoryLayout;
 import org.codehaus.tycho.utils.ExecutionEnvironmentUtils;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
+import org.sonatype.tycho.p2.DependencyMetadataGenerator;
 import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
-import org.sonatype.tycho.p2.facade.internal.MavenProjectFacade;
 import org.sonatype.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.sonatype.tycho.p2.facade.internal.P2RepositoryCacheImpl;
+import org.sonatype.tycho.p2.facade.internal.ReactorArtifactFacade;
 import org.sonatype.tycho.p2.repository.DefaultTychoRepositoryIndex;
 import org.sonatype.tycho.p2.repository.TychoRepositoryIndex;
 import org.sonatype.tycho.p2.resolver.P2Logger;
@@ -81,8 +85,6 @@ public class P2TargetPlatformResolver
     @Requirement
     private RepositorySystem repositorySystem;
 
-    private P2ResolverFactory resolverFactory;
-
     @Requirement( hint = "p2" )
     private ArtifactRepositoryLayout p2layout;
 
@@ -92,17 +94,62 @@ public class P2TargetPlatformResolver
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
 
+    private P2ResolverFactory resolverFactory;
+
+    private DependencyMetadataGenerator generator;
+
+    private DependencyMetadataGenerator sourcesGenerator;
+
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY =
         new ArtifactRepositoryPolicy( true, ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER,
                                       ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE );
 
-    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project, List<Dependency> dependencies )
+    public void setupProjects( MavenSession session, MavenProject project, ReactorProject reactorProject )
+    {
+        TargetPlatformConfiguration configuration =
+            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        List<Map<String, String>> environments = getEnvironments( configuration );
+        Set<Object> metadata =
+            generator.generateMetadata( new ReactorArtifactFacade( reactorProject, null ), environments );
+        reactorProject.setDependencyMetadata( null, metadata );
+
+        // TODO this should be moved to osgi-sources-plugin somehow
+        if ( isBundleProject( project ) && hasSourceBundle( project ) )
+        {
+            ReactorArtifactFacade sourcesArtifact = new ReactorArtifactFacade( reactorProject, "sources" );
+            Set<Object> sourcesMetadata = sourcesGenerator.generateMetadata( sourcesArtifact, environments );
+            reactorProject.setDependencyMetadata( sourcesArtifact.getClassidier(), sourcesMetadata );
+        }
+    }
+
+    private static boolean isBundleProject( MavenProject project )
+    {
+        String type = project.getPackaging();
+        return ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( type ) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals( type );
+    }
+
+    private static boolean hasSourceBundle( MavenProject project )
+    {
+        // TODO this is a fragile way of checking whether we generate a source bundle
+        // should we rather use MavenSession to get the actual configured mojo instance?
+        for ( Plugin plugin : project.getBuildPlugins() )
+        {
+            if ( "org.sonatype.tycho:maven-osgi-source-plugin".equals( plugin.getKey() ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public TargetPlatform resolvePlatform( MavenSession session, MavenProject project,
+                                           List<ReactorProject> reactorProjects, List<Dependency> dependencies )
     {
         P2Resolver resolver = resolverFactory.createResolver();
 
         try
         {
-            return doResolvePlatform( session, project, dependencies, resolver );
+            return doResolvePlatform( session, project, reactorProjects, dependencies, resolver );
         }
         finally
         {
@@ -111,7 +158,8 @@ public class P2TargetPlatformResolver
     }
 
     protected TargetPlatform doResolvePlatform( final MavenSession session, final MavenProject project,
-                                                List<Dependency> dependencies, P2Resolver resolver )
+                                                List<ReactorProject> reactorProjects, List<Dependency> dependencies,
+                                                P2Resolver resolver )
     {
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
@@ -144,20 +192,29 @@ public class P2TargetPlatformResolver
             }
         } );
 
-        Map<File, MavenProject> projects = new HashMap<File, MavenProject>();
+        Map<File, ReactorProject> projects = new HashMap<File, ReactorProject>();
 
         resolver.setLocalRepositoryLocation( new File( session.getLocalRepository().getBasedir() ) );
 
         resolver.setEnvironments( getEnvironments( configuration ) );
 
-        for ( MavenProject otherProject : session.getProjects() )
+        for ( ReactorProject otherProject : reactorProjects )
         {
             if ( getLogger().isDebugEnabled() )
             {
-                getLogger().debug( "P2resolver.addMavenProject " + otherProject.toString() );
+                getLogger().debug( "P2resolver.addMavenProject " + otherProject.getId() );
             }
             projects.put( otherProject.getBasedir(), otherProject );
-            resolver.addMavenProject( new MavenProjectFacade( otherProject ) );
+            resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, null ) );
+
+            Map<String, Set<Object>> dependencyMetadata = otherProject.getDependencyMetadata();
+            if ( dependencyMetadata != null )
+            {
+                for ( String classifier : dependencyMetadata.keySet() )
+                {
+                    resolver.addReactorArtifact( new ReactorArtifactFacade( otherProject, classifier ) );
+                }
+            }
         }
 
         if ( dependencies != null )
@@ -170,8 +227,8 @@ public class P2TargetPlatformResolver
 
         if ( TargetPlatformConfiguration.POM_DEPENDENCIES_CONSIDER.equals( configuration.getPomDependencies() ) )
         {
-            Set<String> projectIds = new HashSet<String>( session.getProjects().size() * 2 );
-            for ( MavenProject p : session.getProjects() )
+            Set<String> projectIds = new HashSet<String>();
+            for ( ReactorProject p : reactorProjects )
             {
                 String key = ArtifactUtils.key( p.getGroupId(), p.getArtifactId(), p.getVersion() );
                 projectIds.add( key );
@@ -434,7 +491,8 @@ public class P2TargetPlatformResolver
     {
         String packaging = project.getPackaging();
 
-        if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE.equals( packaging ) || org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
+        if ( org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_UPDATE_SITE.equals( packaging )
+            || org.sonatype.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
         {
             Boolean allow = configuration.getAllowConflictingDependencies();
             if ( allow != null )
@@ -447,7 +505,7 @@ public class P2TargetPlatformResolver
         return false;
     }
 
-    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session, Map<File, MavenProject> projects,
+    protected DefaultTargetPlatform newDefaultTargetPlatform( MavenSession session, Map<File, ReactorProject> projects,
                                                               P2ResolutionResult result )
     {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
@@ -459,10 +517,10 @@ public class P2TargetPlatformResolver
         for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
         {
             ArtifactKey key = new DefaultArtifactKey( entry.getType(), entry.getId(), entry.getVersion() );
-            MavenProject otherProject = projects.get( entry.getLocation() );
+            ReactorProject otherProject = projects.get( entry.getLocation() );
             if ( otherProject != null )
             {
-                platform.addMavenProject( key, otherProject, entry.getInstallableUnits() );
+                platform.addReactorArtifact( key, otherProject, entry.getClassifier(), entry.getInstallableUnits() );
             }
             else
             {
@@ -527,5 +585,7 @@ public class P2TargetPlatformResolver
         throws InitializationException
     {
         this.resolverFactory = equinox.getService( P2ResolverFactory.class );
+        this.generator = equinox.getService( DependencyMetadataGenerator.class, "(role-hint=dependency-only)" );
+        this.sourcesGenerator = equinox.getService( DependencyMetadataGenerator.class, "(role-hint=source-bundle)" );
     }
 }

@@ -22,7 +22,6 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -35,12 +34,14 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
 import org.codehaus.tycho.osgitools.OsgiBundleProject;
 import org.codehaus.tycho.resolver.DefaultTargetPlatformResolverFactory;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
 import org.osgi.framework.Version;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.equinox.launching.BundleStartLevel;
 import org.sonatype.tycho.equinox.launching.DefaultEquinoxInstallationDescription;
 import org.sonatype.tycho.equinox.launching.EquinoxInstallation;
@@ -49,7 +50,7 @@ import org.sonatype.tycho.equinox.launching.EquinoxInstallationFactory;
 import org.sonatype.tycho.equinox.launching.EquinoxLauncher;
 import org.sonatype.tycho.equinox.launching.internal.EquinoxLaunchConfiguration;
 import org.sonatype.tycho.launching.LaunchConfiguration;
-import org.sonatype.tycho.runtime.Adaptable;
+import org.sonatype.tycho.launching.LaunchConfigurationFactory;
 
 /**
  * @phase integration-test
@@ -57,7 +58,7 @@ import org.sonatype.tycho.runtime.Adaptable;
  * @requiresProject true
  * @requiresDependencyResolution runtime
  */
-public class TestMojo extends AbstractMojo implements Adaptable {
+public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory {
 
     /**
 	 * @parameter default-value="${project.build.directory}/work"
@@ -330,7 +331,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 			}
 		}
 
-		EquinoxInstallation testRuntime = createEclipseInstallation(false);
+		EquinoxInstallation testRuntime = createEclipseInstallation(false, DefaultReactorProject.adapt(session));
 
 		String testBundle = null;
 		boolean succeeded = runTest(testRuntime, testBundle);
@@ -342,7 +343,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		}
 	}
 
-    private EquinoxInstallation createEclipseInstallation(boolean includeReactorProjects)
+    private EquinoxInstallation createEclipseInstallation(boolean includeReactorProjects, List<ReactorProject> reactorProjects)
         throws MojoExecutionException
     {
         TargetPlatformResolver platformResolver = targetPlatformResolverLocator.lookupPlatformResolver( project );
@@ -356,7 +357,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 
 		dependencies.addAll( getTestDependencies() );
 
-		TargetPlatform testTargetPlatform = platformResolver.resolvePlatform( session, project, dependencies );
+		TargetPlatform testTargetPlatform = platformResolver.resolvePlatform( session, project, reactorProjects, dependencies );
 
 		if (testTargetPlatform == null) {
 			throw new MojoExecutionException("Cannot determinate build target platform location -- not executing tests");
@@ -384,17 +385,17 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		    // note that this project is added as directory structure rooted at project basedir.
 		    // project classes and test-classes are added via dev.properties file (see #createDevProperties())
 		    // all other projects are added as bundle jars.
-		    MavenProject otherProject = artifact.getMavenProject();
-		    if (otherProject == project) {
-                testRuntime.addBundle(artifact.getKey(), project.getBasedir());
-                continue;
-		    } else 
-		        if (otherProject != null) {
-                File file = otherProject.getArtifact().getFile();
+		    ReactorProject otherProject = artifact.getMavenProject();
+		    if (otherProject != null) {
+		        if (otherProject.sameProject(project)) {
+	                testRuntime.addBundle(artifact.getKey(), project.getBasedir());
+	                continue;
+	            }
+                File file = otherProject.getArtifact();
                 if (file != null) {
                     testRuntime.addBundle(artifact.getKey(), file);
                     continue;
-                } 
+                }
 		    }
             testRuntime.addBundle(artifact);
 		}
@@ -404,8 +405,8 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		    testRuntime.addBundle(getBundleArtifacyKey(file), file, true);
 		}
 
-		createDevProperties(includeReactorProjects);
-		createSurefireProperties(projectType.getArtifactKey(project).getId(), testFramework);
+		createDevProperties(includeReactorProjects, reactorProjects);
+		createSurefireProperties(projectType.getArtifactKey(DefaultReactorProject.adapt(project)).getId(), testFramework);
 
 		reportsDirectory.mkdirs();
         return installationFactory.createInstallation(testRuntime, work);
@@ -427,7 +428,8 @@ public class TestMojo extends AbstractMojo implements Adaptable {
         for ( MavenProject otherProject : session.getProjects() )
         {
             TychoProject projectType = projectTypes.get( otherProject.getPackaging() );
-            if ( projectType != null && projectType.getArtifactKey( otherProject ).getId().equals( symbolicName ) )
+            if ( projectType != null
+                && projectType.getArtifactKey( DefaultReactorProject.adapt( otherProject ) ).getId().equals( symbolicName ) )
             {
                 return otherProject;
             }
@@ -659,14 +661,14 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		return result;
 	}
 
-	private void createDevProperties( boolean includeReactorProjects ) throws MojoExecutionException {
+	private void createDevProperties( boolean includeReactorProjects, List<ReactorProject> reactorProjects ) throws MojoExecutionException {
 		Properties dev = new Properties();
 
         if ( includeReactorProjects )
         {
             // this is needed for IDE integration, where we want to use reactor project output folders
             dev.put( "@ignoredot@", "true" );
-            for ( MavenProject otherProject : session.getProjects() )
+            for ( ReactorProject otherProject : reactorProjects )
             {
                 if ( "eclipse-test-plugin".equals( otherProject.getPackaging() )
                     || "eclipse-plugin".equals( otherProject.getPackaging() ) )
@@ -677,9 +679,11 @@ public class TestMojo extends AbstractMojo implements Adaptable {
                 }
             }
         }
+        
+        ReactorProject reactorProject = DefaultReactorProject.adapt( project );
 
 		TychoProject projectType = projectTypes.get(project.getPackaging());
-		dev.put(projectType.getArtifactKey(project).getId(), getBuildOutputDirectories(project));
+		dev.put(projectType.getArtifactKey(reactorProject).getId(), getBuildOutputDirectories(reactorProject));
 
 		try {
 			OutputStream os = new BufferedOutputStream(new FileOutputStream(devProperties));
@@ -693,15 +697,14 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 		}
 	}
 
-	private String getBuildOutputDirectories(MavenProject project) {
+	private String getBuildOutputDirectories(ReactorProject otherProject) {
 		StringBuilder sb = new StringBuilder();
 		
-		Build build = project.getBuild();
-		sb.append(build.getOutputDirectory());
-		sb.append(',').append(build.getTestOutputDirectory());
+		sb.append(otherProject.getOutputDirectory());
+		sb.append(',').append(otherProject.getTestOutputDirectory());
 
 		Properties buildProperties = new Properties();
-		File file = new File(project.getBasedir(), "build.properties");
+		File file = new File(otherProject.getBasedir(), "build.properties");
 		try {
 			FileInputStream is = new FileInputStream(file);
 			try {
@@ -721,7 +724,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 					classesDir = buildProperties.getProperty(key).split(",");
 				} else if (key.startsWith(SOURCE) && !key.equals("source..")) {
 					String fileName = key.substring(SOURCE.length());
-					classesDir = new String[] {new File(project.getBuild().getDirectory()).getName() + "/" + fileName.substring(0, fileName.length() - 4) + "-classes"};
+					classesDir = new String[] {otherProject.getBuildDirectory().getName() + "/" + fileName.substring(0, fileName.length() - 4) + "-classes"};
 				}
 				if (classesDir != null) {
 					for (String dir : classesDir) {
@@ -732,7 +735,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
 			}
 
 		} catch (IOException e) {
-			getLog().debug("Exception reading build.properties of " + project.getId(), e);
+			getLog().debug("Exception reading build.properties of " + otherProject.getId(), e);
 		}
 
 		return sb.toString();
@@ -775,20 +778,11 @@ public class TestMojo extends AbstractMojo implements Adaptable {
         return files;
     }
 
-    public <T> T getAdapter(Class<T> adapter)
-    {
-        if ( adapter.equals( LaunchConfiguration.class ) )
-        {
-            return adapter.cast( createTestLaunchConfiguration() );
-        }
-        return null;
-    }
-
-    private LaunchConfiguration createTestLaunchConfiguration()
+    public LaunchConfiguration createLaunchConfiguration(List<ReactorProject> reactorProjects)
     {
         try
         {
-            EquinoxInstallation testRuntime = createEclipseInstallation(true);
+            EquinoxInstallation testRuntime = createEclipseInstallation(true, reactorProjects);
     
             return createCommandLine( testRuntime, work );
         }
@@ -800,6 +794,7 @@ public class TestMojo extends AbstractMojo implements Adaptable {
         {
             getLog().error( e );
         }
+
         return null;
     }
 }

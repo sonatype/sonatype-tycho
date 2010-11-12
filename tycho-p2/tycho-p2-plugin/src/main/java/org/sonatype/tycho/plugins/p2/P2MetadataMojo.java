@@ -2,15 +2,21 @@ package org.sonatype.tycho.plugins.p2;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
+import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
+import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.P2Generator;
-import org.sonatype.tycho.p2.facade.internal.ProjectArtifactFacade;
+import org.sonatype.tycho.p2.facade.internal.ArtifactFacade;
 import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 
 /**
@@ -68,29 +74,32 @@ public class P2MetadataMojo
             throw new IllegalStateException();
         }
 
-        File content = new File( project.getBuild().getDirectory(), "p2content.xml" );
-        File artifacts = new File( project.getBuild().getDirectory(), "p2artifacts.xml" );
+        File contentFile = new File( project.getBuild().getDirectory(), "p2content.xml" );
+        File artifactsFile = new File( project.getBuild().getDirectory(), "p2artifacts.xml" );
 
         try
         {
-            getP2Generator().generateMetadata( new ProjectArtifactFacade(project),
-                                               content,
-                                               artifacts );
+            List<IArtifactFacade> artifacts = new ArrayList<IArtifactFacade>();
+
+            artifacts.add( new ArtifactFacade( project.getArtifact() ) );
+
+            for ( Artifact artifact : project.getArtifactMap().values() )
+            {
+                artifacts.add( new ArtifactFacade( artifact ) );
+            }
+
+            getP2Generator().generateMetadata( artifacts, contentFile, artifactsFile );
         }
         catch ( IOException e )
         {
             throw new MojoExecutionException( "Could not generate P2 metadata", e );
         }
 
-        projectHelper.attachArtifact( project,
-                                      RepositoryLayoutHelper.EXTENSION_P2_METADATA,
-                                      RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                                      content );
+        projectHelper.attachArtifact( project, RepositoryLayoutHelper.EXTENSION_P2_METADATA,
+                                      RepositoryLayoutHelper.CLASSIFIER_P2_METADATA, contentFile );
 
-        projectHelper.attachArtifact( project,
-                                      RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS,
-                                      RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
-                                      artifacts );
+        projectHelper.attachArtifact( project, RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS,
+                                      RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS, artifactsFile );
     }
 
 }

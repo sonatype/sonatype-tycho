@@ -6,4 +6,6 @@ package org.sonatype.tycho.equinox;
 public interface EquinoxServiceFactory
 {
     public <T> T getService( Class<T> clazz );
+
+    public <T> T getService( Class<T> clazz, String filter );
 }

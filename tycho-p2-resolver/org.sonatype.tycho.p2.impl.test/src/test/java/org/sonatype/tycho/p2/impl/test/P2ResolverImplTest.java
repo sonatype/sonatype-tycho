@@ -13,8 +13,10 @@ import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.sonatype.tycho.p2.DependencyMetadataGenerator;
+import org.sonatype.tycho.p2.impl.publisher.DefaultDependencyMetadataGenerator;
+import org.sonatype.tycho.p2.impl.publisher.SourcesBundleDependencyMetadataGenerator;
 import org.sonatype.tycho.p2.impl.resolver.DuplicateReactorIUsException;
 import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
@@ -24,6 +26,8 @@ import org.sonatype.tycho.test.util.HttpServer;
 public class P2ResolverImplTest
 {
     private HttpServer server;
+
+    private DependencyMetadataGenerator generator = new DefaultDependencyMetadataGenerator();
 
     @After
     public void stopHttpServer()
@@ -124,7 +128,11 @@ public class P2ResolverImplTest
         String version = "1.0.0-SNAPSHOT";
 
         impl.setEnvironments( getEnvironments() );
-        impl.addMavenArtifact( new ArtifactMock( bundle, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_PLUGIN ) );
+
+        ArtifactMock a = new ArtifactMock( bundle, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_PLUGIN );
+        a.setDependencyMetadata( generator.generateMetadata( a, getEnvironments() ) );
+
+        impl.addReactorArtifact( a );
 
         List<P2ResolutionResult> results = impl.resolveProject( bundle );
 
@@ -229,12 +237,18 @@ public class P2ResolverImplTest
         impl.setEnvironments( getEnvironments() );
 
         File projectLocation = new File( "resources/duplicate-iu/featureA" ).getCanonicalFile();
-        impl.addMavenProject( new ArtifactMock( projectLocation, "groupId", "featureA", "1.0.0-SNAPSHOT",
-                                                P2Resolver.TYPE_ECLIPSE_FEATURE ) );
 
-        impl.addMavenProject( new ArtifactMock( new File( "resources/duplicate-iu/featureA2" ).getCanonicalFile(),
-                                                "groupId", "featureA2", "1.0.0-SNAPSHOT",
-                                                P2Resolver.TYPE_ECLIPSE_FEATURE ) );
+        ArtifactMock a1 =
+            new ArtifactMock( projectLocation, "groupId", "featureA", "1.0.0-SNAPSHOT", P2Resolver.TYPE_ECLIPSE_FEATURE );
+        a1.setDependencyMetadata( generator.generateMetadata( a1, getEnvironments() ) );
+
+        ArtifactMock a2 =
+            new ArtifactMock( new File( "resources/duplicate-iu/featureA2" ).getCanonicalFile(), "groupId",
+                              "featureA2", "1.0.0-SNAPSHOT", P2Resolver.TYPE_ECLIPSE_FEATURE );
+        a2.setDependencyMetadata( generator.generateMetadata( a2, getEnvironments() ) );
+
+        impl.addReactorArtifact( a1 );
+        impl.addReactorArtifact( a2 );
 
         try
         {
@@ -276,7 +290,7 @@ public class P2ResolverImplTest
         Assert.assertEquals( 0, result.getInstallableUnits().size() ); // currently, this does not include project's IUs
     }
 
-    @Test @Ignore
+    @Test
     public void sourceBundle()
         throws Exception
     {
@@ -288,20 +302,40 @@ public class P2ResolverImplTest
         File feature = new File( "resources/sourcebundles/feature01" ).getCanonicalFile();
         String featureId = "org.sonatype.tycho.p2.impl.resolver.test.feature01";
         String featureVersion = "1.0.0-SNAPSHOT";
-        impl.addMavenProject( new ArtifactMock( feature, featureId, featureId, featureVersion,
-                                                 P2Resolver.TYPE_ECLIPSE_FEATURE ) );
+
+        ArtifactMock f =
+            new ArtifactMock( feature, featureId, featureId, featureVersion, P2Resolver.TYPE_ECLIPSE_FEATURE );
+        f.setDependencyMetadata( generator.generateMetadata( f, getEnvironments() ) );
+        impl.addReactorArtifact( f );
 
         File bundle = new File( "resources/sourcebundles/bundle01" ).getCanonicalFile();
         String bundleId = "org.sonatype.tycho.p2.impl.resolver.test.bundle01";
         String bundleVersion = "1.0.0-SNAPSHOT";
-        impl.addMavenProject( new ArtifactMock( bundle, bundleId, bundleId, bundleVersion,
-                                                 P2Resolver.TYPE_ECLIPSE_PLUGIN, ".source", true ) );
+        ArtifactMock b = new ArtifactMock( bundle, bundleId, bundleId, bundleVersion, P2Resolver.TYPE_ECLIPSE_PLUGIN );
+        b.setDependencyMetadata( generator.generateMetadata( b, getEnvironments() ) );
+        impl.addReactorArtifact( b );
+
+        ArtifactMock sb =
+            new ArtifactMock( bundle, bundleId, bundleId, bundleVersion, P2Resolver.TYPE_ECLIPSE_PLUGIN, "sources" );
+        sb.setDependencyMetadata( new SourcesBundleDependencyMetadataGenerator().generateMetadata( sb, getEnvironments() ) );
+        impl.addReactorArtifact( sb );
 
         impl.setEnvironments( getEnvironments() );
 
         List<P2ResolutionResult> results = impl.resolveProject( feature );
-
         impl.stop();
-        
+
+        Assert.assertEquals( 1, results.size() );
+        P2ResolutionResult result = results.get( 0 );
+
+        Assert.assertEquals( 3, result.getArtifacts().size() );
+        List<P2ResolutionResult.Entry> entries = new ArrayList<P2ResolutionResult.Entry>( result.getArtifacts() );
+
+        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.feature01", entries.get( 0 ).getId() );
+        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.bundle01", entries.get( 1 ).getId() );
+        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.bundle01.source", entries.get( 2 ).getId() );
+        Assert.assertEquals( bundle, entries.get( 1 ).getLocation() );
+        Assert.assertEquals( bundle, entries.get( 2 ).getLocation() );
+        Assert.assertEquals( "sources", entries.get( 2 ).getClassifier() );
     }
 }

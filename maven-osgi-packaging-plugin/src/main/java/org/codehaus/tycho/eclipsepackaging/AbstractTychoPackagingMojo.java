@@ -20,8 +20,8 @@ import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.buildversion.VersioningHelper;
-import org.sonatype.tycho.ArtifactDescriptor;
+import org.codehaus.tycho.osgitools.DefaultReactorProject;
+import org.sonatype.tycho.ReactorProject;
 
 /**
  * @requiresProject
@@ -120,9 +120,9 @@ public abstract class AbstractTychoPackagingMojo
 
     protected void expandVersion()
     {
-        String originalVersion = getTychoProjectFacet().getArtifactKey( project ).getVersion();
-
-        VersioningHelper.setExpandedVersion( project, originalVersion, qualifier );
+        ReactorProject reactorProject = DefaultReactorProject.adapt( project );
+        String originalVersion = getTychoProjectFacet().getArtifactKey( reactorProject ).getVersion();
+        reactorProject.setExpandedVersion( originalVersion, qualifier );
     }
 
 }

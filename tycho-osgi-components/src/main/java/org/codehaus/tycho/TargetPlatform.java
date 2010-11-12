@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.maven.project.MavenProject;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
+import org.sonatype.tycho.ReactorProject;
 
 public interface TargetPlatform
 {
@@ -39,7 +39,7 @@ public interface TargetPlatform
      */
     public ArtifactDescriptor getArtifact( String type, String id, String version );
 
-    public MavenProject getMavenProject( File location );
+    public ReactorProject getMavenProject( File location );
 
     public ArtifactDescriptor getArtifact( File location );
 

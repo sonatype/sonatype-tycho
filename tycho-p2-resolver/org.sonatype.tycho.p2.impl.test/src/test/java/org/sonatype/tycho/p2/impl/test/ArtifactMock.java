@@ -1,63 +1,81 @@
 package org.sonatype.tycho.p2.impl.test;
 
 import java.io.File;
+import java.util.Set;
 
 import org.sonatype.tycho.p2.IArtifactFacade;
+import org.sonatype.tycho.p2.IReactorArtifactFacade;
 
-public class ArtifactMock implements IArtifactFacade {
+public class ArtifactMock
+    implements IArtifactFacade, IReactorArtifactFacade
+{
+    private File location;
 
+    private String groupId;
 
-	public ArtifactMock(File location, String groupId, String artifactId,
-			String version, String packagingType, String sourceBundleSuffix, boolean hasSourceBundle) {
-		this.location = location;
-		this.groupId = groupId;
-		this.artifactId = artifactId;
-		this.version = version;
-		this.packagingType = packagingType;
-		this.sourceBundleSuffix = sourceBundleSuffix;
-		this.hasSourceBundle  = hasSourceBundle;
-	}
+    private String artifactId;
 
-	public ArtifactMock(File location, String groupId, String artifactId,
-			String version, String packagingType) {
-		this(location, groupId, artifactId, version, packagingType,
-		     ".source", false);
-	}
+    private String version;
 
-	private File location;
-	private String groupId;
-	private String artifactId;
-	private String version;
-	private String packagingType;
-	private boolean hasSourceBundle = false;
-	private String sourceBundleSuffix;
+    private String packagingType;
 
-	public File getLocation() {
-		return location;
-	}
+    private final String classifier;
 
-	public String getGroupId() {
-		return groupId;
-	}
+    private Set<Object> dependencyMetadata;
 
-	public String getArtifactId() {
-		return artifactId;
-	}
+    public ArtifactMock( File location, String groupId, String artifactId, String version, String packagingType,
+                         String classifier )
+    {
+        this.location = location;
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
+        this.packagingType = packagingType;
+        this.classifier = classifier;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public ArtifactMock( File location, String groupId, String artifactId, String version, String packagingType )
+    {
+        this( location, groupId, artifactId, version, packagingType, null );
+    }
 
-	public String getPackagingType() {
-		return packagingType;
-	}
+    public File getLocation()
+    {
+        return location;
+    }
 
-	public String getSourceBundleSuffix() {
-		return sourceBundleSuffix;
-	}
+    public String getGroupId()
+    {
+        return groupId;
+    }
 
-	public boolean hasSourceBundle() {
-		return hasSourceBundle;
-	}
+    public String getArtifactId()
+    {
+        return artifactId;
+    }
 
+    public String getVersion()
+    {
+        return version;
+    }
+
+    public String getPackagingType()
+    {
+        return packagingType;
+    }
+
+    public String getClassidier()
+    {
+        return classifier;
+    }
+
+    public Set<Object> getDependencyMetadata()
+    {
+        return dependencyMetadata;
+    }
+
+    public void setDependencyMetadata( Set<Object> dependencyMetadata )
+    {
+        this.dependencyMetadata = dependencyMetadata;
+    }
 }
