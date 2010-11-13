@@ -17,13 +17,13 @@
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
               </validate>
               <process-resources>
-                org.apache.maven.plugins:maven-resources-plugin:resources
+                org.apache.maven.plugins:maven-resources-plugin:${resources-plugin.version}:resources
               </process-resources>
               <compile>
                 org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:compile
               </compile>
               <process-test-resources>
-                org.apache.maven.plugins:maven-resources-plugin:testResources
+                org.apache.maven.plugins:maven-resources-plugin:${resources-plugin.version}:testResources
               </process-test-resources>
               <test-compile><!-- tests are always in a separate plugin -->
               </test-compile>
@@ -35,11 +35,11 @@
               </package>
               <integration-test></integration-test>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:install,
+                org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-local-index
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -79,13 +79,13 @@
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:validate-version
               </validate>
               <process-resources>
-                org.apache.maven.plugins:maven-resources-plugin:resources
+                org.apache.maven.plugins:maven-resources-plugin:${resources-plugin.version}:resources
               </process-resources>
               <compile>
                 org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:compile
               </compile>
               <process-test-resources>
-                org.apache.maven.plugins:maven-resources-plugin:testResources
+                org.apache.maven.plugins:maven-resources-plugin:${resources-plugin.version}:testResources
               </process-test-resources>
               <test-compile>
                 org.sonatype.tycho:maven-osgi-compiler-plugin:${project.version}:testCompile
@@ -99,11 +99,11 @@
                 org.sonatype.tycho:maven-osgi-test-plugin:${project.version}:test
               </integration-test>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:install,
+                org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-local-index
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -151,11 +151,11 @@
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:feature-p2-metadata
               </package>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:install,
+                org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install,
                 org.sonatype.tycho:tycho-p2-plugin:${project.version}:update-local-index
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -200,10 +200,10 @@
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:update-site-packaging
               </package>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:install
+                org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -246,10 +246,10 @@
                 org.sonatype.tycho:maven-osgi-packaging-plugin:${project.version}:product-export
               </package>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:install
+                org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
             </phases>
           </lifecycle>
@@ -302,10 +302,10 @@
                 org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:archive-repository
               </package>
               <install>
-                org.apache.maven.plugins:maven-install-plugin:install
+                org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install
               </install>
               <deploy>
-                org.apache.maven.plugins:maven-deploy-plugin:deploy
+                org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
             </phases>
           </lifecycle>
