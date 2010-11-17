@@ -220,7 +220,7 @@ public class Tycho188P2EnabledRcpTest
                 rootFolderName += "/";
                 Assert.assertNotNull( file.getName() + " does not contain the rootfolder \"" + rootFolderName + "\"",
                                       zipFile.getEntry( rootFolderName ) );
-                String entry = rootFolderName + "plugins/org.eclipse.osgi_3.6.1.R36x_v20100806.jar";
+                String entry = rootFolderName + "configuration/config.ini";
                 Assert.assertNotNull( file.getName() + " does not contain path in the rootfolder \"" + entry + "\"",
                                       zipFile.getEntry( entry ) );
             }

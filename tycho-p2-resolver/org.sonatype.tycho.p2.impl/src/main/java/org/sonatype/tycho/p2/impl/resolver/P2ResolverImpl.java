@@ -33,6 +33,7 @@ import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
+import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.metadata.VersionRange;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
@@ -76,7 +77,7 @@ public class P2ResolverImpl
 {
     // BundlesAction.CAPABILITY_NS_OSGI_BUNDLE
     private static final String CAPABILITY_NS_OSGI_BUNDLE = "osgi.bundle";
-    
+
     private static final IArtifactRequest[] ARTIFACT_REQUEST_ARRAY = new IArtifactRequest[0];
 
     private final P2GeneratorImpl generator = new P2GeneratorImpl( true );
@@ -674,17 +675,25 @@ public class P2ResolverImpl
 
     public void addDependency( String type, String id, String version )
     {
+        VersionRange versionRange;
+        if ( "0.0.0".equals( version ) )
+        {
+            versionRange = new VersionRange( version );
+        }
+        else
+        {
+            versionRange = new VersionRange( Version.create( version ), true, Version.create( version ), true );
+        }
+
         if ( P2Resolver.TYPE_INSTALLABLE_UNIT.equals( type ) )
         {
             additionalRequirements.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, id,
-                                                                           new VersionRange( version ), null, false,
-                                                                           true ) );
+                                                                           versionRange, null, false, true ) );
         }
         else if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequirement( CAPABILITY_NS_OSGI_BUNDLE, id,
-                                                                           new VersionRange( version ), null, false,
-                                                                           true ) );
+            additionalRequirements.add( MetadataFactory.createRequirement( CAPABILITY_NS_OSGI_BUNDLE, id, versionRange,
+                                                                           null, false, true ) );
         }
     }
 
@@ -800,5 +809,10 @@ public class P2ResolverImpl
         {
             agent.stop();
         }
+    }
+
+    public List<IRequirement> getAdditionalRequirements()
+    {
+        return additionalRequirements;
     }
 }

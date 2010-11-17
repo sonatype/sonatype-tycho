@@ -13,6 +13,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.metadata.IProvidedCapability;
+import org.eclipse.equinox.p2.metadata.IRequirement;
+import org.eclipse.equinox.p2.metadata.MetadataFactory;
+import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
+import org.eclipse.equinox.p2.metadata.Version;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,6 +35,16 @@ public class P2ResolverImplTest
     private HttpServer server;
 
     private DependencyMetadataGenerator generator = new DefaultDependencyMetadataGenerator();
+
+    private static final String BUNDLE_NAMESPACE = "osgi.bundle";
+
+    private static final String IU_NAMESPACE = IInstallableUnit.NAMESPACE_IU_ID;
+
+    private static final String BUNDLE_TYPE = "eclipse-plugin";
+
+    private static final String IU_TYPE = P2Resolver.TYPE_INSTALLABLE_UNIT;
+
+    private static final String TARGET_UNIT_ID = "testbundleName";
 
     @After
     public void stopHttpServer()
@@ -320,7 +335,8 @@ public class P2ResolverImplTest
 
         ArtifactMock sb =
             new ArtifactMock( bundle, bundleId, bundleId, bundleVersion, P2Resolver.TYPE_ECLIPSE_PLUGIN, "sources" );
-        sb.setDependencyMetadata( new SourcesBundleDependencyMetadataGenerator().generateMetadata( sb, getEnvironments() ) );
+        sb.setDependencyMetadata( new SourcesBundleDependencyMetadataGenerator().generateMetadata( sb,
+                                                                                                   getEnvironments() ) );
         impl.addReactorArtifact( sb );
 
         impl.setEnvironments( getEnvironments() );
@@ -395,4 +411,114 @@ public class P2ResolverImplTest
         }
         fail( "Unit " + unitID + " not found" );
     }
+
+    @Test
+    public void testExactVersionMatchInTargetDefinitionUnit()
+    {
+        P2ResolverImpl impl = new P2ResolverImpl();
+
+        String olderVersion = "2.3.3";
+        String version = "2.3.4";
+        String newerVersion = "2.3.5";
+
+        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, version );
+        impl.addDependency( BUNDLE_TYPE, TARGET_UNIT_ID, version );
+
+        List<IRequirement> requirements = impl.getAdditionalRequirements();
+
+        IInstallableUnit matchingIU = createIU( version );
+        assertIUMatchesRequirements( matchingIU, requirements );
+
+        IInstallableUnit newerIU = createIU( newerVersion );
+        assertIUDoesNotMatchRequirements( newerIU, requirements );
+
+        IInstallableUnit olderIU = createIU( olderVersion );
+        assertIUDoesNotMatchRequirements( olderIU, requirements );
+    }
+
+    private static void assertIUMatchesRequirements( IInstallableUnit unit, List<IRequirement> requirements )
+    {
+        for ( IRequirement requirement : requirements )
+        {
+            Assert.assertTrue( "IU " + unit + " must match requirement " + requirement, requirement.isMatch( unit ) );
+        }
+    }
+
+    private static void assertIUDoesNotMatchRequirements( IInstallableUnit unit, List<IRequirement> requirements )
+    {
+        for ( IRequirement requirement : requirements )
+        {
+            Assert.assertFalse( "IU " + unit + " must not match requirement " + requirement, requirement.isMatch( unit ) );
+        }
+    }
+
+    @Test
+    public void testZeroVersionInTargetDefinitionUnit()
+    {
+        String zeroVersion = "0.0.0";
+        String arbitraryVersion = "2.5.8";
+
+        P2ResolverImpl impl = new P2ResolverImpl();
+
+        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, zeroVersion );
+        impl.addDependency( BUNDLE_TYPE, TARGET_UNIT_ID, zeroVersion );
+
+        List<IRequirement> additionalRequirements = impl.getAdditionalRequirements();
+
+        IInstallableUnit iu = createIU( arbitraryVersion );
+
+        Assert.assertTrue( "Requires version 0.0.0; should be satisfied by any version",
+                           additionalRequirements.get( 0 ).isMatch( iu ) );
+        Assert.assertTrue( "Requires version 0.0.0; should be satisfied by any version",
+                           additionalRequirements.get( 1 ).isMatch( iu ) );
+    }
+
+    @Test
+    public void testNullVersionInTargetDefinitionUnit()
+    {
+
+        String nullVersion = null;
+        String arbitraryVersion = "2.5.8";
+
+        P2ResolverImpl impl = new P2ResolverImpl();
+
+        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, nullVersion );
+        impl.addDependency( BUNDLE_TYPE, TARGET_UNIT_ID, nullVersion );
+
+        List<IRequirement> additionalRequirements = impl.getAdditionalRequirements();
+
+        IInstallableUnit iu = createIU( arbitraryVersion );
+
+        Assert.assertTrue( "Given version was null; should be satisfied by any version",
+                           additionalRequirements.get( 0 ).isMatch( iu ) );
+        Assert.assertTrue( "Given version was null; should be satisfied by any version",
+                           additionalRequirements.get( 1 ).isMatch( iu ) );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testVersionRangeInTargetDefinitionUnit()
+    {
+
+        String versionRange = "[1.0.0,4.0.0]";
+
+        P2ResolverImpl impl = new P2ResolverImpl();
+
+        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, versionRange );
+    }
+
+    private static IInstallableUnit createIU( String version )
+    {
+        InstallableUnitDescription iud = new InstallableUnitDescription();
+        iud.setId( TARGET_UNIT_ID );
+        Version osgiVersion = Version.create( version );
+        iud.setVersion( osgiVersion );
+        List<IProvidedCapability> list = new ArrayList<IProvidedCapability>();
+        list.add( MetadataFactory.createProvidedCapability( IU_NAMESPACE, TARGET_UNIT_ID, osgiVersion ) );
+        list.add( MetadataFactory.createProvidedCapability( BUNDLE_NAMESPACE, TARGET_UNIT_ID, osgiVersion ) );
+        iud.addProvidedCapabilities( list );
+
+        IInstallableUnit iu = MetadataFactory.createInstallableUnit( iud );
+        return iu;
+    }
+
 }
