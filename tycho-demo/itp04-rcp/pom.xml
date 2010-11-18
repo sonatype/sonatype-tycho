@@ -20,8 +20,7 @@ Contributors:
 	<name>RCP Parent</name>
 
 	<properties>
-		<tycho-version>0.10.0</tycho-version>
-		<tycho-groupid>org.sonatype.tycho</tycho-groupid>
+		<tycho-version>0.12.0</tycho-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -36,7 +35,7 @@ Contributors:
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>${tycho-groupid}</groupId>
+				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
 				<version>${tycho-version}</version>
 				<configuration>
@@ -65,7 +64,7 @@ Contributors:
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>${tycho-groupid}</groupId>
+				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<extensions>true</extensions>

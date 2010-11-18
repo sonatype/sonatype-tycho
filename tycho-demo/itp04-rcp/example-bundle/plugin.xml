@@ -49,6 +49,11 @@
                   commandId="example.bundle.commands.sampleCommand"
                   id="example.bundle.menus.sampleCommand">
             </command>
+            <command
+                  commandId="org.eclipse.ui.help.aboutAction"
+                  label="About"
+                  style="push">
+            </command>
          </menu>
       </menuContribution>
       <menuContribution
