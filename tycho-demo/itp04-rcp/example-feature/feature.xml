@@ -2,7 +2,8 @@
 <feature
       id="example-feature"
       label="Example Feature"
-      version="0.1.0.qualifier">
+      version="0.1.0.qualifier"
+      plugin="example-bundle">
 
    <description url="http://www.example.com/description">
       Description of Example Feature
