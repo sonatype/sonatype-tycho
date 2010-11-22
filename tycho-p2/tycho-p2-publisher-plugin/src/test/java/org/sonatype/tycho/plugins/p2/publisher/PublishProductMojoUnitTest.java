@@ -94,6 +94,23 @@ public class PublishProductMojoUnitTest
         ProductConfiguration productConfiguration = ProductConfiguration.read( buildProduct.getProductFile() );
         Assert.assertEquals( "0.1.0.buildQualifier", productConfiguration.getVersion() );
     }
+    
+    @Test
+    public void testPrepareBuildProductEmptyQualifier()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "unitTestResources" );
+        File productFile = new File( basedir, "test.product" );
+        Product product = new Product( productFile );
+        File buildBasedir = new File( tempDir, "buildBasedir" );
+        Product buildProduct = PublishProductMojo.prepareBuildProduct( product, buildBasedir, "" );
+
+        Assert.assertEquals( new File( buildBasedir, "products/testproduct/p2.inf" ), buildProduct.getP2infFile() );
+        Assert.assertTrue( new File( buildBasedir, "products/testproduct/p2.inf" ).exists() );
+
+        ProductConfiguration productConfiguration = ProductConfiguration.read( buildProduct.getProductFile() );
+        Assert.assertEquals( "0.1.0", productConfiguration.getVersion() );
+    }
 
     @Test
     public void testCopyMissingP2Inf()

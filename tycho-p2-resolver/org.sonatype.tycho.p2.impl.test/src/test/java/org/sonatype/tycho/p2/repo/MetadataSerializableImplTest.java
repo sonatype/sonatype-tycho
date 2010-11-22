@@ -85,6 +85,28 @@ public class MetadataSerializableImplTest
     }
 
     @Test
+    public void testQualifyEmptyQualifier()
+        throws IOException, ProvisionException, OperationCanceledException
+    {
+        final IInstallableUnit testIU = InstallableUnitUtil.createIU( "org.example.test", "1.0.0.qualifier" );
+        List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
+        subject.replaceBuildQualifier( units, "" );
+        Assert.assertEquals( "1.0.0", testIU.getVersion().toString() );
+    }
+    
+    @Test
+    public void testQualifyNullQualifier()
+        throws IOException, ProvisionException, OperationCanceledException
+    {
+        final IInstallableUnit testIU = InstallableUnitUtil.createIU( "org.example.test", "1.0.0.qualifier" );
+        List<IInstallableUnit> units = new ArrayList<IInstallableUnit>( Arrays.asList( testIU ) );
+        MetadataSerializableImpl subject = new MetadataSerializableImpl();
+        subject.replaceBuildQualifier( units, null );
+        Assert.assertEquals( "1.0.0", testIU.getVersion().toString() );
+    }
+
+    @Test
     public void testQualifyVersion()
         throws IOException, ProvisionException, OperationCanceledException
     {

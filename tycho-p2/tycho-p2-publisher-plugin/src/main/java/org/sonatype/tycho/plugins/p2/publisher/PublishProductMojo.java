@@ -165,7 +165,7 @@ public final class PublishProductMojo
         String productVersion = productConfiguration.getVersion();
         if ( productVersion != null )
         {
-            productVersion = productVersion.replace( VersioningHelper.QUALIFIER, buildQualifier );
+            productVersion = replaceQualifier( productVersion, buildQualifier );
             productConfiguration.setVersion( productVersion );
         }
 
@@ -174,7 +174,7 @@ public final class PublishProductMojo
         {
             if ( featRef.getVersion() != null && featRef.getVersion().indexOf( VersioningHelper.QUALIFIER ) != -1 )
             {
-                String newVersion = featRef.getVersion().replace( VersioningHelper.QUALIFIER, buildQualifier );
+                String newVersion = replaceQualifier( featRef.getVersion(), buildQualifier );
                 featRef.setVersion( newVersion );
             }
         }
@@ -182,10 +182,29 @@ public final class PublishProductMojo
         {
             if ( plugRef.getVersion() != null && plugRef.getVersion().indexOf( VersioningHelper.QUALIFIER ) != -1 )
             {
-                String newVersion = plugRef.getVersion().replace( VersioningHelper.QUALIFIER, buildQualifier );
+                String newVersion = replaceQualifier(plugRef.getVersion(), buildQualifier );
                 plugRef.setVersion( newVersion );
             }
         }
+    }
+
+    private static String replaceQualifier( final String productVersion, final String qualifier )
+    {
+        String replaceVersion = productVersion;
+        if ( productVersion.endsWith( "." + VersioningHelper.QUALIFIER ) )
+        {
+            int qualifierIndex = productVersion.length() - VersioningHelper.QUALIFIER.length();
+            String unqualifiedVersion = productVersion.substring( 0, qualifierIndex - 1 );
+            if ( qualifier == null || "".equals( qualifier ) )
+            {
+                replaceVersion = unqualifiedVersion;
+            }
+            else
+            {
+                replaceVersion = unqualifiedVersion + "." + qualifier;
+            }
+        }
+        return replaceVersion;
     }
 
     /**

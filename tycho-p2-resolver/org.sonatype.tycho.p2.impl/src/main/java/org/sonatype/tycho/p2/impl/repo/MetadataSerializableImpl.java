@@ -190,9 +190,18 @@ public class MetadataSerializableImpl
         if ( isQualifierVersion( version ) )
         {
             final String oldVersion = version.toString();
-            Version newVersion =
-                Version.create( oldVersion.substring( 0, oldVersion.length() - SUFFIX_QUALIFIER.length() + 1 )
-                    + qualifier );
+            final Version newVersion;
+            if ( qualifier == null || "".equals( qualifier ) )
+            {
+                newVersion =
+                    Version.create( oldVersion.substring( 0, oldVersion.length() - SUFFIX_QUALIFIER.length() ) );
+            }
+            else
+            {
+                newVersion =
+                    Version.create( oldVersion.substring( 0, oldVersion.length() - SUFFIX_QUALIFIER.length() + 1 )
+                        + qualifier );
+            }
             return newVersion;
         }
         return version;
