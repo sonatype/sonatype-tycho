@@ -88,13 +88,13 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
      *  
      * @parameter 
      */
-    private MavenArtifactRef[] includes;
+    private MavenArtifactRefEx[] includes;
 
     /** @parameter */
-	private MavenArtifactRef[] exclusions;
+	private MavenArtifactRefEx[] exclusions;
 
 	/** @parameter */
-	private MavenArtifactRef[] requireBundles;
+	private MavenArtifactRefEx[] requireBundles;
 
 	/** @parameter */
 	private String classifier;
@@ -333,6 +333,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 			}
 			for (Iterator<Artifact> i = getIncludedArtifacts().iterator(); i.hasNext(); ) {
 					Artifact a = (Artifact) i.next();
+                    getLog().info("Processing " + a);
 					File f = a.getFile();
 					addExportedPackages(allpackages, instructions, f);
 			}
@@ -467,7 +468,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	    		ArtifactResolutionResult result = resolve( a, true );
 
     			for (Artifact b : result.getArtifacts()) {
-					keys.add(getArtifactKey(b.getGroupId(), b.getArtifactId()));
+					keys.add(getArtifactKey(b.getGroupId(), b.getArtifactId(), b.getClassifier()));
 				}
 	    	}
     	}
@@ -496,8 +497,15 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
         return result;
     }
 
-	private String getArtifactKey(String groupId, String artifactId) {
-    	return groupId + ":" + artifactId;
+	private String getArtifactKey(String groupId, String artifactId, String classifier) {
+	    StringBuilder sb = new StringBuilder();
+	    sb.append(groupId).append(':');
+        sb.append(artifactId).append(':');
+	    if ( classifier != null ) {
+	        sb.append( classifier );
+	    }
+	    sb.append(':');
+    	return sb.toString();
     }
 
     public List<Artifact> getIncludedArtifacts() throws MojoExecutionException {
@@ -514,7 +522,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 	    	    Set<String> inclusionKeys = getArtifactKeys( includes );
 
 	    	    for (Artifact a : artifacts) {
-	    	        if (inclusionKeys.contains( getArtifactKey( a.getGroupId(), a.getArtifactId() ) ) ) {
+	    	        if (inclusionKeys.contains( getArtifactKey( a.getGroupId(), a.getArtifactId(), a.getClassifier() ) ) ) {
 	    	            inlcudedArtifacts.add( a );
 	    	        }
 	    	    }
@@ -522,7 +530,7 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
     	    	Set<String> exclusionKeys = new HashSet<String>(getArtifactKeys(  exclusions ) );
     	    	exclusionKeys.addAll(getImportedArtifactKeys());
                 for (Artifact a : artifacts) {
-    	        	if (!exclusionKeys.contains(getArtifactKey(a.getGroupId(), a.getArtifactId()))) {
+    	        	if (!exclusionKeys.contains(getArtifactKey(a.getGroupId(), a.getArtifactId(), a.getClassifier()))) {
     	        		inlcudedArtifacts.add(a);
     	        	}
     	        }
@@ -536,13 +544,23 @@ public class GenerateBundleMojo extends AbstractMojo implements Contextualizable
 		plexus = (PlexusContainer) ctx.get( PlexusConstants.PLEXUS_KEY );
 	}
 
-	private Set<String> getArtifactKeys(MavenArtifactRef[] refs) {
+	private Set<String> getArtifactKeys(MavenArtifactRefEx[] refs) {
         Set<String> keys = new HashSet<String>();
         if (refs != null) {
             for (int i = 0; i < refs.length; i++) {
-                keys.add(getArtifactKey(refs[i].getGroupId(), refs[i].getArtifactId()));
+                keys.add(getArtifactKey(refs[i].getGroupId(), refs[i].getArtifactId(), refs[i].getClassifier()));
             }
         }
 	    return keys;
+	}
+
+	public static class MavenArtifactRefEx extends MavenArtifactRef {
+	    private String classifier;
+	    public void setClassifier(String classifier) {
+	        this.classifier = classifier;
+	    }
+	    public String getClassifier() {
+	        return classifier;
+	    }
 	}
 }
