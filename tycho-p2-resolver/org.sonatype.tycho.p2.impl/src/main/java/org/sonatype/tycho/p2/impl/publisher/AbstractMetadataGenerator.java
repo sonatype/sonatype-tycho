@@ -32,6 +32,7 @@ import org.eclipse.equinox.p2.publisher.actions.ICapabilityAdvice;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.impl.publisher.repo.TransientArtifactRepository;
+import org.sonatype.tycho.p2.util.StatusTool;
 
 @SuppressWarnings( "restriction" )
 public abstract class AbstractMetadataGenerator
@@ -171,7 +172,7 @@ public abstract class AbstractMetadataGenerator
 
         if ( !status.isOK() )
         {
-            throw new RuntimeException( new CoreException( status ) );
+            throw new RuntimeException( StatusTool.collectProblems( status ), new CoreException( status ) );
         }
 
         if ( units != null )

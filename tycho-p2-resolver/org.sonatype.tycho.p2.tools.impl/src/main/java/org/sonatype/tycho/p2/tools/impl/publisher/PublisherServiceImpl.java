@@ -16,6 +16,7 @@ import org.eclipse.equinox.p2.publisher.eclipse.ProductAction;
 import org.sonatype.tycho.p2.tools.FacadeException;
 import org.sonatype.tycho.p2.tools.publisher.BuildContext;
 import org.sonatype.tycho.p2.tools.publisher.PublisherService;
+import org.sonatype.tycho.p2.util.StatusTool;
 
 @SuppressWarnings( "restriction" )
 public class PublisherServiceImpl
@@ -79,7 +80,7 @@ public class PublisherServiceImpl
         IStatus result = publisher.publish( actions, null );
         if ( !result.isOK() )
         {
-            throw new FacadeException( result.getMessage(), result.getException() );
+            throw new FacadeException( StatusTool.collectProblems( result ), result.getException() );
         }
 
         Collection<IInstallableUnit> rootIUs = resultSpy.getRootIUs();

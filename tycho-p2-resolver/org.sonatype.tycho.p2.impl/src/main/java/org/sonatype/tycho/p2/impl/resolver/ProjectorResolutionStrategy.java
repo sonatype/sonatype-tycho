@@ -30,6 +30,7 @@ import org.eclipse.equinox.p2.metadata.expression.IMatchExpression;
 import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.sonatype.tycho.p2.resolver.P2Logger;
+import org.sonatype.tycho.p2.util.StatusTool;
 
 @SuppressWarnings( "restriction" )
 public class ProjectorResolutionStrategy
@@ -76,7 +77,8 @@ public class ProjectorResolutionStrategy
 
         if ( slice == null )
         {
-            throw new RuntimeException( new CoreException( slicer.getStatus() ) );
+            throw new RuntimeException( StatusTool.collectProblems( slicer.getStatus() ),
+                                        new CoreException( slicer.getStatus() ) );
         }
 
         if ( logger.isDebugEnabled() )
