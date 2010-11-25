@@ -228,6 +228,19 @@ public class VersionsEngineTest
         assertBundleManifest( new File( basedir, "sameversion" ) );
     }
 
+    public void testPomDependencyNoVersion()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "projects/dependencynoversion" );
+
+        VersionsEngine engine = lookup( VersionsEngine.class );
+        engine.addBasedir( basedir );
+        engine.addVersionChange( "testmodule", "4.8" );
+        engine.apply();
+
+        assertPom( new File( basedir, "module" ) );
+    }
+
     private void assertPom( File basedir )
         throws IOException
     {

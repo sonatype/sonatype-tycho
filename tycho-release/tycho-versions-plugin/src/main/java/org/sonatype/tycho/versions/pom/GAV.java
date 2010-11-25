@@ -23,7 +23,8 @@ public class GAV
 
     public String getVersion()
     {
-        return dom.getChild( "version" ).getText();
+        Element child = dom.getChild( "version" );
+        return child != null ? child.getText() : null;
     }
 
     public void setVersion( String version )
