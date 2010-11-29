@@ -82,7 +82,7 @@
     <jdtVersion>3.6.1.v_A68_R36x</jdtVersion>
 
     <!-- version of tycho used by this build -->
-    <tychoBootstrapVersion>0.9.0</tychoBootstrapVersion>
+    <tychoBootstrapVersion>0.10.0</tychoBootstrapVersion>
   </properties>
 
   <dependencyManagement>
