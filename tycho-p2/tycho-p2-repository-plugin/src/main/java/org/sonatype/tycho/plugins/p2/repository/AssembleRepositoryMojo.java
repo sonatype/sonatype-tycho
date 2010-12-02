@@ -19,6 +19,27 @@ public class AssembleRepositoryMojo
     extends AbstractRepositoryMojo
 {
     /**
+     * Defines whether the artifacts of the included products, features, and bundles shall be
+     * assembled into a p2 artifact repository. If <code>false</code>, only a p2 metadata repository
+     * is created.
+     * 
+     * @parameter default-value="true"
+     */
+    private boolean createArtifactRepository;
+
+    /**
+     * Defines whether all transitive dependencies shall be included in the resulting repository. By
+     * default, only features and bundles directly referenced in products and categories and their
+     * "include" dependencies will be included in the result. To build a completely self-contained
+     * repository, set this parameter to <code>true</code>.
+     * 
+     * @parameter default-value="false"
+     */
+    private boolean includeAllDependencies;
+
+    /**
+     * Defines whether the resulting p2 metadata should be compressed.
+     * 
      * @parameter default-value="true"
      */
     private boolean compress;
@@ -45,9 +66,18 @@ public class AssembleRepositoryMojo
             }
 
             RepositoryReferences sources = getVisibleRepositories();
-            
-            MirrorApplicationService mirrorApp = p2.getService( MirrorApplicationService.class );
+
             int flags = compress ? MirrorApplicationService.REPOSITORY_COMPRESS : 0;
+            if ( includeAllDependencies )
+            {
+                flags = flags | MirrorApplicationService.INCLUDE_ALL_DEPENDENCIES;
+            }
+            if ( createArtifactRepository )
+            {
+                flags = flags | MirrorApplicationService.MIRROR_ARTIFACTS;
+            }
+
+            MirrorApplicationService mirrorApp = p2.getService( MirrorApplicationService.class );
             mirrorApp.mirror( sources, destination, rootIUs, getBuildContext(), flags );
         }
         catch ( FacadeException e )

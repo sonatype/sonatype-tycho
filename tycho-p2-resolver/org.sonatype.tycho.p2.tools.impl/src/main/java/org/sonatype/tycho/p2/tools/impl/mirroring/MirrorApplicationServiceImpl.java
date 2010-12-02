@@ -4,7 +4,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,13 +44,24 @@ public class MirrorApplicationServiceImpl
             final RepositoryDescriptor destinationDescriptor = new RepositoryDescriptor();
             destinationDescriptor.setLocation( destination.toURI() );
             destinationDescriptor.setAppend( true );
-            destinationDescriptor.setCompressed( ( flags & REPOSITORY_COMPRESS ) != 0 );
+            boolean compressed = ( flags & REPOSITORY_COMPRESS ) != 0;
+            destinationDescriptor.setCompressed( compressed );
+            if ( ( flags & MIRROR_ARTIFACTS ) != 0 )
+            {
+                // metadata and artifacts is the default
+            }
+            else
+            {
+                // only mirror metadata
+                destinationDescriptor.setKind( RepositoryDescriptor.KIND_METADATA );
+            }
             mirrorApp.addDestination( destinationDescriptor );
 
             mirrorApp.setSourceIUs( toInstallableUnitList( rootUnits ) );
 
             final SlicingOptions options = new SlicingOptions();
-            options.considerStrictDependencyOnly( true );
+            boolean includeAllDepenendcies = ( flags & INCLUDE_ALL_DEPENDENCIES ) != 0;
+            options.considerStrictDependencyOnly( !includeAllDepenendcies );
 
             for ( TargetEnvironment environment : context.getEnvironments() )
             {
@@ -145,7 +155,7 @@ public class MirrorApplicationServiceImpl
     static class LogListener
         implements IArtifactMirrorLog
     {
-        List<IStatus> entries;
+        List<IStatus> entries = new ArrayList<IStatus>();
 
         public void log( IArtifactDescriptor descriptor, IStatus status )
         {
@@ -154,8 +164,6 @@ public class MirrorApplicationServiceImpl
 
         public void log( IStatus status )
         {
-            if ( entries == null )
-                entries = new ArrayList<IStatus>();
             entries.add( status );
         }
 

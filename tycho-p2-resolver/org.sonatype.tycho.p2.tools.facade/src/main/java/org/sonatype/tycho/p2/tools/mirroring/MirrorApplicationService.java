@@ -16,8 +16,27 @@ public interface MirrorApplicationService
     public static final int REPOSITORY_COMPRESS = 1;
 
     /**
-     * Copies the given installable units, their dependencies with strict versions (i.e. included
-     * content) and the associated artifacts into the destination p2 repository.
+     * Flag to indicate that the target p2 repository shall include all transitive dependencies of
+     * the specified root IUs. This yields a self-contained repository.
+     */
+    public static final int INCLUDE_ALL_DEPENDENCIES = 2;
+
+    /**
+     * Flag to indicate whether all referenced artifacts shall be mirrored into an artifact
+     * repository. If this flag is not set, only the installable units are mirrored (and hence only
+     * a metadata repository is created).
+     */
+    public static final int MIRROR_ARTIFACTS = 4;
+
+    /**
+     * Copies the given installable units and their dependencies into the p2 repository at the
+     * destination location. By default this only includes the units and their dependencies with
+     * strict versions (i.e. included content). Optionally, the following additional content is
+     * copied:
+     * <ul>
+     * <li>all transitive dependencies of the given units, if {@link #INCLUDE_ALL_DEPENDENCIES} is set</li>
+     * <li>all referenced artifacts, if {@link #MIRROR_ARTIFACTS} is set</li>
+     * </ul>
      * 
      * @param sources The p2 repositories from which dependencies and artifacts are copied
      * @param destination The location of the p2 repository that shall be written to. The location
@@ -29,7 +48,9 @@ public interface MirrorApplicationService
      *            units from the source repositories should be passed via this parameter.
      * @param context Build context information; in particular this parameter defines a filter for
      *            environment specific installable units
-     * @param flags Additional options. The only supported flag is <tt>REPOSITORY_COMPRESS</tt>
+     * @param flags Additional options. flag is a <em>bitwise OR</em>'ed combination of
+     *            {@link #MIRROR_ARTIFACTS}, {@link #INCLUDE_ALL_DEPENDENCIES},
+     *            {@link #REPOSITORY_COMPRESS}
      * @throws FacadeException if a checked exception occurs while mirroring
      */
     public void mirror( RepositoryReferences sources, File destination, Collection<?/* IInstallableUnit */> rootUnits,
