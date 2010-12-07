@@ -1,7 +1,13 @@
 package org.sonatype.tycho.p2.maven.repository.tests;
 
+import java.net.URI;
+
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.core.IProvisioningAgentProvider;
+import org.eclipse.equinox.p2.core.ProvisionException;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 public class Activator
     implements BundleActivator
@@ -26,5 +32,18 @@ public class Activator
         return context;
     }
 
-    
+    public static IProvisioningAgent createProvisioningAgent( final URI targetLocation )
+        throws ProvisionException
+    {
+        ServiceReference serviceReference = context.getServiceReference( IProvisioningAgentProvider.SERVICE_NAME );
+        IProvisioningAgentProvider agentFactory = (IProvisioningAgentProvider) context.getService( serviceReference );
+        try
+        {
+            return agentFactory.createAgent( targetLocation );
+        }
+        finally
+        {
+            context.ungetService( serviceReference );
+        }
+    }
 }

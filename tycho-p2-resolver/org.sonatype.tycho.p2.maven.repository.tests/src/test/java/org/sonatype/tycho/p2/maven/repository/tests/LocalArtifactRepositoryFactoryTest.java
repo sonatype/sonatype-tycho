@@ -1,7 +1,5 @@
 package org.sonatype.tycho.p2.maven.repository.tests;
 
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.net.URI;
 
@@ -60,16 +58,9 @@ public class LocalArtifactRepositoryFactoryTest
 
     @Test
     public void testLoadWrongLocation()
+        throws ProvisionException
     {
-        try
-        {
-            subject.load( URI.create( "file:/testFileUri" ), 0, new NullProgressMonitor() );
-            fail( "should throw an exception" );
-        }
-        catch ( ProvisionException e )
-        {
-            Assert.assertEquals( ProvisionException.REPOSITORY_NOT_FOUND, e.getStatus().getCode() );
-        }
+        Assert.assertNull( subject.load( URI.create( "file:/testFileUri" ), 0, new NullProgressMonitor() ) );
     }
 
     @Test

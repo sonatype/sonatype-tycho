@@ -14,13 +14,11 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
-import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 import org.sonatype.tycho.p2.repository.GAV;
@@ -38,13 +36,19 @@ public class LocalArtifactRepository
 
     public LocalArtifactRepository( File location )
     {
-        this( location, new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH ),
-              new LocalRepositoryReader( location ) );
+        this( Activator.getProvisioningAgent(), location );
+    }
+
+    public LocalArtifactRepository( IProvisioningAgent agent, File location )
+    {
+        super( agent, location.toURI(),
+               new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH ),
+               new LocalRepositoryReader( location ) );
     }
 
     public LocalArtifactRepository( File location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
     {
-        super( location.toURI(), projectIndex, contentLocator );
+        super( Activator.getProvisioningAgent(), location.toURI(), projectIndex, contentLocator );
     }
 
     private void saveMaven()
@@ -127,34 +131,6 @@ public class LocalArtifactRepository
         // org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository
         // because the P2 mirroring has already done that
         return getRawArtifact( descriptor, destination, monitor );
-    }
-
-    @Override
-    public IStatus getArtifacts( IArtifactRequest[] requests, IProgressMonitor monitor )
-    {
-        SubMonitor subMonitor = SubMonitor.convert( monitor, requests.length );
-        try
-        {
-            MultiStatus result =
-                new MultiStatus( Activator.ID, -1, "Error executing requests. See children for details.", null );
-            for ( IArtifactRequest request : requests )
-            {
-                request.perform( this, subMonitor.newChild( 1 ) );
-                result.add( request.getResult() );
-            }
-            if ( !result.isOK() )
-            {
-                return result;
-            }
-            else
-            {
-                return Status.OK_STATUS;
-            }
-        }
-        finally
-        {
-            monitor.done();
-        }
     }
 
     @Override

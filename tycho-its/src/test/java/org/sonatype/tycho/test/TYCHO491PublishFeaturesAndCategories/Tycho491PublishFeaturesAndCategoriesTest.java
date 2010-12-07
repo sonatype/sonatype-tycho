@@ -26,24 +26,22 @@ public class Tycho491PublishFeaturesAndCategoriesTest
 
     private static final String MODULE = "eclipse-repository";
 
-    private static final String GROUP_ID = "org.sonatype.tycho.tychoits.TYCHO491PublishFeaturesAndCategories";
-
     private static final String ARTIFACT_ID = "example-eclipse-repository";
 
-    private static final String VERSION = "1.0.0-SNAPSHOT";
-
-    private static final String QUALIFIER = "12345-forcedQualifier";
+    private static final String QUALIFIER = "20101116-forcedQualifier";
 
     @Test
-    public void testProductPublisher()
+    public void testEclipseRepositoryWithIncludedFeatures()
         throws Exception
     {
         Verifier verifier = getVerifier( "/TYCHO491PublishFeaturesAndCategories", false );
 
-        verifier.executeGoal( "install" );
+        /*
+         * Do not execute "install" to ensure that features and bundles can be included directly
+         * from the build results of the local reactor.
+         */
+        verifier.executeGoal( "package" );
         verifier.verifyErrorFreeLog();
-
-        assertRepositoryArtifacts( verifier );
 
         File repoDir = new File( verifier.getBasedir(), MODULE + "/target/repository" );
         File contentJar = new File( repoDir, "content.jar" );
@@ -53,18 +51,13 @@ public class Tycho491PublishFeaturesAndCategoriesTest
 
         assertCategoryIU( contentXml, QUALIFIER + ".example.category", "example.feature.feature.group" );
 
-        assertFeatureIU( verifier, contentXml, "example.feature", "example.included.feature.feature.group",
-                         "example.bundle" );
-        assertBundleIU( verifier, contentXml, "example.bundle" );
+        assertFeatureIuAndArtifact( verifier, contentXml, "example.feature", "example.included.feature.feature.group",
+                                    "example.bundle" );
+        assertBundleIuAndArtifact( verifier, contentXml, "example.bundle" );
+        assertBundleIuAndArtifact( verifier, contentXml, "org.eclipse.core.contenttype", "3.4.100.v20100505-1235" ); // a bundle from the target platform
 
-        assertFeatureIU( verifier, contentXml, "example.included.feature", "example.included.bundle" );
-        assertBundleIU( verifier, contentXml, "example.included.bundle" );
-
-    }
-
-    static private void assertRepositoryArtifacts( Verifier verifier )
-    {
-        verifier.assertArtifactPresent( GROUP_ID, ARTIFACT_ID, VERSION, "zip" );
+        assertFeatureIuAndArtifact( verifier, contentXml, "example.included.feature", "example.included.bundle" );
+        assertBundleIuAndArtifact( verifier, contentXml, "example.included.bundle" );
 
     }
 
@@ -81,8 +74,8 @@ public class Tycho491PublishFeaturesAndCategoriesTest
         assertTrue( Util.iuHasAllRequirements( categoryIu, featureIuId ) );
     }
 
-    static private void assertFeatureIU( Verifier verifier, Document contentXml, String featureId,
-                                         String... requiredIus )
+    static private void assertFeatureIuAndArtifact( Verifier verifier, Document contentXml, String featureId,
+                                                    String... requiredIus )
         throws IOException
     {
         String featureIuId = featureId + ".feature.group";
@@ -93,27 +86,35 @@ public class Tycho491PublishFeaturesAndCategoriesTest
         assertTrue( Util.containsIUWithProperty( contentXml, featureIuId, "org.eclipse.equinox.p2.type.group", "true" ) );
         assertTrue( Util.iuHasAllRequirements( featureIu, requiredIus ) );
 
-        String featureArtifactPath = "features/" + featureId + "_1.0.0";
-        assertArtifact( verifier, featureArtifactPath );
+        String featureArtifactPath = "features/" + featureId + "_1.0.0." + QUALIFIER + ".jar";
+        assertRepositoryContainsArtifact( verifier, featureArtifactPath );
     }
 
-    static private void assertBundleIU( Verifier verifier, Document contentXml, String bundleId )
+    static private void assertBundleIuAndArtifact( Verifier verifier, Document contentXml, String bundleId )
         throws IOException
+    {
+        assertBundleIuAndArtifact( verifier, contentXml, bundleId, "1.0.0." + QUALIFIER );
+    }
+
+    static private void assertBundleIuAndArtifact( Verifier verifier, Document contentXml, String bundleId,
+                                                   String version )
+        throws IOException
+
     {
         assertTrue( "bundle not found", Util.containsIU( contentXml, bundleId ) );
 
-        String bundleArtifactPath = "plugins/" + bundleId + "_1.0.0";
-        assertArtifact( verifier, bundleArtifactPath );
+        String bundleArtifactPath = "plugins/" + bundleId + '_' + version + ".jar";
+        assertRepositoryContainsArtifact( verifier, bundleArtifactPath );
     }
 
-    static private void assertArtifact( Verifier verifier, String artifactPath )
+    static private void assertRepositoryContainsArtifact( Verifier verifier, String artifactPath )
         throws IOException, ZipException
     {
-        File repositoryArtifact = new File( verifier.getArtifactPath( GROUP_ID, ARTIFACT_ID, VERSION, "zip" ) );
-        assertContainsEntry( repositoryArtifact, artifactPath );
+        File repositoryArtifact = new File( verifier.getBasedir(), MODULE + "/target/" + ARTIFACT_ID + ".zip" );
+        assertZipContainsEntry( repositoryArtifact, artifactPath );
     }
 
-    private static void assertContainsEntry( File file, String prefix )
+    private static void assertZipContainsEntry( File file, String path )
         throws IOException
     {
         ZipFile zipFile = new ZipFile( file );
@@ -121,16 +122,11 @@ public class Tycho491PublishFeaturesAndCategoriesTest
         for ( final Enumeration<?> entries = zipFile.getEntries(); entries.hasMoreElements(); )
         {
             final ZipEntry entry = (ZipEntry) entries.nextElement();
-            if ( entry.getName().startsWith( prefix ) )
+            if ( entry.getName().equals( path ) )
             {
-                if ( entry.getName().endsWith( ".qualifier.jar" ) )
-                {
-                    Assert.fail( "replacement of build qualifier missing in " + file + ", zip entry: "
-                        + entry.getName() );
-                }
                 return;
             }
         }
-        Assert.fail( "missing entry " + prefix + "* in repository archive " + file );
+        Assert.fail( "missing entry " + path + " in repository archive " + file );
     }
 }

@@ -1,20 +1,22 @@
 package org.sonatype.tycho.p2.tools.impl.publisher;
 
 import java.io.File;
-import java.util.Collection;
+import java.net.URI;
+import java.util.List;
 
-import org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepository;
 import org.eclipse.equinox.internal.p2.metadata.repository.CompositeMetadataRepository;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.publisher.IPublisherInfo;
 import org.eclipse.equinox.p2.publisher.Publisher;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
-import org.eclipse.equinox.p2.repository.ICompositeRepository;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactRepository;
+import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
+import org.sonatype.tycho.p2.tools.BuildContext;
 import org.sonatype.tycho.p2.tools.FacadeException;
+import org.sonatype.tycho.p2.tools.RepositoryReferences;
+import org.sonatype.tycho.p2.tools.TargetEnvironment;
 import org.sonatype.tycho.p2.tools.impl.Activator;
-import org.sonatype.tycho.p2.tools.publisher.BuildContext;
 import org.sonatype.tycho.p2.tools.publisher.PublisherService;
 import org.sonatype.tycho.p2.tools.publisher.PublisherServiceFactory;
 
@@ -22,71 +24,91 @@ import org.sonatype.tycho.p2.tools.publisher.PublisherServiceFactory;
 public class PublisherServiceFactoryImpl
     implements PublisherServiceFactory
 {
+    // not needed because the created repository is only an intermediate result
+    private static final boolean TARGET_REPOSITORY_COMPRESS = false;
 
-    public PublisherService createPublisher( File targetRepository, Collection<File> contextMetadataRepositories,
-                                             Collection<File> contextArtifactRepositories, BuildContext context,
-                                             int flags )
+    private static final String TARGET_REPOSITORY_NAME = "publisher repository";
+
+    public PublisherService createPublisher( File targetRepository, RepositoryReferences contextRepos,
+                                             BuildContext context )
         throws FacadeException
     {
-        IProvisioningAgent agent = null;
+        // create an own instance of the provisioning agent to prevent cross talk with other things
+        // that happen in the Tycho OSGi runtime
+        IProvisioningAgent agent = Activator.createProvisioningAgent( context.getTargetDirectory() );
+
         try
         {
-            // create an own instance of the provisioning agent to prevent cross talk with other things
-            // that happen in the Tycho OSGi runtime
-            final File agentConfigurationFolder = new File( context.getTargetDirectory(), "p2agent" );
-            agent = Activator.createProvisioningAgent( agentConfigurationFolder.toURI() );
-
             final PublisherInfo publisherInfo = new PublisherInfo();
-            publisherInfo.setArtifactOptions( IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH );
 
-            final boolean compress = ( flags & REPOSITORY_COMPRESS ) != 0;
-            final boolean reusePackedFiles = false; // TODO check if we can/should use this
-            final String repositoryName = "eclipse-repository"; // TODO proper name for repo, e.g. GAV? (pending in TYCHO-513)
-            final IArtifactRepository targetArtifactRepo =
-                Publisher.createArtifactRepository( agent, targetRepository.toURI(), repositoryName, compress,
-                                                    reusePackedFiles );
-            publisherInfo.setArtifactRepository( targetArtifactRepo );
+            setTargetMetadataRepository( publisherInfo, targetRepository, agent );
+            setTargetArtifactRepository( publisherInfo, targetRepository, agent );
 
-            final boolean append = true;
-            publisherInfo.setMetadataRepository( Publisher.createMetadataRepository( agent, targetRepository.toURI(),
-                                                                                     repositoryName, append, compress ) );
+            setContextMetadataRepos( publisherInfo, contextRepos, agent );
+            // no (known) publisher action needs context artifact repositories
 
-            // the ProductAction needs to know for which configurations it needs to generate configIUs
-            publisherInfo.setConfigurations( context.getConfigurations() );
-
-            // set context repositories
-            if ( contextMetadataRepositories != null && contextMetadataRepositories.size() > 0 )
-            {
-                final CompositeMetadataRepository contextMetadata =
-                    CompositeMetadataRepository.createMemoryComposite( agent );
-                addToComposite( contextMetadataRepositories, contextMetadata );
-                publisherInfo.setContextMetadataRepository( contextMetadata );
-            }
-            if ( contextArtifactRepositories != null && contextArtifactRepositories.size() > 0 )
-            {
-                final CompositeArtifactRepository contextArtifact =
-                    CompositeArtifactRepository.createMemoryComposite( agent );
-                addToComposite( contextArtifactRepositories, contextArtifact );
-                publisherInfo.setContextArtifactRepository( contextArtifact );
-            }
+            setTargetEnvironments( publisherInfo, context.getEnvironments() );
 
             return new PublisherServiceImpl( context, publisherInfo, agent );
         }
         catch ( ProvisionException e )
         {
-            if ( agent != null )
-            {
-                agent.stop();
-            }
+            agent.stop();
             throw new FacadeException( e );
         }
     }
 
-    private void addToComposite( Collection<File> repositoryLocations, ICompositeRepository<?> compositeRepository )
+    private static void setTargetMetadataRepository( final PublisherInfo publisherInfo, File location,
+                                                     IProvisioningAgent agent )
+        throws ProvisionException
     {
-        for ( File repositoryLocation : repositoryLocations )
+        final boolean append = true;
+        IMetadataRepository targetMetadataRepo =
+            Publisher.createMetadataRepository( agent, location.toURI(), TARGET_REPOSITORY_NAME, append,
+                                                TARGET_REPOSITORY_COMPRESS );
+        publisherInfo.setMetadataRepository( targetMetadataRepo );
+    }
+
+    private static void setTargetArtifactRepository( final PublisherInfo publisherInfo, File location,
+                                                     IProvisioningAgent agent )
+        throws ProvisionException
+    {
+        final boolean reusePackedFiles = false; // TODO check if we can/should use this
+        final IArtifactRepository targetArtifactRepo =
+            Publisher.createArtifactRepository( agent, location.toURI(), TARGET_REPOSITORY_NAME,
+                                                TARGET_REPOSITORY_COMPRESS, reusePackedFiles );
+        publisherInfo.setArtifactRepository( targetArtifactRepo );
+        publisherInfo.setArtifactOptions( IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH );
+    }
+
+    private static void setContextMetadataRepos( final PublisherInfo publisherInfo, RepositoryReferences contextRepos,
+                                                 IProvisioningAgent agent )
+    {
+        if ( contextRepos.getMetadataRepositories().size() > 0 )
         {
-            compositeRepository.addChild( repositoryLocation.toURI() );
+            final CompositeMetadataRepository contextMetadataComposite =
+                CompositeMetadataRepository.createMemoryComposite( agent );
+            for ( URI repositoryLocation : contextRepos.getMetadataRepositories() )
+            {
+                contextMetadataComposite.addChild( repositoryLocation );
+            }
+            publisherInfo.setContextMetadataRepository( contextMetadataComposite );
         }
+    }
+
+    /**
+     * Configure the list of target environments in the {@link PublisherInfo}. This information is
+     * for example needed by the ProductAction which generates different configuration IUs for each
+     * environment.
+     */
+    private static void setTargetEnvironments( PublisherInfo publisherInfo, List<TargetEnvironment> environments )
+    {
+        int writeIx = 0;
+        String[] configSpecs = new String[environments.size()];
+        for ( TargetEnvironment environment : environments )
+        {
+            configSpecs[writeIx++] = environment.toConfigSpec();
+        }
+        publisherInfo.setConfigurations( configSpecs );
     }
 }

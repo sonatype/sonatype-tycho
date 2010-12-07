@@ -13,9 +13,9 @@ public interface MetadataSerializable
 {
 
     /**
-     * Serialises the content of this repository into the output stream. If qualifier is not null, replaces the build
-     * qualifier with the given value. The caller is responsible for closing the stream.
+     * Writes the given set of installable units to the given output stream in standard p2 metadata
+     * repository format. The caller is responsible for closing the stream.
      */
-    void serialize( OutputStream stream, Set<Object> installableUnits, String qualifier )
+    void serialize( OutputStream stream, Set<?> installableUnits )
         throws IOException;
 }

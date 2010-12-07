@@ -293,12 +293,10 @@
                 The build needs to guarantee that legacy build content is removed from output folder prior to each build. -->
               	org.apache.maven.plugins:maven-clean-plugin:clean
               </initialize>
-              <compile>
-                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-products,
-              	org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-categories
-              </compile>
               <package>
-                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-features-and-bundles,
+                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-products,
+                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-categories,
+                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:assemble-repository,
                 org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:archive-repository
               </package>
               <install>

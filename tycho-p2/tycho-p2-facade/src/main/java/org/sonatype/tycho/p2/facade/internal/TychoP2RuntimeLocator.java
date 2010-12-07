@@ -35,7 +35,7 @@ public class TychoP2RuntimeLocator
      * List of packages exported by org.sonatype.tycho.p2 artifact/bundle.
      */
     public static final String[] SYSTEM_PACKAGES_EXTRA = { "org.sonatype.tycho.p2", "org.sonatype.tycho.p2.repository",
-        "org.sonatype.tycho.p2.resolver", "org.sonatype.tycho.p2.tools.director" };
+        "org.sonatype.tycho.p2.resolver", "org.sonatype.tycho.p2.tools.director", "org.sonatype.tycho.p2.tools.mirroring" };
 
     @Requirement
     private Logger logger;

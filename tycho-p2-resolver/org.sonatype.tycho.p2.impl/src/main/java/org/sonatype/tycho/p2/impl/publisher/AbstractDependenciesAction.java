@@ -82,14 +82,8 @@ public abstract class AbstractDependenciesAction
         addProperties( iud );
 
         results.addIU( MetadataFactory.createInstallableUnit( iud ), PublisherResult.ROOT );
-        addResults( results );
 
         return Status.OK_STATUS;
-    }
-
-    protected void addResults( IPublisherResult results )
-    {
-        // do nothing by default
     }
 
     protected void addProperties( InstallableUnitDescription iud )

@@ -10,11 +10,16 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.query.IQuery;
 import org.eclipse.equinox.p2.query.IQueryResult;
 import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
+import org.eclipse.equinox.p2.repository.artifact.IArtifactRequest;
 import org.eclipse.equinox.p2.repository.artifact.spi.AbstractArtifactRepository;
 import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
@@ -30,7 +35,8 @@ public abstract class AbstractMavenArtifactRepository
 
     private static final IArtifactDescriptor[] ARTIFACT_DESCRIPTOR_ARRAY = new IArtifactDescriptor[0];
 
-    protected Map<IArtifactKey, Set<IArtifactDescriptor>> descriptorsMap = new HashMap<IArtifactKey, Set<IArtifactDescriptor>>();
+    protected Map<IArtifactKey, Set<IArtifactDescriptor>> descriptorsMap =
+        new HashMap<IArtifactKey, Set<IArtifactDescriptor>>();
 
     protected Set<IArtifactDescriptor> descriptors = new HashSet<IArtifactDescriptor>();
 
@@ -39,9 +45,16 @@ public abstract class AbstractMavenArtifactRepository
     private final TychoRepositoryIndex projectIndex;
 
     protected AbstractMavenArtifactRepository( URI uri, TychoRepositoryIndex projectIndex,
-        RepositoryReader contentLocator )
+                                               RepositoryReader contentLocator )
     {
-        super( Activator.getProvisioningAgent(), "Maven Local Repository", AbstractMavenArtifactRepository.class.getName(), VERSION, uri, null, null, null );
+        this( Activator.getProvisioningAgent(), uri, projectIndex, contentLocator );
+    }
+
+    protected AbstractMavenArtifactRepository( IProvisioningAgent agent, URI uri, TychoRepositoryIndex projectIndex,
+                                               RepositoryReader contentLocator )
+    {
+        super( agent, "Maven Local Repository", AbstractMavenArtifactRepository.class.getName(), VERSION, uri, null,
+               null, null );
         this.projectIndex = projectIndex;
         this.contentLocator = contentLocator;
 
@@ -50,26 +63,30 @@ public abstract class AbstractMavenArtifactRepository
 
     protected void loadMaven()
     {
-        ArtifactsIO io = new ArtifactsIO();
+        final ArtifactsIO io = new ArtifactsIO();
 
-        for ( GAV gav : projectIndex.getProjectGAVs() )
+        for ( final GAV gav : projectIndex.getProjectGAVs() )
         {
             try
             {
-                InputStream is = contentLocator.getContents(
-                    gav,
-                    RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
-                    RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS );
+                final InputStream is =
+                    contentLocator.getContents( gav, RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
+                                                RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS );
                 try
                 {
-                    Set<IArtifactDescriptor> gavDescriptors = (Set<IArtifactDescriptor>) io.readXML( is );
-
-                    if ( !gavDescriptors.isEmpty() )
+                    final Set<IArtifactDescriptor> gavDescriptors = io.readXML( is );
+                    for ( IArtifactDescriptor descriptor : gavDescriptors )
                     {
-                        IArtifactKey key = gavDescriptors.iterator().next().getArtifactKey();
-                        descriptorsMap.put( key, gavDescriptors );
-                        descriptors.addAll( gavDescriptors );
+                        final IArtifactKey key = descriptor.getArtifactKey();
+                        Set<IArtifactDescriptor> descriptorsForKey = descriptorsMap.get( key );
+                        if ( descriptorsForKey == null )
+                        {
+                            descriptorsForKey = new HashSet<IArtifactDescriptor>();
+                            descriptorsMap.put( key, descriptorsForKey );
+                        }
+                        descriptorsForKey.add( descriptor );
                     }
+                    descriptors.addAll( gavDescriptors );
                 }
                 finally
                 {
@@ -78,7 +95,8 @@ public abstract class AbstractMavenArtifactRepository
             }
             catch ( IOException e )
             {
-                // too bad
+                // TODO throw properly typed exception if repository cannot be loaded
+                e.printStackTrace();
             }
         }
     }
@@ -167,5 +185,32 @@ public abstract class AbstractMavenArtifactRepository
                 return query.perform( descriptors.iterator() );
             }
         };
+    }
+
+    @Override
+    public IStatus getArtifacts( IArtifactRequest[] requests, IProgressMonitor monitor )
+    {
+        SubMonitor subMonitor = SubMonitor.convert( monitor, requests.length );
+        try
+        {
+            MultiStatus result = new MultiStatus( Activator.ID, 0, "Error while getting requested artifacts", null );
+            for ( IArtifactRequest request : requests )
+            {
+                request.perform( this, subMonitor.newChild( 1 ) );
+                result.add( request.getResult() );
+            }
+            if ( !result.isOK() )
+            {
+                return result;
+            }
+            else
+            {
+                return Status.OK_STATUS;
+            }
+        }
+        finally
+        {
+            monitor.done();
+        }
     }
 }

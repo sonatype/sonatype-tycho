@@ -2,6 +2,8 @@ package org.sonatype.tycho.plugins.p2.publisher;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -16,36 +18,29 @@ import org.sonatype.tycho.p2.tools.publisher.PublisherService;
  * @see http://wiki.eclipse.org/Equinox/p2/Publisher
  * @goal publish-categories
  */
-public class PublishCategoriesMojo
+public final class PublishCategoriesMojo
     extends AbstractPublishMojo
 {
-    public void execute()
+
+    @Override
+    protected Collection<?> publishContent( PublisherService publisherService )
         throws MojoExecutionException, MojoFailureException
     {
-        publishCategories();
-    }
-
-    private void publishCategories()
-        throws MojoExecutionException
-    {
-        PublisherService publisherService = createPublisherService();
         try
         {
+            List<Object> categoryIUs = new ArrayList<Object>();
             for ( Category category : getCategories() )
             {
-                final File buildCategoryFile =
-                    prepareBuildCategory( category, new File( getProject().getBuild().getDirectory() ) );
+                final File buildCategoryFile = prepareBuildCategory( category, getBuildDirectory() );
 
-                publisherService.publishCategories( buildCategoryFile );
+                Collection<?> ius = publisherService.publishCategories( buildCategoryFile );
+                categoryIUs.addAll( ius );
             }
+            return categoryIUs;
         }
         catch ( FacadeException e )
         {
             throw new MojoExecutionException( "Exception while publishing categories: " + e.getMessage(), e );
-        }
-        finally
-        {
-            publisherService.stop();
         }
     }
 

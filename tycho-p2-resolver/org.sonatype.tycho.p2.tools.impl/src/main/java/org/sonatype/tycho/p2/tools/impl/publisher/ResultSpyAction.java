@@ -22,14 +22,16 @@ public class ResultSpyAction
 {
     private Collection<IInstallableUnit> rootIUs = null;
 
+    private Collection<IInstallableUnit> allIUs = null;
+
     public IStatus perform( IPublisherInfo info, IPublisherResult results, IProgressMonitor monitor )
     {
-        if ( rootIUs != null )
+        if ( wasPerformed() )
         {
-            throw new IllegalStateException( ResultSpyAction.class.getSimpleName()
-                + " cannot be performed more than once" );
+            throw new IllegalStateException( this.getClass().getSimpleName() + " cannot be performed more than once" );
         }
         rootIUs = results.getIUs( null, IPublisherResult.ROOT );
+        allIUs = results.getIUs( null, null );
         return Status.OK_STATUS;
     }
 
@@ -42,10 +44,34 @@ public class ResultSpyAction
     public Collection<IInstallableUnit> getRootIUs()
         throws IllegalStateException
     {
-        if ( rootIUs == null )
-        {
-            throw new IllegalStateException( ResultSpyAction.class.getSimpleName() + " has not been performed" );
-        }
+        checkPerformed();
         return rootIUs;
+    }
+
+    /**
+     * Returns all IUs in the publisher result at the time when this action was invoked by the
+     * {@link Publisher}.
+     * 
+     * @throws IllegalStateException if the action has not been performed.
+     */
+    public Collection<IInstallableUnit> getAllIUs()
+        throws IllegalStateException
+    {
+        checkPerformed();
+        return allIUs;
+    }
+
+    private boolean wasPerformed()
+    {
+        return rootIUs != null;
+    }
+
+    private void checkPerformed()
+        throws IllegalStateException
+    {
+        if ( !wasPerformed() )
+        {
+            throw new IllegalStateException( this.getClass().getSimpleName() + " has not been performed" );
+        }
     }
 }

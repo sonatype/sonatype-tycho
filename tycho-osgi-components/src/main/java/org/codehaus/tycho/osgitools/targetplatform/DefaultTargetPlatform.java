@@ -38,7 +38,10 @@ public class DefaultTargetPlatform
 
     protected final Map<File, ArtifactDescriptor> locations = new LinkedHashMap<File, ArtifactDescriptor>();
 
-    protected final Set<Object/* IInstallableUnit */> installableUnits = new LinkedHashSet<Object>();
+    /**
+     * Set of installable unit in the target platform of the module that do not come from the local reactor.
+     */
+    protected final Set<Object/* IInstallableUnit */> nonReactorUnits = new LinkedHashSet<Object>();
 
     public List<ArtifactDescriptor> getArtifacts( String type )
     {
@@ -262,14 +265,14 @@ public class DefaultTargetPlatform
         }
     }
 
-    public Set<Object> getInstallableUnits()
+    public Set<?/* IInstallableUnit */> getNonReactorUnits()
     {
-        return installableUnits;
+        return nonReactorUnits;
     }
 
-    public void addInstallableUnits( Set<Object/* IInstallableUnit */> installableUnits )
+    public void addNonReactorUnits( Set<?/* IInstallableUnit */> installableUnits )
     {
-        this.installableUnits.addAll( installableUnits );
+        this.nonReactorUnits.addAll( installableUnits );
     }
 
     public void toDebugString( StringBuilder sb, String linePrefix )

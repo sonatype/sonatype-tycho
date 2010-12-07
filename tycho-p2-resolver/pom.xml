@@ -25,6 +25,7 @@
     <module>org.sonatype.tycho.p2.maven.repository.tests</module>
 
     <module>org.sonatype.tycho.p2.tools.facade</module>
+    <module>org.sonatype.tycho.p2.tools.facade.tests</module>
     <module>org.sonatype.tycho.p2.tools.impl</module>
 
     <!-- OSGi runtime for Tycho -->

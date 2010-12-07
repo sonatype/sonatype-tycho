@@ -81,41 +81,6 @@ public class MavenArtifactRepository
     }
 
     @Override
-    public IStatus getArtifacts( IArtifactRequest[] requests, IProgressMonitor monitor )
-    {
-        final MultiStatus overallStatus = new MultiStatus( Activator.ID, IStatus.OK, null, null );
-
-        SubMonitor subMonitor = SubMonitor.convert( monitor, requests.length );
-        try
-        {
-            for ( int i = 0; i < requests.length; i++ )
-            {
-                if ( monitor.isCanceled() )
-                {
-                    return Status.CANCEL_STATUS;
-                }
-                IStatus result = getArtifact( (ArtifactRequest) requests[i], subMonitor.newChild( 1 ) );
-                if ( !result.isOK() )
-                {
-                    overallStatus.add( result );
-                }
-            }
-        }
-        finally
-        {
-            subMonitor.done();
-        }
-
-        return overallStatus;
-    }
-
-    private IStatus getArtifact( ArtifactRequest request, IProgressMonitor monitor )
-    {
-        request.perform( this, monitor );
-        return request.getResult();
-    }
-
-    @Override
     public OutputStream getOutputStream( IArtifactDescriptor descriptor )
         throws ProvisionException
     {

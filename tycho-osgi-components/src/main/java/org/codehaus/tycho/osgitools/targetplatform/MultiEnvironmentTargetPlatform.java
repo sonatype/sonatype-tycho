@@ -17,7 +17,7 @@ public class MultiEnvironmentTargetPlatform
 
         artifacts.putAll( platform.artifacts );
         locations.putAll( platform.locations );
-        installableUnits.addAll( platform.installableUnits );
+        nonReactorUnits.addAll( platform.nonReactorUnits );
     }
 
     public TargetPlatform getPlatform( TargetEnvironment environment )

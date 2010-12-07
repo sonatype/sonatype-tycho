@@ -2,12 +2,33 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
+         id="org.sonatype.tycho.p2.maven.repository.LocalArtifactRepository"
          point="org.eclipse.equinox.p2.artifact.repository.artifactRepositories">
       <factory
             class="org.sonatype.tycho.p2.maven.repository.LocalArtifactRepositoryFactory">
       </factory>
       <filter
             suffix=".meta/p2-artifacts.properties" />
+   </extension>
+   <extension
+         id="org.sonatype.tycho.p2.maven.repository.ModuleArtifactRepository"
+         point="org.eclipse.equinox.p2.artifact.repository.artifactRepositories">
+      <factory
+            class="org.sonatype.tycho.p2.maven.repository.ModuleArtifactRepositoryFactory">
+      </factory>
+      <filter
+            suffix="p2artifacts.xml">
+      </filter>
+   </extension>
+   <extension
+         id="org.sonatype.tycho.p2.maven.repository.ModuleMetadataRepository"
+         point="org.eclipse.equinox.p2.metadata.repository.metadataRepositories">
+      <factory
+            class="org.sonatype.tycho.p2.maven.repository.ModuleMetadataRepositoryFactory">
+      </factory>
+      <filter
+            suffix="p2content.xml">
+      </filter>
    </extension>
 
 </plugin>

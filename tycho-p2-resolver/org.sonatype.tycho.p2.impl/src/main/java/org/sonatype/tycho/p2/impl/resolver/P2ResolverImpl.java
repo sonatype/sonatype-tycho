@@ -397,7 +397,7 @@ public class P2ResolverImpl
             throw new RuntimeException( msg.toString() );
         }
 
-        return toResolutionResult( newState, projectIUs );
+        return toResolutionResult( newState );
     }
 
     private boolean isReactorInstallableUnit( IInstallableUnit iu )
@@ -438,8 +438,7 @@ public class P2ResolverImpl
         }
     }
 
-    private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState,
-                                                   Set<IInstallableUnit> projectIUs )
+    private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState )
     {
         P2ResolutionResult result = new P2ResolutionResult();
         for ( IInstallableUnit iu : newState )
@@ -458,18 +457,24 @@ public class P2ResolverImpl
             }
         }
 
-        /*
-         * Do not put the IUs that will be created by the project into the metadata repository representation of the
-         * target platform. In case of an "eclipse-repository" module, the proper IUs for products will be generated
-         * later, so we want to make sure that there are no preliminary IUs around (which may get picked up by the
-         * tycho-p2-director-plugin in error).
-         */
-        Set<Object> units = new LinkedHashSet<Object>( newState );
-        units.removeAll( projectIUs );
-
-        result.addInstallableUnits( units );
-
+        collectNonReactorIUs(result, newState );
         return result;
+    }
+
+    private void collectNonReactorIUs( P2ResolutionResult result, Collection<IInstallableUnit> newState )
+    {
+        for ( IInstallableUnit iu : newState )
+        {
+            if ( !isReactorArtifact( iu ) )
+            {
+                result.addNonReactorUnit( iu );
+            }
+        }
+    }
+
+    private boolean isReactorArtifact( IInstallableUnit iu )
+    {
+        return getMavenArtifact( iu ) instanceof IReactorArtifactFacade;
     }
 
     private LinkedHashSet<IInstallableUnit> getProjectIUs( File location )

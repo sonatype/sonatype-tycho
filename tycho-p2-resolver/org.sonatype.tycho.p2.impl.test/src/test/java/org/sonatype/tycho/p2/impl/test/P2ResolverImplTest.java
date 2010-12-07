@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -142,7 +144,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
-        Assert.assertEquals( 1, result.getInstallableUnits().size() );
+        Assert.assertEquals( 1, result.getNonReactorUnits().size() );
     }
 
     @Test
@@ -167,7 +169,7 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 2, result.getArtifacts().size() );
-        Assert.assertEquals( 1, result.getInstallableUnits().size() );
+        Assert.assertEquals( 1, result.getNonReactorUnits().size() );
     }
 
     @Test
@@ -223,7 +225,8 @@ public class P2ResolverImplTest
         impl.stop();
 
         Assert.assertEquals( 4, result.getArtifacts().size() );
-        Assert.assertEquals( 6, result.getInstallableUnits().size() );
+        // conflicting dependency mode only collects included artifacts - the referenced non-reactor unit org.eclipse.osgi is not included
+        Assert.assertEquals( 0, result.getNonReactorUnits().size() );
     }
 
     @Test
@@ -286,8 +289,8 @@ public class P2ResolverImplTest
         P2ResolutionResult result = results.get( 0 );
 
         Assert.assertEquals( 1, result.getArtifacts().size() );
-        Assert.assertEquals( 2, result.getArtifacts().iterator().next().getInstallableUnits().size() );
-        Assert.assertEquals( 0, result.getInstallableUnits().size() ); // currently, this does not include project's IUs
+        Assert.assertEquals( 1, result.getArtifacts().iterator().next().getInstallableUnits().size() );
+        Assert.assertEquals( 0, result.getNonReactorUnits().size() );
     }
 
     @Test
@@ -337,5 +340,59 @@ public class P2ResolverImplTest
         Assert.assertEquals( bundle, entries.get( 1 ).getLocation() );
         Assert.assertEquals( bundle, entries.get( 2 ).getLocation() );
         Assert.assertEquals( "sources", entries.get( 2 ).getClassifier() );
+    }
+
+    @Test
+    public void eclipseRepository()
+        throws Exception
+    {
+        P2ResolverImpl impl = new P2ResolverImpl();
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
+        impl.addP2Repository( new File( "resources/repositories/e342" ).getCanonicalFile().toURI() );
+        // launchers currently cannot be disabled (see TYCHO-511/TYCHO-512)
+        impl.addP2Repository( new File( "resources/repositories/launchers" ).getCanonicalFile().toURI() );
+        impl.setLogger( new NullP2Logger() );
+
+        File projectDir = new File( "resources/resolver/repository" ).getCanonicalFile();
+        String groupId = "org.sonatype.tycho.p2.impl.resolver.test.repository";
+        String artifactId = "org.sonatype.tycho.p2.impl.resolver.test.repository";
+        String version = "1.0.0-SNAPSHOT";
+
+        impl.setEnvironments( getEnvironments() );
+
+        addMavenProject( impl, new File( "resources/resolver/bundle01" ), P2Resolver.TYPE_ECLIPSE_PLUGIN, "bundle01" );
+
+        ArtifactMock module =
+            new ArtifactMock( projectDir, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_REPOSITORY );
+        module.setDependencyMetadata( generator.generateMetadata( module, getEnvironments() ) );
+
+        impl.addReactorArtifact( module );
+
+        List<P2ResolutionResult> results = impl.resolveProject( projectDir );
+
+        impl.stop();
+
+        Assert.assertEquals( 1, results.size() );
+        P2ResolutionResult result = results.get( 0 );
+
+        Assert.assertEquals( 3, result.getArtifacts().size() ); // the product, bundle01, and the one dependency of bundle01
+        Assert.assertEquals( 4, result.getNonReactorUnits().size() );
+
+        assertContainsUnit( "org.eclipse.osgi", result.getNonReactorUnits() );
+        assertContainsUnit( "org.eclipse.equinox.launcher", result.getNonReactorUnits() );
+        assertContainsUnit( "org.eclipse.equinox.launcher.gtk.linux.x86_64", result.getNonReactorUnits() );
+        assertContainsUnit( "org.eclipse.equinox.executable.feature.group", result.getNonReactorUnits() );
+    }
+
+    private void assertContainsUnit( String unitID, Set<?> units )
+    {
+        for ( Object unitObject : units )
+        {
+            IInstallableUnit unit = (IInstallableUnit) unitObject;
+            if ( unitID.equals( unit.getId() ) )
+                return;
+        }
+        fail( "Unit " + unitID + " not found" );
     }
 }

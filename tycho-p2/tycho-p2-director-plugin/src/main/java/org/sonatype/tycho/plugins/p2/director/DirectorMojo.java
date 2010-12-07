@@ -1,16 +1,16 @@
 package org.sonatype.tycho.plugins.p2.director;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.TargetPlatform;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
-import org.sonatype.tycho.p2.facade.P2MetadataRepositoryWriter;
+import org.sonatype.tycho.p2.facade.RepositoryReferenceTool;
+import org.sonatype.tycho.p2.tools.RepositoryReferences;
 import org.sonatype.tycho.p2.tools.director.DirectorApplicationWrapper;
 
 /**
@@ -27,15 +27,8 @@ public final class DirectorMojo
     /** @parameter default-value="DefaultProfile" */
     private String profile;
 
-    /**
-     * Build qualifier. Recommended way to set this parameter is using build-qualifier goal.
-     * 
-     * @parameter expression="${buildQualifier}"
-     */
-    private String qualifier;
-
     /** @component */
-    private P2MetadataRepositoryWriter metadataRepositoryWriter;
+    private RepositoryReferenceTool repositoryReferenceTool;
 
     public void execute()
         throws MojoExecutionException, MojoFailureException
@@ -44,63 +37,56 @@ public final class DirectorMojo
         {
             getLog().warn( "Cannot materialize products. Specify target-platform-configuration <environments/>." );
         }
-        File repositoryLocation = new File( getBuildDirectory(), "repository" );
         for ( Product product : getProductConfig().getProducts() )
         {
             for ( TargetEnvironment env : getEnvironments() )
             {
                 final DirectorApplicationWrapper director = p2.getService( DirectorApplicationWrapper.class );
-                try
+                int flags = RepositoryReferenceTool.REPOSITORIES_INCLUDE_CURRENT_MODULE;
+                RepositoryReferences sources =
+                    repositoryReferenceTool.getVisibleRepositories( getProject(), getSession(), flags );
+
+                File destination = getProductMaterializeDirectory( product, env );
+                String rootFolder = product.getRootFolder();
+                if ( rootFolder != null && rootFolder.length() > 0 )
                 {
-                    String targetRepositoryUrl = materializeRepository( getTargetPlatform(), getBuildDirectory() );
-
-                    File destination = getProductMaterializeDirectory( product, env );
-                    String rootFolder = product.getRootFolder();
-                    if (rootFolder != null && !rootFolder.isEmpty()) {
-                        destination = new File( destination, rootFolder );
-                    }
-
-                    String[] args =
-                        new String[] {
-                            "-metadatarepository",
-                            targetRepositoryUrl + "," + repositoryLocation.toURI().toString(), //
-                            "-artifactrepository",
-                            repositoryLocation.toURI().toString() + "," + getSession().getLocalRepository().getUrl(), //
-                            "-installIU", product.getId(), //
-                            "-destination", destination.getAbsolutePath(), //
-                            "-profile", profile, //
-                            "-profileProperties", "org.eclipse.update.install.features=true", //
-                            "-roaming", //
-                            "-p2.os", env.getOs(), "-p2.ws", env.getWs(), "-p2.arch", env.getArch() };
-                    getLog().info( "Calling director with arguments: " + Arrays.toString( args ) );
-                    final Object result = director.run( args );
-                    if ( !DirectorApplicationWrapper.EXIT_OK.equals( result ) )
-                    {
-                        throw new MojoFailureException( "P2 director return code was " + result );
-                    }
+                    destination = new File( destination, rootFolder );
                 }
-                catch ( IOException e )
+
+                String metadataRepositoryURLs = toCommaSeparatedList( sources.getMetadataRepositories() );
+                String artifactRepositoryURLs = toCommaSeparatedList( sources.getArtifactRepositories() );
+                String[] args = new String[] { "-metadatarepository", metadataRepositoryURLs, //
+                    "-artifactrepository", artifactRepositoryURLs, //
+                    "-installIU", product.getId(), //
+                    "-destination", destination.getAbsolutePath(), //
+                    "-profile", profile, //
+                    "-profileProperties", "org.eclipse.update.install.features=true", //
+                    "-roaming", //
+                    "-p2.os", env.getOs(), "-p2.ws", env.getWs(), "-p2.arch", env.getArch() };
+                getLog().info( "Calling director with arguments: " + Arrays.toString( args ) );
+                final Object result = director.run( args );
+                if ( !DirectorApplicationWrapper.EXIT_OK.equals( result ) )
                 {
-                    throw new MojoExecutionException( "Failed to materialize target platform repository", e );
+                    throw new MojoFailureException( "P2 director return code was " + result );
                 }
             }
         }
     }
 
-    private String materializeRepository( TargetPlatform targetPlatform, File targetDirectory )
-        throws IOException
+    private String toCommaSeparatedList( List<URI> repositories )
     {
-        File repositoryLocation = new File( targetDirectory, "targetMetadataRepository" );
-        repositoryLocation.mkdirs();
-        FileOutputStream stream = new FileOutputStream( new File( repositoryLocation, "content.xml" ) );
-        try
+        if ( repositories.size() == 0 )
         {
-            metadataRepositoryWriter.write( stream, targetPlatform, qualifier );
+            return "";
         }
-        finally
+
+        StringBuilder result = new StringBuilder();
+        for ( URI uri : repositories )
         {
-            stream.close();
+            result.append( uri.toString() );
+            result.append( ',' );
         }
-        return repositoryLocation.toURI().toString();
+        result.setLength( result.length() - 1 );
+        return result.toString();
     }
 }

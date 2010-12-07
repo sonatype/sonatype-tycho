@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.query.IQuery;
 import org.eclipse.equinox.p2.query.IQueryResult;
@@ -39,8 +41,14 @@ public abstract class AbstractMavenMetadataRepository
     public AbstractMavenMetadataRepository( URI location, TychoRepositoryIndex projectIndex,
                                             RepositoryReader contentLocator )
     {
+        this( Activator.getProvisioningAgent(), location, projectIndex, contentLocator );
+    }
+
+    public AbstractMavenMetadataRepository( IProvisioningAgent agent, URI location, TychoRepositoryIndex projectIndex,
+                                            RepositoryReader contentLocator )
+    {
         // super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, properties );
-        super( Activator.getProvisioningAgent() );
+        super( agent );
 
         setLocation( location );
 
@@ -78,7 +86,8 @@ public abstract class AbstractMavenMetadataRepository
             }
             catch ( IOException e )
             {
-                // too bad
+                // TODO throw properly typed exception if repository cannot be loaded
+                e.printStackTrace();
             }
 
         }
@@ -104,7 +113,6 @@ public abstract class AbstractMavenMetadataRepository
 
     public Collection<IRepositoryReference> getReferences()
     {
-        // TODO Auto-generated method stub
-        return null;
+        return Collections.emptyList();
     }
 }

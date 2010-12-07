@@ -77,7 +77,10 @@ public class P2ResolutionResult
 
     private final Map<List<String>, Entry> entries = new HashMap<List<String>, Entry>();
 
-    private final Set<Object/* IInstallableUnit */> installableUnits = new LinkedHashSet<Object>();
+    /**
+     * Set of installable unit in the target platform of the module that do not come from the local reactor.
+     */
+    private final Set<Object/* IInstallableUnit */> nonReactorUnits = new LinkedHashSet<Object>();
 
     /**
      * @param type is one of P2Resolver.TYPE_* constants
@@ -124,14 +127,19 @@ public class P2ResolutionResult
         return entries.values();
     }
 
-    public Set<Object> getInstallableUnits()
+    public Set<?> getNonReactorUnits()
     {
-        return installableUnits;
+        return nonReactorUnits;
     }
 
-    public void addInstallableUnits( Set<Object/* IInstallableUnit */> installableUnits )
+    public void addNonReactorUnit( Object/* IInstallableUnit */installableUnit )
     {
-        this.installableUnits.addAll( installableUnits );
+        this.nonReactorUnits.add( installableUnit );
+    }
+
+    public void addNonReactorUnits( Set<?/* IInstallableUnit */> installableUnits )
+    {
+        this.nonReactorUnits.addAll( installableUnits );
     }
 
     static <T> boolean eq( T a, T b )

@@ -46,14 +46,12 @@ public interface TargetPlatform
     public ArtifactDescriptor getArtifact( ArtifactKey key );
 
     /**
-     * Set of IInstallableUnits that were used to construct this target platform or or <code>null</code> if the the
-     * target platform was not resolved from a p2 repository.<br/>
-     * Type parametyer is Object instead of actual IInstallableUnit because P2 runtime is run off separate classloader
-     * not visible to tycho core.
+     * Set of IInstallableUnits in the target platform that come from outside the local reactor, or
+     * <code>null</code> if the the target platform was not resolved from a p2 repository.<br/>
      * 
      * @return Set&lt;IInstallableUnit&gt; or null
      */
-    public Set<Object/* IInstallableUnit */> getInstallableUnits();
+    public Set<?/* IInstallableUnit */> getNonReactorUnits();
 
     /**
      * For debug purposes only, do not use.

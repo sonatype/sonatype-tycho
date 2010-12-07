@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.sonatype.tycho.test.AbstractTychoIntegrationTest;
 
 import de.pdark.decentxml.Document;
-import de.pdark.decentxml.XMLParser;
 
 public class Tycho188P2EnabledRcpTest
     extends AbstractTychoIntegrationTest
@@ -54,8 +53,8 @@ public class Tycho188P2EnabledRcpTest
         verifier.verifyErrorFreeLog();
 
         // First run compile to fill output repository
-        // The test will verify that legacy content from former builds is not accumulated (product IU).
-        verifier.executeGoal( "compile" );
+        // The test will verify that old content from former builds is not accumulated (product IU).
+        verifier.executeGoal( "package" );
         verifier.verifyErrorFreeLog();
         validatePublishedProducts( verifier, getContentXml( verifier ) );
 
@@ -65,9 +64,9 @@ public class Tycho188P2EnabledRcpTest
         assertTrue( oldMainProductFile.delete() );
         assertTrue( newMainProductFile.renameTo( oldMainProductFile ) );
 
+        verifier.getCliOptions().add( "-Pbuild-products" );
         verifier.executeGoal( "install" );
         verifier.verifyErrorFreeLog();
-
     }
 
     @Test
@@ -99,7 +98,6 @@ public class Tycho188P2EnabledRcpTest
         int environmentsPerProduct = TEST_ENVIRONMENTS.size();
         int repositoryArtifacts = 1;
         assertTotalZipArtifacts( verifier, materializedProducts * environmentsPerProduct + repositoryArtifacts );
-        assertLocalFeatureProperties( verifier.getBasedir() );
     }
 
     @Test
@@ -133,17 +131,6 @@ public class Tycho188P2EnabledRcpTest
         assertTrue( "content.jar not found \n" + contentJar.getAbsolutePath(), contentJar.isFile() );
         Document contentXml = Util.openXmlFromZip( contentJar, "content.xml" );
         return contentXml;
-    }
-
-    private void assertLocalFeatureProperties( String baseDir )
-        throws IOException
-    {
-        File contentXmlFile = new File( baseDir, MODULE + "/target/targetMetadataRepository/content.xml" );
-        Document contentXml = XMLParser.parse( contentXmlFile );
-        assertTrue( "feature description is missing",
-                    Util.containsIUWithProperty( contentXml, "example.feature.feature.group",
-                                                 "org.eclipse.equinox.p2.description",
-                                                 "A description of an example feature" ) );
     }
 
     static private void assertProductIUs( Document contentXml, Product product, Environment env )

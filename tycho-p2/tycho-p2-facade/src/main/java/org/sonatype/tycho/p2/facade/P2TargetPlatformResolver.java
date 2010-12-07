@@ -43,7 +43,6 @@ import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TargetPlatformResolver;
 import org.codehaus.tycho.TychoConstants;
-import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.model.Target;
 import org.codehaus.tycho.osgitools.DebugUtils;
 import org.codehaus.tycho.osgitools.DefaultArtifactKey;
@@ -512,7 +511,7 @@ public class P2TargetPlatformResolver
 
         platform.addSite( new File( session.getLocalRepository().getBasedir() ) );
 
-        platform.addInstallableUnits( result.getInstallableUnits() );
+        platform.addNonReactorUnits( result.getNonReactorUnits() );
 
         for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
         {

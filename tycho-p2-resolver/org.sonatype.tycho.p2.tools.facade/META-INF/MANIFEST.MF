@@ -7,4 +7,6 @@ Bundle-SymbolicName: org.sonatype.tycho.p2.tools.facade
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: org.sonatype.tycho.p2.tools,
  org.sonatype.tycho.p2.tools.director,
- org.sonatype.tycho.p2.tools.publisher
+ org.sonatype.tycho.p2.tools.publisher,
+ org.sonatype.tycho.p2.tools.mirroring
+Import-Package: org.sonatype.tycho.p2.repository

@@ -3,6 +3,7 @@ package org.sonatype.tycho.plugins.p2.publisher;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -39,39 +40,28 @@ public final class PublishProductMojo
      */
     private UnArchiver deflater;
 
-    public void execute()
+    @Override
+    protected Collection<?> publishContent( PublisherService publisherService )
         throws MojoExecutionException, MojoFailureException
     {
-        publishProducts();
-    }
-
-    private void publishProducts()
-        throws MojoExecutionException, MojoFailureException
-    {
-        PublisherService publisherService = createPublisherService();
-        try
+        List<Object> productIUs = new ArrayList<Object>();
+        for ( Product product : getProducts() )
         {
-            for ( Product product : getProducts() )
+            try
             {
-                try
-                {
-                    final Product buildProduct =
-                        prepareBuildProduct( product, new File( getProject().getBuild().getDirectory() ),
-                                             getQualifier() );
+                final Product buildProduct = prepareBuildProduct( product, getBuildDirectory(), getQualifier() );
 
+                Collection<?> ius =
                     publisherService.publishProduct( buildProduct.productFile, getEquinoxExecutableFeature(), flavor );
-                }
-                catch ( FacadeException e )
-                {
-                    throw new MojoExecutionException( "Exception while publishing product "
-                        + product.getProductFile().getAbsolutePath(), e );
-                }
+                productIUs.addAll( ius );
+            }
+            catch ( FacadeException e )
+            {
+                throw new MojoExecutionException( "Exception while publishing product "
+                    + product.getProductFile().getAbsolutePath(), e );
             }
         }
-        finally
-        {
-            publisherService.stop();
-        }
+        return productIUs;
     }
 
     /**
@@ -182,7 +172,7 @@ public final class PublishProductMojo
         {
             if ( plugRef.getVersion() != null && plugRef.getVersion().indexOf( VersioningHelper.QUALIFIER ) != -1 )
             {
-                String newVersion = replaceQualifier(plugRef.getVersion(), buildQualifier );
+                String newVersion = replaceQualifier( plugRef.getVersion(), buildQualifier );
                 plugRef.setVersion( newVersion );
             }
         }
