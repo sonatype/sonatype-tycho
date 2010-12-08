@@ -400,6 +400,45 @@ public class P2ResolverImplTest
         assertContainsUnit( "org.eclipse.equinox.launcher.gtk.linux.x86_64", result.getNonReactorUnits() );
         assertContainsUnit( "org.eclipse.equinox.executable.feature.group", result.getNonReactorUnits() );
     }
+    
+    @Test
+	public void bundleUsesSWT() throws Exception {
+		P2ResolverImpl impl = new P2ResolverImpl();
+		impl.setRepositoryCache(new P2RepositoryCacheImpl());
+		impl.setLocalRepositoryLocation(getLocalRepositoryLocation());
+		impl.addP2Repository(new File("resources/repositories/e361")
+				.getCanonicalFile().toURI());
+		impl.setLogger(new NullP2Logger());
+
+		File bundle = new File("resources/resolver/bundleUsesSWT")
+				.getCanonicalFile();
+		String groupId = "org.sonatype.tycho.p2.impl.resolver.test.bundleUsesSWT";
+		String artifactId = "org.sonatype.tycho.p2.impl.resolver.test.bundleUsesSWT";
+		String version = "1.0.0-SNAPSHOT";
+
+		impl.setEnvironments(getEnvironments());
+
+		ArtifactMock a = new ArtifactMock(bundle, groupId, artifactId, version,
+				P2Resolver.TYPE_ECLIPSE_PLUGIN);
+		a.setDependencyMetadata(generator
+				.generateMetadata(a, getEnvironments()));
+
+		impl.addReactorArtifact(a);
+
+		List<P2ResolutionResult> results = impl.resolveProject(bundle);
+
+		impl.stop();
+
+		Assert.assertEquals(1, results.size());
+		P2ResolutionResult result = results.get(0);
+
+		Assert.assertEquals(3, result.getArtifacts().size());
+		Assert.assertEquals(2, result.getNonReactorUnits().size());
+
+		assertContainsUnit("org.eclipse.swt", result.getNonReactorUnits());
+		assertContainsUnit("org.eclipse.swt.gtk.linux.x86_64",
+				result.getNonReactorUnits());
+	}
 
     private void assertContainsUnit( String unitID, Set<?> units )
     {
