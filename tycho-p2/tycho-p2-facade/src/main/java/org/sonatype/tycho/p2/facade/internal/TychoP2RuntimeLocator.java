@@ -32,10 +32,12 @@ public class TychoP2RuntimeLocator
     implements EquinoxRuntimeLocator
 {
     /**
-     * List of packages exported by org.sonatype.tycho.p2 artifact/bundle.
+     * List of packages exported by the bundles/JARs that serve as facade between the Maven and the
+     * OSGi class loaders.
      */
     public static final String[] SYSTEM_PACKAGES_EXTRA = { "org.sonatype.tycho.p2", "org.sonatype.tycho.p2.repository",
-        "org.sonatype.tycho.p2.resolver", "org.sonatype.tycho.p2.tools.director", "org.sonatype.tycho.p2.tools.mirroring" };
+        "org.sonatype.tycho.p2.resolver", "org.sonatype.tycho.p2.tools", "org.sonatype.tycho.p2.tools.director",
+        "org.sonatype.tycho.p2.tools.publisher", "org.sonatype.tycho.p2.tools.mirroring" };
 
     @Requirement
     private Logger logger;

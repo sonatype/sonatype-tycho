@@ -22,7 +22,6 @@ public class DefaultTychoP2RuntimeMetadata
         ARTIFACTS.add( newDependency( "org.sonatype.tycho", "tycho-p2-runtime", p2Version, "zip" ) );
         ARTIFACTS.add( newDependency( "org.sonatype.tycho", "org.sonatype.tycho.p2.impl", p2Version, "jar" ) );
         ARTIFACTS.add( newDependency( "org.sonatype.tycho", "org.sonatype.tycho.p2.maven.repository", p2Version, "jar" ) );
-        ARTIFACTS.add( newDependency( "org.sonatype.tycho", "org.sonatype.tycho.p2.tools.facade", p2Version, "jar" ) );
         ARTIFACTS.add( newDependency( "org.sonatype.tycho", "org.sonatype.tycho.p2.tools.impl", p2Version, "jar" ) );
     }
 
