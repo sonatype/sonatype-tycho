@@ -10,8 +10,10 @@ public interface EquinoxRuntimeLocator
         throws Exception;
 
     /**
-     * Packages exported by embedding application. This allows embedded runtime import API classes from embedding
-     * application with Import-Package.
+     * Packages exported by embedding application. This allows embedded runtime import API classes
+     * from embedding application with Import-Package.
+     * 
+     * @return Packages exported by embedding application; never <code>null</code>
      */
     public List<String> getSystemPackagesExtra();
 }

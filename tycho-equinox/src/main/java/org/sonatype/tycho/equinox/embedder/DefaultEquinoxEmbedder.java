@@ -97,12 +97,8 @@ public class DefaultEquinoxEmbedder
         // this tells framework to use our classloader as parent, so it can see classes that we see
         properties.put( "osgi.parentClassloader", "fwk" );
 
-        // this tells framework to check parent classloader first
-        // TODO specific package names
-        properties.put( "org.osgi.framework.bootdelegation", "*" );
-
         List<String> packagesExtra = equinoxLocator.getSystemPackagesExtra();
-        if ( packagesExtra != null && !packagesExtra.isEmpty() )
+        if ( packagesExtra.size() > 0 )
         {
             StringBuilder sb = new StringBuilder();
             for ( String pkg : packagesExtra )
@@ -113,6 +109,7 @@ public class DefaultEquinoxEmbedder
                 }
                 sb.append( pkg );
             }
+            // make the system bundle export the given packages and load them from the parent class loader
             properties.put( "org.osgi.framework.system.packages.extra", sb.toString() );
         }
 
@@ -244,10 +241,10 @@ public class DefaultEquinoxEmbedder
         if ( serviceReferences == null || serviceReferences.length == 0 )
         {
             StringBuilder sb = new StringBuilder();
-            sb.append("Service is not registered class='").append(clazz).append("'");
+            sb.append( "Service is not registered class='" ).append( clazz ).append( "'" );
             if ( filter != null )
             {
-                sb.append("filter='").append(filter).append("'");
+                sb.append( "filter='" ).append( filter ).append( "'" );
             }
             throw new IllegalStateException( sb.toString() );
         }
