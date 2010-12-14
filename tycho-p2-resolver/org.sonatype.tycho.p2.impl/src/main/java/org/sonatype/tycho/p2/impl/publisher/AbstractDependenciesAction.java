@@ -175,7 +175,7 @@ public abstract class AbstractDependenciesAction
 
         if ( conditions.size() == 1 )
         {
-            return conditions.get( 0 );
+            return "(" + conditions.get( 0 ) + ")";
         }
 
         StringBuilder result = new StringBuilder( "(&" );
