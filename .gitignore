@@ -1,6 +1,5 @@
-/target-eclipse
-/target
-/build-test-workspace
-/tycho-bootstrap
-/.settings
-/.project
+target/
+bin/
+.project
+.classpath
+.settings/
