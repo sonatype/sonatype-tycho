@@ -33,10 +33,6 @@ public final class DirectorMojo
     public void execute()
         throws MojoExecutionException, MojoFailureException
     {
-        if ( getEnvironments().size() == 0 )
-        {
-            getLog().warn( "Cannot materialize products. Specify target-platform-configuration <environments/>." );
-        }
         for ( Product product : getProductConfig().getProducts() )
         {
             for ( TargetEnvironment env : getEnvironments() )

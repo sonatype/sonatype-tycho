@@ -24,6 +24,12 @@ public class TargetPlatformConfiguration
 
     private Boolean allowConflictingDependencies;
 
+    /**
+     * Returns the list of configured target environments, or the running environment if no
+     * environments have been specified explicitly.
+     * 
+     * @see #isImplicitTargetEnvironment()
+     */
     public List<TargetEnvironment> getEnvironments()
     {
         return environments;

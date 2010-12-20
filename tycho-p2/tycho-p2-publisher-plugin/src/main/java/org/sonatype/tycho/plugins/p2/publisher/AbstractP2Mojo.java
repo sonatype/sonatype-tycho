@@ -128,7 +128,6 @@ public abstract class AbstractP2Mojo
     private List<TargetEnvironment> getEnvironmentsForFacade()
     {
         // TODO use shared class everywhere?
-        // TODO insert currently running environment if none is specified explicitly? (for details see TYCHO-529)
 
         List<org.codehaus.tycho.TargetEnvironment> original = getTargetPlatformConfiguration().getEnvironments();
         List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>( original.size() );

@@ -53,30 +53,13 @@ public class MirrorApplicationServiceImpl
             final SlicingOptions options = new SlicingOptions();
             options.considerStrictDependencyOnly( true );
 
-            if ( context.getEnvironments().size() == 0 )
+            for ( TargetEnvironment environment : context.getEnvironments() )
             {
-                // don't mirror any environment specific units
-                // TODO is this what we want?
-                Map<String, String> filter = new HashMap<String, String>();
+                Map<String, String> filter = environment.toFilter();
                 addFilterForFeatureJARs( filter );
-
-                // PermissiveSlicer only considers filters if there is _more_ than one property
-                // TODO Proper fix at Eclipse?
-                filter.put( "dummy.abc", "false" );
                 options.setFilter( filter );
-                options.forceFilterTo( false );
-                executeMirroring( mirrorApp, options );
-            }
-            else
-            {
-                for ( TargetEnvironment environment : context.getEnvironments() )
-                {
-                    Map<String, String> filter = environment.toFilter();
-                    addFilterForFeatureJARs( filter );
-                    options.setFilter( filter );
 
-                    executeMirroring( mirrorApp, options );
-                }
+                executeMirroring( mirrorApp, options );
             }
         }
         finally
