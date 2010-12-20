@@ -11,8 +11,8 @@ import org.codehaus.plexus.component.repository.exception.ComponentLookupExcepti
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatform;
 import org.codehaus.tycho.TargetPlatformConfiguration;
-import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
+import org.codehaus.tycho.utils.TychoProjectUtils;
 
 abstract class AbstractProductMojo
     extends AbstractMojo
@@ -56,8 +56,7 @@ abstract class AbstractProductMojo
 
     List<TargetEnvironment> getEnvironments()
     {
-        TargetPlatformConfiguration configuration =
-            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
+        TargetPlatformConfiguration configuration = TychoProjectUtils.getTargetPlatformConfiguration( project );
         return configuration.getEnvironments();
     }
 

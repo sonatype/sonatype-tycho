@@ -11,10 +11,9 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.tycho.TargetPlatform;
-import org.codehaus.tycho.TargetPlatformConfiguration;
-import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.EclipseRepositoryProject;
+import org.codehaus.tycho.utils.TychoProjectUtils;
 import org.sonatype.tycho.p2.facade.RepositoryReferenceTool;
 import org.sonatype.tycho.p2.tools.BuildContext;
 import org.sonatype.tycho.p2.tools.RepositoryReferences;
@@ -91,20 +90,6 @@ public abstract class AbstractP2Mojo
         return getTychoProjectFacet().getTargetPlatform( project );
     }
 
-    protected TargetPlatformConfiguration getTargetPlatformConfiguration()
-    {
-        TargetPlatformConfiguration configuration =
-            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-
-        if ( configuration == null )
-        {
-            throw new IllegalStateException(
-                                             "Project build target platform configuration has not been initialized properly." );
-        }
-
-        return configuration;
-    }
-
     protected RepositoryReferences getVisibleRepositories( boolean includePublisherResults )
         throws MojoExecutionException, MojoFailureException
     {
@@ -129,7 +114,8 @@ public abstract class AbstractP2Mojo
     {
         // TODO use shared class everywhere?
 
-        List<org.codehaus.tycho.TargetEnvironment> original = getTargetPlatformConfiguration().getEnvironments();
+        List<org.codehaus.tycho.TargetEnvironment> original =
+            TychoProjectUtils.getTargetPlatformConfiguration( project ).getEnvironments();
         List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>( original.size() );
         for ( org.codehaus.tycho.TargetEnvironment env : original )
         {

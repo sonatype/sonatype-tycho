@@ -6,7 +6,7 @@ import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.TargetEnvironment;
 import org.codehaus.tycho.TargetPlatformConfiguration;
-import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.utils.TychoProjectUtils;
 import org.sonatype.tycho.ReactorProject;
 
 public abstract class AbstractArtifactBasedProject
@@ -31,14 +31,7 @@ public abstract class AbstractArtifactBasedProject
     @Override
     public void resolve( MavenSession session, MavenProject project )
     {
-        TargetPlatformConfiguration configuration =
-            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-
-        if ( configuration == null )
-        {
-            throw new IllegalStateException( "Target platform configuration has not been initialized for project "
-                + project.toString() );
-        }
+        TargetPlatformConfiguration configuration = TychoProjectUtils.getTargetPlatformConfiguration( project );
 
         // this throws exceptions when dependencies are missing
         getDependencyWalker( project ).walk( new ArtifactDependencyVisitor()

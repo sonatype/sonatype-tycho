@@ -12,8 +12,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.tycho.TargetPlatform;
-import org.codehaus.tycho.TychoConstants;
+import org.codehaus.tycho.utils.TychoProjectUtils;
 import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.MetadataSerializable;
@@ -135,7 +134,8 @@ public class RepositoryReferenceTool
             try
             {
                 MetadataSerializable serializer = osgiServices.getService( MetadataSerializable.class );
-                Set<?> targetPlatformInstallableUnits = getTargetPlatform( module ).getNonReactorUnits();
+                Set<?> targetPlatformInstallableUnits =
+                    TychoProjectUtils.getTargetPlatform( module ).getNonReactorUnits();
                 serializer.serialize( stream, targetPlatformInstallableUnits );
             }
             finally
@@ -148,15 +148,6 @@ public class RepositoryReferenceTool
         {
             throw new MojoExecutionException( "I/O exception while writing the build target platform to disk", e );
         }
-    }
-
-    private static TargetPlatform getTargetPlatform( MavenProject module )
-        throws MojoFailureException
-    {
-        TargetPlatform targetPlatform = (TargetPlatform) module.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
-        if ( targetPlatform == null )
-            throw new MojoFailureException( "Tycho target platform missing for project " + module.toString() );
-        return targetPlatform;
     }
 
 }

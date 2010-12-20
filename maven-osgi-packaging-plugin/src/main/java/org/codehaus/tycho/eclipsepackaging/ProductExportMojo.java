@@ -39,12 +39,11 @@ import org.codehaus.tycho.ArtifactDependencyVisitor;
 import org.codehaus.tycho.ArtifactDependencyWalker;
 import org.codehaus.tycho.PluginDescription;
 import org.codehaus.tycho.TargetEnvironment;
-import org.codehaus.tycho.TargetPlatformConfiguration;
-import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.model.BundleConfiguration;
 import org.codehaus.tycho.model.ProductConfiguration;
 import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.utils.PlatformPropertiesUtils;
+import org.codehaus.tycho.utils.TychoProjectUtils;
 import org.eclipse.pde.internal.swt.tools.IconExe;
 import org.sonatype.tycho.ArtifactDescriptor;
 import org.sonatype.tycho.ArtifactKey;
@@ -136,8 +135,9 @@ public class ProductExportMojo
         }
 
         // build results will vary from system to system without explicit target environment configuration
-        if ( productConfiguration.includeLaunchers() && getTargetPlatformConfiguration().isImplicitTargetEnvironment()
-            && environments == null )
+        boolean implicitTargetEnvironment =
+            TychoProjectUtils.getTargetPlatformConfiguration( project ).isImplicitTargetEnvironment();
+        if ( productConfiguration.includeLaunchers() && implicitTargetEnvironment && environments == null )
         {
             throw new MojoFailureException( "Product includes native launcher but no target environment was specified" );
         }
@@ -244,21 +244,7 @@ public class ProductExportMojo
             return Arrays.asList( environments );
         }
 
-        return getTargetPlatformConfiguration().getEnvironments();
-    }
-
-    protected TargetPlatformConfiguration getTargetPlatformConfiguration()
-    {
-        TargetPlatformConfiguration configuration =
-            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-
-        if ( configuration == null )
-        {
-            throw new IllegalStateException(
-                                             "Project build target platform configuration has not been initialized properly." );
-        }
-
-        return configuration;
+        return TychoProjectUtils.getTargetPlatformConfiguration( project ).getEnvironments();
     }
 
     private File getTarget( TargetEnvironment environment )

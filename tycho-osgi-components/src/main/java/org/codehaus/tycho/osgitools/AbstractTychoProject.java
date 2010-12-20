@@ -11,6 +11,7 @@ import org.codehaus.tycho.TargetPlatformConfiguration;
 import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.osgitools.targetplatform.MultiEnvironmentTargetPlatform;
+import org.codehaus.tycho.utils.TychoProjectUtils;
 
 public abstract class AbstractTychoProject
     extends AbstractLogEnabled
@@ -19,12 +20,7 @@ public abstract class AbstractTychoProject
 
     public TargetPlatform getTargetPlatform( MavenProject project )
     {
-        TargetPlatform targetPlatform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
-        if ( targetPlatform == null )
-        {
-            throw new IllegalStateException( "No associated target platform for project " + project.toString() );
-        }
-        return targetPlatform;
+        return TychoProjectUtils.getTargetPlatform( project );
     }
 
     public TargetPlatform getTargetPlatform( MavenProject project, TargetEnvironment environment )
@@ -64,15 +60,7 @@ public abstract class AbstractTychoProject
             return new TargetEnvironment[] { environment };
         }
 
-        TargetPlatformConfiguration configuration =
-            (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
-
-        if ( configuration == null )
-        {
-            throw new IllegalStateException( "Target platform configuration has not been initialized for project "
-                + project.toString() );
-        }
-
+        TargetPlatformConfiguration configuration = TychoProjectUtils.getTargetPlatformConfiguration( project );
         if ( configuration.isImplicitTargetEnvironment() )
         {
             return null; // any
