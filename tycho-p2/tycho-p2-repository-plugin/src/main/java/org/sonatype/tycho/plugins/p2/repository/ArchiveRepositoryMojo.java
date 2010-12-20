@@ -1,4 +1,4 @@
-package org.sonatype.tycho.plugins.p2.publisher;
+package org.sonatype.tycho.plugins.p2.repository;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import org.codehaus.plexus.archiver.ArchiverException;
  * @goal archive-repository
  */
 public final class ArchiveRepositoryMojo
-    extends AbstractP2Mojo
+    extends AbstractRepositoryMojo
 {
 
     /**
@@ -35,11 +35,11 @@ public final class ArchiveRepositoryMojo
         }
         catch ( ArchiverException e )
         {
-            throw new MojoExecutionException( "Error packing product", e );
+            throw new MojoExecutionException( "Error packing p2 repository", e );
         }
         catch ( IOException e )
         {
-            throw new MojoExecutionException( "Error packing product", e );
+            throw new MojoExecutionException( "Error packing p2 repository", e );
         }
 
         getProject().getArtifact().setFile( destFile );

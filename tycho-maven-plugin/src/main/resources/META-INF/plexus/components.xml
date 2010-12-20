@@ -296,8 +296,8 @@
               <package>
                 org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-products,
                 org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:publish-categories,
-                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:assemble-repository,
-                org.sonatype.tycho:tycho-p2-publisher-plugin:${project.version}:archive-repository
+                org.sonatype.tycho:tycho-p2-repository-plugin:${project.version}:assemble-repository,
+                org.sonatype.tycho:tycho-p2-repository-plugin:${project.version}:archive-repository
               </package>
               <install>
                 org.apache.maven.plugins:maven-install-plugin:${install-plugin.version}:install

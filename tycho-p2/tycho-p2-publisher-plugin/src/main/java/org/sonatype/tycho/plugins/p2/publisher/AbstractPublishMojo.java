@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.tycho.TychoConstants;
 import org.sonatype.tycho.equinox.EquinoxServiceFactory;
 import org.sonatype.tycho.p2.facade.RepositoryReferenceTool;
 import org.sonatype.tycho.p2.tools.FacadeException;
@@ -18,7 +19,9 @@ import org.sonatype.tycho.p2.tools.publisher.PublisherServiceFactory;
 public abstract class AbstractPublishMojo
     extends AbstractP2Mojo
 {
-    static String PUBLISHER_BUNDLE_ID = "org.eclipse.equinox.p2.publisher";
+
+    /** @component */
+    private RepositoryReferenceTool repositoryReferenceTool;
 
     /** @component */
     private EquinoxServiceFactory osgiServices;
@@ -52,7 +55,8 @@ public abstract class AbstractPublishMojo
     {
         try
         {
-            RepositoryReferences contextRepositories = getVisibleRepositories( false );
+            RepositoryReferences contextRepositories =
+                repositoryReferenceTool.getVisibleRepositories( getProject(), getSession(), 0 );
 
             PublisherServiceFactory publisherServiceFactory = osgiServices.getService( PublisherServiceFactory.class );
             File publisherRepoLocation =
@@ -74,11 +78,12 @@ public abstract class AbstractPublishMojo
     private void postPublishedIUs( Collection<?> units )
     {
         final MavenProject project = getProject();
-        List<Object> publishedIUs = (List<Object>) project.getContextValue( PUBLISHED_ROOT_IUS );
+        // TODO use own type for this
+        List<Object> publishedIUs = (List<Object>) project.getContextValue( TychoConstants.CTX_PUBLISHED_ROOT_IUS );
         if ( publishedIUs == null )
         {
             publishedIUs = new ArrayList<Object>();
-            project.setContextValue( PUBLISHED_ROOT_IUS, publishedIUs );
+            project.setContextValue( TychoConstants.CTX_PUBLISHED_ROOT_IUS, publishedIUs );
         }
         publishedIUs.addAll( units );
     }

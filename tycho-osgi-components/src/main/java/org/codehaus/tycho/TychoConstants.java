@@ -14,4 +14,5 @@ public interface TychoConstants {
     static final String CTX_MERGED_PROPERTIES = CTX_BASENAME + "/mergedProperties";
     static final String CTX_TARGET_PLATFORM_CONFIGURATION = CTX_BASENAME + "/targetPlatformConfiguration";
     static final String CTX_DEPENDENCY_WALKER = CTX_BASENAME + "/dependencyWalker";
+    static final String CTX_PUBLISHED_ROOT_IUS = CTX_BASENAME + "/publishedRootIUs";
 }

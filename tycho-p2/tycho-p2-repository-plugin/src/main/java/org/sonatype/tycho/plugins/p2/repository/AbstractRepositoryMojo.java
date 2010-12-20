@@ -1,4 +1,4 @@
-package org.sonatype.tycho.plugins.p2.publisher;
+package org.sonatype.tycho.plugins.p2.repository;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -7,19 +7,13 @@ import java.util.List;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.tycho.TychoProject;
-import org.codehaus.tycho.osgitools.EclipseRepositoryProject;
 import org.codehaus.tycho.utils.TychoProjectUtils;
-import org.sonatype.tycho.ArtifactKey;
 import org.sonatype.tycho.p2.tools.BuildContext;
 import org.sonatype.tycho.p2.tools.TargetEnvironment;
 
-// TODO share between Maven plug-ins?
-public abstract class AbstractP2Mojo
+public abstract class AbstractRepositoryMojo
     extends AbstractMojo
 {
-    
     /** @parameter expression="${session}" */
     private MavenSession session;
 
@@ -43,38 +37,19 @@ public abstract class AbstractP2Mojo
         return session;
     }
 
-    protected String getQualifier()
-    {
-        return qualifier;
-    }
-
     protected File getBuildDirectory()
     {
         return new File( getProject().getBuild().getDirectory() );
     }
 
-    protected EclipseRepositoryProject getEclipseRepositoryProject()
-    {
-        return (EclipseRepositoryProject) getTychoProjectFacet( ArtifactKey.TYPE_ECLIPSE_REPOSITORY );
-    }
-
-    private TychoProject getTychoProjectFacet( String packaging )
-    {
-        TychoProject facet;
-        try
-        {
-            facet = (TychoProject) session.lookup( TychoProject.class.getName(), packaging );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new IllegalStateException( "Could not lookup required component", e );
-        }
-        return facet;
-    }
-
     protected BuildContext getBuildContext()
     {
-        return new BuildContext( getQualifier(), getEnvironmentsForFacade(), getBuildDirectory() );
+        return new BuildContext( qualifier, getEnvironmentsForFacade(), getBuildDirectory() );
+    }
+
+    protected File getAssemblyRepositoryLocation()
+    {
+        return new File( getBuildDirectory(), "repository" );
     }
 
     /**
