@@ -108,6 +108,33 @@ public class LocalArtifactRepositoryTest
     }
 
     @Test
+    public void getMavenLocationWithClassifierAndExtension()
+    {
+        LocalArtifactRepository repo = new LocalArtifactRepository( basedir );
+
+        ArtifactDescriptor desc = newBundleArtifactDescriptor( true );
+
+        Assert.assertEquals( new File( basedir,
+                                       "group/org.sonatype.tycho.test.maven/1.0.0/org.sonatype.tycho.test.maven-1.0.0.jar" ).toURI(),
+                             repo.getLocation( desc ) );
+
+        desc.setProperty( RepositoryLayoutHelper.PROP_CLASSIFIER, "classifier.value" );
+        Assert.assertEquals( new File( basedir,
+                                       "group/org.sonatype.tycho.test.maven/1.0.0/org.sonatype.tycho.test.maven-1.0.0-classifier.value.jar" ).toURI(),
+                             repo.getLocation( desc ) );
+
+        desc.setProperty( RepositoryLayoutHelper.PROP_EXTENSION, "zip" );
+        Assert.assertEquals( new File( basedir,
+                                       "group/org.sonatype.tycho.test.maven/1.0.0/org.sonatype.tycho.test.maven-1.0.0-classifier.value.zip" ).toURI(),
+                             repo.getLocation( desc ) );
+
+        desc.setProperty( RepositoryLayoutHelper.PROP_CLASSIFIER, null );
+        Assert.assertEquals( new File( basedir,
+                                       "group/org.sonatype.tycho.test.maven/1.0.0/org.sonatype.tycho.test.maven-1.0.0.zip" ).toURI(),
+                             repo.getLocation( desc ) );
+    }
+
+    @Test
     public void addP2Artifact()
         throws Exception
     {

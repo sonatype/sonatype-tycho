@@ -234,8 +234,8 @@ public class LocalArtifactRepository
 
         File basedir = getBasedir();
 
-        String classifier = null;
-        String extension = null;
+        String classifier = descriptor.getProperty( RepositoryLayoutHelper.PROP_CLASSIFIER );
+        String extension = descriptor.getProperty( RepositoryLayoutHelper.PROP_EXTENSION );
 
         if ( "packed".equals( descriptor.getProperty( IArtifactDescriptor.FORMAT ) ) )
         {
