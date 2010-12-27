@@ -18,6 +18,9 @@ import org.eclipse.equinox.internal.p2.updatesite.SiteXMLAction;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherAdvice;
+import org.eclipse.equinox.p2.publisher.IPublisherInfo;
+import org.eclipse.equinox.p2.publisher.PublisherInfo;
+import org.eclipse.equinox.p2.publisher.actions.IFeatureRootAdvice;
 import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
 import org.eclipse.equinox.p2.publisher.eclipse.Feature;
 import org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction;
@@ -26,8 +29,11 @@ import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.P2Generator;
 import org.sonatype.tycho.p2.impl.publisher.model.ProductFile2;
+import org.sonatype.tycho.p2.impl.publisher.repo.FeatureRootfileArtifactRepository;
+import org.sonatype.tycho.p2.impl.publisher.repo.TransientArtifactRepository;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
+import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 import org.sonatype.tycho.p2.resolver.P2Resolver;
 
 @SuppressWarnings( "restriction" )
@@ -54,7 +60,8 @@ public class P2GeneratorImpl
         this( false );
     }
 
-    public void generateMetadata( List<IArtifactFacade> artifacts, File contentFile, File artifactsFile )
+    public void generateMetadata( List<IArtifactFacade> artifacts, Map<String, IArtifactFacade> attachedArtifacts,
+                                  File targetDir )
         throws IOException
     {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
@@ -62,18 +69,42 @@ public class P2GeneratorImpl
 
         for ( IArtifactFacade artifact : artifacts )
         {
-            super.generateMetadata( artifact, null, units, artifactDescriptors );
+            PublisherInfo publisherInfo = new PublisherInfo();
+
+            // meta data handling for root files
+            if ( "eclipse-feature".equals( artifact.getPackagingType() ) )
+            {
+                publisherInfo.setArtifactOptions( IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH );
+                FeatureRootfileArtifactRepository artifactsRepository =
+                    new FeatureRootfileArtifactRepository( publisherInfo, targetDir );
+                publisherInfo.setArtifactRepository( artifactsRepository );
+
+                super.generateMetadata( artifact, null, units, artifactDescriptors, publisherInfo );
+
+                attachedArtifacts.putAll( artifactsRepository.getPublishedArtifacts() );
+            }
+            else
+            {
+                TransientArtifactRepository artifactsRepository = new TransientArtifactRepository();
+                publisherInfo.setArtifactRepository( artifactsRepository );
+                super.generateMetadata( artifact, null, units, artifactDescriptors, publisherInfo );
+            }
         }
 
-        new MetadataIO().writeXML( units, contentFile );
-        new ArtifactsIO().writeXML( artifactDescriptors, artifactsFile );
+        new MetadataIO().writeXML( units,
+                                   attachedArtifacts.get( RepositoryLayoutHelper.CLASSIFIER_P2_METADATA ).getLocation() );
+        new ArtifactsIO().writeXML( artifactDescriptors,
+                                    attachedArtifacts.get( RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS ).getLocation() );
     }
 
-    @Override
     public void generateMetadata( IArtifactFacade artifact, List<Map<String, String>> environments,
                                   Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts )
     {
-        super.generateMetadata( artifact, environments, units, artifacts );
+        PublisherInfo publisherInfo = new PublisherInfo();
+        publisherInfo.setArtifactOptions( IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH );
+        publisherInfo.setArtifactRepository( new TransientArtifactRepository() );
+
+        super.generateMetadata( artifact, environments, units, artifacts, publisherInfo );
     }
 
     @Override
@@ -232,6 +263,12 @@ public class P2GeneratorImpl
         ArrayList<IPublisherAdvice> advice = new ArrayList<IPublisherAdvice>();
         advice.add( new MavenPropertiesAdvice( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion() ) );
         advice.add( getExtraEntriesAdvice( artifact ) );
+
+        IFeatureRootAdvice featureRootAdvice = FeatureRootAdvice.createRootFileAdvice( artifact );
+        if ( featureRootAdvice != null )
+        {
+            advice.add( featureRootAdvice );
+        }
         return advice;
     }
 }

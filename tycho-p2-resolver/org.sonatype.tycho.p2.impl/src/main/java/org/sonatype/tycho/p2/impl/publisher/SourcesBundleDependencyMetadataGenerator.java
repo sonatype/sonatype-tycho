@@ -11,6 +11,8 @@ import java.util.Set;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherAdvice;
+import org.eclipse.equinox.p2.publisher.IPublisherInfo;
+import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.eclipse.BundlesAction;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.osgi.service.resolver.BundleDescription;
@@ -19,6 +21,7 @@ import org.osgi.framework.BundleException;
 import org.sonatype.tycho.p2.DependencyMetadataGenerator;
 import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.IReactorArtifactFacade;
+import org.sonatype.tycho.p2.impl.publisher.repo.TransientArtifactRepository;
 
 @SuppressWarnings( "restriction" )
 public class SourcesBundleDependencyMetadataGenerator
@@ -35,7 +38,11 @@ public class SourcesBundleDependencyMetadataGenerator
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
         LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
 
-        super.generateMetadata( artifact, environments, units, artifactDescriptors );
+        PublisherInfo publisherInfo = new PublisherInfo();
+        publisherInfo.setArtifactOptions( IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH );
+        publisherInfo.setArtifactRepository( new TransientArtifactRepository() );
+
+        super.generateMetadata( artifact, environments, units, artifactDescriptors, publisherInfo );
 
         return new LinkedHashSet<Object>( units );
     }

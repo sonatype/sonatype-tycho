@@ -22,7 +22,7 @@ public class TransientArtifactRepository
     extends AbstractArtifactRepository
 {
 
-    private Set<IArtifactDescriptor> descriptors = new LinkedHashSet<IArtifactDescriptor>();
+    protected Set<IArtifactDescriptor> descriptors = new LinkedHashSet<IArtifactDescriptor>();
 
     private Set<IArtifactKey> keys = new LinkedHashSet<IArtifactKey>();
 

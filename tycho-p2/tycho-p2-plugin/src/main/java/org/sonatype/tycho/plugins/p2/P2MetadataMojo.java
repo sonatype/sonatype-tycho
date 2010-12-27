@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -86,42 +87,66 @@ public class P2MetadataMojo
             throw new IllegalStateException();
         }
 
-        File contentFile = new File( project.getBuild().getDirectory(), FILE_NAME_P2_METADATA );
-        File artifactsFile =
-            new File( project.getBuild().getDirectory(), FILE_NAME_P2_ARTIFACTS );
+        File targetDir = new File( project.getBuild().getDirectory() );
+
+        Map<String, IArtifactFacade> attachedArtifacts = new HashMap<String, IArtifactFacade>();
+
+        ArtifactFacade projectDefaultArtifact = new ArtifactFacade( project.getArtifact() );
+
+        Artifact p2contentArtifact =
+            createP2Artifact( projectDefaultArtifact, EXTENSION_P2_METADATA, CLASSIFIER_P2_METADATA,
+                              FILE_NAME_P2_METADATA, targetDir );
+        attachedArtifacts.put( CLASSIFIER_P2_METADATA, new ArtifactFacade( p2contentArtifact ) );
+
+        Artifact p2artifactsArtifact =
+            createP2Artifact( projectDefaultArtifact, EXTENSION_P2_ARTIFACTS, CLASSIFIER_P2_ARTIFACTS,
+                              FILE_NAME_P2_ARTIFACTS, targetDir );
+        attachedArtifacts.put( CLASSIFIER_P2_ARTIFACTS, new ArtifactFacade( p2artifactsArtifact ) );
 
         try
         {
             List<IArtifactFacade> artifacts = new ArrayList<IArtifactFacade>();
 
-            artifacts.add( new ArtifactFacade( project.getArtifact() ) );
+            artifacts.add( projectDefaultArtifact );
 
             for ( Artifact artifact : project.getArtifactMap().values() )
             {
                 artifacts.add( new ArtifactFacade( artifact ) );
             }
 
-            getP2Generator().generateMetadata( artifacts, contentFile, artifactsFile );
+            getP2Generator().generateMetadata( artifacts, attachedArtifacts, targetDir );
         }
         catch ( IOException e )
         {
             throw new MojoExecutionException( "Could not generate P2 metadata", e );
         }
 
-        projectHelper.attachArtifact( project, EXTENSION_P2_METADATA,
-                                      CLASSIFIER_P2_METADATA, contentFile );
+        for ( Entry<String, IArtifactFacade> entry : attachedArtifacts.entrySet() )
+        {
+            IArtifactFacade artifactFacade = entry.getValue();
 
-        projectHelper.attachArtifact( project, EXTENSION_P2_ARTIFACTS,
-                                      CLASSIFIER_P2_ARTIFACTS, artifactsFile );
+            projectHelper.attachArtifact( project, artifactFacade.getPackagingType(), artifactFacade.getClassidier(),
+                                          artifactFacade.getLocation() );
 
-        File localArtifactsFile =
-            new File( project.getBuild().getDirectory(), FILE_NAME_LOCAL_ARTIFACTS );
+        }
+
+        File localArtifactsFile = new File( project.getBuild().getDirectory(), FILE_NAME_LOCAL_ARTIFACTS );
         writeArtifactLocations( localArtifactsFile, getAllProjectArtifacts( project ) );
     }
 
+    private static DefaultArtifact createP2Artifact( ArtifactFacade projectDefaultArtifact, String extension,
+                                                     String classifier, String p2ArtifactFileName, File targetDir )
+    {
+        DefaultArtifact p2Artifact =
+            new DefaultArtifact( projectDefaultArtifact.getGroupId(), projectDefaultArtifact.getArtifactId(),
+                                 projectDefaultArtifact.getVersion(), null, extension, classifier, null );
+        p2Artifact.setFile( new File( targetDir, p2ArtifactFileName ) );
+        return p2Artifact;
+    }
+
     /**
-     * Returns a map from classifiers to artifact files of the given project. The classifier
-     * <code>null</code> is mapped to the project's main artifact.
+     * Returns a map from classifiers to artifact files of the given project. The classifier <code>null</code> is mapped
+     * to the project's main artifact.
      */
     private static Map<String, File> getAllProjectArtifacts( MavenProject project )
     {
