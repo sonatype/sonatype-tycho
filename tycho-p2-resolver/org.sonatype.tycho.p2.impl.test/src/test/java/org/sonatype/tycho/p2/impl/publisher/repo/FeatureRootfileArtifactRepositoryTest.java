@@ -15,7 +15,9 @@ import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.p2.repository.artifact.spi.ArtifactDescriptor;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.sonatype.tycho.p2.IArtifactFacade;
 import org.sonatype.tycho.p2.impl.publisher.FeatureRootAdvice;
 import org.sonatype.tycho.p2.impl.publisher.MavenPropertiesAdvice;
@@ -23,19 +25,20 @@ import org.sonatype.tycho.p2.impl.publisher.MavenPropertiesAdvice;
 @SuppressWarnings( "restriction" )
 public class FeatureRootfileArtifactRepositoryTest
 {
-    private final static File DEFAULT_OUTPUT_DIR = new File( "resources/rootfiles" );
-
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+    
     @Test
     public void testRepoWithAttachedArtifacts()
         throws Exception
     {
         FeatureRootfileArtifactRepository subject =
-            new FeatureRootfileArtifactRepository( createPublisherInfo( true ), DEFAULT_OUTPUT_DIR );
+            new FeatureRootfileArtifactRepository( createPublisherInfo( true ), tempFolder.newFolder( "testrootfiles" ) );
 
         IArtifactDescriptor artifactDescriptor =
             createArtifactDescriptor( PublisherHelper.BINARY_ARTIFACT_CLASSIFIER, "org.sonatype.tycho.test.p2" );
 
-        subject.getOutputStream( artifactDescriptor );
+        subject.getOutputStream( artifactDescriptor ).close();
 
         assertAttachedArtifact( subject.getPublishedArtifacts(), 1, "root", "org.sonatype.tycho.test.p2-1.0.0-root.zip" );
 
@@ -51,13 +54,13 @@ public class FeatureRootfileArtifactRepositoryTest
         throws Exception
     {
         FeatureRootfileArtifactRepository subject =
-            new FeatureRootfileArtifactRepository( createPublisherInfo( true ), DEFAULT_OUTPUT_DIR );
+            new FeatureRootfileArtifactRepository( createPublisherInfo( true ), tempFolder.newFolder( "testrootfiles" )  );
 
         IArtifactDescriptor artifactDescriptor =
             createArtifactDescriptor( PublisherHelper.BINARY_ARTIFACT_CLASSIFIER,
                                       "org.sonatype.tycho.test.p2.win32.win32.x86" );
 
-        subject.getOutputStream( artifactDescriptor );
+        subject.getOutputStream( artifactDescriptor ).close();
 
         assertAttachedArtifact( subject.getPublishedArtifacts(), 1, "root.win32.win32.x86",
                                 "org.sonatype.tycho.test.p2.win32.win32.x86-1.0.0-root.zip" );
@@ -71,26 +74,26 @@ public class FeatureRootfileArtifactRepositoryTest
 
     @Test( expected = ProvisionException.class )
     public void testRepoWithoutMavenAdvice()
-        throws ProvisionException
+        throws Exception
     {
         FeatureRootfileArtifactRepository subject =
-            new FeatureRootfileArtifactRepository( createPublisherInfo( false ), DEFAULT_OUTPUT_DIR );
+            new FeatureRootfileArtifactRepository( createPublisherInfo( false ), tempFolder.newFolder( "testrootfiles" )  );
 
         IArtifactDescriptor artifactDescriptor =
             createArtifactDescriptor( PublisherHelper.BINARY_ARTIFACT_CLASSIFIER, "org.sonatype.tycho.test.p2" );
-        subject.getOutputStream( artifactDescriptor );
+        subject.getOutputStream( artifactDescriptor ).close();
     }
 
     @Test
     public void testRepoForNonBinaryArtifacts()
-        throws ProvisionException
+        throws Exception
     {
         FeatureRootfileArtifactRepository subject =
-            new FeatureRootfileArtifactRepository( createPublisherInfo( true ), DEFAULT_OUTPUT_DIR );
+            new FeatureRootfileArtifactRepository( createPublisherInfo( true ), tempFolder.newFolder( "testrootfiles" )  );
 
         IArtifactDescriptor artifactDescriptor =
             createArtifactDescriptor( "non-binary-classifier", "org.sonatype.tycho.test.p2" );
-        subject.getOutputStream( artifactDescriptor );
+        subject.getOutputStream( artifactDescriptor ).close();
 
         Map<String, IArtifactFacade> attachedArtifacts = subject.getPublishedArtifacts();
         Assert.assertTrue( attachedArtifacts.size() == 0 );
