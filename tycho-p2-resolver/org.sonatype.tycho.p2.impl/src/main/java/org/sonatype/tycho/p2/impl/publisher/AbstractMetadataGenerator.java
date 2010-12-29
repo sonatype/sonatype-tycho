@@ -6,13 +6,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -20,9 +19,9 @@ import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
+import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.equinox.p2.metadata.VersionRange;
-import org.eclipse.equinox.p2.metadata.MetadataFactory.InstallableUnitDescription;
 import org.eclipse.equinox.p2.publisher.IPublisherAction;
 import org.eclipse.equinox.p2.publisher.IPublisherAdvice;
 import org.eclipse.equinox.p2.publisher.Publisher;
@@ -44,6 +43,10 @@ public abstract class AbstractMetadataGenerator
     {
         TransientArtifactRepository artifactsRepository = new TransientArtifactRepository();
         PublisherInfo publisherInfo = new PublisherInfo();
+
+        // TODO remove this when fix for Eclipse bug #332444 is integrated
+        publisherInfo.setMetadataRepository( new DummyMetadataRepository() );
+        
         publisherInfo.setArtifactRepository( artifactsRepository );
         for ( IPublisherAdvice advice : getPublisherAdvice( artifact ) )
         {
@@ -172,7 +175,7 @@ public abstract class AbstractMetadataGenerator
 
         if ( !status.isOK() )
         {
-            throw new RuntimeException( StatusTool.collectProblems( status ), new CoreException( status ) );
+            throw new RuntimeException( StatusTool.collectProblems( status ), status.getException() );
         }
 
         if ( units != null )

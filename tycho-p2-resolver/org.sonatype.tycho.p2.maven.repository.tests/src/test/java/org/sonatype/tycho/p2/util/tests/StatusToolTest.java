@@ -16,7 +16,8 @@ public class StatusToolTest
     public void testSimpleStatus()
     {
         IStatus status = new Status( IStatus.ERROR, PLUGIN_ID, "Simple error" );
-        assertEquals( "\"Simple error\"", StatusTool.collectProblems( status ) );
+        // no extra quotes if no MultiStatus
+        assertEquals( "Simple error", StatusTool.collectProblems( status ) );
     }
 
     @Test

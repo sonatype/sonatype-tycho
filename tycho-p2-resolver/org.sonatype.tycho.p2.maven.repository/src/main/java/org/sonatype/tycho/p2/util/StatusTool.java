@@ -5,11 +5,16 @@ import org.eclipse.core.runtime.IStatus;
 public class StatusTool
 {
     /**
-     * Composes a status message out of the messages of the given status and its recursive children. Children with
-     * status severity {@link IStatus#OK} don't add to the constructed message.
+     * Composes a status message out of the messages of the given status and its recursive children.
+     * Children with status severity {@link IStatus#OK} don't add to the constructed message.
      */
     public static String collectProblems( IStatus status )
     {
+        if ( status.getChildren() == null || status.getChildren().length == 0 )
+        {
+            return status.getMessage();
+        }
+
         StringBuilder result = new StringBuilder();
         collectProblems( result, status );
         return result.toString();

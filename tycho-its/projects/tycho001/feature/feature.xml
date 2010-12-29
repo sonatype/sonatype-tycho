@@ -16,6 +16,10 @@
       [Enter License Description here.]
    </license>
 
+   <url>
+      <discovery label="New discovery site" url="http://newsite"/>
+   </url>
+
    <plugin
          id="bundle"
          download-size="0"
