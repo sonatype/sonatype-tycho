@@ -98,11 +98,22 @@ public class DefaultTargetPlatformConfigurationReader
 
     private void addTargetEnvironments( TargetPlatformConfiguration result, MavenProject project, Xpp3Dom configuration )
     {
-        addDeprecatedTargetEnvironment( result, configuration );
+        TargetEnvironment deprecatedTargetEnvironmentSpec = getDeprecatedTargetEnvironment( configuration );
+        if ( deprecatedTargetEnvironmentSpec != null )
+        {
+            result.addEnvironment( deprecatedTargetEnvironmentSpec );
+        }
 
         Xpp3Dom environmentsDom = configuration.getChild( "environments" );
         if ( environmentsDom != null )
         {
+            if ( deprecatedTargetEnvironmentSpec != null )
+            {
+                String message =
+                    "Deprecated target-platform-configuration <environment> element must not be combined with new <environments> element; check the (inherited) configuration of "
+                        + project.getId();
+                throw new RuntimeException( message );
+            }
             for ( Xpp3Dom environmentDom : environmentsDom.getChildren( "environment" ) )
             {
                 result.addEnvironment( newTargetEnvironment( environmentDom ) );
@@ -110,14 +121,15 @@ public class DefaultTargetPlatformConfigurationReader
         }
     }
 
-    protected void addDeprecatedTargetEnvironment( TargetPlatformConfiguration result, Xpp3Dom configuration )
+    protected TargetEnvironment getDeprecatedTargetEnvironment( Xpp3Dom configuration )
     {
         Xpp3Dom environmentDom = configuration.getChild( "environment" );
         if ( environmentDom != null )
         {
-            logger.warn( "target-platform-configuration <environment/> element is deprecated, please use <environments/> instead." );
-            result.addEnvironment( newTargetEnvironment( environmentDom ) );
+            logger.warn( "target-platform-configuration <environment> element is deprecated; use <environments> instead" );
+            return newTargetEnvironment( environmentDom );
         }
+        return null;
     }
 
     private boolean getIgnoreTychoRepositories( Xpp3Dom configuration )
