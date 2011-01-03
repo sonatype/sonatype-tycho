@@ -13,7 +13,6 @@
   <name>Tycho Release Parent</name>
 
   <modules>
-    <module>tycho-enforcer-rules</module>
     <module>tycho-versions-plugin</module>
   </modules>
 
