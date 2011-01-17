@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="feature"
+      id="tycho242.feature"
       label="Feature"
       version="0.0.1.qualifier">
 
@@ -27,7 +27,7 @@
          id="fragment.linux"
          os="linux"
          ws="gtk"
-         arch="x86"
+         arch="x86_64"
          download-size="0"
          install-size="0"
          version="0.0.0"
@@ -38,6 +38,17 @@
          id="fragment.windows"
          os="win32"
          ws="win32"
+         arch="x86"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         fragment="true"
+         unpack="false"/>
+
+   <plugin
+         id="bundle.osx"
+         os="macosx"
+         ws="carbon"
          arch="x86"
          download-size="0"
          install-size="0"

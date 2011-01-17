@@ -6,4 +6,4 @@ Bundle-Version: 0.0.1.qualifier
 Fragment-Host: bundle;bundle-version="0.0.1"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Eclipse-PlatformFilter: (& (osgi.ws=gtk) (osgi.os=linux) (osgi.arch=x8
- 6))
+ 6_64))

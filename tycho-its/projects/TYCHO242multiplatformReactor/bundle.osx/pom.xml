@@ -6,7 +6,7 @@
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>fragment.linux</artifactId>
+  <artifactId>bundle.osx</artifactId>
   <packaging>eclipse-plugin</packaging>
 
   <build>
@@ -17,9 +17,9 @@
         <configuration>
           <environments>
             <environment>
-              <os>linux</os>
-              <ws>gtk</ws>
-              <arch>x86_64</arch>
+              <os>macosx</os>
+              <ws>carbon</ws>
+              <arch>x86</arch>
             </environment>
           </environments>
         </configuration>

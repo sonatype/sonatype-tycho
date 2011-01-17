@@ -6,22 +6,16 @@
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>fragment.linux</artifactId>
-  <packaging>eclipse-plugin</packaging>
+  <artifactId>deployablefeature</artifactId>
+  <packaging>eclipse-feature</packaging>
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.sonatype.tycho</groupId>
-        <artifactId>target-platform-configuration</artifactId>
+        <artifactId>maven-osgi-packaging-plugin</artifactId>
         <configuration>
-          <environments>
-            <environment>
-              <os>linux</os>
-              <ws>gtk</ws>
-              <arch>x86_64</arch>
-            </environment>
-          </environments>
+          <deployableFeature>true</deployableFeature>
         </configuration>
       </plugin>
     </plugins>
