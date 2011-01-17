@@ -195,7 +195,17 @@ public class OsgiBundleProject
             classpath.add( new DefaultClasspathEntry( otherProject, otherArtifact.getKey(), locations, entry.rules ) );
         }
         project.setContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_CLASSPATH, classpath );
+        addPDESourceRoots( project );
+    }
 
+    private void addPDESourceRoots( MavenProject project )
+    {
+        EclipsePluginProjectImpl eclipsePluginProject = getEclipsePluginProject(DefaultReactorProject.adapt( project ) );
+        for (BuildOutputJar outputJar : eclipsePluginProject.getOutputJars()) {
+            for (File sourceFolder : outputJar.getSourceFolders()) {
+                project.addCompileSourceRoot( sourceFolder.getAbsolutePath() );
+            }
+        }
     }
 
     public State getResolverState( MavenProject project )
