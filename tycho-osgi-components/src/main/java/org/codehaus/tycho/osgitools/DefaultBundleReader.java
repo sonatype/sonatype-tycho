@@ -15,12 +15,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
+import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.eclipse.osgi.service.pluginconversion.PluginConversionException;
 import org.eclipse.osgi.util.ManifestElement;
 import org.osgi.framework.BundleException;
@@ -38,6 +37,9 @@ public class DefaultBundleReader
     private File cacheDir;
 
     private static final Map<File, Manifest> manifestCache = new HashMap<File, Manifest>();
+
+    @Requirement( hint = "zip" )
+    private UnArchiver zipUnArchiver;
 
     public Manifest loadManifest( File bundleLocation )
     {
@@ -217,51 +219,25 @@ public class DefaultBundleReader
             File file = new File( bundleLocation, path );
             return file.exists() ? file : null;
         }
-
-        File file = new File( cacheDir, bundleLocation.getName() + "/" + path );
-
         try
         {
-            ZipFile zip = new ZipFile( bundleLocation );
-            try
+            zipUnArchiver.setSourceFile( bundleLocation );
+            File outputDirectory = new File( cacheDir, bundleLocation.getName() );
+            zipUnArchiver.extract( path, outputDirectory );
+            File result = new File( outputDirectory, path );
+            if ( result.exists() )
             {
-                ZipEntry ze = zip.getEntry( path );
-                if ( ze != null )
-                {
-                    if ( ze.isDirectory() )
-                    {
-                        ZipUnArchiver zipUnArchiver = new ZipUnArchiver( bundleLocation );
-                        try
-                        {
-                            zipUnArchiver.extract( path, new File( cacheDir, bundleLocation.getName() ) );
-                        }
-                        catch ( ArchiverException e )
-                        {
-                            throw new RuntimeException( e );
-                        }
-                    }
-                    else
-                    {
-                        InputStream is = zip.getInputStream( ze );
-                        FileUtils.copyStreamToFile( new RawInputStreamFacade( is ), file );
-                    }
-                    return file;
-                }
-                else
-                {
-                    getLogger().debug( "Bundle entry " + bundleLocation + "!/" + path + " does not exist" );
-                }
+                return result;
             }
-            finally
+            else
             {
-                zip.close();
+                getLogger().warn( "Could not read bundle entry " + bundleLocation + "!/" + path );
+                return null;
             }
         }
-        catch ( IOException e )
+        catch ( ArchiverException e )
         {
-            getLogger().warn( "Could not read bundle entry " + bundleLocation + "!/" + path, e );
+            throw new RuntimeException( e );
         }
-
-        return null;
     }
 }
