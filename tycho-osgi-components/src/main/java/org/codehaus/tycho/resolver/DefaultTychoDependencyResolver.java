@@ -18,6 +18,7 @@ import org.codehaus.tycho.TychoConstants;
 import org.codehaus.tycho.TychoProject;
 import org.codehaus.tycho.maven.MavenDependencyCollector;
 import org.codehaus.tycho.osgitools.AbstractTychoProject;
+import org.codehaus.tycho.osgitools.BundleReader;
 import org.codehaus.tycho.osgitools.DebugUtils;
 import org.sonatype.tycho.ReactorProject;
 import org.sonatype.tycho.resolver.DependencyVisitor;
@@ -37,7 +38,10 @@ public class DefaultTychoDependencyResolver
     private DefaultTargetPlatformResolverFactory targetPlatformResolverLocator;
 
     @Requirement( role = TychoProject.class )
-    private Map<String, TychoProject> projectTypes;
+    private Map<String, TychoProject> projectTypes; 
+    
+    @Requirement
+    private BundleReader bundleReader;
 
     public void setupProject( MavenSession session, MavenProject project, ReactorProject reactorProject )
     {
@@ -94,7 +98,7 @@ public class DefaultTychoDependencyResolver
 
         dr.resolve( session, project );
 
-        MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, logger );
+        MavenDependencyCollector dependencyCollector = new MavenDependencyCollector( project, bundleReader, logger );
         dr.getDependencyWalker( project ).walk( dependencyCollector );
 
         if ( logger.isDebugEnabled() && DebugUtils.isDebugEnabled( session, project ) )
