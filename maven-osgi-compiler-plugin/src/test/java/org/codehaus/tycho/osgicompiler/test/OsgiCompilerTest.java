@@ -12,8 +12,15 @@ import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.sonatype.tycho.classpath.SourcepathEntry;
 
+import com.sun.org.apache.bcel.internal.classfile.ClassFormatException;
+import com.sun.org.apache.bcel.internal.classfile.ClassParser;
+import com.sun.org.apache.bcel.internal.classfile.JavaClass;
+
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
+    private static final int TARGET_1_4 = 48;
+    private static final int TARGET_1_5 = 49;
+    
 	protected File storage;
 	
 	@Override
@@ -182,11 +189,12 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		File basedir = getBasedir("projects/executionEnvironment");
 		List<MavenProject> projects = getSortedProjects(basedir, null);
 		MavenProject project;
-		// project which compiles with source level 1.6 only
-		project = projects.get(1);
-		getMojo(projects, project).execute();
-		assertTrue(new File(project.getBasedir(),
-				"target/classes/TestRunnable.class").canRead());
+        // project with neither POM nor MANIFEST configuration => must fallback to 
+		// source/target level == 1.5
+        project = projects.get( 1 );
+        getMojo( projects, project ).execute();
+        assertBytecodeMajorLevel( TARGET_1_5, new File( project.getBasedir(), "target/classes/Generic.class" ) );
+
 		// project with multiple execution envs.
 		// Minimum source and target level must be taken
 		project = projects.get(2);
@@ -204,9 +212,16 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertEquals("1.5", mojo.getSourceLevel());
 		assertEquals("J2SE-1.5", mojo.getExecutionEnvironment());
 		mojo.execute();
-		assertTrue(new File(project.getBasedir(),
-				"target/classes/Generic.class").canRead()); // TODO check if target class is actually 1.4
+        assertBytecodeMajorLevel( TARGET_1_4, new File( project.getBasedir(), "target/classes/Generic.class" ) );
 	}
+
+    private void assertBytecodeMajorLevel( int majorLevel, File classFile )
+        throws ClassFormatException, IOException
+    {
+        assertTrue( classFile.canRead() );
+        JavaClass javaClass = new ClassParser( classFile.getAbsolutePath() ).parse();
+        assertEquals( majorLevel, javaClass.getMajor() );
+    }
 
     public void test_TYCHO0400indirectDependencies()
         throws Exception
