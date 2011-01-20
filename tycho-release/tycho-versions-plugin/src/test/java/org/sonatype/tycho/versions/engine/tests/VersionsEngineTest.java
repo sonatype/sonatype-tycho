@@ -96,6 +96,27 @@ public class VersionsEngineTest
         assertBundleManifest( new File( basedir, "detached" ) );
     }
 
+    public void testAllModules()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir( "projects/allmodules" );
+
+        VersionsEngine engine = lookup( VersionsEngine.class );
+        engine.addBasedir( basedir );
+        engine.addVersionChangeForAllModules( "1.0.1.qualifier" );
+        engine.apply();
+
+        assertPom( basedir );
+
+        assertPom( new File( basedir, "parent" ) );
+
+        assertPom( new File( basedir, "bundle" ) );
+        assertBundleManifest( new File( basedir, "bundle" ) );
+
+        assertPom( new File( basedir, "detached" ) );
+        assertBundleManifest( new File( basedir, "detached" ) );
+    }
+
     public void testDependencySimple()
         throws Exception
     {

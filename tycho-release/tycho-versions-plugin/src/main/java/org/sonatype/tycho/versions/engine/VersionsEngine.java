@@ -66,12 +66,27 @@ public class VersionsEngine
     {
         ProjectMetadata project = getProject( artifactId );
 
-        if ( project == null )
+        if (project == null)
         {
             // totally inappropriate. yuck.
-            throw new IOException( "Project with artifactId=" + artifactId + " cound not be found" );
+            throw new IOException( "Project with artifactId=" + artifactId
+                    + " cound not be found" );
         }
 
+        addVersionChangeForProject( newVersion, project );
+    }
+
+    public void addVersionChangeForAllModules( String newVersion )
+        throws IOException
+    {
+        for (ProjectMetadata project : projects.values())
+        {
+            addVersionChangeForProject( newVersion, project );
+        }
+    }
+
+    private void addVersionChangeForProject( String newVersion, ProjectMetadata project )
+    {
         MutablePomFile pom = project.getMetadata( MutablePomFile.class );
 
         if ( !newVersion.equals( pom.getEffectiveVersion() ) )

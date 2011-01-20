@@ -38,6 +38,11 @@ public class SetMojo
     private String artifacts;
 
     /**
+     * @parameter expression="${allModules}" default-value="false"
+     */
+    private boolean allModules;
+
+    /**
      * @parameter expression="${session}"
      */
     protected MavenSession session;
@@ -59,12 +64,19 @@ public class SetMojo
         {
             engine.addBasedir( session.getCurrentProject().getBasedir() );
 
-            // initial changes
-            StringTokenizer st = new StringTokenizer( artifacts, "," );
-            while ( st.hasMoreTokens() )
+            if (allModules)
             {
-                String artifactId = st.nextToken().trim();
-                engine.addVersionChange( artifactId, newVersion );
+            	engine.addVersionChangeForAllModules(newVersion);
+            }
+            else
+            {
+            	// initial changes
+            	StringTokenizer st = new StringTokenizer( artifacts, "," );
+            	while ( st.hasMoreTokens() )
+            	{
+            		String artifactId = st.nextToken().trim();
+            		engine.addVersionChange( artifactId, newVersion );
+            	}
             }
 
             engine.apply();
