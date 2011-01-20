@@ -26,7 +26,7 @@ public class PomManipulator
             && !isVersionEquals( change.getNewVersion(), parent.getVersion() ) )
         {
             String explicitVersion = pom.getVersion();
-            if ( explicitVersion == null || isVersionEquals( explicitVersion, change.getVersion() ) )
+            if ( explicitVersion == null )
             {
                 return allChanges.add( new VersionChange( pom, change.getVersion(), change.getNewVersion() ) );
             }
