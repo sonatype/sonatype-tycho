@@ -61,6 +61,47 @@ public class VersionsEngine
         }
     }
 
+    /**
+     * Creates a release version: removes the artifact's version -SNAPSHOT / .qualifier part.
+     */
+    public void addToReleaseVersionChange(String artifactId)
+        throws IOException
+    {
+        ProjectMetadata project = getProject(artifactId);
+
+        if ( project == null )
+        {
+            // totally inappropriate. yuck.
+            throw new IOException("Project with artifactId=" + artifactId
+                    + " cound not be found");
+        }
+
+        addToReleaseVersionChangeForProject(project);
+    }
+
+    private void addToReleaseVersionChangeForProject(ProjectMetadata project)
+    {
+        MutablePomFile pom = project.getMetadata(MutablePomFile.class);
+        String newVersion = toReleaseVersion(pom.getEffectiveVersion());
+
+        if ( !newVersion.equals( pom.getEffectiveVersion() ) )
+        {
+            changes.add(new VersionChange(pom, newVersion));
+        }
+    }
+    
+    /**
+     * Creates a release version: removes the artifact's version -SNAPSHOT / .qualifier part.
+     */
+    public void addToReleaseVersionChangesForAllModules()
+    throws IOException
+    {
+        for (ProjectMetadata project : projects.values())
+        {
+            addToReleaseVersionChangeForProject(project);
+        }
+    }
+
     public void addVersionChange( String artifactId, String newVersion )
         throws IOException
     {
@@ -200,6 +241,26 @@ public class VersionsEngine
         }
     
         return version;
+    }
+    
+    public static String toReleaseVersion( String version )
+    {
+    	if ( version == null )
+    	{
+    		return null;
+    	}
+    	
+    	if ( version.endsWith( SUFFIX_SNAPSHOT ) )
+    	{
+    		return version.substring( 0, version.length() - SUFFIX_SNAPSHOT.length() );
+    	}
+    	
+    	if ( version.endsWith( SUFFIX_QUALIFIER ) )
+    	{
+    		return version.substring( 0, version.length() - SUFFIX_QUALIFIER.length() );
+    	}
+    	
+    	return version;
     }
 
 }

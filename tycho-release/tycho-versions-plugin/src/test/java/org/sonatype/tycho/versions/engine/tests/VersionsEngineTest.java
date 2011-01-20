@@ -311,4 +311,51 @@ public class VersionsEngineTest
         }
         return sb.toString();
     }
+    
+    public void testToReleaseVersionMethod()
+    {
+        assertEquals("1.2.3", VersionsEngine.toReleaseVersion("1.2.3-SNAPSHOT"));
+        assertEquals("1.2.3", VersionsEngine.toReleaseVersion("1.2.3.qualifier"));
+        assertEquals("1.2", VersionsEngine.toReleaseVersion("1.2-SNAPSHOT"));
+        assertEquals("1.2", VersionsEngine.toReleaseVersion("1.2.qualifier"));
+        assertEquals("1", VersionsEngine.toReleaseVersion("1-SNAPSHOT"));
+        assertEquals("1", VersionsEngine.toReleaseVersion("1.qualifier"));
+        assertEquals("1.2.3-A-B", VersionsEngine.toReleaseVersion("1.2.3-A-B-SNAPSHOT"));
+        assertEquals("1.2.3.A.B", VersionsEngine.toReleaseVersion("1.2.3.A.B.qualifier"));
+        assertEquals("1.2.3", VersionsEngine.toReleaseVersion("1.2.3"));
+        assertEquals(null, VersionsEngine.toReleaseVersion(null));
+    }
+
+    public void testReleaseVersion()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir("projects/releaseversion");
+
+        VersionsEngine engine = lookup(VersionsEngine.class);
+        engine.addBasedir(basedir);
+        engine.addToReleaseVersionChange("parent");
+        engine.addToReleaseVersionChange("bundle");
+        engine.apply();
+
+        assertPom(basedir);
+
+        assertPom(new File(basedir, "bundle"));
+        assertBundleManifest(new File(basedir, "bundle"));
+    }
+
+    public void testReleaseVersionAllChildren()
+        throws Exception
+    {
+        File basedir = TestUtil.getBasedir("projects/releaseversion");
+
+        VersionsEngine engine = lookup(VersionsEngine.class);
+        engine.addBasedir(basedir);
+        engine.addToReleaseVersionChangesForAllModules();
+        engine.apply();
+
+        assertPom(basedir);
+
+        assertPom(new File(basedir, "bundle"));
+        assertBundleManifest(new File(basedir, "bundle"));
+    }
 }
