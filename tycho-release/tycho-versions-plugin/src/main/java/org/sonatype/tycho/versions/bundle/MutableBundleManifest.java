@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PushbackReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +24,16 @@ import org.osgi.framework.Constants;
 public class MutableBundleManifest
 {
 
-    private List<ManifestAttribute> lines = new ArrayList<ManifestAttribute>();
-
+    private final List<ManifestAttribute> attributes = new ArrayList<ManifestAttribute>();
+    
+    private String lineEnding = "";
     private String unparsed;
 
-    public void add( ManifestAttribute line )
+    public void add( ManifestAttribute attribute )
     {
-        lines.add( line );
+        attributes.add( attribute );
     }
-
+    
     public static MutableBundleManifest read( File file )
         throws IOException
     {
@@ -49,20 +51,15 @@ public class MutableBundleManifest
     public static MutableBundleManifest read( InputStream is )
         throws IOException
     {
-        BufferedReader br = new BufferedReader( new InputStreamReader( is, "UTF8" ) );
+        PushbackReader br = new PushbackReader( new BufferedReader( new InputStreamReader( is, "UTF8" ) ), 1 );
 
         MutableBundleManifest mf = new MutableBundleManifest();
         ManifestAttribute curr = null;
 
         String str;
-        while ( ( str = br.readLine() ) != null )
+        while ( ( str = readLineWithLineEnding( br, mf ) ) != null )
         {
-            if ( str.length() == 0 )
-            {
-                break;
-            }
-
-            if ( str.length() == 0 )
+            if ( str.trim().length() == 0 )
             {
                 break;
             }
@@ -72,7 +69,7 @@ public class MutableBundleManifest
                 {
                     throw new IOException( "" );
                 }
-                curr.add( str.substring( 1 ) );
+                curr.add( str );
             }
             else
             {
@@ -83,7 +80,7 @@ public class MutableBundleManifest
 
         if ( str != null )
         {
-            StringBuilder sb = new StringBuilder( "\r\n" );
+            StringBuilder sb = new StringBuilder( str );
             int ch;
             while ( ( ch = br.read() ) != -1 )
             {
@@ -94,7 +91,55 @@ public class MutableBundleManifest
 
         return mf;
     }
+    
+    private static String readLineWithLineEnding( PushbackReader reader, MutableBundleManifest mf ) throws IOException
+    {
+        StringBuilder result = new StringBuilder();
+        int ch, lastch = -1;
+        
+        while ( ( ch = reader.read() ) != -1 )
+        {
+            if (lastch == '\r')
+            {
+                if (ch == '\n')
+                {
+                    result.append( (char) ch );
+                    mf.setLineEndingWhenFirstLine( "\r\n" );
+                }
+                else
+                {
+                    reader.unread( ch );
+                    mf.setLineEndingWhenFirstLine( "\r" );
+                }
+                break;
+            }
+            
+            result.append( (char) ch );
+            
+            if (ch == '\n' || ch == '\u2028' || ch == '\u2029' || ch == '\u0085') // see Scanner#LINE_SEPARATOR_PATTERN
+            {
+                mf.setLineEndingWhenFirstLine( new String(new char[] { (char) ch } ));
+                break;
+            }
+            
+            lastch = ch;
+        }
+        
+        if (result.length() > 0)
+        {
+            return result.toString();
+        }
+        return null;
+    }
 
+    private void setLineEndingWhenFirstLine( String lineEnding )
+    {
+        if (this.lineEnding.length() == 0 && lineEnding != null)
+        {
+            this.lineEnding = lineEnding;
+        }
+    }
+    
     private void setUnparsed( String unparsed )
     {
         this.unparsed = unparsed;
@@ -119,15 +164,10 @@ public class MutableBundleManifest
     {
         Writer w = new OutputStreamWriter( os, "UTF8" );
 
-        for ( int i = 0; i < mf.lines.size(); i++ )
+        for ( ManifestAttribute attribute : mf.attributes )
         {
-            if ( i > 0 )
-            {
-                w.write( "\r\n" );
-            }
-            mf.lines.get( i ).writeTo( w );
+            attribute.writeTo( w, mf.lineEnding );
         }
-        w.write( "\r\n" );
 
         if ( mf.unparsed != null )
         {
@@ -140,13 +180,21 @@ public class MutableBundleManifest
     public String getSymbolicName()
     {
         ManifestElement[] id = parseHeader( Constants.BUNDLE_SYMBOLICNAME );
-        return id[0].getValue();
+        if (id != null && id.length > 0)
+        {
+            return id[0].getValue();
+        }
+        return null;
     }
 
     public String getVersion()
     {
         ManifestElement[] version = parseHeader( Constants.BUNDLE_VERSION );
-        return version[0].getValue();
+        if (version != null && version.length > 0)
+        {
+            return version[0].getValue();
+        }
+        return null;
     }
 
     private ManifestElement[] parseHeader( String name )
@@ -168,11 +216,11 @@ public class MutableBundleManifest
 
     private ManifestAttribute getAttribute( String name )
     {
-        for ( ManifestAttribute line : lines )
+        for ( ManifestAttribute attribute : attributes )
         {
-            if ( line.hasName( name ) )
+            if ( attribute.hasName( name ) )
             {
-                return line;
+                return attribute;
             }
         }
         return null;
@@ -187,7 +235,7 @@ public class MutableBundleManifest
         }
         else
         {
-            lines.add( new ManifestAttribute( Constants.BUNDLE_VERSION, version ) );
+            attributes.add( new ManifestAttribute( Constants.BUNDLE_VERSION, version ) );
         }
     }
 

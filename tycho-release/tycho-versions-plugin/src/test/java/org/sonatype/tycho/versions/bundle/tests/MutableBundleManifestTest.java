@@ -1,16 +1,15 @@
 package org.sonatype.tycho.versions.bundle.tests;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 import org.junit.Test;
+import org.sonatype.tycho.versions.bundle.ManifestAttribute;
 import org.sonatype.tycho.versions.bundle.MutableBundleManifest;
 import org.sonatype.tycho.versions.pom.tests.MutablePomFileTest;
 
@@ -46,6 +45,86 @@ public class MutableBundleManifestTest
 
         mf.setVersion( "1.0.1.qualifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr" );
         assertContents( mf, "/manifests/setVersion.mf_expected72" );
+    }
+    
+    @Test
+    public void addAttribute()
+    	throws Exception
+    {
+    	MutableBundleManifest mf = getManifest( "/manifests/addheader.mf" );
+    	mf.add(new ManifestAttribute("header", "value"));
+    	assertContents(mf, "/manifests/addheader.mf_expected");
+    }
+    
+    @Test
+    public void shouldRoundtripWithoutLineEnding()
+        throws Exception
+    {
+        // given
+        String manifestStr = "Bundle-SymbolicName: name";
+        
+        // when
+        InputStream manifestIs = new ByteArrayInputStream( manifestStr.getBytes("ascii") );
+        MutableBundleManifest manifest = MutableBundleManifest.read( manifestIs );
+        String written = toAsciiString( manifest );
+        
+        // then
+        Assert.assertEquals(manifestStr, written);
+        Assert.assertEquals("name", manifest.getSymbolicName());
+    }
+
+    @Test
+    public void shouldPreserveWindowsLineEndings()
+        throws Exception
+    {
+        // given
+        String manifestStr = "Bundle-SymbolicName: name\r\nBundle-Version: version\r\n\r\nUnparsed1\r\nUnparsed2\r\n";
+        
+        // when
+        InputStream manifestIs = new ByteArrayInputStream( manifestStr.getBytes("ascii") );
+        MutableBundleManifest manifest = MutableBundleManifest.read( manifestIs );
+        String written = toAsciiString( manifest );
+        
+        // then
+        Assert.assertEquals(manifestStr, written);
+        Assert.assertEquals("name", manifest.getSymbolicName());
+        Assert.assertEquals("version", manifest.getVersion());
+    }
+
+    @Test
+    public void shouldPreserveUnixLineEndings()
+        throws Exception
+    {
+        // given
+        String manifestStr = "Bundle-SymbolicName: name\nBundle-Version: version\n\nUnparsed1\nUnparsed2\n";
+        
+        // when
+        InputStream manifestIs = new ByteArrayInputStream( manifestStr.getBytes("ascii") );
+        MutableBundleManifest manifest = MutableBundleManifest.read( manifestIs );
+        String written = toAsciiString( manifest );
+        
+        // then
+        Assert.assertEquals(manifestStr, written);
+        Assert.assertEquals("name", manifest.getSymbolicName());
+        Assert.assertEquals("version", manifest.getVersion());
+    }
+
+    @Test
+    public void shouldPreserveOldMacLineEndings()
+        throws Exception
+    {
+        // given
+        String manifestStr = "Bundle-SymbolicName: name\rBundle-Version: version\r\rUnparsed1\rUnparsed2\r";
+        
+        // when
+        InputStream manifestIs = new ByteArrayInputStream( manifestStr.getBytes("ascii") );
+        MutableBundleManifest manifest = MutableBundleManifest.read( manifestIs );
+        String written = toAsciiString( manifest );
+        
+        // then
+        Assert.assertEquals(manifestStr, written);
+        Assert.assertEquals("name", manifest.getSymbolicName());
+        Assert.assertEquals("version", manifest.getVersion());
     }
 
     private void assertRoundtrip( String path )
@@ -97,26 +176,7 @@ public class MutableBundleManifestTest
     private static String toAsciiString( byte[] bytes )
         throws UnsupportedEncodingException
     {
-        BufferedReader r = new BufferedReader( new InputStreamReader( new ByteArrayInputStream( bytes ), "ascii" ) );
-        try
-        {
-            StringBuilder sb = new StringBuilder();
-            String str;
-            while ( ( str = r.readLine() ) != null )
-            {
-                sb.append( str ).append( '\n' );
-            }
-
-            return sb.toString();
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
-        finally
-        {
-            IOUtil.close( r );
-        }
+    	return new String(bytes, "ascii");
     }
 
 }
