@@ -572,10 +572,7 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
                             "-Dosgi.ws=" + PlatformPropertiesUtils.getWS( properties ), //
                             "-Dosgi.arch=" + PlatformPropertiesUtils.getArch( properties ) );
 
-        if ( argLine != null )
-        {
-            cli.addVMArguments( true, argLine );
-        }
+        addVMArgs( cli , argLine );
 
         if ( systemProperties != null )
         {
@@ -608,15 +605,28 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
         {
             cli.addProgramArguments( "-nouithread" );
         }
-        if ( appArgLine != null )
-        {
-            cli.addProgramArguments( true, appArgLine );
-        }
+        addProgramArgs( cli , appArgLine );
         if ( environmentVariables != null )
         {
             cli.addEnvironmentVariables( environmentVariables );
         }
         return cli;
+    }
+
+    void addProgramArgs( EquinoxLaunchConfiguration cli , String appArgLine)
+    {
+        if ( appArgLine != null )
+        {
+            cli.addProgramArguments( false, appArgLine );
+        }
+    }
+
+    void addVMArgs( EquinoxLaunchConfiguration cli , String argLine)
+    {
+        if ( argLine != null )
+        {
+            cli.addVMArguments( false, argLine );
+        }
     }
 
 	private String getTestApplication(EquinoxInstallationDescription testRuntime) {
