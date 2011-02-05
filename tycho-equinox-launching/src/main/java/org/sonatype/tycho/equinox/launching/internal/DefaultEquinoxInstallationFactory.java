@@ -18,6 +18,7 @@ import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.tycho.TychoConstants;
@@ -40,6 +41,9 @@ public class DefaultEquinoxInstallationFactory
 
     @Requirement
     private BundleReader manifestReader;
+
+    @Requirement
+    private Logger log;
 
     public EquinoxInstallation createInstallation( EquinoxInstallationDescription description, File location )
     {
@@ -217,6 +221,7 @@ public class DefaultEquinoxInstallationFactory
     protected String toOsgiBundles( Map<ArtifactKey, File> bundles, Map<String, BundleStartLevel> startLevel )
         throws IOException
     {
+    	log.debug("Installation OSGI bundles:");
         StringBuilder result = new StringBuilder();
         for ( Map.Entry<ArtifactKey, File> entry : bundles.entrySet() )
         {
@@ -229,15 +234,19 @@ public class DefaultEquinoxInstallationFactory
             {
                 result.append( "," );
             }
-            result.append( appendAbsolutePath( entry.getValue() ) );
+            
+            StringBuilder line = new StringBuilder();
+        	line.append( appendAbsolutePath( entry.getValue() ) );
             if ( level != null )
             {
-                result.append( '@' ).append( level.getLevel() );
+            	line.append( '@' ).append( level.getLevel() );
                 if ( level.isAutoStart() )
                 {
-                    result.append( ":start" );
+                	line.append( ":start" );
                 }
             }
+            log.debug( "\t" + line );
+            result.append(line.toString());
         }
         return result.toString();
     }
