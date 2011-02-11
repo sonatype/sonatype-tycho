@@ -17,11 +17,15 @@ import org.osgi.framework.Version;
 
 /**
  * This mojo generates build qualifier according to the rules outlined in
- * http://help.eclipse.org/ganymede/topic/org.eclipse.pde.doc.user/tasks/pde_version_qualifiers.htm 1. explicit
- * -DforceContextQualifier 2. forceContextQualifier from ${project.baseDir}/build.properties 3. the tag that was used to
- * fetch the bundle (only when using map file) 4. a time stamp in the form YYYYMMDDHHMM (ie 200605121600) The generated
- * qualifier is assigned to <code>buildQualifier</code> project property. Unqualified project version is assigned to
- * <code>unqualifiedVersion</code> project property. Unqualified version is calculated based on
+ * http://help.eclipse.org/ganymede/topic/org.eclipse.pde.doc.user/tasks/pde_version_qualifiers.htm
+ * <ol>
+ * <li>explicit -DforceContextQualifier command line parameter</li>
+ * <li>forceContextQualifier from ${project.baseDir}/build.properties</li>
+ * <li>the tag that was used to fetch the bundle (only when using map file)</li>
+ * <li>a time stamp in the form YYYYMMDDHHMM (ie 200605121600)</li>
+ * </ol>
+ * The generated qualifier is assigned to <code>buildQualifier</code> project property. Unqualified project version is
+ * assigned to <code>unqualifiedVersion</code> project property. Unqualified version is calculated based on
  * <code>${project.version}</code> and can be used for any Tycho project (eclipse-update-site, eclipse-application, etc)
  * and regular maven project. Implementation guarantees that the same timestamp is used for all projects in reactor
  * build. Different projects can use different formats to expand the timestamp, however (highly not recommended but
