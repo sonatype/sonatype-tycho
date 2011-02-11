@@ -5,8 +5,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.maven.it.util.StringUtils;
-
 public class ManifestAttribute
 {
     private List<String> lines = new ArrayList<String>();
@@ -88,8 +86,8 @@ public class ManifestAttribute
 
     public void set( String name, String value )
     {
-        String attribute = StringUtils.defaultString(name).trim() + ": "
-        	+ StringUtils.defaultString(value).trim();
+        String attribute = (name != null ? name.trim() : "") + ": "
+        	+ (value != null ? value.trim() : "");
     	
     	lines.clear();
         while (attribute.length() > 71)
