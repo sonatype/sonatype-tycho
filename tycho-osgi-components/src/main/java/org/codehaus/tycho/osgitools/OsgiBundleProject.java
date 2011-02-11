@@ -227,11 +227,6 @@ public class OsgiBundleProject
         }
     }
 
-//    public EclipsePluginProjectImpl getEclipsePluginProject( MavenProject otherProject )
-//    {
-//        
-//    }
-    
     public EclipsePluginProjectImpl getEclipsePluginProject( ReactorProject otherProject )
     {
         EclipsePluginProjectImpl pdeProject =
@@ -269,46 +264,29 @@ public class OsgiBundleProject
         EclipsePluginProject pdeProject = getEclipsePluginProject( otherProject );
 
         Map<String, BuildOutputJar> outputJars = pdeProject.getOutputJarMap();
+        String[] bundleClassPath;
         if ( nestedPath == null )
         {
-            for ( String cp : parseBundleClasspath( bundle ) )
-            {
-                if ( outputJars.containsKey( cp ) )
-                {
-                    // add output folder even if it does not exist (yet)
-                    classpath.add( outputJars.get( cp ).getOutputDirectory() );
-                }
-                else
-                {
-                    File jar = new File( otherProject.getBasedir(), cp );
-                    if ( jar.exists() )
-                    {
-                        classpath.add( jar );
-                    }
-                    else
-                    {
-                        getLogger().warn( "Missing classpath entry " + cp + " " + otherProject.toString() );
-                    }
-                }
-            }
+            bundleClassPath = parseBundleClasspath( bundle );
         }
         else
-        /* nestedPath != null */
         {
-            File jar = new File( otherProject.getBasedir(), nestedPath );
-
-            // TODO ideally, we need to honour build.properties/bin.includes
-            // but for now lets just assume nestedPath is included
-            if ( jar.exists() || outputJars.containsKey( nestedPath ) )
+            bundleClassPath = new String[] { nestedPath };
+        }
+        for ( String cp : bundleClassPath )
+        {
+            if ( outputJars.containsKey( cp ) )
             {
-                classpath.add( jar );
+                // add output folder even if it does not exist (yet)
+                classpath.add( outputJars.get( cp ).getOutputDirectory() );
             }
             else
             {
-                getLogger().warn( "Missing classpath entry " + nestedPath + " " + otherProject.toString() );
+                // no associated output folder 
+                // => assume it's checked into SCM or will be copied here later during build
+                classpath.add( new File( otherProject.getBasedir(), cp ) );
             }
         }
-
         return new ArrayList<File>( classpath );
     }
 

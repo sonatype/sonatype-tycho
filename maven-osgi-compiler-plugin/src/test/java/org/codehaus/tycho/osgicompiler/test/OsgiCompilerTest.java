@@ -7,15 +7,12 @@ import java.util.List;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.osgicompiler.AbstractOsgiCompilerMojo;
 import org.codehaus.tycho.osgicompiler.copied.CompilationFailureException;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
-import org.junit.Assert;
 import org.sonatype.tycho.classpath.SourcepathEntry;
 
 
@@ -112,6 +109,17 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertEquals( getClasspathElement( project.getBasedir(), "target/classes", "" ), cp.get( 0 ) );
 		assertEquals( getClasspathElement( new File( getBasedir() ), plainJarPath, "[?**/*]" ), cp.get( 1 ) );
 		assertEquals( getClasspathElement( new File( getBasedir() ), nestedJarPath, "[?**/*]" ), cp.get( 2 ) );
+
+        // project with a (not yet) existing nested jar that would be copied later during build 
+		// (wrapper scenario with copy-pom-dependencies)
+        project = projects.get( 4 );
+        mojo = getMojo( projects, project );
+        mojo.execute();
+        cp = mojo.getClasspathElements();
+        assertEquals( 3, cp.size() );
+        assertEquals( getClasspathElement( project.getBasedir(), "target/classes", "" ), cp.get( 0 ) );
+        assertEquals( getClasspathElement( project.getBasedir(), "lib/not_existing_yet.jar", "" ), cp.get( 1 ) );
+        assertEquals( getClasspathElement( project.getBasedir(), "lib/not_existing_yet_dir/", "" ), cp.get( 2 ) );
 	}
 
 	
