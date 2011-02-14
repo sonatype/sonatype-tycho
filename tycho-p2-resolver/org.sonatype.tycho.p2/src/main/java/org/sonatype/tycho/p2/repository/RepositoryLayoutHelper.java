@@ -104,7 +104,7 @@ public class RepositoryLayoutHelper
 
     public static GAV getP2Gav( String classifier, String id, String version )
     {
-        // Should match AbstractDependenciesReader#newExternalDependency
+        // Should match MavenDependencyCollector#createSystemScopeDependency
         return new GAV( "p2." + classifier, id, version );
     }
 }

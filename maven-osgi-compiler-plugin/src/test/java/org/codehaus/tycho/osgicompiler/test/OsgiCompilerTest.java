@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.bcel.classfile.ClassFormatException;
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.MojoFailureException;
@@ -15,9 +18,6 @@ import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
 import org.junit.Assert;
 import org.sonatype.tycho.classpath.SourcepathEntry;
 
-import com.sun.org.apache.bcel.internal.classfile.ClassFormatException;
-import com.sun.org.apache.bcel.internal.classfile.ClassParser;
-import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 
 public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 
@@ -112,45 +112,8 @@ public class OsgiCompilerTest extends AbstractTychoMojoTestCase {
 		assertEquals( getClasspathElement( project.getBasedir(), "target/classes", "" ), cp.get( 0 ) );
 		assertEquals( getClasspathElement( new File( getBasedir() ), plainJarPath, "[?**/*]" ), cp.get( 1 ) );
 		assertEquals( getClasspathElement( new File( getBasedir() ), nestedJarPath, "[?**/*]" ), cp.get( 2 ) );
-		List<Dependency> mavenDependencies = project.getModel().getDependencies();
-		// assert that dependencies to both plain jar and nested jar are injected back into maven model
-		Assert.assertEquals( 2, mavenDependencies.size() );
-		assertContainsSystemScopeDependency( mavenDependencies, null, new File( getBasedir(), plainJarPath ) );
-		assertContainsSystemScopeDependency( mavenDependencies, "lib/lib.jar", new File( getBasedir(), nestedJarPath ) );
 	}
 
-	private void assertContainsSystemScopeDependency( List<Dependency> mavenDependencies, String expectedClassifier,
-	                                                  File expectedLocation )
-	{
-	    for ( Dependency dependency : mavenDependencies )
-	    {
-	        if ( "p2.eclipse-plugin".equals( dependency.getGroupId() ) //
-	                        && "p003".equals( dependency.getArtifactId() )//
-	                        && "1.0.0".equals( dependency.getVersion() ) //
-	                        && "jar".equals( dependency.getType() )//
-	                        && expectedLocation.getAbsolutePath().equals( dependency.getSystemPath() ) //
-	                        && Artifact.SCOPE_SYSTEM.equals( dependency.getScope() ) //
-	        )
-	        {
-	            if ( expectedClassifier == null )
-	            {
-	                if ( dependency.getClassifier() == null )
-	                {
-	                    return;
-	                }
-	            }
-	            else
-	            {
-	                if ( expectedClassifier.equals( dependency.getClassifier() ) )
-	                {
-	                    return;
-	                }
-	            }
-	        }
-	    }
-	    fail( "Expected system scope dependency p2.eclipse-plugin:p003:1.0.0:jar:" + expectedClassifier + " to file "
-	          + expectedLocation + " not found" );
-	}
 	
 	private String getClasspathElement(File base, String path, String accessRules) throws IOException {
 		String file = new File(base, path).getCanonicalPath();

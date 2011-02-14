@@ -81,7 +81,7 @@ public class MavenDependencyCollector
         {
             if ( !artifact.getMavenProject().sameProject( project ) )
             {
-                dependencyList.add( newProjectDependency( artifact ) );
+                dependencyList.addAll( newProjectDependencies( artifact ) );
             }
         }
         else
@@ -151,34 +151,70 @@ public class MavenDependencyCollector
 
     private Dependency createSystemScopeDependency( ArtifactKey artifactKey, File location )
     {
+        /* see RepositoryLayoutHelper#getP2Gav */
+        return createSystemScopeDependency( artifactKey, "p2." + artifactKey.getType() , location );
+    }
+    
+    private Dependency createSystemScopeDependency( ArtifactKey artifactKey, String groupId, File location )
+    {
         Dependency dependency = new Dependency();
+        dependency.setGroupId( groupId ); 
         dependency.setArtifactId( artifactKey.getId() );
-        dependency.setGroupId( "p2." + artifactKey.getType() ); // See also RepositoryLayoutHelper#getP2Gav
         dependency.setVersion( artifactKey.getVersion() );
         dependency.setScope( Artifact.SCOPE_SYSTEM );
         dependency.setSystemPath( location.getAbsolutePath() );
         return dependency;
     }
 
-    protected Dependency newProjectDependency( ArtifactDescriptor artifact )
+    protected List<Dependency> newProjectDependencies( ArtifactDescriptor artifact )
     {
         ReactorProject dependentMavenProjectProxy = artifact.getMavenProject();
-        Dependency dependency = new Dependency();
-        dependency.setArtifactId( dependentMavenProjectProxy.getArtifactId() );
-        dependency.setGroupId( dependentMavenProjectProxy.getGroupId() );
-        dependency.setVersion( dependentMavenProjectProxy.getVersion() );
-        dependency.setType( dependentMavenProjectProxy.getPackaging() );
-        dependency.setScope( Artifact.SCOPE_PROVIDED );
+        List<Dependency> result = new ArrayList<Dependency>();
         if ( ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( dependentMavenProjectProxy.getPackaging() ) )
         {
-            List<String> classPathElements = getClasspathElements( dependentMavenProjectProxy.getBasedir() );
-            if ( classPathElements.size() > 1 )
+            for ( String classpathElement : getClasspathElements( dependentMavenProjectProxy.getBasedir() ) )
             {
-                logger.warn( "Dependency from " + project.getBasedir() + " to nested classpath entries "
-                    + classPathElements + " at location " + dependentMavenProjectProxy.getBasedir()
-                    + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins" );
+                if ( ".".equals( classpathElement ) )
+                {
+                    result.add( createProvidedScopeDependency( dependentMavenProjectProxy ) );
+                }
+                else /* nested classpath entry */
+                {
+                    File jar = new File( dependentMavenProjectProxy.getBasedir(), classpathElement );
+                    // we can only add a system scope dependency for an existing (checked-in) jar file
+                    // otherwise maven will throw a DependencyResolutionException
+                    if ( jar.isFile() )
+                    {
+                        Dependency systemScopeDependency =
+                            createSystemScopeDependency( artifact.getKey(), artifact.getMavenProject().getGroupId(),
+                                                         jar );
+                        systemScopeDependency.setClassifier( classpathElement );
+                        result.add( systemScopeDependency );
+                    }
+                    else
+                    {
+                        logger.warn( "Dependency from "
+                            + project.getBasedir()
+                            + " to nested classpath entry "
+                            + jar.getAbsolutePath()
+                            + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins" );
+                    }
+                }
             }
+        } else {
+            result.add( createProvidedScopeDependency( dependentMavenProjectProxy ) );
         }
+        return result;
+    }
+
+    private Dependency createProvidedScopeDependency( ReactorProject dependentReactorProject )
+    {
+        Dependency dependency = new Dependency();
+        dependency.setArtifactId( dependentReactorProject.getArtifactId() );
+        dependency.setGroupId( dependentReactorProject.getGroupId() );
+        dependency.setVersion( dependentReactorProject.getVersion() );
+        dependency.setType( dependentReactorProject.getPackaging() );
+        dependency.setScope( Artifact.SCOPE_PROVIDED );
         return dependency;
     }
 }
