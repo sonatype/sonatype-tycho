@@ -118,10 +118,22 @@ public class MavenDependencyCollector
                     File nestedJarOrDir = bundleReader.getEntry( location, classpathElement );
                     if ( nestedJarOrDir != null )
                     {
-                        Dependency nestedJarDependency =
-                            createSystemScopeDependency( artifact.getKey(), nestedJarOrDir );
-                        nestedJarDependency.setClassifier( classpathElement );
-                        result.add( nestedJarDependency );
+                        if ( nestedJarOrDir.isFile() )
+                        {
+                            Dependency nestedJarDependency =
+                                createSystemScopeDependency( artifact.getKey(), nestedJarOrDir );
+                            nestedJarDependency.setClassifier( classpathElement );
+                            result.add( nestedJarDependency );
+                        }
+                        else if ( nestedJarOrDir.isDirectory() )
+                        {
+                            // system-scoped dependencies on directories are not supported
+                            logger.warn( "Dependency from "
+                                + project.getBasedir()
+                                + " to nested directory classpath entry "
+                                + nestedJarOrDir
+                                + " can not be represented in Maven model and will not be visible to non-OSGi aware Maven plugins" );
+                        }
                     }
                 }
             }
