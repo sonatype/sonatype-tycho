@@ -281,12 +281,19 @@ public class VersionsEngineTest
     private String toAsciiString( File file )
         throws IOException
     {
-        BufferedReader r = new BufferedReader( new InputStreamReader( new FileInputStream( file ) ) );
         StringBuilder sb = new StringBuilder();
-        String str;
-        while ( ( str = r.readLine() ) != null )
+        BufferedReader r = new BufferedReader( new InputStreamReader( new FileInputStream( file ) ) );
+        try
         {
-            sb.append( str ).append( '\n' );
+            String str;
+            while ( ( str = r.readLine() ) != null )
+            {
+                sb.append( str ).append( '\n' );
+            }
+        }
+        finally
+        {
+            r.close();
         }
         return sb.toString();
     }
