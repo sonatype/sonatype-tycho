@@ -31,7 +31,7 @@ public class MirrorApplicationServiceImpl
     private static final String MIRROR_FAILURE_MESSAGE = "Copying p2 repository content failed";
 
     public void mirror( RepositoryReferences sources, File destination, Collection<?> rootUnits, BuildContext context,
-                        int flags )
+                        int flags, String name )
         throws FacadeException
     {
         IProvisioningAgent agent = Activator.createProvisioningAgent( context.getTargetDirectory() );
@@ -44,6 +44,7 @@ public class MirrorApplicationServiceImpl
             final RepositoryDescriptor destinationDescriptor = new RepositoryDescriptor();
             destinationDescriptor.setLocation( destination.toURI() );
             destinationDescriptor.setAppend( true );
+            destinationDescriptor.setName( name );
             boolean compressed = ( flags & REPOSITORY_COMPRESS ) != 0;
             destinationDescriptor.setCompressed( compressed );
             if ( ( flags & MIRROR_ARTIFACTS ) != 0 )

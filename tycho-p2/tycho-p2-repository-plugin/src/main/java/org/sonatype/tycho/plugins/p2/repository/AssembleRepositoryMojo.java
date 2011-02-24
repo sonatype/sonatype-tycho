@@ -43,6 +43,13 @@ public class AssembleRepositoryMojo
      * @parameter default-value="true"
      */
     private boolean compress;
+    
+    /**
+     * Defines the name of the p2 repository. The default value is the project name.
+     * 
+     * @parameter default-value="${project.name}"
+     */
+    private String repositoryName;
 
     /** @component */
     private RepositoryReferenceTool repositoryReferenceTool;
@@ -78,7 +85,7 @@ public class AssembleRepositoryMojo
             }
 
             MirrorApplicationService mirrorApp = p2.getService( MirrorApplicationService.class );
-            mirrorApp.mirror( sources, destination, rootIUs, getBuildContext(), flags );
+            mirrorApp.mirror( sources, destination, rootIUs, getBuildContext(), flags, repositoryName );
         }
         catch ( FacadeException e )
         {

@@ -51,9 +51,10 @@ public interface MirrorApplicationService
      * @param flags Additional options. flag is a <em>bitwise OR</em>'ed combination of
      *            {@link #MIRROR_ARTIFACTS}, {@link #INCLUDE_ALL_DEPENDENCIES},
      *            {@link #REPOSITORY_COMPRESS}
+     * @param name The name for the target repository.
      * @throws FacadeException if a checked exception occurs while mirroring
      */
     public void mirror( RepositoryReferences sources, File destination, Collection<?/* IInstallableUnit */> rootUnits,
-                        BuildContext context, int flags )
+                        BuildContext context, int flags, String name )
         throws FacadeException;
 }
