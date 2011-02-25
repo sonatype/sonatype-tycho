@@ -182,13 +182,15 @@ public class MavenDependencyCollector
     {
         ReactorProject dependentMavenProjectProxy = artifact.getMavenProject();
         List<Dependency> result = new ArrayList<Dependency>();
+        result.add( createProvidedScopeDependency( dependentMavenProjectProxy ) );
         if ( ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( dependentMavenProjectProxy.getPackaging() ) )
         {
             for ( String classpathElement : getClasspathElements( dependentMavenProjectProxy.getBasedir() ) )
             {
                 if ( ".".equals( classpathElement ) )
                 {
-                    result.add( createProvidedScopeDependency( dependentMavenProjectProxy ) );
+                    // covered by provided-scope dependency above
+                    continue;
                 }
                 else /* nested classpath entry */
                 {
@@ -213,9 +215,7 @@ public class MavenDependencyCollector
                     }
                 }
             }
-        } else {
-            result.add( createProvidedScopeDependency( dependentMavenProjectProxy ) );
-        }
+        } 
         return result;
     }
 

@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenExecutionRequest;
+import org.apache.maven.execution.MavenExecutionResult;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.tycho.testing.AbstractTychoMojoTestCase;
+import org.codehaus.tycho.testing.CompoundRuntimeException;
 import org.junit.Assert;
 
 public class MavenDependencyCollectorTest
@@ -56,6 +59,19 @@ public class MavenDependencyCollectorTest
                                         "lib/lib.jar", "jar", Artifact.SCOPE_SYSTEM,
                                         new File( getBasedir( "projects/mavendeps" ), "p002/lib/lib.jar" ) );
         }
+    }
+
+    
+    public void testModuleOrderNoDotOnClasspath()
+        throws Exception
+    {
+        File pom = new File( getBasedir( "projects/nodotonclasspath" ), "pom.xml" );
+        List<MavenProject> projects = getSortedProjects( newMavenExecutionRequest( pom ) );
+        assertEquals( 3, projects.size() );
+        MavenProject project1 = (MavenProject) projects.get( 1 );
+        MavenProject project2 = (MavenProject) projects.get( 2 );
+        Assert.assertEquals( "provider", project1.getArtifactId() );
+        Assert.assertEquals( "consumer", project2.getArtifactId() );
     }
 
     private void assertDependenciesContains( List<Dependency> mavenDependencies, String groupId, String artifactId,
@@ -132,5 +148,17 @@ public class MavenDependencyCollectorTest
         sb.append( ']' );
         return sb.toString();
     }
+    
+    private List<MavenProject> getSortedProjects( MavenExecutionRequest request )
+    {
+        request.getProjectBuildingRequest().setProcessPlugins( false ); 
+        MavenExecutionResult result = maven.execute( request );
+        if ( result.hasExceptions() )
+        {
+            throw new CompoundRuntimeException( result.getExceptions() );
+        }
+        return result.getTopologicallySortedProjects();
+    }
+
 
 }
