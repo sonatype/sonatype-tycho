@@ -28,7 +28,8 @@ public class FeatureRootAdviceTest
 
     private static final String RESOURCES_ROOTFILES_REL_PATH = "resources/rootfiles";
 
-    private static final String RESOURCES_FEATURE_PROJ_REL_PATH = RESOURCES_ROOTFILES_REL_PATH + "/feature-project";
+    private static final File RESOURCES_FEATURE_PROJ_REL_PATH = new File( RESOURCES_ROOTFILES_REL_PATH
+        + "/feature-project" );
 
     private static final String FEATURE_JAR_REL_PATH = RESOURCES_ROOTFILES_REL_PATH
         + "/feature-project/target/feature-0.0.1-SNAPSHOT.jar";
@@ -74,7 +75,7 @@ public class FeatureRootAdviceTest
         throws Exception
     {
         ArtifactMock defaultArtifactMock = createDefaultArtifactMock();
-        assertEquals( new File( RESOURCES_FEATURE_PROJ_REL_PATH ).getCanonicalFile(),
+        assertEquals( RESOURCES_FEATURE_PROJ_REL_PATH.getCanonicalFile(),
                       FeatureRootAdvice.getProjectBaseDir( defaultArtifactMock ).getCanonicalFile() );
 
         // null checks
@@ -99,7 +100,7 @@ public class FeatureRootAdviceTest
     {
         assertNull( FeatureRootAdvice.getRootFilesFromBuildProperties( null, null ) );
 
-        assertNull( FeatureRootAdvice.getRootFilesFromBuildProperties( null, new File( RESOURCES_FEATURE_PROJ_REL_PATH ) ) );
+        assertNull( FeatureRootAdvice.getRootFilesFromBuildProperties( null, RESOURCES_FEATURE_PROJ_REL_PATH ) );
 
         assertNull( FeatureRootAdvice.getRootFilesFromBuildProperties( new Properties(), null ) );
     }
@@ -111,8 +112,7 @@ public class FeatureRootAdviceTest
         buildProperties.put( "root", "file:rootfiles/file1.txt" );
 
         Map<String, Map<File, IPath>> rootFilesFromBuildProperties =
-            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH );
 
         assertNotNull( rootFilesFromBuildProperties );
 
@@ -133,8 +133,7 @@ public class FeatureRootAdviceTest
         buildProperties.put( "root", "file:rootfiles/file1.txt,file:rootfiles/dir/file3.txt" );
 
         Map<String, Map<File, IPath>> rootFilesFromBuildProperties =
-            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH );
 
         assertNotNull( rootFilesFromBuildProperties );
 
@@ -161,8 +160,7 @@ public class FeatureRootAdviceTest
         buildProperties.put( "root", "rootfiles" );
 
         Map<String, Map<File, IPath>> rootFilesFromBuildProperties =
-            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH );
 
         assertNotNull( rootFilesFromBuildProperties );
 
@@ -195,12 +193,11 @@ public class FeatureRootAdviceTest
         throws Exception
     {
         Properties buildProperties = new Properties();
-        File file = new File( RESOURCES_FEATURE_PROJ_REL_PATH + "/rootfiles/file1.txt" );
+        File file = new File( RESOURCES_FEATURE_PROJ_REL_PATH, "/rootfiles/file1.txt" );
         buildProperties.put( "root", "absolute:file:" + file.getAbsolutePath() );
 
         Map<String, Map<File, IPath>> rootFilesFromBuildProperties =
-            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH );
 
         assertNotNull( rootFilesFromBuildProperties );
 
@@ -221,8 +218,7 @@ public class FeatureRootAdviceTest
         buildProperties.put( "root." + LINUX_GTK_X86, "file:rootfiles/file1.txt" );
 
         Map<String, Map<File, IPath>> rootFilesFromBuildProperties =
-            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH );
 
         assertNotNull( rootFilesFromBuildProperties );
 
@@ -245,8 +241,7 @@ public class FeatureRootAdviceTest
         buildProperties.put( "root", "rootfiles/dir" );
 
         Map<String, Map<File, IPath>> rootFilesFromBuildProperties =
-            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+            FeatureRootAdvice.getRootFilesFromBuildProperties( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH );
 
         assertNotNull( rootFilesFromBuildProperties );
 
@@ -284,68 +279,40 @@ public class FeatureRootAdviceTest
         assertEquals( new Path( "file3.txt" ), entryPath );
     }
 
-    @Test
+    @Test( expected = IllegalArgumentException.class )
     public void testParseBuildPropertiesInvalidConfigs()
     {
         Properties invalidBuildProperties1 = new Properties();
         invalidBuildProperties1.put( "root.invalid.config", "file:rootfiles/file1.txt" );
 
-        try
-        {
-            FeatureRootAdvice.getRootFilesFromBuildProperties( invalidBuildProperties1,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
-            fail( "IllegalArgumentException expected: 'Wrong os.ws.arch format...' " );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            // this exception is expected
-        }
+        FeatureRootAdvice.getRootFilesFromBuildProperties( invalidBuildProperties1, RESOURCES_FEATURE_PROJ_REL_PATH );
+    }
 
+    @Test( expected = IllegalArgumentException.class )
+    public void testParseBuildPropertiesInvalidConfigs2()
+    {
         Properties invalidBuildProperties2 = new Properties();
         invalidBuildProperties2.put( "root...", "file:rootfiles/file2.txt" );
 
-        try
-        {
-            FeatureRootAdvice.getRootFilesFromBuildProperties( invalidBuildProperties2,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
-            fail( "IllegalArgumentException expected: 'Wrong os.ws.arch format...' " );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            // this exception is expected
-        }
+        FeatureRootAdvice.getRootFilesFromBuildProperties( invalidBuildProperties2, RESOURCES_FEATURE_PROJ_REL_PATH );
     }
 
-    @Test
+    @Test( expected = UnsupportedOperationException.class )
     public void testUnsupportedFolderBuildProperties()
     {
         Properties unsupportedBuildProperties1 = new Properties();
         unsupportedBuildProperties1.put( "root.folder.dir", "file:rootfiles/file1.txt" );
 
-        try
-        {
-            FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties1,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
-            fail( "UnsupportedOperationException expected" );
-        }
-        catch ( UnsupportedOperationException e )
-        {
-            // this exception is expected
-        }
+        FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties1, RESOURCES_FEATURE_PROJ_REL_PATH );
+    }
 
+    @Test( expected = UnsupportedOperationException.class )
+    public void testUnsupportedFolderBuildProperties2()
+    {
         Properties unsupportedBuildProperties2 = new Properties();
         unsupportedBuildProperties2.put( "root.win32.win32.x86.folder.dir", "file:rootfiles/file1.txt" );
 
-        try
-        {
-            FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties2,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
-            fail( "UnsupportedOperationException expected" );
-        }
-        catch ( UnsupportedOperationException e )
-        {
-            // this exception is expected
-        }
+        FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties2, RESOURCES_FEATURE_PROJ_REL_PATH );
     }
 
     @Test
@@ -357,7 +324,7 @@ public class FeatureRootAdviceTest
         try
         {
             FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties1,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+                                                               RESOURCES_FEATURE_PROJ_REL_PATH );
             fail( "UnsupportedOperationException expected" );
         }
         catch ( UnsupportedOperationException e )
@@ -371,7 +338,7 @@ public class FeatureRootAdviceTest
         try
         {
             FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties2,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
+                                                               RESOURCES_FEATURE_PROJ_REL_PATH );
             fail( "UnsupportedOperationException expected" );
         }
         catch ( UnsupportedOperationException e )
@@ -380,36 +347,22 @@ public class FeatureRootAdviceTest
         }
     }
 
-    @Test
+    @Test( expected = UnsupportedOperationException.class )
     public void testUnsupportedLinkBuildProperties()
     {
         Properties unsupportedBuildProperties1 = new Properties();
         unsupportedBuildProperties1.put( "root.link", "file:rootfiles/file1.txt" );
 
-        try
-        {
-            FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties1,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
-            fail( "UnsupportedOperationException expected" );
-        }
-        catch ( UnsupportedOperationException e )
-        {
-            // this exception is expected
-        }
+        FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties1, RESOURCES_FEATURE_PROJ_REL_PATH );
+    }
 
+    @Test( expected = UnsupportedOperationException.class )
+    public void testUnsupportedLinkBuildProperties2()
+    {
         Properties unsupportedBuildProperties2 = new Properties();
         unsupportedBuildProperties2.put( "root.win32.win32.x86.link", "file:rootfiles/file1.txt" );
 
-        try
-        {
-            FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties2,
-                                                               new File( RESOURCES_FEATURE_PROJ_REL_PATH ) );
-            fail( "UnsupportedOperationException expected" );
-        }
-        catch ( UnsupportedOperationException e )
-        {
-            // this exception is expected
-        }
+        FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties2, RESOURCES_FEATURE_PROJ_REL_PATH );
     }
 
     private ArtifactMock createDefaultArtifactMock()

@@ -48,7 +48,7 @@
 	</build>
 	<repositories>
 		<repository>
-			<id>local</id>
+			<id>eclipse-3.4.2</id>
 			<layout>p2</layout>
 			<url>${p2.repo}</url>
 		</repository>
