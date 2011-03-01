@@ -11,3 +11,5 @@ call %TYCHO_M2_HOME%\bin\mvn -f tycho-p2-resolver\pom.xml clean install -U -e -V
 call %TYCHO_M2_HOME%\bin\mvn clean install -U -e -V || exit /b
 
 call %TYCHO_M2_HOME%\bin\mvn -f tycho-its\pom.xml clean test -U -e -V -Dtycho.testTargetPlatform=%TYCHO_TEST_TARGET_PLATFORM% || exit /b
+
+rem call %TYCHO_M2_HOME%\bin\mvn -Dsite.generation site:stage || exit /b

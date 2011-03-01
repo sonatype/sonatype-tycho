@@ -439,20 +439,18 @@
     <module>tycho-embedder-api</module>
     <module>tycho-osgi-components</module>
     <module>tycho-testing-harness</module>
-    <module>tycho-maven-plugin</module>
     <module>tycho-equinox-launching</module>
 
     <module>tycho-compiler-jdt</module>
     <module>maven-osgi-compiler-plugin</module>
     <module>maven-osgi-packaging-plugin</module>
     <module>maven-osgi-source-plugin</module>
-    <module>maven-tycho-plugin</module>
     <module>target-platform-configuration</module>
 
-    <!--  surefire -->
+    <!-- surefire -->
     <module>tycho-surefire</module>
 
-    <!--  release -->
+    <!-- release -->
     <module>tycho-release</module>
 
     <!-- tycho-p2 -->
@@ -488,7 +486,6 @@
               </mojoExecutions>
             </configuration>
           </plugin>
-
         </plugins>
       </build>
     </profile>
@@ -499,7 +496,69 @@
         <module>tycho-its</module>
       </modules>
     </profile>
-
+    
+    <profile>
+      <id>buildextensions</id>
+      <activation>
+        <property>
+          <name>!site.generation</name>
+        </property>
+      </activation>
+      <!-- these modules fail during site generation (error: no mojo descriptors 
+        found), so for now we exclude them when invoking mvn site -->
+      <modules>
+        <module>tycho-maven-plugin</module>
+        <module>maven-tycho-plugin</module>
+      </modules>
+    </profile>
+    
+   <profile>
+     <id>site</id>
+     <activation>
+       <property>
+         <name>site.generation</name>
+       </property>
+     </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.0-beta-3</version>
+            <configuration>
+              <reportPlugins>
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-plugin-plugin</artifactId>
+                  <version>2.5.1</version>
+                </plugin>
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-project-info-reports-plugin</artifactId>
+                  <version>2.2</version>
+                  <reportSets>
+                    <reportSet>
+                      <reports>
+                        <report>index</report>
+                      </reports>
+                    </reportSet>
+                  </reportSets>
+                </plugin>
+              </reportPlugins>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
+    
+ <!--need this to make site:stage happy -->
+  <distributionManagement>
+    <site>
+      <id>tycho.site</id>
+      <name>Tycho Site</name>
+      <url>staging</url>
+    </site>
+  </distributionManagement>
 
 </project>

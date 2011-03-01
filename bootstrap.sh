@@ -15,3 +15,6 @@ $TYCHO_M2_HOME/bin/mvn -f tycho-p2-resolver/pom.xml clean install -U -e -V ${MAV
 $TYCHO_M2_HOME/bin/mvn clean install -U -e -V ${MAVEN_PARAMS} || exit
 
 $TYCHO_M2_HOME/bin/mvn -f tycho-its/pom.xml clean test -U -e -V -Dtycho.testTargetPlatform=${TYCHO_TEST_TARGET_PLATFORM} ${MAVEN_PARAMS} || exit
+
+# uncomment to generate project documentation
+# $TYCHO_M2_HOME/bin/mvn -Dsite.generation site:stage ${MAVEN_PARAMS} || exit
