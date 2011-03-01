@@ -42,9 +42,9 @@
     <maven-version>3.0</maven-version>
 
     <!-- 
-      Version corresponds to Eclipse 3.6.1
+      Version corresponds to Eclipse 3.6.2
 
-      EQUINOX_VERSION=3.6.1.R36x_v20100806
+      EQUINOX_VERSION=3.6.2.R36x_v20110210
 
       /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.osgi_$EQUINOX_VERSION.jar -Dsources=org.eclipse.osgi.source_$EQUINOX_VERSION.jar \
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar
@@ -59,12 +59,12 @@
 
       Promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <equinoxVersion>3.6.1.R36x_v20100806</equinoxVersion>
+    <equinoxVersion>3.6.2.R36x_v20110210</equinoxVersion>
 
     <!-- 
       Version corresponds to Eclipse 3.6.1
       
-      JDT_VERSION=3.6.1.v_A68_R36x
+      JDT_VERSION=3.6.2.v_A76_R36x
       
       /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar -Dsources=org.eclipse.jdt.core.source_$JDT_VERSION.jar \
         -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar
@@ -79,7 +79,7 @@
 
       Promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
      -->
-    <jdtVersion>3.6.1.v_A68_R36x</jdtVersion>
+    <jdtVersion>3.6.2.v_A76_R36x</jdtVersion>
 
     <!-- version of tycho used by this build -->
     <tychoBootstrapVersion>0.10.0</tychoBootstrapVersion>
