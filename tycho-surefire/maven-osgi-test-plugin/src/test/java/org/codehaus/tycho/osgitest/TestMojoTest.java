@@ -15,23 +15,44 @@ public class TestMojoTest
     public void testVMArgLineMultipleArgs()
         throws Exception
     {
-        DefaultEquinoxInstallation testRuntime =
-            new DefaultEquinoxInstallation( new DefaultEquinoxInstallationDescription(), null );
-        EquinoxLaunchConfiguration cli = new EquinoxLaunchConfiguration( testRuntime );
+        EquinoxLaunchConfiguration cli = createEquinoxConfiguration();
         TestMojo testMojo = new TestMojo();
-        testMojo.addVMArgs( cli, "-Dfoo=bar -Dkey2=value2" );
-        assertEquals( 2, cli.getVMArguments().length );
+        testMojo.addVMArgs( cli, " -Dfoo=bar -Dkey2=value2 " );
+        String[] vmArguments = cli.getVMArguments();
+        assertEquals( 2, vmArguments.length );
+        assertEquals( "-Dfoo=bar", vmArguments[0] );
+        assertEquals( "-Dkey2=value2", vmArguments[1] );
     }
 
-    public void testProgramArgLineMultipleArgs()
+    public void testAddProgramArgsNotEscaped()
         throws Exception
+    {
+        EquinoxLaunchConfiguration cli = createEquinoxConfiguration();
+        TestMojo testMojo = new TestMojo();
+        testMojo.addProgramArgs( false, cli, " foo bar   baz " );
+        String[] args = cli.getProgramArguments();
+        assertEquals( 3, args.length );
+        assertEquals( "foo", args[0] );
+        assertEquals( "bar", args[1] );
+        assertEquals( "baz", args[2] );
+    }
+
+    public void testAddProgramArgsEscaped()
+        throws Exception
+    {
+        EquinoxLaunchConfiguration cli = createEquinoxConfiguration();
+        TestMojo testMojo = new TestMojo();
+        testMojo.addProgramArgs( true, cli, "-data" , "/path with spaces " );
+        assertEquals( 2, cli.getProgramArguments().length );
+        assertEquals( "-data", cli.getProgramArguments()[0] );
+        assertEquals( "/path with spaces ", cli.getProgramArguments()[1] );
+    }
+
+    private EquinoxLaunchConfiguration createEquinoxConfiguration()
     {
         DefaultEquinoxInstallation testRuntime =
             new DefaultEquinoxInstallation( new DefaultEquinoxInstallationDescription(), null );
-        EquinoxLaunchConfiguration cli = new EquinoxLaunchConfiguration( testRuntime );
-        TestMojo testMojo = new TestMojo();
-        testMojo.addProgramArgs( cli, "foo bar   baz" );
-        assertEquals( 3, cli.getProgramArguments().length );
+        return new EquinoxLaunchConfiguration( testRuntime );
     }
 
 }

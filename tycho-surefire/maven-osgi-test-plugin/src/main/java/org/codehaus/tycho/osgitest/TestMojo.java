@@ -587,7 +587,7 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
             cli.addProgramArguments( "-debug", "-consolelog" );
         }
 
-        cli.addProgramArguments( "-data", workspace.getAbsolutePath(), //
+        addProgramArgs( true, cli, "-data", workspace.getAbsolutePath(), //
                                  "-dev", devProperties.toURI().toURL().toExternalForm(), //
                                  "-install", testRuntime.getLocation().getAbsolutePath(), //
                                  "-configuration", new File( work, "configuration" ).getAbsolutePath(), //
@@ -605,7 +605,7 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
         {
             cli.addProgramArguments( "-nouithread" );
         }
-        addProgramArgs( cli , appArgLine );
+        addProgramArgs( false , cli, appArgLine );
         if ( environmentVariables != null )
         {
             cli.addEnvironmentVariables( environmentVariables );
@@ -613,11 +613,11 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
         return cli;
     }
 
-    void addProgramArgs( EquinoxLaunchConfiguration cli , String appArgLine)
+    void addProgramArgs( boolean escape, EquinoxLaunchConfiguration cli, String... arguments)
     {
-        if ( appArgLine != null )
+        if ( arguments != null )
         {
-            cli.addProgramArguments( false, appArgLine );
+            cli.addProgramArguments( escape, arguments );
         }
     }
 
