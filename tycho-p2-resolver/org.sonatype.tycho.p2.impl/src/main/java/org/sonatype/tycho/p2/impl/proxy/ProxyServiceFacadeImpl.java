@@ -35,7 +35,7 @@ public class ProxyServiceFacadeImpl
             proxyData.setPassword( password );
             proxyData.setSource( MAVEN_SETTINGS_SOURCE );
             proxyService.setProxyData( new IProxyData[] { proxyData } );
-            if ( nonProxyHosts != null )
+            if ( nonProxyHosts != null  && nonProxyHosts.trim().length() > 0 )
             {
                 proxyService.setNonProxiedHosts( NON_PROXY_DELIMITERS.split( nonProxyHosts.trim() ) );
             }
