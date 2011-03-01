@@ -48,6 +48,17 @@ public class TestMojoTest
         assertEquals( "/path with spaces ", cli.getProgramArguments()[1] );
     }
 
+    
+    public void testAddProgramArgsNullArg()
+        throws Exception
+    {
+        EquinoxLaunchConfiguration cli = createEquinoxConfiguration();
+        TestMojo testMojo = new TestMojo();
+        // null arg must be ignored
+        testMojo.addProgramArgs( true, cli, "-data", null );
+        assertEquals( 1, cli.getProgramArguments().length );
+    }
+
     private EquinoxLaunchConfiguration createEquinoxConfiguration()
     {
         DefaultEquinoxInstallation testRuntime =

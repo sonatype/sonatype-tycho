@@ -617,7 +617,13 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
     {
         if ( arguments != null )
         {
-            cli.addProgramArguments( escape, arguments );
+            for ( String argument : arguments )
+            {
+                if ( argument != null )
+                {
+                    cli.addProgramArguments( escape, argument );
+                }
+            }
         }
     }
 
