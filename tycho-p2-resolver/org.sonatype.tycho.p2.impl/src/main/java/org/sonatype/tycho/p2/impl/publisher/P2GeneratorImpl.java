@@ -31,6 +31,7 @@ import org.sonatype.tycho.p2.P2Generator;
 import org.sonatype.tycho.p2.impl.publisher.model.ProductFile2;
 import org.sonatype.tycho.p2.impl.publisher.repo.FeatureRootfileArtifactRepository;
 import org.sonatype.tycho.p2.impl.publisher.repo.TransientArtifactRepository;
+import org.sonatype.tycho.p2.impl.publisher.rootfiles.FeatureRootAdvice;
 import org.sonatype.tycho.p2.maven.repository.xmlio.ArtifactsIO;
 import org.sonatype.tycho.p2.maven.repository.xmlio.MetadataIO;
 import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;

@@ -20,8 +20,8 @@ import org.eclipse.equinox.p2.publisher.actions.IPropertyAdvice;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 import org.sonatype.tycho.p2.IArtifactFacade;
-import org.sonatype.tycho.p2.impl.publisher.FeatureRootAdvice;
 import org.sonatype.tycho.p2.impl.publisher.MavenPropertiesAdvice;
+import org.sonatype.tycho.p2.impl.publisher.rootfiles.FeatureRootAdvice;
 import org.sonatype.tycho.p2.repository.RepositoryLayoutHelper;
 
 @SuppressWarnings( "restriction" )

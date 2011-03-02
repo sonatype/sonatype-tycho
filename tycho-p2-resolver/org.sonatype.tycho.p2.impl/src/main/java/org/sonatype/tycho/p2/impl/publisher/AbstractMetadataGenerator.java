@@ -1,8 +1,6 @@
 package org.sonatype.tycho.p2.impl.publisher;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +89,7 @@ public abstract class AbstractMetadataGenerator
 
     private IRequirement[] extractExtraEntriesAsIURequirement( File location )
     {
-        Properties buildProperties = loadProperties( location );
+        Properties buildProperties = Utils.loadBuildProperties( location );
         if ( buildProperties == null || buildProperties.size() == 0 )
             return null;
         ArrayList<IRequirement> result = new ArrayList<IRequirement>();
@@ -115,36 +113,6 @@ public abstract class AbstractMetadataGenerator
         if ( result.isEmpty() )
             return null;
         return result.toArray( new IRequirement[result.size()] );
-    }
-
-    static Properties loadProperties( File project )
-    {
-        File file = new File( project, "build.properties" );
-
-        Properties buildProperties = new Properties();
-        if ( file.canRead() )
-        {
-            InputStream is = null;
-            try
-            {
-                try
-                {
-                    is = new FileInputStream( file );
-                    buildProperties.load( is );
-                }
-                finally
-                {
-                    if ( is != null )
-                        is.close();
-                }
-            }
-            catch ( Exception e )
-            {
-                // ignore
-            }
-        }
-
-        return buildProperties;
     }
 
     private void createRequirementFromExtraClasspathProperty( ArrayList<IRequirement> result, String[] urls )
