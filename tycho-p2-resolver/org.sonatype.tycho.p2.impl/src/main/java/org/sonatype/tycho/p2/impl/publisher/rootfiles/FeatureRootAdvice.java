@@ -26,23 +26,21 @@ import org.sonatype.tycho.p2.resolver.P2Resolver;
  * <ul>
  * <li>root.folder.&lt;subfolder&gt;
  * <li>root.&lt;config&gt;.folder.&lt;subfolder&gt;
- * <li>root.permissions.&lt;rights&gt;
- * <li>root.&lt;config&gt;.permissions.&lt;rights&gt;
- * <li>root.link
- * <li>root.&lt;config&gt;.link
  * </ul>
- * Also patterns (*, ** and ?) as values for root files are not yet supported.
+ * Also patterns (*, ** and ?) as values for root files and permissions are not yet supported.
  */
 @SuppressWarnings( "restriction" )
 public class FeatureRootAdvice
     implements IFeatureRootAdvice
 {
 
-    private static final String ROOT_DOT = "root.";
+    private static final String ROOT_KEY_SEGMENT = "root";
 
-    private static final String ROOT = "root";
+    private static final String ROOT_DOT = ROOT_KEY_SEGMENT + ".";
 
-    private static final String PERMISSIONS = "permissions";
+    private static final String PERMISSIONS_KEY_SEGMENT = "permissions";
+
+    private static final String LINK_KEY_SEGMENT = "link";
 
     private final String artifactId;
 
@@ -54,27 +52,30 @@ public class FeatureRootAdvice
     {
         this.configToRootFilesMapping = getRootFilesFromBuildProperties( buildProperties, baseDir );
         this.artifactId = artifactId;
-        this.propertiesPerConfig = parsePermissions( buildProperties, baseDir );
+        this.propertiesPerConfig = parsePermissionsAndLinks( buildProperties );
     }
 
-    private static HashMap<ConfigSpec, RootFilesProperties> parsePermissions( Properties buildProperties, File baseDir )
+    private static HashMap<ConfigSpec, RootFilesProperties> parsePermissionsAndLinks( Properties buildProperties )
     {
         HashMap<ConfigSpec, RootFilesProperties> propertiesPerConfig = new HashMap<ConfigSpec, RootFilesProperties>();
+
         for ( Entry<?, ?> entry : buildProperties.entrySet() )
         {
             String[] keySegments = ( (String) entry.getKey() ).split( "\\." );
-            parseBuildPropertiesLineForPermissions( keySegments, (String) entry.getValue(), propertiesPerConfig );
+            parseBuildPropertiesLineForPermissionsAndLinks( keySegments, (String) entry.getValue(), propertiesPerConfig );
         }
+
         return propertiesPerConfig;
     }
 
-    private static void parseBuildPropertiesLineForPermissions( String[] keySegments,
-                                                                String value,
-                                                                HashMap<ConfigSpec, RootFilesProperties> propertiesPerConfig )
+    private static void parseBuildPropertiesLineForPermissionsAndLinks( String[] keySegments,
+                                                                        String value,
+                                                                        HashMap<ConfigSpec, RootFilesProperties> propertiesPerConfig )
     {
-        if ( segmentEquals( keySegments, 0, ROOT ) )
+        if ( SegmentHelper.segmentEquals( keySegments, 0, ROOT_KEY_SEGMENT ) )
         {
             parseRootLineForPermissions( keySegments, value, propertiesPerConfig );
+            parseRootLineForLinks( keySegments, value, propertiesPerConfig );
         }
     }
 
@@ -83,12 +84,12 @@ public class FeatureRootAdvice
     {
         ConfigSpec config;
         String chmodPermission;
-        if ( isValidPermissionsLine( keySegments, 1 ) )
+        if ( isValidPermissionsKey( keySegments, 1 ) )
         {
             config = ConfigSpec.GLOBAL;
             chmodPermission = keySegments[2];
         }
-        else if ( isValidPermissionsLine( keySegments, 4 ) )
+        else if ( isValidPermissionsKey( keySegments, 4 ) )
         {
             config = ConfigSpec.createFromOsWsArchArray( keySegments, 1 );
             chmodPermission = keySegments[5];
@@ -101,39 +102,49 @@ public class FeatureRootAdvice
         properties.addPermission( chmodPermission, value.split( "," ) );
     }
 
-    private static boolean isValidPermissionsLine( String[] keySegments, int indexOfPermissionsLiteral )
+    private static void parseRootLineForLinks( String[] keySegments, String value,
+                                               HashMap<ConfigSpec, RootFilesProperties> propertiesPerConfig )
     {
-        boolean isPermissionsLine = segmentEquals( keySegments, indexOfPermissionsLiteral, PERMISSIONS );
+        ConfigSpec config;
+        if ( isValidLinksKey( keySegments, 1 ) )
+        {
+            config = ConfigSpec.GLOBAL;
+        }
+        else if ( isValidLinksKey( keySegments, 4 ) )
+        {
+            config = ConfigSpec.createFromOsWsArchArray( keySegments, 1 );
+        }
+        else
+        {
+            return;
+        }
+
+        RootFilesProperties properties = getPropertiesWithLazyInitialization( propertiesPerConfig, config );
+        properties.addLinks( value.split( "," ) );
+    }
+
+    private static boolean isValidPermissionsKey( String[] keySegments, int indexOfPermissionsLiteral )
+    {
+        boolean isPermissionsLine = SegmentHelper.segmentEquals( keySegments, indexOfPermissionsLiteral, PERMISSIONS_KEY_SEGMENT );
         boolean hasCorrectNumberOfSegments = keySegments.length == indexOfPermissionsLiteral + 2;
         if ( isPermissionsLine && !hasCorrectNumberOfSegments )
         {
-            throw new IllegalArgumentException( segmentsToString( keySegments )
+            throw new IllegalArgumentException( SegmentHelper.segmentsToString( keySegments, '.' )
                 + " is an invalid key for root file permissions" );
         }
         return isPermissionsLine;
     }
 
-    private static String segmentsToString( String[] keySegments )
+    private static boolean isValidLinksKey( String[] keySegments, int indexOfLinksLiteral )
     {
-        if ( keySegments.length == 0 )
+        boolean isLinksLine = SegmentHelper.segmentEquals( keySegments, indexOfLinksLiteral, LINK_KEY_SEGMENT );
+        boolean hasCorrectNumberOfSegments = keySegments.length == indexOfLinksLiteral + 1;
+        if ( isLinksLine && !hasCorrectNumberOfSegments )
         {
-            return "";
+            throw new IllegalArgumentException( SegmentHelper.segmentsToString( keySegments, '.' )
+                + " is an invalid key for root file links" );
         }
-        StringBuilder result = new StringBuilder();
-        for ( String segment : keySegments )
-        {
-            result.append( segment );
-            result.append( '.' );
-        }
-        return result.substring( 0, result.length() - 1 );
-    }
-
-    private static boolean segmentEquals( String[] segments, int segmentIndex, String string )
-    {
-        if ( segmentIndex < segments.length )
-            return string.equals( segments[segmentIndex] );
-        else
-            return false;
+        return isLinksLine;
     }
 
     private static RootFilesProperties getPropertiesWithLazyInitialization( HashMap<ConfigSpec, RootFilesProperties> propertiesPerConfig,
@@ -194,7 +205,7 @@ public class FeatureRootAdvice
         {
             String buildPropertyKey = (String) pair.getKey();
 
-            if ( ROOT.equals( buildPropertyKey ) )
+            if ( ROOT_KEY_SEGMENT.equals( buildPropertyKey ) )
             {
                 // no specified os.ws.arch configuration gets the empty key.
                 rootFileConfigsMap.put( "", getAllFilesIncludePattern( baseDir, (String) pair.getValue() ) );
@@ -208,14 +219,13 @@ public class FeatureRootAdvice
                     throw new UnsupportedOperationException(
                                                              "root.folder.<subfolder> and root.<config>.folder.<subfolder> are not yet supported in build.properties" );
                 }
-                else if ( buildPropertyKey.contains( ".permissions" ) )
+                else if ( buildPropertyKey.contains( "." + PERMISSIONS_KEY_SEGMENT ) )
                 {
                     // treated separately
                 }
-                else if ( buildPropertyKey.endsWith( ".link" ) )
+                else if ( buildPropertyKey.contains( "." + LINK_KEY_SEGMENT ) )
                 {
-                    throw new UnsupportedOperationException(
-                                                             "root.link and root.<config>.link are not yet supported in build.properties" );
+                    // treated separately
                 }
                 else
                 {
@@ -428,13 +438,13 @@ public class FeatureRootAdvice
     public FileSetDescriptor getDescriptor( String wsOsArch )
     {
         FileSetDescriptor rootFilesDescriptor = initDescriptorWithFiles( wsOsArch );
-        addPermissions( wsOsArch, rootFilesDescriptor );
+        addPermissionsAndLinks( wsOsArch, rootFilesDescriptor );
         return rootFilesDescriptor;
     }
 
     private FileSetDescriptor initDescriptorWithFiles( String wsOsArch )
     {
-        String fileSetDescriptorKey = ( "".equals( wsOsArch ) ) ? ROOT : ROOT_DOT + wsOsArch;
+        String fileSetDescriptorKey = ( "".equals( wsOsArch ) ) ? ROOT_KEY_SEGMENT : ROOT_DOT + wsOsArch;
         Map<File, IPath> rootFilesMap = configToRootFilesMapping.get( wsOsArch );
         if ( rootFilesMap == null )
             return null;
@@ -445,7 +455,7 @@ public class FeatureRootAdvice
         return rootFilesDescriptor;
     }
 
-    private void addPermissions( String wsOsArch, FileSetDescriptor rootFilesDescriptor )
+    private void addPermissionsAndLinks( String wsOsArch, FileSetDescriptor rootFilesDescriptor )
     {
         ConfigSpec configuration = ConfigSpec.createFromWsOsArch( wsOsArch );
         RootFilesProperties propertiesForSpec = propertiesPerConfig.get( configuration );
@@ -457,6 +467,10 @@ public class FeatureRootAdvice
             {
                 rootFilesDescriptor.addPermissions( permission.toP2Format() );
             }
+            if ( propertiesForSpec.getLinks() != null )
+            {
+                rootFilesDescriptor.setLinks( propertiesForSpec.getLinks() );
+            }
         }
     }
 
@@ -467,12 +481,12 @@ public class FeatureRootAdvice
             String message;
             if ( configuration.equals( ConfigSpec.GLOBAL ) )
             {
-                message = "Cannot set permissions if there are no root files";
+                message = "Cannot set permissions or symbolic links if there are no root files";
             }
             else
             {
                 message =
-                    "Cannot set permissions for " + configuration.toOsString()
+                    "Cannot set permissions or symbolic links for " + configuration.toOsString()
                         + " if there are no root files for that configuration";
             }
             throw new IllegalArgumentException( message );

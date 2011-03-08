@@ -28,6 +28,8 @@ public class RootFilesProperties
 
     private List<Permission> permissions = new ArrayList<Permission>();
 
+    private StringBuilder links = new StringBuilder();
+
     public Collection<Permission> getPermissions()
     {
         return permissions;
@@ -39,5 +41,38 @@ public class RootFilesProperties
         {
             permissions.add( new Permission( path, chmodPermissionPattern ) );
         }
+    }
+
+    public String getLinks()
+    {
+        return links.toString();
+    }
+
+    public void addLinks( String[] linkValueSegments )
+    {
+        verifySpecifiedInPairs( linkValueSegments );
+        for ( String segment : linkValueSegments )
+        {
+            addTrimmedLinkSegment( segment );
+        }
+    }
+
+    private static void verifySpecifiedInPairs( String[] linkValueSegments )
+    {
+        if ( linkValueSegments.length % 2 != 0 )
+        {
+            String message = "Links must be specified as a sequence of \"link target,link name\" pairs; the actual value \""
+                + SegmentHelper.segmentsToString( linkValueSegments, ',' ) + "\" contains an odd number of segments";
+            throw new IllegalArgumentException( message );
+        }
+    }
+
+    private void addTrimmedLinkSegment( String segment )
+    {
+        if ( links.length() > 0 )
+        {
+            links.append(',');
+        }
+        links.append( segment.trim() );
     }
 }

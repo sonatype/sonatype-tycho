@@ -177,4 +177,24 @@ public class Util
         }
         return hasAllRequirements;
     }
+
+    static public boolean iuHasTouchpointDataInstruction( Element unit, String instructionTrimmedText )
+    {
+        Element touchpointDataElem = unit.getChild( "touchpointData" );
+
+        if ( touchpointDataElem != null )
+        {
+            for ( Element instructions : touchpointDataElem.getChildren( "instructions" ) )
+            {
+                for ( Element instruction : instructions.getChildren( "instruction" ) )
+                {
+                    if ( instructionTrimmedText.equals( instruction.getTrimmedText() ) )
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

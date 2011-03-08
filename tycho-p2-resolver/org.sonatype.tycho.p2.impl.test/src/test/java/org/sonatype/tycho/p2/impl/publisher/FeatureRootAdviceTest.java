@@ -341,7 +341,7 @@ public class FeatureRootAdviceTest
     {
         Properties buildProperties = createBuildPropertiesWithoutRootKeys();
         buildProperties.put( "root", "file:rootfiles/file1.txt" );
-        FeatureRootAdvice advice = createAdvice( buildProperties );
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
 
         File[] actualFiles = advice.getDescriptor( DEFAULT_CONFIG_SPEC ).getFiles();
         File expectedFile = new File( RESOURCES_FEATURE_PROJ_REL_PATH, "rootfiles/file1.txt" );
@@ -426,12 +426,8 @@ public class FeatureRootAdviceTest
         Properties buildProperties = createBuildPropertiesWithoutRootKeys();
         buildProperties.put( "root.permissions.644", "file2.txt" );
 
-        FeatureRootAdvice advice = createAdvice( buildProperties );
-
-        for ( String configuration : advice.getConfigurations() )
-        {
-            advice.getDescriptor( configuration );
-        }
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+        callGetDescriptorsForAllConfigurations( advice );
     }
 
     @Test( expected = IllegalArgumentException.class )
@@ -441,12 +437,8 @@ public class FeatureRootAdviceTest
         Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
         buildProperties.put( "root." + LINUX_SPEC_FOR_PROPERTIES_KEY + ".permissions.644", "file2.txt" );
 
-        FeatureRootAdvice advice = createAdvice( buildProperties );
-
-        for ( String configuration : advice.getConfigurations() )
-        {
-            advice.getDescriptor( configuration );
-        }
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+        callGetDescriptorsForAllConfigurations( advice );
     }
 
     @Ignore
@@ -457,6 +449,106 @@ public class FeatureRootAdviceTest
         Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
         buildProperties.put( "root.permissions.og-rwx", "file1.txt" );
         createAdvice( buildProperties ).getDescriptor( DEFAULT_CONFIG_SPEC );
+    }
+
+    //
+    // symbolic links tests
+    //
+    @Test
+    public void testNoLinks()
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+
+        String globalLinks = advice.getDescriptor( DEFAULT_CONFIG_SPEC ).getLinks();
+        assertEquals( "", globalLinks );
+    }
+
+    @Test
+    public void testGlobalLinks()
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+        buildProperties.put( "root.link", "dir/file3.txt,alias1.txt,file1.txt,alias2.txt" );
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+
+        String actualLink = advice.getDescriptor( DEFAULT_CONFIG_SPEC ).getLinks();
+        assertEquals( "dir/file3.txt,alias1.txt,file1.txt,alias2.txt", actualLink );
+    }
+
+    @Test
+    public void testSpecificLinks()
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+
+        buildProperties.put( "root." + LINUX_SPEC_FOR_PROPERTIES_KEY, "file:file3.txt" );
+        buildProperties.put( "root." + LINUX_SPEC_FOR_PROPERTIES_KEY + ".link", "file3.txt,alias.txt" );
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+
+        String globalLink = advice.getDescriptor( DEFAULT_CONFIG_SPEC ).getLinks();
+        assertEquals( "", globalLink );
+
+        String specificLink = advice.getDescriptor( LINUX_SPEC_FOR_ADVICE ).getLinks();
+        assertEquals( "file3.txt,alias.txt", specificLink );
+    }
+
+    @Test
+    public void testWhitespaceAroundSeparatorsInLinks()
+        throws Exception
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+        buildProperties.put( "root.link",
+                             " file1.txt , alias1.txt ,  dir/file3.txt,alias2.txt , \n\tfile2.txt , alias3.txt \n\t" );
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+
+        String actualLinks = advice.getDescriptor( DEFAULT_CONFIG_SPEC ).getLinks();
+        assertEquals( "file1.txt,alias1.txt,dir/file3.txt,alias2.txt,file2.txt,alias3.txt", actualLinks );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testWrongRootfilesLinksKey()
+        throws Exception
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+
+        buildProperties.put( "root.link.addedTooMuch", "file1.txt,alias.txt" );
+        createAdvice( buildProperties );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testGlobalLinkButNoFiles()
+        throws Exception
+    {
+        Properties buildProperties = createBuildPropertiesWithoutRootKeys();
+        buildProperties.put( "root.link", "file1.txt,alias.txt" );
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+        callGetDescriptorsForAllConfigurations( advice );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testSpecificLinkButNoFiles()
+        throws Exception
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+        buildProperties.put( "root." + WINDOWS_SPEC_FOR_PROPERTIES_KEY + ".link", "file1.txt,alias.txt" );
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+        callGetDescriptorsForAllConfigurations( advice );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testLinkValueNotInPairs()
+        throws Exception
+    {
+        Properties buildProperties = createBuildPropertiesWithDefaultRootFiles();
+        buildProperties.put( "root.link", "file1.txt,alias1.txt,file2.txt" );
+
+        IFeatureRootAdvice advice = createAdvice( buildProperties );
+        callGetDescriptorsForAllConfigurations( advice );
     }
 
     private static Properties createBuildPropertiesWithDefaultRootFiles()
@@ -479,6 +571,11 @@ public class FeatureRootAdviceTest
         return getSortedPermissions( advice, configSpec );
     }
 
+    private static IFeatureRootAdvice createAdvice( Properties buildProperties )
+    {
+        return new FeatureRootAdvice( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH, DEFAULT_ARTIFACT_ID );
+    }
+
     private static List<String[]> getSortedPermissions( IFeatureRootAdvice advice, String configSpec )
     {
         String[][] permissionsArray = advice.getDescriptor( configSpec ).getPermissions();
@@ -488,33 +585,18 @@ public class FeatureRootAdviceTest
         return permissionsList;
     }
 
-    private static FeatureRootAdvice createAdvice( Properties buildProperties )
-    {
-        return new FeatureRootAdvice( buildProperties, RESOURCES_FEATURE_PROJ_REL_PATH, DEFAULT_ARTIFACT_ID );
-    }
-
     private static void assertPermissionEntry( String expectedFile, String expectedChmod, String[] descriptorPermission )
     {
         assertEquals( expectedChmod, descriptorPermission[0] );
         assertEquals( expectedFile, descriptorPermission[1] );
     }
 
-    @Test( expected = UnsupportedOperationException.class )
-    public void testUnsupportedLinkBuildProperties()
+    private static void callGetDescriptorsForAllConfigurations( IFeatureRootAdvice advice )
     {
-        Properties unsupportedBuildProperties1 = new Properties();
-        unsupportedBuildProperties1.put( "root.link", "file:rootfiles/file1.txt" );
-
-        FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties1, RESOURCES_FEATURE_PROJ_REL_PATH );
-    }
-
-    @Test( expected = UnsupportedOperationException.class )
-    public void testUnsupportedLinkBuildProperties2()
-    {
-        Properties unsupportedBuildProperties2 = new Properties();
-        unsupportedBuildProperties2.put( "root.win32.win32.x86.link", "file:rootfiles/file1.txt" );
-
-        FeatureRootAdvice.getRootFilesFromBuildProperties( unsupportedBuildProperties2, RESOURCES_FEATURE_PROJ_REL_PATH );
+        for ( String configuration : advice.getConfigurations() )
+        {
+            advice.getDescriptor( configuration );
+        }
     }
 
     private ArtifactMock createDefaultArtifactMock()
