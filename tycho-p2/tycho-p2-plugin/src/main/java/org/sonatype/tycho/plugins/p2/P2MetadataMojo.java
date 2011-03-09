@@ -89,19 +89,19 @@ public class P2MetadataMojo
 
         File targetDir = new File( project.getBuild().getDirectory() );
 
-        Map<String, IArtifactFacade> attachedArtifacts = new HashMap<String, IArtifactFacade>();
+        Map<String, IArtifactFacade> artifactsToBeAttached = new HashMap<String, IArtifactFacade>();
 
         ArtifactFacade projectDefaultArtifact = new ArtifactFacade( project.getArtifact() );
 
         Artifact p2contentArtifact =
             createP2Artifact( projectDefaultArtifact, EXTENSION_P2_METADATA, CLASSIFIER_P2_METADATA,
                               FILE_NAME_P2_METADATA, targetDir );
-        attachedArtifacts.put( CLASSIFIER_P2_METADATA, new ArtifactFacade( p2contentArtifact ) );
+        artifactsToBeAttached.put( CLASSIFIER_P2_METADATA, new ArtifactFacade( p2contentArtifact ) );
 
         Artifact p2artifactsArtifact =
             createP2Artifact( projectDefaultArtifact, EXTENSION_P2_ARTIFACTS, CLASSIFIER_P2_ARTIFACTS,
                               FILE_NAME_P2_ARTIFACTS, targetDir );
-        attachedArtifacts.put( CLASSIFIER_P2_ARTIFACTS, new ArtifactFacade( p2artifactsArtifact ) );
+        artifactsToBeAttached.put( CLASSIFIER_P2_ARTIFACTS, new ArtifactFacade( p2artifactsArtifact ) );
 
         try
         {
@@ -113,15 +113,22 @@ public class P2MetadataMojo
             {
                 artifacts.add( new ArtifactFacade( artifact ) );
             }
+            for ( Artifact attachedArtifact : project.getAttachedArtifacts() )
+            {
+                if ( "sources".equals( attachedArtifact.getClassifier() ) )
+                {
+                    artifacts.add( new ArtifactFacade( attachedArtifact ) );
+                }
+            }
 
-            getP2Generator().generateMetadata( artifacts, attachedArtifacts, targetDir );
+            getP2Generator().generateMetadata( artifacts, artifactsToBeAttached, targetDir );
         }
         catch ( IOException e )
         {
             throw new MojoExecutionException( "Could not generate P2 metadata", e );
         }
 
-        for ( Entry<String, IArtifactFacade> entry : attachedArtifacts.entrySet() )
+        for ( Entry<String, IArtifactFacade> entry : artifactsToBeAttached.entrySet() )
         {
             IArtifactFacade artifactFacade = entry.getValue();
 

@@ -27,7 +27,10 @@ public class MavenPropertiesAdvice
 
     public MavenPropertiesAdvice( String groupId, String artifactId, String version, String classifier ) {
     	this(groupId, artifactId, version);
-		properties.put(RepositoryLayoutHelper.PROP_CLASSIFIER, classifier);
+        if ( classifier != null && classifier.length() > 0 )
+        {
+            properties.put( RepositoryLayoutHelper.PROP_CLASSIFIER, classifier );
+        }
     }
 
     public Map<String, String> getArtifactProperties( IInstallableUnit iu, IArtifactDescriptor descriptor )

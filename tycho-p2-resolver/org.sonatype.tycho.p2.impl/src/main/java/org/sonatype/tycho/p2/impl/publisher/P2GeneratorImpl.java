@@ -262,7 +262,7 @@ public class P2GeneratorImpl
     protected List<IPublisherAdvice> getPublisherAdvice( IArtifactFacade artifact )
     {
         ArrayList<IPublisherAdvice> advice = new ArrayList<IPublisherAdvice>();
-        advice.add( new MavenPropertiesAdvice( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion() ) );
+        advice.add( new MavenPropertiesAdvice( artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), artifact.getClassidier() ) );
         advice.add( getExtraEntriesAdvice( artifact ) );
 
         IFeatureRootAdvice featureRootAdvice = FeatureRootAdvice.createRootFileAdvice( artifact );
