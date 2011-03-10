@@ -84,7 +84,9 @@ public class RepositoryReferenceTool
         {
             String packaging = referencedProject.getPackaging();
             if ( ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals( packaging )
-                || ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) )
+                || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals( packaging ) 
+                || ArtifactKey.TYPE_ECLIPSE_FEATURE.equals( packaging ) 
+                )
             {
                 // check that expected repository files are there (for more descriptive problem messages)
                 File metadataXml =
