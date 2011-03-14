@@ -362,6 +362,7 @@
                         <versionRange>[2.1,)</versionRange>
                         <goals>
                           <goal>unpack-dependencies</goal>
+                          <goal>unpack</goal>
                         </goals>
                       </pluginExecutionFilter>
                       <action>
