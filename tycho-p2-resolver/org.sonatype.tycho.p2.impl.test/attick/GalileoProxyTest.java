@@ -4,20 +4,16 @@ import java.io.File;
 import java.net.URI;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository;
-import org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepositoryIO;
 import org.eclipse.equinox.internal.p2.core.helpers.ServiceHelper;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRepository;
-import org.eclipse.equinox.internal.provisional.p2.artifact.repository.IArtifactRepositoryManager;
-import org.eclipse.equinox.internal.provisional.p2.metadata.IInstallableUnit;
-import org.eclipse.equinox.internal.provisional.p2.metadata.query.InstallableUnitQuery;
-import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepository;
-import org.eclipse.equinox.internal.provisional.p2.metadata.repository.IMetadataRepositoryManager;
-import org.eclipse.equinox.internal.provisional.p2.query.Collector;
+import org.eclipse.equinox.p2.core.IProvisioningAgent;
+import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.query.IQueryResult;
+import org.eclipse.equinox.p2.query.QueryUtil;
+import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
+import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
 import org.junit.Test;
-import org.sonatype.tycho.p2.Activator;
-
-import com.sonatype.nexus.p2.impl.test.ConsoleProgressMonitor;
+import org.sonatype.tycho.p2.impl.test.Activator;
+import org.sonatype.tycho.p2.impl.test.ConsoleProgressMonitor;
 
 @SuppressWarnings( "restriction" )
 public class GalileoProxyTest
@@ -29,32 +25,34 @@ public class GalileoProxyTest
     public GalileoProxyTest()
         throws Exception
     {
-        location = new URI( "http://download.eclipse.org/eclipse/updates/3.6-I-builds" );
+        location = new URI( "http://download.eclipse.org/eclipse/updates/3.7milestones" );
     }
 
-    @Test
-    public void testArtifactRepository()
-        throws Exception
-    {
-        IArtifactRepositoryManager artifactRepositoryManager =
-            (IArtifactRepositoryManager) ServiceHelper.getService( Activator.getContext(),
-                                                                   IArtifactRepositoryManager.class.getName() );
-
-        IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
-        SimpleArtifactRepository simple =
-            (SimpleArtifactRepository) artifactRepository.getAdapter( SimpleArtifactRepository.class );
-        new SimpleArtifactRepositoryIO().write( simple, System.out );
-
-        System.out.println( simple );
-    }
+    // @Test
+    // public void testArtifactRepository()
+    // throws Exception
+    // {
+    // IArtifactRepositoryManager artifactRepositoryManager =
+    // (IArtifactRepositoryManager) ServiceHelper.getService( Activator.getContext(),
+    // IArtifactRepositoryManager.class.getName() );
+    //
+    // IArtifactRepository artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
+    // SimpleArtifactRepository simple =
+    // (SimpleArtifactRepository) artifactRepository.getAdapter( SimpleArtifactRepository.class );
+    // new SimpleArtifactRepositoryIO().write( simple, System.out );
+    //
+    // System.out.println( simple );
+    // }
 
     @Test
     public void testMetadataRepository()
         throws Exception
     {
+        IProvisioningAgent agent =
+            (IProvisioningAgent) ServiceHelper.getService( Activator.getContext(), IProvisioningAgent.class.getName() );
+
         IMetadataRepositoryManager repositoryManager =
-            (IMetadataRepositoryManager) ServiceHelper.getService( Activator.getContext(),
-                                                                   IMetadataRepositoryManager.class.getName() );
+            (IMetadataRepositoryManager) agent.getService( IMetadataRepositoryManager.class.getName() );
 
         IMetadataRepository repository = repositoryManager.loadRepository( location, monitor );
 
@@ -64,8 +62,8 @@ public class GalileoProxyTest
                                                 IMetadataRepositoryManager.TYPE_SIMPLE_REPOSITORY, null );
         repositoryManager.removeRepository( localFile.toURI() );
 
-        Collector collector = repository.query( InstallableUnitQuery.ANY, new Collector(), monitor );
+        IQueryResult<IInstallableUnit> result = repository.query( QueryUtil.ALL_UNITS, monitor );
 
-        localRepository.addInstallableUnits( (IInstallableUnit[]) collector.toArray( IInstallableUnit.class ) );
+        localRepository.addInstallableUnits( result.toUnmodifiableSet() );
     }
 }
