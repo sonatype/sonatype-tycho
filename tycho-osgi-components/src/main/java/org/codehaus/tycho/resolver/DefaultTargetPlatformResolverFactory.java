@@ -18,6 +18,8 @@ import org.codehaus.tycho.osgitools.targetplatform.LocalTargetPlatformResolver;
 @Component( role = DefaultTargetPlatformResolverFactory.class )
 public class DefaultTargetPlatformResolverFactory
 {
+    private static final String DEFAULT_RESOLVER_HINT = "p2";
+
     @Requirement
     private Logger logger;
 
@@ -30,18 +32,11 @@ public class DefaultTargetPlatformResolverFactory
         TargetPlatformConfiguration configuration =
             (TargetPlatformConfiguration) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM_CONFIGURATION );
 
-        String resolverRole = configuration.getTargetPlatformResolver();
-        if ( resolverRole == null )
-        {
-            resolverRole = LocalTargetPlatformResolver.ROLE_HINT;
-        }
-
         String property = properties.getProperty( "tycho.targetPlatform" );
         TargetPlatformResolver resolver;
         if ( property != null )
         {
-            logger.info( "tycho.targetPlatform=" + property + " overrides project target platform resolver="
-                + resolverRole );
+            logger.warn( "-Dtycho.targetPlatform is deprecated and WILL be removed in the next Tycho version." );
 
             File location = new File( property );
             if ( !location.exists() || !location.isDirectory() )
@@ -68,6 +63,12 @@ public class DefaultTargetPlatformResolverFactory
             }
 
             return resolver;
+        }
+
+        String resolverRole = configuration.getTargetPlatformResolver();
+        if ( resolverRole == null )
+        {
+            resolverRole = DEFAULT_RESOLVER_HINT;
         }
 
         try
