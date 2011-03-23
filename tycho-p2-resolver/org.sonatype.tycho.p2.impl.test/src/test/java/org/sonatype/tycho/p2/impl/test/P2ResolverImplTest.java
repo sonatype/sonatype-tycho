@@ -223,25 +223,46 @@ public class P2ResolverImplTest
 
         impl.setEnvironments( getEnvironments() );
 
-        addMavenProject( impl, new File( "resources/siteresolver/bundle342" ), P2Resolver.TYPE_ECLIPSE_PLUGIN,
-                         "bundle342" );
-        addMavenProject( impl, new File( "resources/siteresolver/bundle352" ), P2Resolver.TYPE_ECLIPSE_PLUGIN,
-                         "bundle352" );
-        addMavenProject( impl, new File( "resources/siteresolver/feature342" ), P2Resolver.TYPE_ECLIPSE_FEATURE,
-                         "feature342" );
-        addMavenProject( impl, new File( "resources/siteresolver/feature352" ), P2Resolver.TYPE_ECLIPSE_FEATURE,
-                         "feature352" );
+        File[] projects =
+            new File[] { new File( "resources/siteresolver/bundle342" ).getCanonicalFile(),
+                new File( "resources/siteresolver/bundle352" ).getCanonicalFile(),
+                new File( "resources/siteresolver/feature342" ).getCanonicalFile(),
+                new File( "resources/siteresolver/feature352" ).getCanonicalFile(),
+                new File( "resources/siteresolver/site" ).getCanonicalFile() };
 
-        File basedir = new File( "resources/siteresolver/site" ).getCanonicalFile();
+        addMavenProject( impl, projects[0], P2Resolver.TYPE_ECLIPSE_PLUGIN, "bundle342" );
+        addMavenProject( impl, projects[1], P2Resolver.TYPE_ECLIPSE_PLUGIN, "bundle352" );
+        addMavenProject( impl, projects[2], P2Resolver.TYPE_ECLIPSE_FEATURE, "feature342" );
+        addMavenProject( impl, projects[3], P2Resolver.TYPE_ECLIPSE_FEATURE, "feature352" );
+
+        File basedir = projects[4];
         addMavenProject( impl, basedir, P2Resolver.TYPE_ECLIPSE_UPDATE_SITE, "site" );
 
         P2ResolutionResult result = impl.collectProjectDependencies( basedir );
 
         impl.stop();
 
-        Assert.assertEquals( 4, result.getArtifacts().size() );
-        // conflicting dependency mode only collects included artifacts - the referenced non-reactor unit org.eclipse.osgi is not included
+        Assert.assertEquals( projects.length, result.getArtifacts().size() );
+        for ( File project : projects )
+        {
+            assertContainLocation( result, project );
+        }
+
+        // conflicting dependency mode only collects included artifacts - the referenced non-reactor unit
+        // org.eclipse.osgi is not included
         Assert.assertEquals( 0, result.getNonReactorUnits().size() );
+    }
+
+    private void assertContainLocation( P2ResolutionResult result, File location )
+    {
+        for ( P2ResolutionResult.Entry entry : result.getArtifacts() )
+        {
+            if ( entry.getLocation().equals( location ) )
+            {
+                return;
+            }
+        }
+        Assert.fail();
     }
 
     @Test

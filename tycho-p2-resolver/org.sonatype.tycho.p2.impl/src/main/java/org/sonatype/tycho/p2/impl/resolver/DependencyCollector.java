@@ -43,6 +43,8 @@ public class DependencyCollector
             logger.debug( "Extra IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
         }
 
+        result.addAll( rootIUs );
+
         for ( IInstallableUnit iu : rootIUs )
         {
             collectIncludedIUs( result, errors, iu, true, monitor );
