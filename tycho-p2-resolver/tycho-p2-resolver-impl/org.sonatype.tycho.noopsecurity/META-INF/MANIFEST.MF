@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Tycho Noop Equinox Password Provider
+Bundle-SymbolicName: org.sonatype.tycho.noopsecurity;singleton:=true
+Bundle-Version: 0.11.0.qualifier
+Require-Bundle: org.eclipse.equinox.security;bundle-version="1.0.100"
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-ActivationPolicy: lazy
+Export-Package: org.sonatype.tycho.security.storage;x-friends:="org.sonatype.tycho.p2.impl.test"

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="org.sonatype.tycho.p2.ProxyServiceFacade">
+   <implementation class="org.sonatype.tycho.p2.impl.proxy.ProxyServiceFacadeImpl"/>
+   <service>
+      <provide interface="org.sonatype.tycho.p2.ProxyServiceFacade"/>
+   </service>
+   <reference interface="org.eclipse.core.net.proxy.IProxyService" 
+      bind="setProxyServer" 
+      unbind="unsetProxyService"/>
+</scr:component>
