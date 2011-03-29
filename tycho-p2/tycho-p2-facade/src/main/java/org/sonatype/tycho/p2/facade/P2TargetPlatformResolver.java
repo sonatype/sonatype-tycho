@@ -452,7 +452,17 @@ public class P2TargetPlatformResolver
 
                 for ( Target.Unit unit : location.getUnits() )
                 {
-                    resolver.addDependency( P2Resolver.TYPE_INSTALLABLE_UNIT, unit.getId(), unit.getVersion() );
+                    String versionRange;
+                    if ( "0.0.0".equals( unit.getVersion() ) )
+                    {
+                        versionRange = unit.getVersion();
+                    }
+                    else
+                    {
+                        // perfect version match
+                        versionRange = "[" + unit.getVersion() + "," + unit.getVersion() + "]";
+                    }
+                    resolver.addDependency( P2Resolver.TYPE_INSTALLABLE_UNIT, unit.getId(), versionRange );
                 }
             }
         }

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import org.sonatype.tycho.p2.impl.publisher.SourcesBundleDependencyMetadataGener
 import org.sonatype.tycho.p2.impl.resolver.DuplicateReactorIUsException;
 import org.sonatype.tycho.p2.impl.resolver.P2ResolverImpl;
 import org.sonatype.tycho.p2.resolver.P2ResolutionResult;
+import org.sonatype.tycho.p2.resolver.P2ResolutionResult.Entry;
 import org.sonatype.tycho.p2.resolver.P2Resolver;
 import org.sonatype.tycho.test.util.HttpServer;
 
@@ -370,13 +373,20 @@ public class P2ResolverImplTest
 
         Assert.assertEquals( 3, result.getArtifacts().size() );
         List<P2ResolutionResult.Entry> entries = new ArrayList<P2ResolutionResult.Entry>( result.getArtifacts() );
+        Collections.sort( entries, new Comparator<Entry>()
+        {
 
-        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.feature01", entries.get( 0 ).getId() );
-        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.bundle01", entries.get( 1 ).getId() );
-        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.bundle01.source", entries.get( 2 ).getId() );
+            public int compare( Entry entry1, Entry entry2 )
+            {
+                return entry1.getId().compareTo( entry2.getId() );
+            }
+        });
+        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.bundle01", entries.get( 0 ).getId() );
+        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.bundle01.source", entries.get( 1 ).getId() );
+        Assert.assertEquals( "org.sonatype.tycho.p2.impl.resolver.test.feature01", entries.get( 2 ).getId() );
+        Assert.assertEquals( bundle, entries.get( 0 ).getLocation() );
         Assert.assertEquals( bundle, entries.get( 1 ).getLocation() );
-        Assert.assertEquals( bundle, entries.get( 2 ).getLocation() );
-        Assert.assertEquals( "sources", entries.get( 2 ).getClassifier() );
+        Assert.assertEquals( "sources", entries.get( 1 ).getClassifier() );
     }
 
     @Test
@@ -481,8 +491,9 @@ public class P2ResolverImplTest
         String version = "2.3.4";
         String newerVersion = "2.3.5";
 
-        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, version );
-        impl.addDependency( BUNDLE_TYPE, TARGET_UNIT_ID, version );
+        String exactVersionMatchRange = "[" + version + "," + version + "]";
+        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, exactVersionMatchRange );
+        impl.addDependency( BUNDLE_TYPE, TARGET_UNIT_ID, exactVersionMatchRange );
 
         List<IRequirement> requirements = impl.getAdditionalRequirements();
 
@@ -555,17 +566,23 @@ public class P2ResolverImplTest
                            additionalRequirements.get( 1 ).isMatch( iu ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
-    public void testVersionRangeInTargetDefinitionUnit()
+    
+    @Test
+    public void testAddDependencyWithVersionRange()
     {
-
-        String versionRange = "[1.0.0,4.0.0]";
-
         P2ResolverImpl impl = new P2ResolverImpl();
-
-        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, versionRange );
+        String range = "[2.0.0,3.0.0)";
+        impl.addDependency( IU_TYPE, TARGET_UNIT_ID, range);
+        impl.addDependency( BUNDLE_TYPE, TARGET_UNIT_ID, range);
+        List<IRequirement> additionalRequirements = impl.getAdditionalRequirements();
+        String matchingVersion = "2.5.8";
+        IInstallableUnit iu = createIU( matchingVersion );
+        Assert.assertTrue( "version range " + range + " should be satisfied by " + matchingVersion,
+                           additionalRequirements.get( 0 ).isMatch( iu ) );
+        Assert.assertTrue( "version range " + range + " should be satisfied by " + matchingVersion,
+                           additionalRequirements.get( 1 ).isMatch( iu ) );
     }
-
+    
     private static IInstallableUnit createIU( String version )
     {
         InstallableUnitDescription iud = new InstallableUnitDescription();

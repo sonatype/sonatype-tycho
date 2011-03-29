@@ -673,27 +673,19 @@ public class P2ResolverImpl
         this.environments = environments;
     }
 
-    public void addDependency( String type, String id, String version )
+    public void addDependency( String type, String id, String versionRange )
     {
-        VersionRange versionRange;
-        if ( "0.0.0".equals( version ) )
-        {
-            versionRange = new VersionRange( version );
-        }
-        else
-        {
-            versionRange = new VersionRange( Version.create( version ), true, Version.create( version ), true );
-        }
-
         if ( P2Resolver.TYPE_INSTALLABLE_UNIT.equals( type ) )
         {
             additionalRequirements.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, id,
-                                                                           versionRange, null, false, true ) );
+                                                                           new VersionRange( versionRange ), null, false,
+                                                                           true ) );
         }
         else if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) )
         {
-            additionalRequirements.add( MetadataFactory.createRequirement( CAPABILITY_NS_OSGI_BUNDLE, id, versionRange,
-                                                                           null, false, true ) );
+            additionalRequirements.add( MetadataFactory.createRequirement( CAPABILITY_NS_OSGI_BUNDLE, id,
+                                                                           new VersionRange( versionRange ), null, false,
+                                                                           true ) );
         }
     }
 

@@ -49,7 +49,7 @@ public interface P2Resolver
 
     public void setEnvironments( List<Map<String, String>> properties );
 
-    public void addDependency( String type, String id, String version );
+    public void addDependency( String type, String id, String versionRange );
 
     public List<P2ResolutionResult> resolveProject( File location );
 
