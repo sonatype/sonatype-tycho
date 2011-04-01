@@ -20,7 +20,7 @@ public class TargetPlatformConfiguration
 
     private String pomDependencies;
 
-    private boolean ignoreTychoRepositories;
+    private boolean ignoreTychoRepositories = true;
 
     private Boolean allowConflictingDependencies;
 
