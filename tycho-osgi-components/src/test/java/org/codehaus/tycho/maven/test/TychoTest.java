@@ -225,4 +225,38 @@ public class TychoTest extends AbstractTychoMojoTestCase {
         return new File(path).getCanonicalFile();
     }
 
+    public void testBundleExtraClasspath() throws Exception {
+        File pom = new File(getBasedir("projects/extraclasspath"), "pom.xml");
+
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getUserProperties().put("tycho.targetPlatform", new File("src/test/resources/targetplatforms/basic").getCanonicalPath());
+
+        List<MavenProject> projects = getSortedProjects(request);
+        assertEquals(3, projects.size());
+
+        MavenProject b01 = (MavenProject) projects.get(1);
+        MavenProject b02 = (MavenProject) projects.get(2);
+
+        OsgiBundleProject projectType = (OsgiBundleProject) lookup(TychoProject.class, b02.getPackaging());
+
+        List<ClasspathEntry> classpath = projectType.getClasspath(b02);
+
+        assertEquals(4, classpath.size());
+        // this bundle
+        assertEquals(1, classpath.get(0).getLocations().size());
+        assertEquals(canonicalFile("target/projects/extraclasspath/b02/target/classes"), 
+                     classpath.get(0).getLocations().get(0).getCanonicalFile());
+        // reference to external bundle entry not on classpath
+        assertEquals(1, classpath.get(1).getLocations().size());
+        assertEquals(canonicalFile("target/local-repo/.cache/tycho/org.eclipse.equinox.launcher_1.0.101.R34x_v20081125.jar/launcher.properties"), 
+                     classpath.get(1).getLocations().get(0).getCanonicalFile());
+        // reference to reactor project entry
+        assertEquals(1, classpath.get(2).getLocations().size());
+        assertEquals(canonicalFile("target/projects/extraclasspath/b01/target/lib/nested.jar-classes"), 
+                     classpath.get(2).getLocations().get(0).getCanonicalFile());
+        // reference to external bundle
+        assertEquals(1, classpath.get(3).getLocations().size());
+        assertEquals(canonicalFile("src/test/resources/targetplatforms/basic/plugins/org.eclipse.equinox.launcher_1.0.101.R34x_v20081125.jar"), 
+                     classpath.get(3).getLocations().get(0).getCanonicalFile());
+    }
 }

@@ -189,7 +189,7 @@ public class OsgiBundleProject
             }
             else
             {
-                locations = getBundleClasspath( otherArtifact, null );
+                locations = getBundleClasspath( otherArtifact );
             }
 
             classpath.add( new DefaultClasspathEntry( otherProject, otherArtifact.getKey(), locations, entry.rules ) );
@@ -327,9 +327,13 @@ public class OsgiBundleProject
                     {
                         locations = getProjectClasspath( matchingBundle, matchingBundle.getMavenProject(), path );
                     }
+                    else if ( path != null )
+                    {
+                        locations = getBundleEntry( matchingBundle, path );
+                    }
                     else
                     {
-                        locations = getBundleClasspath( matchingBundle, path );
+                        locations = getBundleClasspath( matchingBundle );
                     }
                     classpath.add( new DefaultClasspathEntry( matchingBundle.getMavenProject(),
                                                               matchingBundle.getKey(), locations, null ) );
@@ -342,34 +346,53 @@ public class OsgiBundleProject
         }
     }
 
-    private List<File> getBundleClasspath( ArtifactDescriptor bundle, String nestedPath )
+    private List<File> getBundleClasspath( ArtifactDescriptor bundle )
     {
         LinkedHashSet<File> classpath = new LinkedHashSet<File>();
 
         for ( String cp : parseBundleClasspath( bundle ) )
         {
             File entry;
-            if ( nestedPath == null || nestedPath.equals( cp ) )
+            if ( ".".equals( cp ) )
             {
-                if ( ".".equals( cp ) )
-                {
-                    entry = bundle.getLocation();
-                }
-                else
-                {
-                    entry = getNestedJarOrDir( bundle, cp );
-                }
+                entry = bundle.getLocation();
+            }
+            else
+            {
+                entry = getNestedJarOrDir( bundle, cp );
+            }
 
-                if ( entry != null )
-                {
-                    classpath.add( entry );
-                }
+            if ( entry != null )
+            {
+                classpath.add( entry );
             }
         }
 
         return new ArrayList<File>( classpath );
     }
 
+    private List<File> getBundleEntry( ArtifactDescriptor bundle, String nestedPath )
+    {
+        LinkedHashSet<File> classpath = new LinkedHashSet<File>();
+
+        File entry;
+        if ( ".".equals( nestedPath ) )
+        {
+            entry = bundle.getLocation();
+        }
+        else
+        {
+            entry = getNestedJarOrDir( bundle, nestedPath );
+        }
+
+        if ( entry != null )
+        {
+            classpath.add( entry );
+        }
+
+        return new ArrayList<File>( classpath );
+    }
+    
     private String[] parseBundleClasspath( ArtifactDescriptor bundle )
     {
         String[] result = new String[] { "." };
