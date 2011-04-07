@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.sonatype.tycho.TYCHO253extraClassPathEntries</groupId>
+	<groupId>org.eclipse.tycho.TYCHO253extraClassPathEntries</groupId>
 	<artifactId>TYCHO253extraClassPathEntries.testExtraClasspathTest3-aggregator</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>org.sonatype.tycho.testExtraClasspathTest2</module>
-		<module>org.sonatype.tycho.testExtraClasspathTest3</module>
+		<module>org.eclipse.tycho.testExtraClasspathTest2</module>
+		<module>org.eclipse.tycho.testExtraClasspathTest3</module>
 	</modules>
 </project>

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.tycho</groupId>
+    <groupId>org.eclipse.tycho</groupId>
     <artifactId>tycho-p2</artifactId>
     <version>0.12.0-SNAPSHOT</version>
   </parent>
@@ -27,18 +27,18 @@
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-equinox</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-equinox-launching</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -49,31 +49,31 @@
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2.tools.facade</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2.tools.facade</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <!--
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-runtime</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2.impl</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2.impl</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2.maven.repository</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2.maven.repository</artifactId>
       <version>${project.version}</version>
     </dependency>
     -->

@@ -4,7 +4,7 @@
 
   <parent>
     <artifactId>tycho</artifactId>
-    <groupId>org.sonatype.tycho</groupId>
+    <groupId>org.eclipse.tycho</groupId>
     <version>0.12.0-SNAPSHOT</version>
   </parent>
   <artifactId>tycho-testing-harness</artifactId>
@@ -37,7 +37,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-equinox</artifactId>
       <version>${project.version}</version>
     </dependency>

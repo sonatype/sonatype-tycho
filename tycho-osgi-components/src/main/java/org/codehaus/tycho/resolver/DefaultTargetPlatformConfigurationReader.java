@@ -33,7 +33,7 @@ public class DefaultTargetPlatformConfigurationReader
         TargetPlatformConfiguration result = new TargetPlatformConfiguration();
 
         // Use org.codehaus.tycho:target-platform-configuration/configuration/environment, if provided
-        Plugin plugin = project.getPlugin( "org.sonatype.tycho:target-platform-configuration" );
+        Plugin plugin = project.getPlugin( "org.eclipse.tycho:target-platform-configuration" );
 
         if ( plugin != null )
         {

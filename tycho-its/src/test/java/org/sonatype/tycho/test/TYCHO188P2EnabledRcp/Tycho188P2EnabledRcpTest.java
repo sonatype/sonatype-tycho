@@ -27,7 +27,7 @@ public class Tycho188P2EnabledRcpTest
 
     private static final String MODULE = "eclipse-repository";
 
-    private static final String GROUP_ID = "org.sonatype.tycho.tychoits.TYCHO188";
+    private static final String GROUP_ID = "org.eclipse.tycho.tychoits.TYCHO188";
 
     private static final String ARTIFACT_ID = "example-eclipse-repository";
 

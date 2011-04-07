@@ -322,7 +322,7 @@ public class GeneratePomsMojo extends AbstractMojo {
 		}
 
 		Plugin tychoPlugin = new Plugin();
-		tychoPlugin.setGroupId("org.sonatype.tycho");
+		tychoPlugin.setGroupId("org.eclipse.tycho");
 		tychoPlugin.setArtifactId("tycho-maven-plugin");
 		tychoPlugin.setVersion(tychoVersion);
 		tychoPlugin.setExtensions(true);

@@ -9,7 +9,7 @@
 
 	<parent>
 		<version>1.0.0-SNAPSHOT</version>
-		<groupId>org.sonatype.tycho.tychoits.TYCHO491PublishFeaturesAndCategories</groupId>
+		<groupId>org.eclipse.tycho.tychoits.TYCHO491PublishFeaturesAndCategories</groupId>
 		<artifactId>parent</artifactId>
 	</parent>
 

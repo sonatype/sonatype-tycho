@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.tycho</groupId>
+    <groupId>org.eclipse.tycho</groupId>
     <artifactId>tycho</artifactId>
     <version>0.12.0-SNAPSHOT</version>
   </parent>
@@ -100,13 +100,13 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-runtime</artifactId>
       <version>${tycho-build-version}</version>
       <type>zip</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-testing-harness</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
@@ -138,107 +138,107 @@
 
     <!-- artifacts to be tested -->
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-maven-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>maven-tycho-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>maven-osgi-compiler-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>maven-osgi-packaging-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>maven-osgi-test-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>maven-osgi-source-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-publisher-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-repository-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-director-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>target-platform-configuration</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho</artifactId>
       <version>${tycho-build-version}</version>
       <type>pom</type>
     </dependency>
     <!-- tycho p2 runtime -->
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-p2-runtime</artifactId>
       <version>${tycho-build-version}</version>
       <type>eclipse-application</type>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2.impl</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2.impl</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2.maven.repository</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2.maven.repository</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.p2.tools.impl</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.p2.tools.impl</artifactId>
       <version>${tycho-build-version}</version>
     </dependency>
 
@@ -267,17 +267,17 @@
           ECLIPSE_VERSION=3.6.0
 
           /opt/maven/bin/mvn install:install-file -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
-            -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dclassifier=win32 -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
+            -DgroupId=org.eclipse.tycho.ci -DartifactId=eclipse-SDK -Dclassifier=win32 -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
 
           /opt/maven/bin/mvn install:install-file -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
-            -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
+            -DgroupId=org.eclipse.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip
 
           mvn deploy:deploy-file -DgeneratePom=false -Dfile=eclipse-SDK-${ECLIPSE_VERSION}-win32.zip \
-            -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-SDK -Dversion=${ECLIPSE_VERSION} -Dclassifier=win32 -Dpackaging=zip \
+            -DgroupId=org.eclipse.tycho.ci -DartifactId=eclipse-SDK -Dversion=${ECLIPSE_VERSION} -Dclassifier=win32 -Dpackaging=zip \
             -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
           mvn deploy:deploy-file -e -DgeneratePom=false -Dfile=eclipse-${ECLIPSE_VERSION}-delta-pack.zip \
-            -DgroupId=org.sonatype.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip \
+            -DgroupId=org.eclipse.tycho.ci -DartifactId=eclipse-delta-pack -Dversion=${ECLIPSE_VERSION} -Dpackaging=zip \
             -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
         -->
@@ -301,14 +301,14 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.sonatype.tycho.ci</groupId>
+                      <groupId>org.eclipse.tycho.ci</groupId>
                       <artifactId>eclipse-SDK</artifactId>
                       <classifier>${target.eclipse-classifier}</classifier>
                       <version>${target.eclipse-version}</version>
                       <type>zip</type>
                     </artifactItem>
                     <artifactItem>
-                      <groupId>org.sonatype.tycho.ci</groupId>
+                      <groupId>org.eclipse.tycho.ci</groupId>
                       <artifactId>eclipse-delta-pack</artifactId>
                       <version>${target.eclipse-version}</version>
                       <type>zip</type>

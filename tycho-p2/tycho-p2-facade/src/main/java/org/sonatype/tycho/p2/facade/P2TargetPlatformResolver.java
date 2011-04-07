@@ -133,7 +133,7 @@ public class P2TargetPlatformResolver
         // should we rather use MavenSession to get the actual configured mojo instance?
         for ( Plugin plugin : project.getBuildPlugins() )
         {
-            if ( "org.sonatype.tycho:maven-osgi-source-plugin".equals( plugin.getKey() ) )
+            if ( "org.eclipse.tycho:maven-osgi-source-plugin".equals( plugin.getKey() ) )
             {
                 return true;
             }

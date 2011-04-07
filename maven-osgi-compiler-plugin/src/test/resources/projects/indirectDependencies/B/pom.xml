@@ -13,7 +13,7 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.sonatype.tycho</groupId>
+        <groupId>org.eclipse.tycho</groupId>
         <artifactId>maven-osgi-compiler-plugin</artifactId>
         <version>${tycho-version}</version>
         <configuration>

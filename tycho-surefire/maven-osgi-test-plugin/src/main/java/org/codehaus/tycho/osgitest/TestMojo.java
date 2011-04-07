@@ -640,12 +640,12 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 		    ArtifactDescriptor systemBundle = testRuntime.getSystemBundle();
 		    Version osgiVersion = Version.parseVersion(systemBundle.getKey().getVersion());
 			if (osgiVersion.compareTo(EquinoxInstallationDescription.EQUINOX_VERSION_3_3_0) < 0) {
-				return "org.sonatype.tycho.surefire.osgibooter.uitest32";
+				return "org.eclipse.tycho.surefire.osgibooter.uitest32";
 			} else {
-				return "org.sonatype.tycho.surefire.osgibooter.uitest";
+				return "org.eclipse.tycho.surefire.osgibooter.uitest";
 			}
 		} else {
-			return "org.sonatype.tycho.surefire.osgibooter.headlesstest";
+			return "org.eclipse.tycho.surefire.osgibooter.headlesstest";
 		}
 	}
 
@@ -654,23 +654,23 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 		
 		String fragment;
 		if (TestFramework.TEST_JUNIT.equals(testFramework)) {
-			fragment = "org.sonatype.tycho.surefire.junit";
+			fragment = "org.eclipse.tycho.surefire.junit";
 		} else if (TestFramework.TEST_JUNIT4.equals(testFramework)) {
-			fragment = "org.sonatype.tycho.surefire.junit4";
+			fragment = "org.eclipse.tycho.surefire.junit4";
 		} else {
 			throw new IllegalArgumentException("Unsupported test framework " + testFramework);
 		}
 
 		for (Artifact artifact : pluginArtifacts) {
-			if ("org.sonatype.tycho".equals(artifact.getGroupId())) {
-				if ("org.sonatype.tycho.surefire.osgibooter".equals(artifact.getArtifactId()) || fragment.equals(artifact.getArtifactId())) {
+			if ("org.eclipse.tycho".equals(artifact.getGroupId())) {
+				if ("org.eclipse.tycho.surefire.osgibooter".equals(artifact.getArtifactId()) || fragment.equals(artifact.getArtifactId())) {
 					result.add(artifact.getFile());
 				}
 			}
 		}
 
 		if (result.size() != 2) {
-		    StringBuilder sb = new StringBuilder("Unable to locate org.sonatype.tycho:org.sonatype.tycho.surefire.osgibooter and/or its fragments\n");
+		    StringBuilder sb = new StringBuilder("Unable to locate org.eclipse.tycho:org.eclipse.tycho.surefire.osgibooter and/or its fragments\n");
 		    sb.append("Test framework: " + testFramework);
 		    sb.append("All plugin artifacts: ");
             for (Artifact artifact : pluginArtifacts) {

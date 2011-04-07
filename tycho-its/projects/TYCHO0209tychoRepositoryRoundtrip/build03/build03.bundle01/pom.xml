@@ -12,12 +12,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.tycho.tychoits.tycho0209.build03</groupId>
+    <groupId>org.eclipse.tycho.tychoits.tycho0209.build03</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.sonatype.tycho.tychoits.tycho0209.build03.bundle01</artifactId>
+  <artifactId>org.eclipse.tycho.tychoits.tycho0209.build03.bundle01</artifactId>
 
   <packaging>eclipse-plugin</packaging>
 

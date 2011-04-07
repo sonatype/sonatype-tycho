@@ -11,7 +11,7 @@
 
 	<properties>
 		<tycho-version>0.10.0</tycho-version>
-		<tycho-groupid>org.sonatype.tycho</tycho-groupid>
+		<tycho-groupid>org.eclipse.tycho</tycho-groupid>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 

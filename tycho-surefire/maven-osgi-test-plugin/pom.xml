@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.tycho</groupId>
+    <groupId>org.eclipse.tycho</groupId>
     <artifactId>tycho-surefire</artifactId>
     <version>0.12.0-SNAPSHOT</version>
   </parent>
@@ -29,31 +29,31 @@
       <artifactId>plexus-utils</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-osgi-components</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>tycho-equinox-launching</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.surefire.osgibooter</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.surefire.osgibooter</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.surefire.junit</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.surefire.junit</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
-      <artifactId>org.sonatype.tycho.surefire.junit4</artifactId>
+      <groupId>org.eclipse.tycho</groupId>
+      <artifactId>org.eclipse.tycho.surefire.junit4</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>

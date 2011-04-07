@@ -12,19 +12,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.tycho.tychoits.tycho340</groupId>
+    <groupId>org.eclipse.tycho.tychoits.tycho340</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.sonatype.tycho.tychoits.tycho340.test</artifactId>
+  <artifactId>org.eclipse.tycho.tychoits.tycho340.test</artifactId>
   <packaging>eclipse-test-plugin</packaging>
 
   <build>
     <plugins>
 
       <plugin>
-        <groupId>org.sonatype.tycho</groupId>
+        <groupId>org.eclipse.tycho</groupId>
         <artifactId>maven-osgi-test-plugin</artifactId>
         <configuration>
           <explodedBundles>

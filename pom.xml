@@ -13,7 +13,7 @@
     <version>8</version>
   </parent>
 
-  <groupId>org.sonatype.tycho</groupId>
+  <groupId>org.eclipse.tycho</groupId>
   <artifactId>tycho</artifactId>
   <version>0.12.0-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -47,14 +47,14 @@
       EQUINOX_VERSION=3.6.2.R36x_v20110210
 
       /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.osgi_$EQUINOX_VERSION.jar -Dsources=org.eclipse.osgi.source_$EQUINOX_VERSION.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar
+        -DgroupId=org.eclipse.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar
 
       /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi_$EQUINOX_VERSION.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
+        -DgroupId=org.eclipse.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.osgi.source_$EQUINOX_VERSION.jar -Dclassifier=sources \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
+        -DgroupId=org.eclipse.tycho -DartifactId=org.eclipse.osgi -Dversion=$EQUINOX_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
@@ -67,14 +67,14 @@
       JDT_VERSION=3.6.2.v_A76_R36x
       
       /opt/maven/bin/mvn install:install-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar -Dsources=org.eclipse.jdt.core.source_$JDT_VERSION.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar
+        -DgroupId=org.eclipse.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar
 
       /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core_$JDT_VERSION.jar \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
+        -DgroupId=org.eclipse.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       /opt/maven/bin/mvn deploy:deploy-file -Dfile=org.eclipse.jdt.core.source_$JDT_VERSION.jar -Dclassifier=sources \
-        -DgroupId=org.sonatype.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
+        -DgroupId=org.eclipse.tycho -DartifactId=org.eclipse.jdt.core -Dversion=$JDT_VERSION -Dpackaging=jar \
         -DgeneratePom=true -DrepositoryId=forge-releases -Durl=http://repository.sonatype.org/service/local/staging/deploy/maven2/
 
       Promote the staging repo to http://repository.sonatype.org/content/repositories/releases/
