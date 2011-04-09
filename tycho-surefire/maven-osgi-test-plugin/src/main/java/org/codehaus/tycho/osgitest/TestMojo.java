@@ -28,6 +28,9 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.toolchain.Toolchain;
+import org.apache.maven.toolchain.ToolchainManager;
+import org.apache.maven.toolchain.java.DefaultJavaToolChain;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.tycho.BundleProject;
 import org.codehaus.tycho.TargetPlatform;
@@ -311,6 +314,9 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
      */
     private OsgiBundleProject osgiBundle;
 
+    /** @component */
+    private ToolchainManager toolchainManager;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
 		if (skip || skipExec) {
 			getLog().info("Skipping tests");
@@ -341,8 +347,22 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 
 		EquinoxInstallation testRuntime = createEclipseInstallation(false, DefaultReactorProject.adapt(session));
 
+		// Hack to use JavaToolChain
+		String oldJavaHome = System.getProperty( "java.home" );
+		Toolchain tc = getToolchain();
+		if ( tc != null && tc instanceof DefaultJavaToolChain )
+		{
+			getLog().info( "Toolchain: " + tc );
+			String jvm = tc.findTool( "java" );
+			String javaHome = ((DefaultJavaToolChain) tc).getJavaHome();
+			getLog().info( "java.home: " + javaHome );
+			System.setProperty( "java.home", javaHome );
+		}
+
 		String testBundle = null;
 		boolean succeeded = runTest(testRuntime, testBundle);
+
+		System.setProperty( "java.home", oldJavaHome );
 		
 		if (succeeded) {
 			getLog().info("All tests passed!");
@@ -350,6 +370,18 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
 	        throw new MojoFailureException("There are test failures.\n\nPlease refer to " + reportsDirectory + " for the individual test results.");
 		}
 	}
+
+    private Toolchain getToolchain()
+    {
+        Toolchain tc = null;
+
+        if ( toolchainManager != null )
+        {
+            tc = toolchainManager.getToolchainFromBuildContext( "jdk", session );
+        }
+
+        return tc;
+    }
 
     private EquinoxInstallation createEclipseInstallation(boolean includeReactorProjects, List<ReactorProject> reactorProjects)
         throws MojoExecutionException
