@@ -5,7 +5,7 @@
          id="id1"
          point="org.eclipse.equinox.security.secureStorage">
       <provider
-            class="org.sonatype.tycho.security.storage.TychoPasswordProvider"
+            class="org.eclipse.tycho.security.storage.TychoPasswordProvider"
             priority="0">
       </provider>
    </extension>

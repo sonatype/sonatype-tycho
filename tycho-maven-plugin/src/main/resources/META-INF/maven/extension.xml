@@ -2,11 +2,10 @@
 
 <extension>
   <exportedPackages>
-    <exportedPackage>org.codehaus.tycho</exportedPackage>
-    <exportedPackage>org.sonatype.tycho</exportedPackage>
+    <exportedPackage>org.eclipse.tycho</exportedPackage>
+    <exportedPackage>org.eclipse.tycho.model</exportedPackage>
     <exportedPackage>org.osgi.framework</exportedPackage>
     <exportedPackage>org.eclipse.osgi</exportedPackage>
-    <exportedPackage>org.codehaus.tycho.model</exportedPackage>
   </exportedPackages>
 
   <exportedArtifacts>

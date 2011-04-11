@@ -11,5 +11,5 @@ Bundle-Name: Tycho Surefire OSGi Booter Eclipse application
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.eclipse.tycho.surefire.osgibooter;singleton:=true
 Bundle-RequiredExecutionEnvironment: J2SE-1.5, JavaSE-1.6
-Bundle-Activator: org.codehaus.tycho.surefire.osgibooter.Activator
+Bundle-Activator: org.eclipse.tycho.surefire.osgibooter.Activator
 

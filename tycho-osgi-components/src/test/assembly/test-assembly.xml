@@ -25,9 +25,9 @@
   <dependencySets>
     <dependencySet>
       <outputDirectory>p2/eclipse/plugins</outputDirectory>
-      <outputFileNameMapping>org.codehaus.tycho.p2_1.0.0.jar</outputFileNameMapping>
+      <outputFileNameMapping>org.eclipse.tycho.p2_1.0.0.jar</outputFileNameMapping>
       <includes>
-        <include>org.codehaus.tycho:tycho-p2-app</include>
+        <include>org.eclipse.tycho:tycho-p2-app</include>
       </includes>
     </dependencySet>
   </dependencySets>

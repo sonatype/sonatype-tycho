@@ -8,7 +8,7 @@
   <defaults>
     <default>
       <key>package</key>
-      <value>org.sonatype.tycho.p2.repository.model.metadata</value>
+      <value>org.eclipse.tycho.p2.repository.model.metadata</value>
     </default>
   </defaults>
 

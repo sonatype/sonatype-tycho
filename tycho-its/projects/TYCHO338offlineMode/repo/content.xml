@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <?metadataRepository version='1.1.0'?>
-<repository name='Unnamed - org.sonatype.tycho.its:tycho338.site:eclipse-update-site:0.0.1-SNAPSHOT' type='org.eclipse.equinox.internal.p2.metadata.repository.LocalMetadataRepository' version='1'>
+<repository name='Unnamed - org.eclipse.tycho.its:tycho338.site:eclipse-update-site:0.0.1-SNAPSHOT' type='org.eclipse.equinox.internal.p2.metadata.repository.LocalMetadataRepository' version='1'>
   <properties size='2'>
     <property name='p2.timestamp' value='1266449202921'/>
     <property name='p2.compressed' value='false'/>
@@ -52,7 +52,7 @@
       <touchpointData size='1'>
         <instructions size='1'>
           <instruction key='manifest'>
-            MavenArtifact-BaseVersion: 0.0.1-SNAPSHOT&#xA;Bundle-ManifestVersion: 2&#xA;Built-By: BEBE&#xA;Bundle-RequiredExecutionEnvironment: J2SE-1.5&#xA;Archiver-Version: Plexus Archiver&#xA;Build-Jdk: 1.6.0_07&#xA;Bundle-Name: Bundle&#xA;Bundle-Version: 0.0.1.201002180026&#xA;Bundle-SymbolicName: tycho338.bundle&#xA;Created-By: Apache Maven&#xA;MavenArtifact-GroupId: org.sonatype.tycho.its&#xA;Manifest-Version: 1.0&#xA;
+            MavenArtifact-BaseVersion: 0.0.1-SNAPSHOT&#xA;Bundle-ManifestVersion: 2&#xA;Built-By: BEBE&#xA;Bundle-RequiredExecutionEnvironment: J2SE-1.5&#xA;Archiver-Version: Plexus Archiver&#xA;Build-Jdk: 1.6.0_07&#xA;Bundle-Name: Bundle&#xA;Bundle-Version: 0.0.1.201002180026&#xA;Bundle-SymbolicName: tycho338.bundle&#xA;Created-By: Apache Maven&#xA;MavenArtifact-GroupId: org.eclipse.tycho.its&#xA;Manifest-Version: 1.0&#xA;
           </instruction>
         </instructions>
       </touchpointData>

@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Tycho_p2_impl
 Bundle-SymbolicName: org.eclipse.tycho.p2.impl;singleton:=true
 Bundle-Version: 0.12.0.qualifier
-Bundle-Activator: org.sonatype.tycho.p2.impl.Activator
+Bundle-Activator: org.eclipse.tycho.p2.impl.Activator
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.equinox.security;bundle-version="1.0.100",
  org.eclipse.equinox.frameworkadmin.equinox;bundle-version="1.0.101",
@@ -22,16 +22,16 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ecf;bundle-version="3.1.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
-Export-Package: org.sonatype.tycho.p2.impl;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.impl.publisher;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.impl.publisher.model;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.impl.publisher.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.impl.publisher.rootfiles;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.impl.repo;x-friends:="org.sonatype.tycho.p2.impl.test",
- org.sonatype.tycho.p2.impl.resolver;x-friends:="org.sonatype.tycho.p2.impl.test"
-Import-Package: org.sonatype.tycho.p2,
- org.sonatype.tycho.p2.repository,
- org.sonatype.tycho.p2.resolver
+Export-Package: org.eclipse.tycho.p2.impl;x-friends:="org.eclipse.tycho.p2.impl.test",
+ org.eclipse.tycho.p2.impl.publisher;x-friends:="org.eclipse.tycho.p2.impl.test",
+ org.eclipse.tycho.p2.impl.publisher.model;x-friends:="org.eclipse.tycho.p2.impl.test",
+ org.eclipse.tycho.p2.impl.publisher.repo;x-friends:="org.eclipse.tycho.p2.impl.test",
+ org.eclipse.tycho.p2.impl.publisher.rootfiles;x-friends:="org.eclipse.tycho.p2.impl.test",
+ org.eclipse.tycho.p2.impl.repo;x-friends:="org.eclipse.tycho.p2.impl.test",
+ org.eclipse.tycho.p2.impl.resolver;x-friends:="org.eclipse.tycho.p2.impl.test"
+Import-Package: org.eclipse.tycho.p2.metadata,
+ org.eclipse.tycho.p2.repository,
+ org.eclipse.tycho.p2.resolver
 Service-Component: OSGI-INF/generator.xml,
  OSGI-INF/metadataserializable.xml,
  OSGI-INF/proxyfacade.xml,

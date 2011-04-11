@@ -12,8 +12,8 @@ import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepository;
 import org.eclipse.equinox.p2.repository.metadata.IMetadataRepositoryManager;
 import org.junit.Test;
-import org.sonatype.tycho.p2.impl.test.Activator;
-import org.sonatype.tycho.p2.impl.test.ConsoleProgressMonitor;
+import org.eclipse.tycho.p2.impl.test.Activator;
+import org.eclipse.tycho.p2.impl.test.ConsoleProgressMonitor;
 
 @SuppressWarnings( "restriction" )
 public class GalileoProxyTest
