@@ -301,14 +301,14 @@
                 <configuration>
                   <artifactItems>
                     <artifactItem>
-                      <groupId>org.eclipse.tycho.ci</groupId>
+                      <groupId>org.sonatype.tycho.ci</groupId>
                       <artifactId>eclipse-SDK</artifactId>
                       <classifier>${target.eclipse-classifier}</classifier>
                       <version>${target.eclipse-version}</version>
                       <type>zip</type>
                     </artifactItem>
                     <artifactItem>
-                      <groupId>org.eclipse.tycho.ci</groupId>
+                      <groupId>org.sonatype.tycho.ci</groupId>
                       <artifactId>eclipse-delta-pack</artifactId>
                       <version>${target.eclipse-version}</version>
                       <type>zip</type>
