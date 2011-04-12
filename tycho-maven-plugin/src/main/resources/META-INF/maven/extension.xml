@@ -12,7 +12,7 @@
     <exportedArtifact>tycho-embedder-api</exportedArtifact>
     <exportedArtifact>tycho-core</exportedArtifact>
     <exportedArtifact>tycho-metadata-model</exportedArtifact>
-    <exportedArtifact>org.eclipse.tycho.p2</exportedArtifact>
+    <exportedArtifact>org.eclipse.tycho.p2.resolver.facade</exportedArtifact>
     <exportedArtifact>org.eclipse.tycho.p2.tools.facade</exportedArtifact>
     <exportedArtifact>tycho-p2-facade</exportedArtifact>
     <exportedArtifact>tycho-equinox-api</exportedArtifact>

@@ -14,13 +14,12 @@
 
   <parent>
     <groupId>org.eclipse.tycho</groupId>
-    <artifactId>tycho-p2-resolver</artifactId>
+    <artifactId>tycho-p2-resolver-impl</artifactId>
     <version>0.12.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>org.eclipse.tycho.p2</artifactId>
+  <artifactId>org.eclipse.tycho.p2.resolver.impl</artifactId>
   <packaging>eclipse-plugin</packaging>
-
-  <name>Tycho P2 dependency resolution API</name>
+  <name>Tycho P2-based dependency resolver</name>
 
 </project>

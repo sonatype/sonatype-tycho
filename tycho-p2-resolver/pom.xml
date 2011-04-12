@@ -25,7 +25,7 @@
   <name>Tycho P2-based target platform resolver parent</name>
 
   <modules>
-    <module>org.eclipse.tycho.p2</module>
+    <module>org.eclipse.tycho.p2.resolver.facade</module>
     <module>org.eclipse.tycho.p2.tools.facade</module>
     
     <module>tycho-p2-resolver-impl</module>

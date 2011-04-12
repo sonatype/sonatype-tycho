@@ -23,16 +23,15 @@
   <name>Tycho P2-based target platform resolver implementation parent</name>
 
   <modules>
-    <module>org.eclipse.tycho.p2.impl</module>
+    <module>org.eclipse.tycho.p2.resolver.impl</module>
     <module>org.eclipse.tycho.p2.maven.repository</module>
+    <module>org.eclipse.tycho.p2.tools.impl</module>
     <module>org.eclipse.tycho.noopsecurity</module>
 
     <!-- unit tests -->
-    <module>org.eclipse.tycho.p2.impl.test</module>
+    <module>org.eclipse.tycho.p2.resolver.impl.test</module>
     <module>org.eclipse.tycho.p2.maven.repository.tests</module>
-
     <module>org.eclipse.tycho.p2.tools.facade.tests</module>
-    <module>org.eclipse.tycho.p2.tools.impl</module>
 
     <!-- OSGi runtime for Tycho -->
     <module>tycho-p2-runtime</module>
