@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2010, 2011 SAP AG and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     SAP AG - initial API and implementation
+ *******************************************************************************/
 package org.eclipse.tycho.utils;
 
 import java.util.Properties;
@@ -9,8 +19,6 @@ import java.util.Properties;
  * 
  * See the list of known OSGi profiles in bundle org.eclipse.osgi, file
  * profile.list.
- * 
- * @author jan.sievers@sap.com
  * 
  */
 public class ExecutionEnvironment {

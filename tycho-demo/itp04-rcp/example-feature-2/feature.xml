@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="example-feature-2"
-      label="Example Feature 2"
-      version="0.2.0.qualifier">
+      label="%featureName"
+      version="0.2.0.qualifier"
+      provider-name="%providerName">
 
-   <description url="http://www.example.com/description">
-      Description of Example Feature 2
+   <description>
+      %description
    </description>
 
-   <copyright url="http://www.example.com/copyright">
-      Copyright of Example Feature 2
+   <copyright>
+      %copyright
    </copyright>
 
-   <license url="http://www.example.com/license">
-      License Description of Example Feature 2
+   <license url="%licenseURL">
+      %license
    </license>
 
    <plugin
