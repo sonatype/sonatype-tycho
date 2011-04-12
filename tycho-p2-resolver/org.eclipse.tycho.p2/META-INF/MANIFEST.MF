@@ -9,3 +9,4 @@ Bundle-Description: Tycho integrates Maven with Eclipse and OSGi
 Bundle-SymbolicName: org.eclipse.tycho.p2
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
+Bundle-Vendor: %providerName

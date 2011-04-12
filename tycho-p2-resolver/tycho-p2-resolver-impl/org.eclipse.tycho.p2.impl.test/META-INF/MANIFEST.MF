@@ -26,3 +26,4 @@ Import-Package: org.eclipse.tycho.p2.metadata,
  org.eclipse.tycho.p2.resolver
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.eclipse.tycho.p2.impl.test.Activator
+Bundle-Vendor: %providerName

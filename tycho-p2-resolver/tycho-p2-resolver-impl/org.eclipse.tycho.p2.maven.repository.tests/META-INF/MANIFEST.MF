@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: P2 Maven Repository Tests Plug-in
 Bundle-SymbolicName: org.eclipse.tycho.p2.maven.repository.tests;singleton:=true
 Bundle-Version: 0.12.0.qualifier
-Bundle-Vendor: Eclipse.org
+Bundle-Vendor: %providerName
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Require-Bundle: org.eclipse.tycho.p2.maven.repository,
  org.junit4;bundle-version="4.5.0",

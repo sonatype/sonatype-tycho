@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: P2 Maven Repository
 Bundle-SymbolicName: org.eclipse.tycho.p2.maven.repository;singleton:=true
 Bundle-Version: 0.12.0.qualifier
-Bundle-Vendor: Sonatype, Inc.
+Bundle-Vendor: %providerName
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.equinox.common;bundle-version="3.5.0",

@@ -21,3 +21,4 @@ Import-Package: org.eclipse.tycho.p2.repository,
  org.osgi.framework;version="[1.5.0,2.0.0)"
 Service-Component: OSGI-INF/directorapp.xml, OSGI-INF/publisherfactory.xml, OSGI-INF/mirrorapp.xml
 Bundle-Activator: org.eclipse.tycho.p2.tools.impl.Activator
+Bundle-Vendor: %providerName

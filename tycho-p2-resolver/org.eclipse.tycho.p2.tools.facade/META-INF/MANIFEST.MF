@@ -10,3 +10,4 @@ Export-Package: org.eclipse.tycho.p2.tools,
  org.eclipse.tycho.p2.tools.mirroring,
  org.eclipse.tycho.p2.tools.publisher
 Import-Package: org.eclipse.tycho.p2.repository
+Bundle-Vendor: %providerName

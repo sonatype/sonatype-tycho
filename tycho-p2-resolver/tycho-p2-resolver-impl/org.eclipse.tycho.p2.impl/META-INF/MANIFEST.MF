@@ -36,3 +36,4 @@ Service-Component: OSGI-INF/generator.xml,
  OSGI-INF/metadataserializable.xml,
  OSGI-INF/proxyfacade.xml,
  OSGI-INF/resolver.xml
+Bundle-Vendor: %providerName

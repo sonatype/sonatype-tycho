@@ -9,3 +9,4 @@ Bundle-RequiredExecutionEnvironment: J2SE-1.5,
 Bundle-ClassPath: .,jars/surefire-junit4-2.4.3.jar
 Import-Package: org.junit.runner;version="4.0.0",
  org.junit.runner.notification;version="4.0.0"
+Bundle-Vendor: %providerName
