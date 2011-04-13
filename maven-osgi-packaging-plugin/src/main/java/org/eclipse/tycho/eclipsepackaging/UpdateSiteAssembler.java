@@ -27,10 +27,10 @@ import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
-import org.eclipse.tycho.ArtifactDependencyVisitor;
-import org.eclipse.tycho.FeatureDescription;
-import org.eclipse.tycho.PluginDescription;
 import org.eclipse.tycho.ReactorProject;
+import org.eclipse.tycho.core.ArtifactDependencyVisitor;
+import org.eclipse.tycho.core.FeatureDescription;
+import org.eclipse.tycho.core.PluginDescription;
 import org.eclipse.tycho.eclipsepackaging.pack200.Pack200Archiver;
 import org.eclipse.tycho.model.PluginRef;
 

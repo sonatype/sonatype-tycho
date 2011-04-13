@@ -21,7 +21,7 @@ import java.util.Set;
 import org.eclipse.osgi.framework.adaptor.FrameworkAdaptor;
 import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.osgitools.targetplatform.DefaultTargetPlatform;
+import org.eclipse.tycho.core.osgitools.targetplatform.DefaultTargetPlatform;
 
 public class DefaultEquinoxInstallationDescription
     implements EquinoxInstallationDescription

@@ -34,12 +34,12 @@ import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.osgi.util.ManifestElement;
 import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.TychoConstants;
+import org.eclipse.tycho.core.TychoConstants;
+import org.eclipse.tycho.core.osgitools.BundleReader;
 import org.eclipse.tycho.equinox.launching.BundleStartLevel;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallation;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallationDescription;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallationFactory;
-import org.eclipse.tycho.osgitools.BundleReader;
 import org.osgi.framework.Constants;
 
 @Component( role = EquinoxInstallationFactory.class )

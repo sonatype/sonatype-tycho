@@ -17,9 +17,9 @@ import java.util.List;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.tycho.core.utils.TychoProjectUtils;
 import org.eclipse.tycho.p2.tools.BuildContext;
 import org.eclipse.tycho.p2.tools.TargetEnvironment;
-import org.eclipse.tycho.utils.TychoProjectUtils;
 
 public abstract class AbstractRepositoryMojo
     extends AbstractMojo
@@ -69,10 +69,10 @@ public abstract class AbstractRepositoryMojo
     {
         // TODO use shared class everywhere?
 
-        List<org.eclipse.tycho.TargetEnvironment> original =
+        List<org.eclipse.tycho.core.TargetEnvironment> original =
             TychoProjectUtils.getTargetPlatformConfiguration( project ).getEnvironments();
         List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>( original.size() );
-        for ( org.eclipse.tycho.TargetEnvironment env : original )
+        for ( org.eclipse.tycho.core.TargetEnvironment env : original )
         {
             converted.add( new TargetEnvironment( env.getWs(), env.getOs(), env.getArch() ) );
         }

@@ -23,14 +23,14 @@ import org.codehaus.plexus.archiver.UnArchiver;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.TargetPlatform;
 import org.eclipse.tycho.buildversion.VersioningHelper;
+import org.eclipse.tycho.core.TargetPlatform;
+import org.eclipse.tycho.core.utils.TychoProjectUtils;
 import org.eclipse.tycho.model.FeatureRef;
 import org.eclipse.tycho.model.PluginRef;
 import org.eclipse.tycho.model.ProductConfiguration;
 import org.eclipse.tycho.p2.tools.FacadeException;
 import org.eclipse.tycho.p2.tools.publisher.PublisherService;
-import org.eclipse.tycho.utils.TychoProjectUtils;
 
 /**
  * This goal invokes the product publisher for each product file found.

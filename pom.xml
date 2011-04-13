@@ -426,7 +426,7 @@
     <module>tycho-equinox</module>
     <module>tycho-metadata-model</module>
     <module>tycho-embedder-api</module>
-    <module>tycho-osgi-components</module>
+    <module>tycho-core</module>
     <module>tycho-testing-harness</module>
     <module>tycho-equinox-launching</module>
 

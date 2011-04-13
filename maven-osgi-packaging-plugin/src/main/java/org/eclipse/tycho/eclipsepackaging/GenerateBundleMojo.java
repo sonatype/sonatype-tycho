@@ -51,7 +51,7 @@ import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
-import org.eclipse.tycho.utils.MavenArtifactRef;
+import org.eclipse.tycho.core.utils.MavenArtifactRef;
 
 import aQute.lib.osgi.Instruction;
 

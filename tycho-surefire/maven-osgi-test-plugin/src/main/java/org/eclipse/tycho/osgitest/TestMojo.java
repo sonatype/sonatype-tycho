@@ -41,12 +41,16 @@ import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.BundleProject;
 import org.eclipse.tycho.ReactorProject;
-import org.eclipse.tycho.TargetPlatform;
-import org.eclipse.tycho.TargetPlatformResolver;
-import org.eclipse.tycho.TychoConstants;
-import org.eclipse.tycho.TychoProject;
+import org.eclipse.tycho.core.BundleProject;
+import org.eclipse.tycho.core.TargetPlatform;
+import org.eclipse.tycho.core.TargetPlatformResolver;
+import org.eclipse.tycho.core.TychoConstants;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
+import org.eclipse.tycho.core.osgitools.OsgiBundleProject;
+import org.eclipse.tycho.core.resolver.DefaultTargetPlatformResolverFactory;
+import org.eclipse.tycho.core.utils.PlatformPropertiesUtils;
 import org.eclipse.tycho.equinox.launching.BundleStartLevel;
 import org.eclipse.tycho.equinox.launching.DefaultEquinoxInstallationDescription;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallation;
@@ -56,10 +60,6 @@ import org.eclipse.tycho.equinox.launching.EquinoxLauncher;
 import org.eclipse.tycho.equinox.launching.internal.EquinoxLaunchConfiguration;
 import org.eclipse.tycho.launching.LaunchConfiguration;
 import org.eclipse.tycho.launching.LaunchConfigurationFactory;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
-import org.eclipse.tycho.osgitools.OsgiBundleProject;
-import org.eclipse.tycho.resolver.DefaultTargetPlatformResolverFactory;
-import org.eclipse.tycho.utils.PlatformPropertiesUtils;
 import org.osgi.framework.Version;
 
 /**
@@ -306,7 +306,7 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
     private DefaultTargetPlatformResolverFactory targetPlatformResolverLocator;
     
     /**
-     * @component role="org.eclipse.tycho.TychoProject"
+     * @component role="org.eclipse.tycho.core.TychoProject"
      */
     private Map<String, TychoProject> projectTypes;
 
@@ -317,7 +317,7 @@ public class TestMojo extends AbstractMojo implements LaunchConfigurationFactory
     private EquinoxLauncher launcher;
 
     /**
-     * @component role="org.eclipse.tycho.TychoProject" role-hint="eclipse-plugin"
+     * @component role="org.eclipse.tycho.core.TychoProject" role-hint="eclipse-plugin"
      */
     private OsgiBundleProject osgiBundle;
 

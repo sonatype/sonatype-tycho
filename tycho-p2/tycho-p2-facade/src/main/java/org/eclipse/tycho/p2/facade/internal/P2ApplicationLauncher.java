@@ -21,7 +21,8 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.cli.Commandline;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.TychoProject;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.osgitools.OsgiBundleProject;
 import org.eclipse.tycho.equinox.EquinoxRuntimeLocator;
 import org.eclipse.tycho.equinox.launching.DefaultEquinoxInstallationDescription;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallation;
@@ -29,7 +30,6 @@ import org.eclipse.tycho.equinox.launching.EquinoxInstallationDescription;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallationFactory;
 import org.eclipse.tycho.equinox.launching.EquinoxLauncher;
 import org.eclipse.tycho.equinox.launching.internal.EquinoxLaunchConfiguration;
-import org.eclipse.tycho.osgitools.OsgiBundleProject;
 
 /**
  * Convenience wrapper around {@link Commandline} to run Eclipse applications from tycho-p2-runtime

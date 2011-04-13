@@ -27,11 +27,11 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.AbstractScanner;
-import org.eclipse.tycho.ArtifactDependencyWalker;
 import org.eclipse.tycho.ReactorProject;
-import org.eclipse.tycho.TargetPlatform;
-import org.eclipse.tycho.TychoProject;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
+import org.eclipse.tycho.core.ArtifactDependencyWalker;
+import org.eclipse.tycho.core.TargetPlatform;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
 
 /**
  * @requiresProject
@@ -62,7 +62,7 @@ public abstract class AbstractTychoPackagingMojo
     protected MavenProjectHelper projectHelper;
 
     /**
-     * @component role="org.eclipse.tycho.TychoProject"
+     * @component role="org.eclipse.tycho.core.TychoProject"
      */
     private Map<String, TychoProject> projectTypes;
 

@@ -19,11 +19,11 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.TychoProject;
-import org.eclipse.tycho.osgitools.EclipseRepositoryProject;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.osgitools.EclipseRepositoryProject;
+import org.eclipse.tycho.core.utils.TychoProjectUtils;
 import org.eclipse.tycho.p2.tools.BuildContext;
 import org.eclipse.tycho.p2.tools.TargetEnvironment;
-import org.eclipse.tycho.utils.TychoProjectUtils;
 
 // TODO share between Maven plug-ins?
 public abstract class AbstractP2Mojo
@@ -94,10 +94,10 @@ public abstract class AbstractP2Mojo
     {
         // TODO use shared class everywhere?
 
-        List<org.eclipse.tycho.TargetEnvironment> original =
+        List<org.eclipse.tycho.core.TargetEnvironment> original =
             TychoProjectUtils.getTargetPlatformConfiguration( project ).getEnvironments();
         List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>( original.size() );
-        for ( org.eclipse.tycho.TargetEnvironment env : original )
+        for ( org.eclipse.tycho.core.TargetEnvironment env : original )
         {
             converted.add( new TargetEnvironment( env.getWs(), env.getOs(), env.getArch() ) );
         }

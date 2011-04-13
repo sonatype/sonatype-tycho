@@ -28,10 +28,10 @@ import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.eclipse.tycho.ReactorProject;
-import org.eclipse.tycho.TychoConstants;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
-import org.eclipse.tycho.osgitools.project.BuildOutputJar;
-import org.eclipse.tycho.osgitools.project.EclipsePluginProject;
+import org.eclipse.tycho.core.TychoConstants;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
+import org.eclipse.tycho.core.osgitools.project.BuildOutputJar;
+import org.eclipse.tycho.core.osgitools.project.EclipsePluginProject;
 
 /**
  * Creates a jar-based plugin and attaches it as an artifact

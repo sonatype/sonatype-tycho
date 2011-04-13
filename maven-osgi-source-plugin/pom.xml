@@ -50,7 +50,7 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.tycho</groupId>
-      <artifactId>tycho-osgi-components</artifactId>
+      <artifactId>tycho-core</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

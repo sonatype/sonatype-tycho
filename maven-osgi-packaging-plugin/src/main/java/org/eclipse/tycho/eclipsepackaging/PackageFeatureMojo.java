@@ -25,14 +25,14 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.archiver.jar.JarArchiver;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.eclipse.tycho.ArtifactDependencyVisitor;
-import org.eclipse.tycho.FeatureDescription;
-import org.eclipse.tycho.PluginDescription;
 import org.eclipse.tycho.ReactorProject;
+import org.eclipse.tycho.core.ArtifactDependencyVisitor;
+import org.eclipse.tycho.core.FeatureDescription;
+import org.eclipse.tycho.core.PluginDescription;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
 import org.eclipse.tycho.model.Feature;
 import org.eclipse.tycho.model.FeatureRef;
 import org.eclipse.tycho.model.PluginRef;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
 
 /**
  * @phase package

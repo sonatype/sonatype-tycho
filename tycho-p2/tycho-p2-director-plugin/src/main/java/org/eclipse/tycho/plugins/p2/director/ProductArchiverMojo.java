@@ -18,7 +18,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
-import org.eclipse.tycho.TargetEnvironment;
+import org.eclipse.tycho.core.TargetEnvironment;
 
 /**
  * @goal archive-products

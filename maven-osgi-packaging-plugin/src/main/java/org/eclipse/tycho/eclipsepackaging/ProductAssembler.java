@@ -14,10 +14,10 @@ import java.io.File;
 import java.util.jar.Manifest;
 
 import org.apache.maven.execution.MavenSession;
-import org.eclipse.tycho.PluginDescription;
-import org.eclipse.tycho.TargetEnvironment;
+import org.eclipse.tycho.core.PluginDescription;
+import org.eclipse.tycho.core.TargetEnvironment;
+import org.eclipse.tycho.core.osgitools.BundleReader;
 import org.eclipse.tycho.model.PluginRef;
-import org.eclipse.tycho.osgitools.BundleReader;
 
 public class ProductAssembler
     extends UpdateSiteAssembler

@@ -18,11 +18,11 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.eclipse.tycho.TargetEnvironment;
-import org.eclipse.tycho.TargetPlatform;
-import org.eclipse.tycho.TargetPlatformConfiguration;
-import org.eclipse.tycho.TychoProject;
-import org.eclipse.tycho.utils.TychoProjectUtils;
+import org.eclipse.tycho.core.TargetEnvironment;
+import org.eclipse.tycho.core.TargetPlatform;
+import org.eclipse.tycho.core.TargetPlatformConfiguration;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.utils.TychoProjectUtils;
 
 abstract class AbstractProductMojo
     extends AbstractMojo

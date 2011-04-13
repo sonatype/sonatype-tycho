@@ -42,24 +42,24 @@ import org.codehaus.plexus.compiler.util.scan.SimpleSourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.SourceInclusionScanner;
 import org.codehaus.plexus.compiler.util.scan.StaleSourceScanner;
 import org.codehaus.plexus.util.FileUtils;
-import org.eclipse.tycho.BundleProject;
-import org.eclipse.tycho.TychoProject;
-import org.eclipse.tycho.UnknownEnvironmentException;
 import org.eclipse.tycho.classpath.ClasspathEntry;
 import org.eclipse.tycho.classpath.ClasspathEntry.AccessRule;
 import org.eclipse.tycho.classpath.JavaCompilerConfiguration;
 import org.eclipse.tycho.classpath.SourcepathEntry;
+import org.eclipse.tycho.core.BundleProject;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.UnknownEnvironmentException;
+import org.eclipse.tycho.core.osgitools.DefaultClasspathEntry;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
+import org.eclipse.tycho.core.osgitools.OsgiBundleProject;
+import org.eclipse.tycho.core.osgitools.project.BuildOutputJar;
+import org.eclipse.tycho.core.osgitools.project.EclipsePluginProject;
+import org.eclipse.tycho.core.utils.ExecutionEnvironment;
+import org.eclipse.tycho.core.utils.ExecutionEnvironmentUtils;
+import org.eclipse.tycho.core.utils.MavenArtifactRef;
 import org.eclipse.tycho.osgicompiler.copied.AbstractCompilerMojo;
 import org.eclipse.tycho.osgicompiler.copied.CompilationFailureException;
-import org.eclipse.tycho.osgitools.DefaultClasspathEntry;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
-import org.eclipse.tycho.osgitools.OsgiBundleProject;
-import org.eclipse.tycho.osgitools.project.BuildOutputJar;
-import org.eclipse.tycho.osgitools.project.EclipsePluginProject;
 import org.eclipse.tycho.runtime.Adaptable;
-import org.eclipse.tycho.utils.ExecutionEnvironment;
-import org.eclipse.tycho.utils.ExecutionEnvironmentUtils;
-import org.eclipse.tycho.utils.MavenArtifactRef;
 
 public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo implements JavaCompilerConfiguration, Adaptable {
 
@@ -144,7 +144,7 @@ public abstract class AbstractOsgiCompilerMojo extends AbstractCompilerMojo impl
 	private BuildOutputJar outputJar;
 
 	/**
-	 * @component role="org.eclipse.tycho.TychoProject"
+	 * @component role="org.eclipse.tycho.core.TychoProject"
 	 */
 	private Map<String, TychoProject> projectTypes;
 

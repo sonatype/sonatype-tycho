@@ -14,8 +14,8 @@ import java.util.Map;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.project.MavenProject;
-import org.eclipse.tycho.TychoProject;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
 
 public abstract class AbstractVersionMojo
     extends AbstractMojo
@@ -36,7 +36,7 @@ public abstract class AbstractVersionMojo
     protected String packaging;
 
     /**
-     * @component role="org.eclipse.tycho.TychoProject"
+     * @component role="org.eclipse.tycho.core.TychoProject"
      */
     protected Map<String, TychoProject> projectTypes;
 

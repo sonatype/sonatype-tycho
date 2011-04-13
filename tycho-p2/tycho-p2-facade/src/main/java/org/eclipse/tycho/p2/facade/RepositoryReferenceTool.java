@@ -23,11 +23,11 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.tycho.ArtifactKey;
+import org.eclipse.tycho.core.utils.TychoProjectUtils;
 import org.eclipse.tycho.equinox.EquinoxServiceFactory;
 import org.eclipse.tycho.p2.metadata.MetadataSerializable;
 import org.eclipse.tycho.p2.repository.RepositoryLayoutHelper;
 import org.eclipse.tycho.p2.tools.RepositoryReferences;
-import org.eclipse.tycho.utils.TychoProjectUtils;
 
 /**
  * Tool to obtain the list of p2 repositories that contain the dependencies of a module.

@@ -34,8 +34,8 @@ import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.eclipse.tycho.ArtifactKey;
 import org.eclipse.tycho.ReactorProject;
-import org.eclipse.tycho.TychoProject;
-import org.eclipse.tycho.osgitools.DefaultReactorProject;
+import org.eclipse.tycho.core.TychoProject;
+import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
 import org.osgi.framework.Version;
 
 /**
@@ -98,7 +98,7 @@ public class OsgiSourceMojo extends AbstractSourceJarMojo {
     protected boolean useDefaultSourceExcludes;
 
     /**
-     * @component role="org.eclipse.tycho.TychoProject"
+     * @component role="org.eclipse.tycho.core.TychoProject"
      */
     private Map<String, TychoProject> projectTypes;
 

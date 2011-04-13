@@ -48,15 +48,15 @@ import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.osgi.service.resolver.State;
 import org.eclipse.osgi.util.ManifestElement;
+import org.eclipse.tycho.core.osgitools.BundleReader;
+import org.eclipse.tycho.core.osgitools.DefaultArtifactKey;
+import org.eclipse.tycho.core.osgitools.DependencyComputer;
+import org.eclipse.tycho.core.osgitools.EquinoxResolver;
+import org.eclipse.tycho.core.osgitools.targetplatform.DefaultTargetPlatform;
 import org.eclipse.tycho.model.Feature;
 import org.eclipse.tycho.model.FeatureRef;
 import org.eclipse.tycho.model.PluginRef;
 import org.eclipse.tycho.model.UpdateSite;
-import org.eclipse.tycho.osgitools.BundleReader;
-import org.eclipse.tycho.osgitools.DefaultArtifactKey;
-import org.eclipse.tycho.osgitools.DependencyComputer;
-import org.eclipse.tycho.osgitools.EquinoxResolver;
-import org.eclipse.tycho.osgitools.targetplatform.DefaultTargetPlatform;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 
@@ -140,17 +140,17 @@ public class GeneratePomsMojo extends AbstractMojo {
 	private String rootProjects;
 
 	/**
-	 * @component role="org.eclipse.tycho.osgitools.BundleReader"
+	 * @component role="org.eclipse.tycho.core.osgitools.BundleReader"
 	 */
 	private BundleReader bundleReader;
 
 	/**
-	 * @component role="org.eclipse.tycho.osgitools.EquinoxResolver"
+	 * @component role="org.eclipse.tycho.core.osgitools.EquinoxResolver"
 	 */
 	private EquinoxResolver resolver;
 
 	/**
-	 * @component role="org.eclipse.tycho.osgitools.DependencyComputer"
+	 * @component role="org.eclipse.tycho.core.osgitools.DependencyComputer"
 	 */
 	private DependencyComputer dependencyComputer;
 

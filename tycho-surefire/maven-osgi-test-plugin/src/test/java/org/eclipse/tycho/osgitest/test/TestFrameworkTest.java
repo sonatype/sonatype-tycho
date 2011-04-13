@@ -16,9 +16,9 @@ import junit.framework.Assert;
 
 import org.codehaus.plexus.PlexusTestCase;
 import org.eclipse.tycho.classpath.ClasspathEntry;
+import org.eclipse.tycho.core.osgitools.DefaultArtifactKey;
+import org.eclipse.tycho.core.osgitools.DefaultClasspathEntry;
 import org.eclipse.tycho.osgitest.TestFramework;
-import org.eclipse.tycho.osgitools.DefaultArtifactKey;
-import org.eclipse.tycho.osgitools.DefaultClasspathEntry;
 
 public class TestFrameworkTest
     extends PlexusTestCase

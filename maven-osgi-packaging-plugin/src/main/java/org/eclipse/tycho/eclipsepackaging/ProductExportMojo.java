@@ -46,17 +46,17 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.SelectorUtils;
 import org.codehaus.plexus.util.io.RawInputStreamFacade;
 import org.eclipse.pde.internal.swt.tools.IconExe;
-import org.eclipse.tycho.ArtifactDependencyVisitor;
-import org.eclipse.tycho.ArtifactDependencyWalker;
 import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
-import org.eclipse.tycho.PluginDescription;
-import org.eclipse.tycho.TargetEnvironment;
+import org.eclipse.tycho.core.ArtifactDependencyVisitor;
+import org.eclipse.tycho.core.ArtifactDependencyWalker;
+import org.eclipse.tycho.core.PluginDescription;
+import org.eclipse.tycho.core.TargetEnvironment;
+import org.eclipse.tycho.core.osgitools.BundleReader;
+import org.eclipse.tycho.core.utils.PlatformPropertiesUtils;
+import org.eclipse.tycho.core.utils.TychoProjectUtils;
 import org.eclipse.tycho.model.BundleConfiguration;
 import org.eclipse.tycho.model.ProductConfiguration;
-import org.eclipse.tycho.osgitools.BundleReader;
-import org.eclipse.tycho.utils.PlatformPropertiesUtils;
-import org.eclipse.tycho.utils.TychoProjectUtils;
 
 /**
  * @goal product-export

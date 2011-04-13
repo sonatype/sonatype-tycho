@@ -18,7 +18,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.apache.maven.it.Verifier;
-import org.eclipse.tycho.osgitools.DefaultBundleReader;
+import org.eclipse.tycho.core.osgitools.DefaultBundleReader;
 import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Assert;
 import org.junit.Test;
