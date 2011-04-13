@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -473,13 +474,21 @@ public class P2ResolverImplTest
 
     private void assertContainsUnit( String unitID, Set<?> units )
     {
+        Assert.assertFalse( "Unit " + unitID + " not found", getInstallableUnits( unitID, units ).isEmpty() );
+    }
+
+    private List<IInstallableUnit> getInstallableUnits(String unitID, Set<?> units)
+    {
+        List<IInstallableUnit> result = new ArrayList<IInstallableUnit>();
         for ( Object unitObject : units )
         {
             IInstallableUnit unit = (IInstallableUnit) unitObject;
             if ( unitID.equals( unit.getId() ) )
-                return;
+            {
+                result.add(unit);
+            }
         }
-        fail( "Unit " + unitID + " not found" );
+        return result;
     }
 
     @Test
@@ -581,6 +590,45 @@ public class P2ResolverImplTest
                            additionalRequirements.get( 0 ).isMatch( iu ) );
         Assert.assertTrue( "version range " + range + " should be satisfied by " + matchingVersion,
                            additionalRequirements.get( 1 ).isMatch( iu ) );
+    }
+    
+    @Test
+    public void reactorVsExternal() throws Exception
+    {
+        P2ResolverImpl impl = new P2ResolverImpl();
+        impl.setRepositoryCache( new P2RepositoryCacheImpl() );
+        impl.setLocalRepositoryLocation( getLocalRepositoryLocation() );
+        impl.setLogger( new NullP2Logger() );
+        impl.setEnvironments( getEnvironments() );
+
+        impl.addP2Repository( new File( "resources/reactor-vs-external/extrepo" ).getCanonicalFile().toURI() );
+
+        ArtifactMock bundle01 =
+            new ArtifactMock( new File( "resources/reactor-vs-external/bundle01" ).getCanonicalFile(), "groupId",
+                              "org.sonatype.tycho.p2.impl.resolver.test.bundle01", "1.0.0.qualifier",
+                              P2Resolver.TYPE_ECLIPSE_PLUGIN );
+        bundle01.setDependencyMetadata( generator.generateMetadata( bundle01, getEnvironments() ) );
+        impl.addReactorArtifact( bundle01 );
+
+        ArtifactMock feature01 =
+            new ArtifactMock( new File( "resources/reactor-vs-external/feature01" ).getCanonicalFile(), "groupId",
+                              "org.sonatype.tycho.p2.impl.resolver.test.feature01", "1.0.0.qualifier",
+                              P2Resolver.TYPE_ECLIPSE_FEATURE );
+        feature01.setDependencyMetadata( generator.generateMetadata( feature01, getEnvironments() ) );
+        impl.addReactorArtifact( feature01 );
+
+        List<P2ResolutionResult> results = impl.resolveProject( feature01.getLocation() );
+
+        Assert.assertEquals( 1, results.size() );
+        P2ResolutionResult result = results.get( 0 );
+
+        Assert.assertEquals( 2, result.getArtifacts().size() );
+        Assert.assertEquals( 0, result.getNonReactorUnits().size() );
+
+        for ( Entry entry : result.getArtifacts() )
+        {
+            Assert.assertEquals( "1.0.0.qualifier", entry.getVersion() );
+        }
     }
     
     private static IInstallableUnit createIU( String version )
