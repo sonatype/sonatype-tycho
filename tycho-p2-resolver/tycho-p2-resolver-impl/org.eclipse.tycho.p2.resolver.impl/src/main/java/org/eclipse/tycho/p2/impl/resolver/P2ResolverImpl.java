@@ -136,6 +136,8 @@ public class P2ResolverImpl
     private Map<IInstallableUnit, IArtifactFacade> mavenInstallableUnits =
         new HashMap<IInstallableUnit, IArtifactFacade>();
 
+    private Set<String> reactorInstallableUnitIds = new HashSet<String>();
+
     /**
      * Target runtime environment properties
      */
@@ -160,6 +162,11 @@ public class P2ResolverImpl
         Set<IInstallableUnit> units = toSet( artifact.getDependencyMetadata(), IInstallableUnit.class );
 
         addMavenArtifact( artifact, units );
+
+        for ( IInstallableUnit unit : units )
+        {
+            reactorInstallableUnitIds.add( unit.getId() );
+        }
     }
 
     private static <T> Set<T> toSet( Collection<Object> collection, Class<T> targetType )
@@ -621,12 +628,22 @@ public class P2ResolverImpl
 
                 if ( isPartialIU( iu ) )
                 {
-                    System.out.println( "PARTIAL IU: " + iu );
+                    logger.debug( "PARTIAL IU: " + iu );
                     continue;
                 }
+
                 if ( !isReactorInstallableUnit( iu ) )
                 {
-                    result.add( iu );
+                    if ( !reactorInstallableUnitIds.contains( iu.getId() ) )
+                    {
+                        result.add( iu );
+                    }
+                    else
+                    {
+                        // this produces too much noise in STDOUT
+//                        logger.debug( "External IU " + iu + " from repository " + repository.getLocation()
+//                            + " has the same id as reactor project. External IU is ignored." );
+                    }
                 }
             }
         }
