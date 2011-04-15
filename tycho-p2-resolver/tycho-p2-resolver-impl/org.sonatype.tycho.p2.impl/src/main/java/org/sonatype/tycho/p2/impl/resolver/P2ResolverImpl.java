@@ -629,8 +629,9 @@ public class P2ResolverImpl
                     }
                     else
                     {
-                        logger.debug( "External IU " + iu + " from repository " + repository.getLocation()
-                            + " has the same id as reactor project. External IU is ignored." );
+                        // this produces too much noise in STDOUT
+//                      logger.debug( "External IU " + iu + " from repository " + repository.getLocation()
+//                          + " has the same id as reactor project. External IU is ignored." );
                     }
                 }
             }
