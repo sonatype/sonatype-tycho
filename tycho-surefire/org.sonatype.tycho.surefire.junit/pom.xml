@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonatype.tycho</groupId>
     <artifactId>tycho-surefire</artifactId>
-    <version>0.11.1-SNAPSHOT</version>
+    <version>0.11.1</version>
   </parent>
 
   <artifactId>org.sonatype.tycho.surefire.junit</artifactId>
