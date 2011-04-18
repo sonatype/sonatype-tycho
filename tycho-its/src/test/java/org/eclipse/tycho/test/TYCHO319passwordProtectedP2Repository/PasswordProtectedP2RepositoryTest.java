@@ -21,58 +21,46 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings( "unchecked" )
-public class PasswordProtectedP2RepositoryTest
-    extends AbstractTychoIntegrationTest
-{
+@SuppressWarnings("unchecked")
+public class PasswordProtectedP2RepositoryTest extends AbstractTychoIntegrationTest {
 
     private HttpServer server;
 
     @Before
-    public void startServer()
-        throws Exception
-    {
-        server = HttpServer.startServer( "test-user", "test-password" );
+    public void startServer() throws Exception {
+        server = HttpServer.startServer("test-user", "test-password");
     }
 
     @After
-    public void stopServer()
-        throws Exception
-    {
+    public void stopServer() throws Exception {
         server.stop();
     }
 
     @Test
-    public void testRepository()
-        throws Exception
-    {
-        String url = server.addServer( "foo", new File( "repositories/e342" ) );
+    public void testRepository() throws Exception {
+        String url = server.addServer("foo", new File("repositories/e342"));
 
-        Verifier verifier =
-            getVerifier( "/TYCHO319passwordProtectedP2Repository", false,
-                         new File( "projects/TYCHO319passwordProtectedP2Repository/settings.xml" ) );
-        verifier.getCliOptions().add( "-P=repository" );
-        verifier.executeGoals( Arrays.asList( "package", "-Dp2.repo=" + url ) );
+        Verifier verifier = getVerifier("/TYCHO319passwordProtectedP2Repository", false, new File(
+                "projects/TYCHO319passwordProtectedP2Repository/settings.xml"));
+        verifier.getCliOptions().add("-P=repository");
+        verifier.executeGoals(Arrays.asList("package", "-Dp2.repo=" + url));
         verifier.verifyErrorFreeLog();
     }
 
     @Test
-    public void testTargetDefinition()
-        throws Exception
-    {
-        String url = server.addServer( "foo", new File( "repositories/e342" ) );
+    public void testTargetDefinition() throws Exception {
+        String url = server.addServer("foo", new File("repositories/e342"));
 
-        Verifier verifier =
-            getVerifier( "/TYCHO319passwordProtectedP2Repository", false,
-                         new File( "projects/TYCHO319passwordProtectedP2Repository/settings.xml" ) );
-        
-        File platformFile = new File( verifier.getBasedir(), "platform.target" );
-        Target platform = Target.read( platformFile );
-        platform.getLocations().get( 0 ).getRepositories().get( 0 ).setLocation( url );
-        Target.write( platform, platformFile );
+        Verifier verifier = getVerifier("/TYCHO319passwordProtectedP2Repository", false, new File(
+                "projects/TYCHO319passwordProtectedP2Repository/settings.xml"));
 
-        verifier.getCliOptions().add( "-P=target-definition" );
-        verifier.executeGoals( Arrays.asList( "package", "-Dp2.repo=" + url ) );
+        File platformFile = new File(verifier.getBasedir(), "platform.target");
+        Target platform = Target.read(platformFile);
+        platform.getLocations().get(0).getRepositories().get(0).setLocation(url);
+        Target.write(platform, platformFile);
+
+        verifier.getCliOptions().add("-P=target-definition");
+        verifier.executeGoals(Arrays.asList("package", "-Dp2.repo=" + url));
         verifier.verifyErrorFreeLog();
     }
 }

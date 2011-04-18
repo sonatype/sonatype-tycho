@@ -13,14 +13,11 @@ package org.eclipse.tycho.p2.tools.impl.director;
 import org.eclipse.equinox.internal.p2.director.app.DirectorApplication;
 import org.eclipse.tycho.p2.tools.director.DirectorApplicationWrapper;
 
-@SuppressWarnings( "restriction" )
-public final class DirectorApplicationWrapperImpl
-    implements DirectorApplicationWrapper
-{
+@SuppressWarnings("restriction")
+public final class DirectorApplicationWrapperImpl implements DirectorApplicationWrapper {
 
-    public Object run( String[] args )
-    {
-        return new DirectorApplication().run( args );
+    public Object run(String[] args) {
+        return new DirectorApplication().run(args);
     }
 
 }

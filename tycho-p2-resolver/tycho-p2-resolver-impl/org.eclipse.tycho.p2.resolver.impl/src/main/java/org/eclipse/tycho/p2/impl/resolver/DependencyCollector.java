@@ -28,105 +28,85 @@ import org.eclipse.tycho.p2.impl.Activator;
 import org.eclipse.tycho.p2.impl.publisher.FeatureDependenciesAction;
 import org.eclipse.tycho.p2.resolver.P2Logger;
 
-@SuppressWarnings( "restriction" )
-public class DependencyCollector
-    extends ResolutionStrategy
-{
+@SuppressWarnings("restriction")
+public class DependencyCollector extends ResolutionStrategy {
     private final P2Logger logger;
 
-    public DependencyCollector( P2Logger logger )
-    {
+    public DependencyCollector(P2Logger logger) {
         this.logger = logger;
     }
 
     @Override
-    public Collection<IInstallableUnit> resolve( IProgressMonitor monitor )
-    {
+    public Collection<IInstallableUnit> resolve(IProgressMonitor monitor) {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
         LinkedHashSet<IStatus> errors = new LinkedHashSet<IStatus>();
 
-        if ( logger.isDebugEnabled() )
-        {
-            logger.debug( "Available IUs:\n" + ResolverDebugUtils.toDebugString( availableIUs, false, monitor ) );
-            logger.debug( "Root IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
-            logger.debug( "Extra IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Available IUs:\n" + ResolverDebugUtils.toDebugString(availableIUs, false, monitor));
+            logger.debug("Root IUs:\n" + ResolverDebugUtils.toDebugString(rootIUs, true));
+            logger.debug("Extra IUs:\n" + ResolverDebugUtils.toDebugString(rootIUs, true));
         }
 
-        result.addAll( rootIUs );
+        result.addAll(rootIUs);
 
-        for ( IInstallableUnit iu : rootIUs )
-        {
-            collectIncludedIUs( result, errors, iu, true, monitor );
+        for (IInstallableUnit iu : rootIUs) {
+            collectIncludedIUs(result, errors, iu, true, monitor);
         }
 
-        if ( logger.isDebugEnabled() )
-        {
-            logger.debug( "Collected IUs:\n" + ResolverDebugUtils.toDebugString( result, false ) );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Collected IUs:\n" + ResolverDebugUtils.toDebugString(result, false));
         }
 
         // TODO additionalRequirements
 
-        if ( !errors.isEmpty() )
-        {
-            MultiStatus status =
-                new MultiStatus( Activator.PLUGIN_ID, 0, errors.toArray( new IStatus[errors.size()] ),
-                                 "Missing dependencies", null );
+        if (!errors.isEmpty()) {
+            MultiStatus status = new MultiStatus(Activator.PLUGIN_ID, 0, errors.toArray(new IStatus[errors.size()]),
+                    "Missing dependencies", null);
 
-            throw new RuntimeException( status.toString(), new ProvisionException( status ) );
+            throw new RuntimeException(status.toString(), new ProvisionException(status));
         }
 
         return result;
     }
 
-    private void collectIncludedIUs( Set<IInstallableUnit> result, Set<IStatus> errors, IInstallableUnit iu,
-                                     boolean immediate, IProgressMonitor monitor )
-    {
+    private void collectIncludedIUs(Set<IInstallableUnit> result, Set<IStatus> errors, IInstallableUnit iu,
+            boolean immediate, IProgressMonitor monitor) {
         // features listed in site.xml directly
         // features/bundles included in included features (RequiredCapability.isVersionStrict is approximation of this)
 
-        for ( IRequirement req : iu.getRequirements() )
-        {
-            IQueryResult<IInstallableUnit> matches =
-                availableIUs.query( QueryUtil.createLatestQuery( QueryUtil.createMatchQuery( req.getMatches() ) ),
-                                    monitor );
+        for (IRequirement req : iu.getRequirements()) {
+            IQueryResult<IInstallableUnit> matches = availableIUs.query(
+                    QueryUtil.createLatestQuery(QueryUtil.createMatchQuery(req.getMatches())), monitor);
 
-            if ( !matches.isEmpty() )
-            {
+            if (!matches.isEmpty()) {
                 IInstallableUnit match = matches.iterator().next(); // can only be one
 
-                if ( immediate || isIncluded( iu, req, match ) )
-                {
-                    result.add( match );
+                if (immediate || isIncluded(iu, req, match)) {
+                    result.add(match);
 
-                    if ( isFeature( match ) )
-                    {
-                        collectIncludedIUs( result, errors, match, false, monitor );
+                    if (isFeature(match)) {
+                        collectIncludedIUs(result, errors, match, false, monitor);
                     }
                 }
-            }
-            else
-            {
-                errors.add( new Status( IStatus.ERROR, Activator.PLUGIN_ID, "Unable to find dependency from "
-                    + iu.toString() + " to " + req.toString() ) );
+            } else {
+                errors.add(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Unable to find dependency from "
+                        + iu.toString() + " to " + req.toString()));
             }
         }
     }
 
-    private boolean isIncluded( IInstallableUnit iu, IRequirement req, IInstallableUnit match )
-    {
-        Set<String> includedIUs = FeatureDependenciesAction.getIncludedUIs( iu );
+    private boolean isIncluded(IInstallableUnit iu, IRequirement req, IInstallableUnit match) {
+        Set<String> includedIUs = FeatureDependenciesAction.getIncludedUIs(iu);
 
-        if ( includedIUs.contains( match.getId() ) )
-        {
+        if (includedIUs.contains(match.getId())) {
             return true;
         }
 
-        return RequiredCapability.isVersionStrict( req.getMatches() );
+        return RequiredCapability.isVersionStrict(req.getMatches());
     }
 
-    private boolean isFeature( IInstallableUnit iu )
-    {
-        return QueryUtil.isGroup( iu );
+    private boolean isFeature(IInstallableUnit iu) {
+        return QueryUtil.isGroup(iu);
     }
 }

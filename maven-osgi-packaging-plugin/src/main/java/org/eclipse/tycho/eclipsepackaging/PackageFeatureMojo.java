@@ -40,9 +40,7 @@ import org.eclipse.tycho.model.PluginRef;
  * @requiresProject
  * @requiresDependencyResolution runtime
  */
-public class PackageFeatureMojo
-    extends AbstractTychoPackagingMojo
-{
+public class PackageFeatureMojo extends AbstractTychoPackagingMojo {
 
     private static final int KBYTE = 1024;
 
@@ -72,8 +70,8 @@ public class PackageFeatureMojo
     private String finalName;
 
     /**
-     * If set to <code>true</code> (the default), standard eclipse update site directory with feature content will be
-     * created under target folder.
+     * If set to <code>true</code> (the default), standard eclipse update site directory with
+     * feature content will be created under target folder.
      * 
      * @parameter default-value="false"
      */
@@ -84,94 +82,72 @@ public class PackageFeatureMojo
      */
     private File target;
 
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         expandVersion();
 
         Properties props = new Properties();
-        try
-        {
-            FileInputStream is = new FileInputStream( new File( basedir, "build.properties" ) );
-            try
-            {
-                props.load( is );
-            }
-            finally
-            {
+        try {
+            FileInputStream is = new FileInputStream(new File(basedir, "build.properties"));
+            try {
+                props.load(is);
+            } finally {
                 is.close();
             }
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Error reading build properties", e );
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error reading build properties", e);
         }
 
         outputDirectory.mkdirs();
 
         Feature feature;
-        File featureXml = new File( outputDirectory, Feature.FEATURE_XML );
-        try
-        {
+        File featureXml = new File(outputDirectory, Feature.FEATURE_XML);
+        try {
             feature = getUpdatedFeatureXml();
-            Feature.write( feature, featureXml );
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Error updating feature.xml", e );
+            Feature.write(feature, featureXml);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error updating feature.xml", e);
         }
 
-        File outputJar = new File( outputDirectory, finalName + ".jar" );
+        File outputJar = new File(outputDirectory, finalName + ".jar");
         outputJar.getParentFile().mkdirs();
-        List<String> binIncludes = toFilePattern( props.getProperty( "bin.includes" ) );
-        List<String> binExcludes = toFilePattern( props.getProperty( "bin.excludes" ) );
-        binExcludes.add( Feature.FEATURE_XML ); // we'll include updated feature.xml
+        List<String> binIncludes = toFilePattern(props.getProperty("bin.includes"));
+        List<String> binExcludes = toFilePattern(props.getProperty("bin.excludes"));
+        binExcludes.add(Feature.FEATURE_XML); // we'll include updated feature.xml
 
         MavenArchiver archiver = new MavenArchiver();
         JarArchiver jarArchiver = getJarArchiver();
-        archiver.setArchiver( jarArchiver );
-        archiver.setOutputFile( outputJar );
-        jarArchiver.setDestFile( outputJar );
+        archiver.setArchiver(jarArchiver);
+        archiver.setOutputFile(outputJar);
+        jarArchiver.setDestFile(outputJar);
 
-        try
-        {
-            archiver.getArchiver().addFileSet( getFileSet( basedir, binIncludes, binExcludes ) );
-            archiver.getArchiver().addFile( featureXml, Feature.FEATURE_XML );
-            archiver.createArchive( project, archive );
-        }
-        catch ( Exception e )
-        {
-            throw new MojoExecutionException( "Error creating feature package", e );
+        try {
+            archiver.getArchiver().addFileSet(getFileSet(basedir, binIncludes, binExcludes));
+            archiver.getArchiver().addFile(featureXml, Feature.FEATURE_XML);
+            archiver.createArchive(project, archive);
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error creating feature package", e);
         }
 
-        project.getArtifact().setFile( outputJar );
+        project.getArtifact().setFile(outputJar);
 
-        if ( deployableFeature )
-        {
-            assembleDeployableFeature( feature );
+        if (deployableFeature) {
+            assembleDeployableFeature(feature);
         }
     }
 
-    private void assembleDeployableFeature( Feature feature )
-        throws MojoExecutionException
-    {
-        UpdateSiteAssembler assembler = new UpdateSiteAssembler( session, target );
-        getDependencyWalker().walk( assembler );
+    private void assembleDeployableFeature(Feature feature) throws MojoExecutionException {
+        UpdateSiteAssembler assembler = new UpdateSiteAssembler(session, target);
+        getDependencyWalker().walk(assembler);
     }
 
-    private Feature getUpdatedFeatureXml()
-        throws MojoExecutionException, IOException
-    {
-        final Feature feature = Feature.loadFeature( basedir );
+    private Feature getUpdatedFeatureXml() throws MojoExecutionException, IOException {
+        final Feature feature = Feature.loadFeature(basedir);
 
-        getDependencyWalker().traverseFeature( basedir, feature, new ArtifactDependencyVisitor()
-        {
-            public void visitPlugin( PluginDescription plugin )
-            {
+        getDependencyWalker().traverseFeature(basedir, feature, new ArtifactDependencyVisitor() {
+            public void visitPlugin(PluginDescription plugin) {
                 PluginRef pluginRef = plugin.getPluginRef();
 
-                if ( pluginRef == null )
-                {
+                if (pluginRef == null) {
                     // can't really happen
                     return;
                 }
@@ -179,112 +155,84 @@ public class PackageFeatureMojo
                 File location = plugin.getLocation();
 
                 ReactorProject bundleProject = plugin.getMavenProject();
-                if ( bundleProject != null )
-                {
+                if (bundleProject != null) {
                     location = bundleProject.getArtifact();
 
-                    if ( location == null || location.isDirectory() )
-                    {
-                        throw new IllegalStateException( "At least ``package'' phase execution is required" );
+                    if (location == null || location.isDirectory()) {
+                        throw new IllegalStateException("At least ``package'' phase execution is required");
                     }
 
-                    pluginRef.setVersion( bundleProject.getExpandedVersion() );
-                }
-                else
-                {
+                    pluginRef.setVersion(bundleProject.getExpandedVersion());
+                } else {
                     // use version from target platform
-                    pluginRef.setVersion( plugin.getKey().getVersion() );
+                    pluginRef.setVersion(plugin.getKey().getVersion());
                 }
 
                 long downloadSize = 0;
                 long installSize = 0;
-                if ( location.isFile() )
-                {
-                    installSize = getInstallSize( location );
+                if (location.isFile()) {
+                    installSize = getInstallSize(location);
                     downloadSize = location.length();
-                }
-                else
-                {
-                    getLog().info( "Download/install size is not calculated for directory based bundle "
-                                       + pluginRef.getId() );
+                } else {
+                    getLog().info(
+                            "Download/install size is not calculated for directory based bundle " + pluginRef.getId());
                 }
 
-                pluginRef.setDownloadSide( downloadSize / KBYTE );
-                pluginRef.setInstallSize( installSize / KBYTE );
+                pluginRef.setDownloadSide(downloadSize / KBYTE);
+                pluginRef.setInstallSize(installSize / KBYTE);
             }
 
-            public boolean visitFeature( FeatureDescription feature )
-            {
+            public boolean visitFeature(FeatureDescription feature) {
                 FeatureRef featureRef = feature.getFeatureRef();
-                if ( featureRef == null )
-                {
+                if (featureRef == null) {
                     // this feature
-                    ReactorProject reactorProject = DefaultReactorProject.adapt( project );
-                    feature.getFeature().setVersion( reactorProject.getExpandedVersion() );
+                    ReactorProject reactorProject = DefaultReactorProject.adapt(project);
+                    feature.getFeature().setVersion(reactorProject.getExpandedVersion());
                     return true; // keep visiting
-                }
-                else
-                {
+                } else {
                     // included feature
                     ReactorProject otherProject = feature.getMavenProject();
-                    if ( otherProject != null )
-                    {
-                        featureRef.setVersion( otherProject.getExpandedVersion() );
-                    }
-                    else
-                    {
-                        featureRef.setVersion( feature.getKey().getVersion() );
+                    if (otherProject != null) {
+                        featureRef.setVersion(otherProject.getExpandedVersion());
+                    } else {
+                        featureRef.setVersion(feature.getKey().getVersion());
                     }
                 }
 
                 return false; // do not traverse included features
             }
-        } );
+        });
 
         return feature;
     }
 
-    private JarArchiver getJarArchiver()
-        throws MojoExecutionException
-    {
-        try
-        {
-            JarArchiver jarArchiver = (JarArchiver) plexus.lookup( JarArchiver.ROLE, "jar" );
+    private JarArchiver getJarArchiver() throws MojoExecutionException {
+        try {
+            JarArchiver jarArchiver = (JarArchiver) plexus.lookup(JarArchiver.ROLE, "jar");
             return jarArchiver;
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new MojoExecutionException( "Unable to get JarArchiver", e );
+        } catch (ComponentLookupException e) {
+            throw new MojoExecutionException("Unable to get JarArchiver", e);
         }
     }
 
-    protected long getInstallSize( File location )
-    {
+    protected long getInstallSize(File location) {
         long installSize = 0;
-        try
-        {
-            JarFile jar = new JarFile( location );
-            try
-            {
+        try {
+            JarFile jar = new JarFile(location);
+            try {
                 Enumeration<JarEntry> entries = jar.entries();
-                while ( entries.hasMoreElements() )
-                {
+                while (entries.hasMoreElements()) {
                     JarEntry entry = (JarEntry) entries.nextElement();
                     long entrySize = entry.getSize();
-                    if ( entrySize > 0 )
-                    {
+                    if (entrySize > 0) {
                         installSize += entrySize;
                     }
                 }
-            }
-            finally
-            {
+            } finally {
                 jar.close();
             }
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not determine installation size", e );
+        } catch (IOException e) {
+            throw new RuntimeException("Could not determine installation size", e);
         }
         return installSize;
     }

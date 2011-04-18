@@ -23,29 +23,24 @@ import org.eclipse.tycho.p2.impl.publisher.repo.TransientArtifactRepository;
 import org.eclipse.tycho.p2.metadata.DependencyMetadataGenerator;
 import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 
-@SuppressWarnings( "restriction" )
-public class DefaultDependencyMetadataGenerator
-    extends P2GeneratorImpl
-    implements DependencyMetadataGenerator
-{
+@SuppressWarnings("restriction")
+public class DefaultDependencyMetadataGenerator extends P2GeneratorImpl implements DependencyMetadataGenerator {
 
-    public DefaultDependencyMetadataGenerator()
-    {
-        super( true );
+    public DefaultDependencyMetadataGenerator() {
+        super(true);
     }
 
-    public Set<Object> generateMetadata( IArtifactFacade artifact, List<Map<String, String>> environments )
-    {
+    public Set<Object> generateMetadata(IArtifactFacade artifact, List<Map<String, String>> environments) {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
         LinkedHashSet<IArtifactDescriptor> artifactDescriptors = new LinkedHashSet<IArtifactDescriptor>();
 
         PublisherInfo publisherInfo = new PublisherInfo();
-        publisherInfo.setArtifactOptions( IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH );
-        publisherInfo.setArtifactRepository( new TransientArtifactRepository() );
+        publisherInfo.setArtifactOptions(IPublisherInfo.A_INDEX | IPublisherInfo.A_PUBLISH);
+        publisherInfo.setArtifactRepository(new TransientArtifactRepository());
 
-        super.generateMetadata( artifact, environments, units, artifactDescriptors, publisherInfo );
+        super.generateMetadata(artifact, environments, units, artifactDescriptors, publisherInfo);
 
-        return new LinkedHashSet<Object>( units );
+        return new LinkedHashSet<Object>(units);
     }
 
 }

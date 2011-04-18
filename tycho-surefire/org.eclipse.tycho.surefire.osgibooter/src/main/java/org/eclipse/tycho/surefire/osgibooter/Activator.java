@@ -28,61 +28,61 @@ import org.osgi.framework.ServiceReference;
 
 public class Activator implements BundleActivator {
 
-	public static final String PLUGIN_ID = "org.eclipse.tycho.surefire.osgibooter";
-	private static PlatformAdmin platformAdmin;
+    public static final String PLUGIN_ID = "org.eclipse.tycho.surefire.osgibooter";
+    private static PlatformAdmin platformAdmin;
 
-	public Activator() {
-	}
+    public Activator() {
+    }
 
-	public void start(BundleContext context) throws Exception {
-		ServiceReference platformAdminRef = context.getServiceReference(PlatformAdmin.class.getName());
-		if (platformAdminRef != null) {
-			platformAdmin = (PlatformAdmin) context.getService(platformAdminRef);
-		}
-	}
+    public void start(BundleContext context) throws Exception {
+        ServiceReference platformAdminRef = context.getServiceReference(PlatformAdmin.class.getName());
+        if (platformAdminRef != null) {
+            platformAdmin = (PlatformAdmin) context.getService(platformAdminRef);
+        }
+    }
 
-	public void stop(BundleContext context) throws Exception {
-	}
+    public void stop(BundleContext context) throws Exception {
+    }
 
-	public static Bundle getBundle(String symbolicName) {
-		Bundle bundle = Platform.getBundle(symbolicName);
-		if (bundle == null) {
-			return null;
-		}
+    public static Bundle getBundle(String symbolicName) {
+        Bundle bundle = Platform.getBundle(symbolicName);
+        if (bundle == null) {
+            return null;
+        }
 
-		if (Platform.isFragment(bundle)) {
-			Bundle[] hosts = Platform.getHosts(bundle);
-			if (hosts != null && hosts.length > 0) {
-				// TODO do we care about multiple hosts???
-				return hosts[0];
-			}
-			throw new IllegalArgumentException("Fragment bundle is not attached to a host " + symbolicName);
-		}
+        if (Platform.isFragment(bundle)) {
+            Bundle[] hosts = Platform.getHosts(bundle);
+            if (hosts != null && hosts.length > 0) {
+                // TODO do we care about multiple hosts???
+                return hosts[0];
+            }
+            throw new IllegalArgumentException("Fragment bundle is not attached to a host " + symbolicName);
+        }
 
-		return bundle;
-	}
+        return bundle;
+    }
 
-	public static Set<ResolverError> getResolutionErrors(Bundle bundle) {
-		Set<ResolverError> errors = new LinkedHashSet<ResolverError>();
-		if (platformAdmin == null) {
-			System.err.println("Could not acquire PlatformAdmin server");
-			return errors;
-		}
-		State state = platformAdmin.getState(false /*mutable*/);
-		if (state == null) {
-			System.err.println("Resolver state is null");
-			return errors;
-		}
-		BundleDescription description = state.getBundle(bundle.getBundleId());
-		if (description == null) {
-			System.err.println("Could not determine BundleDescription for " + bundle.toString());
-		}
-		getRelevantErrors(state, errors, description);
-		return errors;
-	}
+    public static Set<ResolverError> getResolutionErrors(Bundle bundle) {
+        Set<ResolverError> errors = new LinkedHashSet<ResolverError>();
+        if (platformAdmin == null) {
+            System.err.println("Could not acquire PlatformAdmin server");
+            return errors;
+        }
+        State state = platformAdmin.getState(false /* mutable */);
+        if (state == null) {
+            System.err.println("Resolver state is null");
+            return errors;
+        }
+        BundleDescription description = state.getBundle(bundle.getBundleId());
+        if (description == null) {
+            System.err.println("Could not determine BundleDescription for " + bundle.toString());
+        }
+        getRelevantErrors(state, errors, description);
+        return errors;
+    }
 
-	private static void getRelevantErrors(State state, Set<ResolverError> errors, BundleDescription bundle) {
-		ResolverError[] bundleErrors = state.getResolverErrors(bundle);
+    private static void getRelevantErrors(State state, Set<ResolverError> errors, BundleDescription bundle) {
+        ResolverError[] bundleErrors = state.getResolverErrors(bundle);
         for (int j = 0; j < bundleErrors.length; j++) {
             ResolverError error = bundleErrors[j];
             errors.add(error);
@@ -91,10 +91,10 @@ public class Activator implements BundleActivator {
             if (constraint instanceof BundleSpecification || constraint instanceof HostSpecification) {
                 BundleDescription[] requiredBundles = state.getBundles(constraint.getName());
                 for (int i = 0; i < requiredBundles.length; i++) {
-                	getRelevantErrors(state, errors, requiredBundles[i]);
+                    getRelevantErrors(state, errors, requiredBundles[i]);
                 }
             }
         }
-	}
+    }
 
 }

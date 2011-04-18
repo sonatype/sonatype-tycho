@@ -17,34 +17,33 @@ import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 
 public class ArtifactFacade implements IArtifactFacade {
 
-	private Artifact wrappedArtifact;
-	
-	public ArtifactFacade(Artifact wrappedArtifact) {
-		this.wrappedArtifact = wrappedArtifact;
-	}
+    private Artifact wrappedArtifact;
 
-	public File getLocation() {
-		return wrappedArtifact.getFile();
-	}
+    public ArtifactFacade(Artifact wrappedArtifact) {
+        this.wrappedArtifact = wrappedArtifact;
+    }
 
-	public String getGroupId() {
-		return wrappedArtifact.getGroupId();
-	}
+    public File getLocation() {
+        return wrappedArtifact.getFile();
+    }
 
-	public String getArtifactId() {
-		return wrappedArtifact.getArtifactId();
-	}
+    public String getGroupId() {
+        return wrappedArtifact.getGroupId();
+    }
 
-	public String getVersion() {
-		return wrappedArtifact.getVersion();
-	}
+    public String getArtifactId() {
+        return wrappedArtifact.getArtifactId();
+    }
 
-	public String getPackagingType() {
-		return wrappedArtifact.getType();
-	}
+    public String getVersion() {
+        return wrappedArtifact.getVersion();
+    }
 
-    public String getClassidier()
-    {
+    public String getPackagingType() {
+        return wrappedArtifact.getType();
+    }
+
+    public String getClassidier() {
         return wrappedArtifact.getClassifier();
     }
 

@@ -37,16 +37,15 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.tycho.equinox.EquinoxRuntimeLocator;
 
-@Component( role = EquinoxRuntimeLocator.class )
-public class TychoP2RuntimeLocator
-    implements EquinoxRuntimeLocator
-{
+@Component(role = EquinoxRuntimeLocator.class)
+public class TychoP2RuntimeLocator implements EquinoxRuntimeLocator {
     /**
      * List of packages exported by org.eclipse.tycho.p2 artifact/bundle.
      */
-    public static final String[] SYSTEM_PACKAGES_EXTRA = { "org.eclipse.tycho.p2.metadata", "org.eclipse.tycho.p2.repository",
-        "org.eclipse.tycho.p2.resolver", "org.eclipse.tycho.p2.tools", "org.eclipse.tycho.p2.tools.director",
-        "org.eclipse.tycho.p2.tools.publisher", "org.eclipse.tycho.p2.tools.mirroring" };
+    public static final String[] SYSTEM_PACKAGES_EXTRA = { "org.eclipse.tycho.p2.metadata",
+            "org.eclipse.tycho.p2.repository", "org.eclipse.tycho.p2.resolver", "org.eclipse.tycho.p2.tools",
+            "org.eclipse.tycho.p2.tools.director", "org.eclipse.tycho.p2.tools.publisher",
+            "org.eclipse.tycho.p2.tools.mirroring" };
 
     @Requirement
     private Logger logger;
@@ -60,142 +59,113 @@ public class TychoP2RuntimeLocator
     @Requirement
     private LegacySupport buildContext;
 
-    @Requirement( hint = "zip" )
+    @Requirement(hint = "zip")
     private UnArchiver unArchiver;
 
     @Requirement
     private Map<String, TychoP2RuntimeMetadata> runtimeMetadata;
 
-    public List<File> getRuntimeLocations()
-        throws MavenExecutionException
-    {
+    public List<File> getRuntimeLocations() throws MavenExecutionException {
         MavenSession session = buildContext.getSession();
 
-        return getRuntimeLocations( session );
+        return getRuntimeLocations(session);
     }
 
-    public List<File> getRuntimeLocations( MavenSession session )
-        throws MavenExecutionException
-    {
+    public List<File> getRuntimeLocations(MavenSession session) throws MavenExecutionException {
         List<File> locations = new ArrayList<File>();
 
-        TychoP2RuntimeMetadata framework = runtimeMetadata.get( TychoP2RuntimeMetadata.HINT_FRAMEWORK );
-        if ( framework != null )
-        {
-            addRuntime( locations, session, framework );
+        TychoP2RuntimeMetadata framework = runtimeMetadata.get(TychoP2RuntimeMetadata.HINT_FRAMEWORK);
+        if (framework != null) {
+            addRuntime(locations, session, framework);
         }
 
-        for ( Map.Entry<String, TychoP2RuntimeMetadata> entry : runtimeMetadata.entrySet() )
-        {
-            if ( !TychoP2RuntimeMetadata.HINT_FRAMEWORK.equals( entry.getKey() ) )
-            {
-                addRuntime( locations, session, entry.getValue() );
+        for (Map.Entry<String, TychoP2RuntimeMetadata> entry : runtimeMetadata.entrySet()) {
+            if (!TychoP2RuntimeMetadata.HINT_FRAMEWORK.equals(entry.getKey())) {
+                addRuntime(locations, session, entry.getValue());
             }
         }
 
         return locations;
     }
 
-    private void addRuntime( List<File> locations, MavenSession session, TychoP2RuntimeMetadata framework )
-        throws MavenExecutionException
-    {
-        for ( Dependency dependency : framework.getRuntimeArtifacts() )
-        {
-            locations.add( resolveRuntimeArtifact( session, dependency ) );
+    private void addRuntime(List<File> locations, MavenSession session, TychoP2RuntimeMetadata framework)
+            throws MavenExecutionException {
+        for (Dependency dependency : framework.getRuntimeArtifacts()) {
+            locations.add(resolveRuntimeArtifact(session, dependency));
         }
     }
 
-    private File resolveRuntimeArtifact( MavenSession session, Dependency d )
-        throws MavenExecutionException
-    {
-        Artifact artifact =
-            repositorySystem.createArtifact( d.getGroupId(), d.getArtifactId(), d.getVersion(), d.getType() );
+    private File resolveRuntimeArtifact(MavenSession session, Dependency d) throws MavenExecutionException {
+        Artifact artifact = repositorySystem.createArtifact(d.getGroupId(), d.getArtifactId(), d.getVersion(),
+                d.getType());
 
-        if ( "zip".equals( d.getType() ) )
-        {
-            File p2Directory =
-                new File( session.getLocalRepository().getBasedir(), session.getLocalRepository().pathOf( artifact ) );
-            p2Directory = new File( p2Directory.getParentFile(), "eclipse" );
+        if ("zip".equals(d.getType())) {
+            File p2Directory = new File(session.getLocalRepository().getBasedir(), session.getLocalRepository().pathOf(
+                    artifact));
+            p2Directory = new File(p2Directory.getParentFile(), "eclipse");
 
-            if ( p2Directory.exists() && !artifact.isSnapshot() )
-            {
+            if (p2Directory.exists() && !artifact.isSnapshot()) {
                 return p2Directory;
             }
 
-            logger.debug( "Resolving P2 runtime" );
+            logger.debug("Resolving P2 runtime");
 
-            resolveArtifact( session, artifact );
+            resolveArtifact(session, artifact);
 
-            if ( artifact.getFile().lastModified() > p2Directory.lastModified() )
-            {
-                logger.debug( "Unpacking P2 runtime to " + p2Directory );
+            if (artifact.getFile().lastModified() > p2Directory.lastModified()) {
+                logger.debug("Unpacking P2 runtime to " + p2Directory);
 
-                try
-                {
-                    FileUtils.deleteDirectory( p2Directory );
-                }
-                catch ( IOException e )
-                {
-                    logger.warn( "Failed to delete P2 runtime " + p2Directory + ": " + e.getMessage() );
+                try {
+                    FileUtils.deleteDirectory(p2Directory);
+                } catch (IOException e) {
+                    logger.warn("Failed to delete P2 runtime " + p2Directory + ": " + e.getMessage());
                 }
 
-                unArchiver.setSourceFile( artifact.getFile() );
-                unArchiver.setDestDirectory( p2Directory.getParentFile() );
-                try
-                {
+                unArchiver.setSourceFile(artifact.getFile());
+                unArchiver.setDestDirectory(p2Directory.getParentFile());
+                try {
                     unArchiver.extract();
-                }
-                catch ( ArchiverException e )
-                {
-                    throw new MavenExecutionException( "Failed to unpack P2 runtime: " + e.getMessage(), e );
+                } catch (ArchiverException e) {
+                    throw new MavenExecutionException("Failed to unpack P2 runtime: " + e.getMessage(), e);
                 }
 
-                p2Directory.setLastModified( artifact.getFile().lastModified() );
+                p2Directory.setLastModified(artifact.getFile().lastModified());
             }
 
             return p2Directory;
-        }
-        else
-        {
-            return resolveArtifact( session, artifact );
+        } else {
+            return resolveArtifact(session, artifact);
         }
     }
 
-    private File resolveArtifact( MavenSession session, Artifact artifact )
-        throws MavenExecutionException
-    {
+    private File resolveArtifact(MavenSession session, Artifact artifact) throws MavenExecutionException {
         List<ArtifactRepository> repositories = new ArrayList<ArtifactRepository>();
-        for ( MavenProject project : session.getProjects() )
-        {
-            repositories.addAll( project.getPluginArtifactRepositories() );
+        for (MavenProject project : session.getProjects()) {
+            repositories.addAll(project.getPluginArtifactRepositories());
         }
-        repositories = repositorySystem.getEffectiveRepositories( repositories );
+        repositories = repositorySystem.getEffectiveRepositories(repositories);
 
         ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-        request.setArtifact( artifact );
-        request.setResolveRoot( true ).setResolveTransitively( false );
-        request.setLocalRepository( session.getLocalRepository() );
-        request.setRemoteRepositories( repositories );
-        request.setCache( session.getRepositoryCache() );
-        request.setOffline( session.isOffline() );
-        request.setForceUpdate( session.getRequest().isUpdateSnapshots() );
+        request.setArtifact(artifact);
+        request.setResolveRoot(true).setResolveTransitively(false);
+        request.setLocalRepository(session.getLocalRepository());
+        request.setRemoteRepositories(repositories);
+        request.setCache(session.getRepositoryCache());
+        request.setOffline(session.isOffline());
+        request.setForceUpdate(session.getRequest().isUpdateSnapshots());
 
-        ArtifactResolutionResult result = repositorySystem.resolve( request );
+        ArtifactResolutionResult result = repositorySystem.resolve(request);
 
-        try
-        {
-            resolutionErrorHandler.throwErrors( request, result );
-        }
-        catch ( ArtifactResolutionException e )
-        {
-            throw new MavenExecutionException( "Could not resolve tycho-p2-runtime", e );
+        try {
+            resolutionErrorHandler.throwErrors(request, result);
+        } catch (ArtifactResolutionException e) {
+            throw new MavenExecutionException("Could not resolve tycho-p2-runtime", e);
         }
 
         return artifact.getFile();
     }
 
-    public List<String> getSystemPackagesExtra()
-    {
-        return Arrays.asList( SYSTEM_PACKAGES_EXTRA );
+    public List<String> getSystemPackagesExtra() {
+        return Arrays.asList(SYSTEM_PACKAGES_EXTRA);
     }
 }

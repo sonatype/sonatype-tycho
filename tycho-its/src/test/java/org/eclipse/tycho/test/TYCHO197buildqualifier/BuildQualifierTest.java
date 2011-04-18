@@ -29,115 +29,101 @@ import org.junit.Test;
 
 public class BuildQualifierTest extends AbstractTychoIntegrationTest {
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void checkProduct() throws Exception {
-		Verifier verifier = getVerifier("/TYCHO197buildqualifier/product-test");
+    @SuppressWarnings("unchecked")
+    @Test
+    public void checkProduct() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO197buildqualifier/product-test");
 
-		final String timestamp = "20022002-2002";
-		verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
-		verifier.executeGoal("install");
-		verifier.verifyErrorFreeLog();
+        final String timestamp = "20022002-2002";
+        verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
+        verifier.executeGoal("install");
+        verifier.verifyErrorFreeLog();
 
-		File basedir = new File(verifier.getBasedir());
+        File basedir = new File(verifier.getBasedir());
 
-		final String version = "1.0.0." + timestamp;
-		String featureLabel = "features/Feature_" + version;
-		String pluginLabel = "plugins/Plugin_" + version + ".jar";
+        final String version = "1.0.0." + timestamp;
+        String featureLabel = "features/Feature_" + version;
+        String pluginLabel = "plugins/Plugin_" + version + ".jar";
 
-		File product = new File(basedir, "Product/target/product/eclipse");
-		Assert
-				.assertTrue("Product folder should exists", product
-						.isDirectory());
+        File product = new File(basedir, "Product/target/product/eclipse");
+        Assert.assertTrue("Product folder should exists", product.isDirectory());
 
-		File feature = new File(product, featureLabel);
-		Assert.assertTrue("Feature '" + featureLabel + "' should exists",
-				feature.isDirectory());
+        File feature = new File(product, featureLabel);
+        Assert.assertTrue("Feature '" + featureLabel + "' should exists", feature.isDirectory());
 
-		File featureJar = new File(feature, "feature.xml");
-		Feature featureXml = Feature.read(new FileInputStream(featureJar));
-		Assert.assertEquals("Invalid feature version", version, featureXml
-				.getVersion());
+        File featureJar = new File(feature, "feature.xml");
+        Feature featureXml = Feature.read(new FileInputStream(featureJar));
+        Assert.assertEquals("Invalid feature version", version, featureXml.getVersion());
 
-		PluginRef pluginRef = featureXml.getPlugins().get(0);
-		Assert.assertEquals("Invalid plugin version at feature.xml", version,
-				pluginRef.getVersion());
+        PluginRef pluginRef = featureXml.getPlugins().get(0);
+        Assert.assertEquals("Invalid plugin version at feature.xml", version, pluginRef.getVersion());
 
-		File plugin = new File(product, pluginLabel);
-		Assert.assertTrue("Plugin '" + pluginLabel + "' should exists", plugin
-				.isFile());
+        File plugin = new File(product, pluginLabel);
+        Assert.assertTrue("Plugin '" + pluginLabel + "' should exists", plugin.isFile());
 
         Manifest man = readManifest(plugin);
-		String bundleVersion = man.getMainAttributes().getValue(
-				"Bundle-Version");
-		Assert.assertEquals("Invalid Bundle-Version at plugin Manifest.MF",
-				version, bundleVersion);
-	}
+        String bundleVersion = man.getMainAttributes().getValue("Bundle-Version");
+        Assert.assertEquals("Invalid Bundle-Version at plugin Manifest.MF", version, bundleVersion);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void checkSite() throws Exception{
-		Verifier verifier = getVerifier("/TYCHO197buildqualifier/site-test");
+    @SuppressWarnings("unchecked")
+    @Test
+    public void checkSite() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO197buildqualifier/site-test");
 
-		final String timestamp = "20022002-2002";
-		verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
-		verifier.executeGoal("install");
-		verifier.verifyErrorFreeLog();
+        final String timestamp = "20022002-2002";
+        verifier.getCliOptions().add("-DforceContextQualifier=" + timestamp);
+        verifier.executeGoal("install");
+        verifier.verifyErrorFreeLog();
 
-		File basedir = new File(verifier.getBasedir());
+        File basedir = new File(verifier.getBasedir());
 
-		final String version = "1.0.0." + timestamp;
-		String featureLabel = "features/Feature_" + version;
-		String pluginLabel = "plugins/Plugin_" + version + ".jar";
-		featureLabel += ".jar";
+        final String version = "1.0.0." + timestamp;
+        String featureLabel = "features/Feature_" + version;
+        String pluginLabel = "plugins/Plugin_" + version + ".jar";
+        featureLabel += ".jar";
 
-		File site = new File(basedir, "Site/target/site");
-		Assert.assertTrue("Site folder should exists", site.isDirectory());
-		File siteXml = new File(site, "site.xml");
-		Assert.assertTrue("Site.xml should exists", siteXml.isFile());
-		String siteContet = readFileToString(siteXml).toString();
-		Assert.assertTrue("Site.xml should contain '" + featureLabel
-				+ "'. Got:\n" + siteContet, siteContet.contains(featureLabel));
+        File site = new File(basedir, "Site/target/site");
+        Assert.assertTrue("Site folder should exists", site.isDirectory());
+        File siteXml = new File(site, "site.xml");
+        Assert.assertTrue("Site.xml should exists", siteXml.isFile());
+        String siteContet = readFileToString(siteXml).toString();
+        Assert.assertTrue("Site.xml should contain '" + featureLabel + "'. Got:\n" + siteContet,
+                siteContet.contains(featureLabel));
 
-		File feature = new File(site, featureLabel);
-		Assert.assertTrue("Feature '" + featureLabel + "' should exists",
-				feature.isFile());
+        File feature = new File(site, featureLabel);
+        Assert.assertTrue("Feature '" + featureLabel + "' should exists", feature.isFile());
 
-		Feature featureXml = readFeatureXml(feature);
-		Assert.assertEquals("Invalid feature version", version, featureXml
-				.getVersion());
+        Feature featureXml = readFeatureXml(feature);
+        Assert.assertEquals("Invalid feature version", version, featureXml.getVersion());
 
-		PluginRef pluginRef = featureXml.getPlugins().get(0);
-		Assert.assertEquals("Invalid plugin version at feature.xml", version,
-				pluginRef.getVersion());
+        PluginRef pluginRef = featureXml.getPlugins().get(0);
+        Assert.assertEquals("Invalid plugin version at feature.xml", version, pluginRef.getVersion());
 
-		File plugin = new File(site, pluginLabel);
-		Assert.assertTrue("Plugin '" + pluginLabel + "' should exists", plugin
-				.isFile());
+        File plugin = new File(site, pluginLabel);
+        Assert.assertTrue("Plugin '" + pluginLabel + "' should exists", plugin.isFile());
 
-		Manifest man = readManifest(plugin);
-		String bundleVersion = man.getMainAttributes().getValue(
-				"Bundle-Version");
-		Assert.assertEquals("Invalid Bundle-Version at plugin Manifest.MF",
-				version, bundleVersion);
-	}
+        Manifest man = readManifest(plugin);
+        String bundleVersion = man.getMainAttributes().getValue("Bundle-Version");
+        Assert.assertEquals("Invalid Bundle-Version at plugin Manifest.MF", version, bundleVersion);
+    }
 
-	private Feature readFeatureXml(File file) throws IOException, XmlPullParserException {
-	    ZipFile zip = new ZipFile(file);
-	    try {
-	        ZipEntry entry = zip.getEntry(Feature.FEATURE_XML);
-	        return Feature.read(zip.getInputStream(entry));
-	    } finally {
-	        zip.close();
-	    }
+    private Feature readFeatureXml(File file) throws IOException, XmlPullParserException {
+        ZipFile zip = new ZipFile(file);
+        try {
+            ZipEntry entry = zip.getEntry(Feature.FEATURE_XML);
+            return Feature.read(zip.getInputStream(entry));
+        } finally {
+            zip.close();
+        }
     }
 
     private Manifest readManifest(File file) throws IOException {
-	    JarFile jar = new JarFile(file);
-	    try {
-	        return jar.getManifest();
-	    } finally {
-	        jar.close();
-	    }
-	}
+        JarFile jar = new JarFile(file);
+        try {
+            return jar.getManifest();
+        } finally {
+            jar.close();
+        }
+    }
 }

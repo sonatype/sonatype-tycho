@@ -18,7 +18,6 @@
  */
 package org.eclipse.tycho.surefire.junit;
 
-
 import junit.framework.Test;
 
 import org.apache.maven.surefire.suite.AbstractDirectoryTestSuite;
@@ -33,80 +32,54 @@ import java.util.ArrayList;
 
 /**
  * Test suite for JUnit tests based on a directory of Java test classes.
- *
+ * 
  * @author <a href="mailto:brett@apache.org">Brett Porter</a>
  */
-public class JUnitDirectoryTestSuite
-    extends AbstractDirectoryTestSuite
-{
-    public JUnitDirectoryTestSuite( File basedir, ArrayList includes, ArrayList excludes )
-    {
-        super( basedir, includes, excludes );
+public class JUnitDirectoryTestSuite extends AbstractDirectoryTestSuite {
+    public JUnitDirectoryTestSuite(File basedir, ArrayList includes, ArrayList excludes) {
+        super(basedir, includes, excludes);
     }
 
-    protected SurefireTestSet createTestSet( Class testClass, ClassLoader classLoader )
-        throws TestSetFailedException
-    {
+    protected SurefireTestSet createTestSet(Class testClass, ClassLoader classLoader) throws TestSetFailedException {
         Class junitClass = null;
-        try
-        {
-            junitClass = classLoader.loadClass( Test.class.getName() );
-        }
-        catch ( ClassNotFoundException e )
-        {
+        try {
+            junitClass = classLoader.loadClass(Test.class.getName());
+        } catch (ClassNotFoundException e) {
             // ignore this
         }
 
         SurefireTestSet testSet;
-        if ( junitClass != null && junitClass.isAssignableFrom( testClass ) )
-        {
-            testSet = new JUnitTestSet( testClass );
-        }
-        else if (classHasTestSuiteMethod( testClass, junitClass ))
-        {
-            testSet = new JUnitTestSet( testClass );
-        }
-        else if (classHasPublicNoArgConstructor( testClass ))
-        {
-            testSet = new PojoTestSet( testClass );
-        }
-        else
-        {
+        if (junitClass != null && junitClass.isAssignableFrom(testClass)) {
+            testSet = new JUnitTestSet(testClass);
+        } else if (classHasTestSuiteMethod(testClass, junitClass)) {
+            testSet = new JUnitTestSet(testClass);
+        } else if (classHasPublicNoArgConstructor(testClass)) {
+            testSet = new PojoTestSet(testClass);
+        } else {
             testSet = null;
         }
         return testSet;
     }
 
-    private boolean classHasTestSuiteMethod( Class testClass, Class junitClass ) 
-    {
-    	if ( junitClass == null )
-    	{
-    		return false;
-    	}
-
-        try
-        {
-            Method method = testClass.getMethod("suite", new Class[0] );
-            return method != null
-                   && Modifier.isPublic( method.getModifiers() )
-                   && Modifier.isStatic( method.getModifiers() )
-                   && junitClass.isAssignableFrom( method.getReturnType() );
-        }
-        catch ( Exception e )
-        {
+    private boolean classHasTestSuiteMethod(Class testClass, Class junitClass) {
+        if (junitClass == null) {
             return false;
         }
-	}
 
-	private boolean classHasPublicNoArgConstructor( Class testClass )
-    {
-        try
-        {
-            testClass.getConstructor( new Class[0] );
-            return true;
+        try {
+            Method method = testClass.getMethod("suite", new Class[0]);
+            return method != null && Modifier.isPublic(method.getModifiers())
+                    && Modifier.isStatic(method.getModifiers()) && junitClass.isAssignableFrom(method.getReturnType());
+        } catch (Exception e) {
+            return false;
         }
-        catch ( Exception e )
-        {
+    }
+
+    private boolean classHasPublicNoArgConstructor(Class testClass) {
+        try {
+            testClass.getConstructor(new Class[0]);
+            return true;
+        } catch (Exception e) {
             return false;
         }
     }

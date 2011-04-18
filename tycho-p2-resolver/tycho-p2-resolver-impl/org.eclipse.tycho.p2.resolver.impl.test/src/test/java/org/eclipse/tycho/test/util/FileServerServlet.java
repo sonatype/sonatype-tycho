@@ -20,58 +20,44 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class FileServerServlet
-    extends AbstractMonitorServlet
-{
+public class FileServerServlet extends AbstractMonitorServlet {
     private static final long serialVersionUID = -6702619558275132007L;
 
     private File content;
 
-    public FileServerServlet( File content )
-    {
+    public FileServerServlet(File content) {
         this.content = content;
     }
 
     @Override
-    public void service( HttpServletRequest req, HttpServletResponse res )
-        throws ServletException, IOException
-    {
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String path = req.getPathInfo();
 
-        File file = new File( content, path );
-        if ( !file.exists() )
-        {
-            res.sendError( HttpServletResponse.SC_NOT_FOUND, "File not found " + file.getAbsolutePath() );
+        File file = new File(content, path);
+        if (!file.exists()) {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found " + file.getAbsolutePath());
             return;
         }
-        if ( !file.isFile() )
-        {
-            res.sendError( HttpServletResponse.SC_FORBIDDEN, "Directory not accessible " + file.getAbsolutePath() );
+        if (!file.isFile()) {
+            res.sendError(HttpServletResponse.SC_FORBIDDEN, "Directory not accessible " + file.getAbsolutePath());
             return;
         }
 
-        addUri( req );
+        addUri(req);
 
-        InputStream input = new FileInputStream( file );
-        try
-        {
+        InputStream input = new FileInputStream(file);
+        try {
             OutputStream output = res.getOutputStream();
-            try
-            {
+            try {
                 final byte[] buffer = new byte[10240];
                 int n = 0;
-                while ( -1 != ( n = input.read( buffer ) ) )
-                {
-                    output.write( buffer, 0, n );
+                while (-1 != (n = input.read(buffer))) {
+                    output.write(buffer, 0, n);
                 }
-            }
-            finally
-            {
+            } finally {
                 output.close();
             }
-        }
-        finally
-        {
+        } finally {
             input.close();
         }
     }

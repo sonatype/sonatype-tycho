@@ -42,131 +42,108 @@ import org.eclipse.tycho.p2.impl.publisher.repo.TransientArtifactRepository;
 import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 import org.eclipse.tycho.p2.util.StatusTool;
 
-@SuppressWarnings( "restriction" )
-public abstract class AbstractMetadataGenerator
-{
+@SuppressWarnings("restriction")
+public abstract class AbstractMetadataGenerator {
     private IProgressMonitor monitor = new NullProgressMonitor();
 
-    protected void generateMetadata( IArtifactFacade artifact, List<Map<String, String>> environments,
-                                     Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts,
-                                     PublisherInfo publisherInfo )
-    {
+    protected void generateMetadata(IArtifactFacade artifact, List<Map<String, String>> environments,
+            Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts, PublisherInfo publisherInfo) {
         // TODO remove this when fix for Eclipse bug #332444 is integrated
-        if ( publisherInfo.getMetadataRepository() == null )
-        {
-            publisherInfo.setMetadataRepository( new DummyMetadataRepository() );
+        if (publisherInfo.getMetadataRepository() == null) {
+            publisherInfo.setMetadataRepository(new DummyMetadataRepository());
         }
-        for ( IPublisherAdvice advice : getPublisherAdvice( artifact ) )
-        {
-            publisherInfo.addAdvice( advice );
+        for (IPublisherAdvice advice : getPublisherAdvice(artifact)) {
+            publisherInfo.addAdvice(advice);
         }
-        List<IPublisherAction> actions = getPublisherActions( artifact, environments );
+        List<IPublisherAction> actions = getPublisherActions(artifact, environments);
 
-        publish( units, artifacts, publisherInfo, actions );
+        publish(units, artifacts, publisherInfo, actions);
     }
 
-    protected abstract List<IPublisherAction> getPublisherActions( IArtifactFacade artifact,
-                                                                   List<Map<String, String>> environments );
+    protected abstract List<IPublisherAction> getPublisherActions(IArtifactFacade artifact,
+            List<Map<String, String>> environments);
 
-    protected abstract List<IPublisherAdvice> getPublisherAdvice( IArtifactFacade artifact );
+    protected abstract List<IPublisherAdvice> getPublisherAdvice(IArtifactFacade artifact);
 
-    protected ICapabilityAdvice getExtraEntriesAdvice( IArtifactFacade artifact )
-    {
-        final IRequirement[] extraRequirements = extractExtraEntriesAsIURequirement( artifact.getLocation() );
-        return new ICapabilityAdvice()
-        {
-            public boolean isApplicable( String configSpec, boolean includeDefault, String id, Version version )
-            {
+    protected ICapabilityAdvice getExtraEntriesAdvice(IArtifactFacade artifact) {
+        final IRequirement[] extraRequirements = extractExtraEntriesAsIURequirement(artifact.getLocation());
+        return new ICapabilityAdvice() {
+            public boolean isApplicable(String configSpec, boolean includeDefault, String id, Version version) {
                 return true;
             }
 
-            public IRequirement[] getRequiredCapabilities( InstallableUnitDescription iu )
-            {
+            public IRequirement[] getRequiredCapabilities(InstallableUnitDescription iu) {
                 return extraRequirements;
             }
 
-            public IProvidedCapability[] getProvidedCapabilities( InstallableUnitDescription iu )
-            {
+            public IProvidedCapability[] getProvidedCapabilities(InstallableUnitDescription iu) {
                 return null;
             }
 
-            public IRequirement[] getMetaRequiredCapabilities( InstallableUnitDescription iu )
-            {
+            public IRequirement[] getMetaRequiredCapabilities(InstallableUnitDescription iu) {
                 return null;
             }
         };
     }
 
-    private IRequirement[] extractExtraEntriesAsIURequirement( File location )
-    {
-        Properties buildProperties = Utils.loadBuildProperties( location );
-        if ( buildProperties == null || buildProperties.size() == 0 )
+    private IRequirement[] extractExtraEntriesAsIURequirement(File location) {
+        Properties buildProperties = Utils.loadBuildProperties(location);
+        if (buildProperties == null || buildProperties.size() == 0)
             return null;
         ArrayList<IRequirement> result = new ArrayList<IRequirement>();
         Set<Entry<Object, Object>> pairs = buildProperties.entrySet();
-        for ( Entry<Object, Object> pair : pairs )
-        {
-            if ( !( pair.getValue() instanceof String ) )
+        for (Entry<Object, Object> pair : pairs) {
+            if (!(pair.getValue() instanceof String))
                 continue;
             String buildPropertyKey = (String) pair.getKey();
-            if ( buildPropertyKey.startsWith( "extra." ) )
-            {
-                createRequirementFromExtraClasspathProperty( result, ( (String) pair.getValue() ).split( "," ) );
+            if (buildPropertyKey.startsWith("extra.")) {
+                createRequirementFromExtraClasspathProperty(result, ((String) pair.getValue()).split(","));
             }
         }
 
-        String extra = buildProperties.getProperty( "jars.extra.classpath" );
-        if ( extra != null )
-        {
-            createRequirementFromExtraClasspathProperty( result, extra.split( "," ) );
+        String extra = buildProperties.getProperty("jars.extra.classpath");
+        if (extra != null) {
+            createRequirementFromExtraClasspathProperty(result, extra.split(","));
         }
-        if ( result.isEmpty() )
+        if (result.isEmpty())
             return null;
-        return result.toArray( new IRequirement[result.size()] );
+        return result.toArray(new IRequirement[result.size()]);
     }
 
-    private void createRequirementFromExtraClasspathProperty( ArrayList<IRequirement> result, String[] urls )
-    {
-        for ( int i = 0; i < urls.length; i++ )
-        {
-            createRequirementFromPlatformURL( result, urls[i].trim() );
+    private void createRequirementFromExtraClasspathProperty(ArrayList<IRequirement> result, String[] urls) {
+        for (int i = 0; i < urls.length; i++) {
+            createRequirementFromPlatformURL(result, urls[i].trim());
         }
     }
 
-    private void createRequirementFromPlatformURL( ArrayList<IRequirement> result, String url )
-    {
-        Pattern platformURL = Pattern.compile( "platform:/(plugin|fragment)/([^/]*)(/)*.*" );
-        Matcher m = platformURL.matcher( url );
-        if ( m.matches() )
-            result.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, m.group( 2 ),
-                                                           VersionRange.emptyRange, null, false, false ) );
+    private void createRequirementFromPlatformURL(ArrayList<IRequirement> result, String url) {
+        Pattern platformURL = Pattern.compile("platform:/(plugin|fragment)/([^/]*)(/)*.*");
+        Matcher m = platformURL.matcher(url);
+        if (m.matches())
+            result.add(MetadataFactory.createRequirement(IInstallableUnit.NAMESPACE_IU_ID, m.group(2),
+                    VersionRange.emptyRange, null, false, false));
     }
 
-    private void publish( Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts, PublisherInfo publisherInfo,
-                          List<IPublisherAction> actions )
-    {
+    private void publish(Set<IInstallableUnit> units, Set<IArtifactDescriptor> artifacts, PublisherInfo publisherInfo,
+            List<IPublisherAction> actions) {
         PublisherResult result = new PublisherResult();
 
-        Publisher publisher = new Publisher( publisherInfo, result );
+        Publisher publisher = new Publisher(publisherInfo, result);
 
-        IStatus status = publisher.publish( actions.toArray( new IPublisherAction[actions.size()] ), monitor );
+        IStatus status = publisher.publish(actions.toArray(new IPublisherAction[actions.size()]), monitor);
 
-        if ( !status.isOK() )
-        {
-            throw new RuntimeException( StatusTool.collectProblems( status ), status.getException() );
+        if (!status.isOK()) {
+            throw new RuntimeException(StatusTool.collectProblems(status), status.getException());
         }
 
-        if ( units != null )
-        {
-            units.addAll( result.getIUs( null, null ) );
+        if (units != null) {
+            units.addAll(result.getIUs(null, null));
         }
 
-        if ( artifacts != null )
-        {
+        if (artifacts != null) {
             IArtifactRepository artifactRepository = publisherInfo.getArtifactRepository();
-            if ( artifactRepository instanceof TransientArtifactRepository )
-            {
-                artifacts.addAll( ( (TransientArtifactRepository) artifactRepository ).getArtifactDescriptors() );
+            if (artifactRepository instanceof TransientArtifactRepository) {
+                artifacts.addAll(((TransientArtifactRepository) artifactRepository).getArtifactDescriptors());
             }
         }
     }

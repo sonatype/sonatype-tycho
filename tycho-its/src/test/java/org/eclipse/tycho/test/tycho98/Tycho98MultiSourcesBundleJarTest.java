@@ -16,11 +16,11 @@ import org.junit.Test;
 
 public class Tycho98MultiSourcesBundleJarTest extends AbstractTychoIntegrationTest {
 
-	@Test
-	public void test() throws Exception {
-		Verifier verifier = getVerifier("tycho98");
+    @Test
+    public void test() throws Exception {
+        Verifier verifier = getVerifier("tycho98");
 
-		verifier.executeGoal("integration-test");
-		verifier.verifyErrorFreeLog();
-	}
+        verifier.executeGoal("integration-test");
+        verifier.verifyErrorFreeLog();
+    }
 }

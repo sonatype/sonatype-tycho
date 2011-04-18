@@ -22,35 +22,28 @@ import org.eclipse.equinox.p2.repository.IRepositoryReference;
 import org.eclipse.equinox.p2.repository.metadata.spi.AbstractMetadataRepository;
 
 // TODO delete this class when fix for Eclipse bug #332444 is integrated
-public final class DummyMetadataRepository
-    extends AbstractMetadataRepository
-{
+public final class DummyMetadataRepository extends AbstractMetadataRepository {
 
-    public DummyMetadataRepository()
-    {
-        super( null );
+    public DummyMetadataRepository() {
+        super(null);
     }
 
     @Override
-    public void initialize( RepositoryState state )
-    {
+    public void initialize(RepositoryState state) {
         // do nothing
     }
 
     @Override
-    public boolean isModifiable()
-    {
+    public boolean isModifiable() {
         // changes are allowed, but will go to /dev/null
         return true;
     }
 
-    public IQueryResult<IInstallableUnit> query( IQuery<IInstallableUnit> query, IProgressMonitor monitor )
-    {
+    public IQueryResult<IInstallableUnit> query(IQuery<IInstallableUnit> query, IProgressMonitor monitor) {
         return new Collector<IInstallableUnit>();
     }
 
-    public Collection<IRepositoryReference> getReferences()
-    {
+    public Collection<IRepositoryReference> getReferences() {
         return Collections.emptyList();
     }
 }

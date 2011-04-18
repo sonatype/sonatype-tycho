@@ -24,9 +24,7 @@ import org.eclipse.tycho.core.TargetEnvironment;
  * @goal archive-products
  * @phase package
  */
-public final class ProductArchiverMojo
-    extends AbstractProductMojo
-{
+public final class ProductArchiverMojo extends AbstractProductMojo {
     /**
      * @component role="org.codehaus.plexus.archiver.Archiver" role-hint="zip"
      */
@@ -37,56 +35,42 @@ public final class ProductArchiverMojo
      */
     private MavenProjectHelper helper;
 
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         ProductConfig config = getProductConfig();
-        if ( !config.uniqueAttachIds() )
-        {
-            throw new MojoFailureException( "Artifact file names for the archived products are not unique. "
-                + "Configure the attachId or select a subset of products. Current configuration: "
-                + config.getProducts() );
+        if (!config.uniqueAttachIds()) {
+            throw new MojoFailureException("Artifact file names for the archived products are not unique. "
+                    + "Configure the attachId or select a subset of products. Current configuration: "
+                    + config.getProducts());
         }
-        for ( Product product : config.getProducts() )
-        {
-            for ( TargetEnvironment env : getEnvironments() )
-            {
-                File productArchive =
-                    new File( getProductsBuildDirectory(), product.getId() + "-" + getOsWsArch( env, '.' ) + ".zip" );
+        for (Product product : config.getProducts()) {
+            for (TargetEnvironment env : getEnvironments()) {
+                File productArchive = new File(getProductsBuildDirectory(), product.getId() + "-"
+                        + getOsWsArch(env, '.') + ".zip");
 
-                try
-                {
-                    inflater.setDestFile( productArchive );
-                    inflater.addDirectory( getProductMaterializeDirectory( product, env ) );
+                try {
+                    inflater.setDestFile(productArchive);
+                    inflater.addDirectory(getProductMaterializeDirectory(product, env));
                     inflater.createArchive();
-                }
-                catch ( ArchiverException e )
-                {
-                    throw new MojoExecutionException( "Error packing product", e );
-                }
-                catch ( IOException e )
-                {
-                    throw new MojoExecutionException( "Error packing product", e );
+                } catch (ArchiverException e) {
+                    throw new MojoExecutionException("Error packing product", e);
+                } catch (IOException e) {
+                    throw new MojoExecutionException("Error packing product", e);
                 }
 
-                final String artifactClassifier = getArtifactClassifier( product, env );
-                helper.attachArtifact( getProject(), productArchive, artifactClassifier );
+                final String artifactClassifier = getArtifactClassifier(product, env);
+                helper.attachArtifact(getProject(), productArchive, artifactClassifier);
             }
         }
     }
 
-    static String getArtifactClassifier( Product product, TargetEnvironment environment )
-    {
+    static String getArtifactClassifier(Product product, TargetEnvironment environment) {
         // classifier (and hence artifact file name) ends with os.ws.arch (similar to Eclipse
         // download packages)
         final String artifactClassifier;
-        if ( product.getAttachId() == null )
-        {
-            artifactClassifier = getOsWsArch( environment, '.' );
-        }
-        else
-        {
-            artifactClassifier = product.getAttachId() + "-" + getOsWsArch( environment, '.' );
+        if (product.getAttachId() == null) {
+            artifactClassifier = getOsWsArch(environment, '.');
+        } else {
+            artifactClassifier = product.getAttachId() + "-" + getOsWsArch(environment, '.');
         }
         return artifactClassifier;
     }

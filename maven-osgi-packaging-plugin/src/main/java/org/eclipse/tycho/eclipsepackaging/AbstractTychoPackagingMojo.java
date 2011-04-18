@@ -36,9 +36,7 @@ import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
 /**
  * @requiresProject
  */
-public abstract class AbstractTychoPackagingMojo
-    extends AbstractMojo
-{
+public abstract class AbstractTychoPackagingMojo extends AbstractMojo {
     /** @parameter expression="${session}" */
     protected MavenSession session;
 
@@ -66,73 +64,61 @@ public abstract class AbstractTychoPackagingMojo
      */
     private Map<String, TychoProject> projectTypes;
 
-    protected List<String> toFilePattern( String pattern )
-    {
+    protected List<String> toFilePattern(String pattern) {
         ArrayList<String> result = new ArrayList<String>();
 
-        if ( pattern != null )
-        {
-            StringTokenizer st = new StringTokenizer( pattern, "," );
-            while ( st.hasMoreTokens() )
-            {
-                result.add( st.nextToken().trim() );
+        if (pattern != null) {
+            StringTokenizer st = new StringTokenizer(pattern, ",");
+            while (st.hasMoreTokens()) {
+                result.add(st.nextToken().trim());
             }
         }
 
         return result;
     }
 
-    protected FileSet getFileSet( File basedir, List<String> includes, List<String> excludes )
-    {
+    protected FileSet getFileSet(File basedir, List<String> includes, List<String> excludes) {
         DefaultFileSet fileSet = new DefaultFileSet();
-        fileSet.setDirectory( basedir );
-        fileSet.setIncludes( includes.toArray( new String[includes.size()] ) );
+        fileSet.setDirectory(basedir);
+        fileSet.setIncludes(includes.toArray(new String[includes.size()]));
 
         Set<String> allExcludes = new LinkedHashSet<String>();
-        if ( excludes != null )
-        {
-            allExcludes.addAll( excludes );
+        if (excludes != null) {
+            allExcludes.addAll(excludes);
         }
-        if ( useDefaultExcludes )
-        {
-            allExcludes.addAll( Arrays.asList( AbstractScanner.DEFAULTEXCLUDES ) );
+        if (useDefaultExcludes) {
+            allExcludes.addAll(Arrays.asList(AbstractScanner.DEFAULTEXCLUDES));
         }
 
-        fileSet.setExcludes( allExcludes.toArray( new String[allExcludes.size()] ) );
+        fileSet.setExcludes(allExcludes.toArray(new String[allExcludes.size()]));
 
         return fileSet;
     }
 
-    protected ArtifactDependencyWalker getDependencyWalker()
-    {
-        return getTychoProjectFacet().getDependencyWalker( project );
+    protected ArtifactDependencyWalker getDependencyWalker() {
+        return getTychoProjectFacet().getDependencyWalker(project);
     }
 
-    protected TychoProject getTychoProjectFacet()
-    {
-        return getTychoProjectFacet( project.getPackaging() );
+    protected TychoProject getTychoProjectFacet() {
+        return getTychoProjectFacet(project.getPackaging());
     }
 
-    protected TychoProject getTychoProjectFacet( String packaging )
-    {
-        TychoProject facet = projectTypes.get( packaging );
-        if ( facet == null )
-        {
-            throw new IllegalStateException( "Unknown or unsupported packaging type " + packaging );
+    protected TychoProject getTychoProjectFacet(String packaging) {
+        TychoProject facet = projectTypes.get(packaging);
+        if (facet == null) {
+            throw new IllegalStateException("Unknown or unsupported packaging type " + packaging);
         }
         return facet;
     }
 
-    protected TargetPlatform getTargetPlatform()
-    {
-        return getTychoProjectFacet().getTargetPlatform( project );
+    protected TargetPlatform getTargetPlatform() {
+        return getTychoProjectFacet().getTargetPlatform(project);
     }
 
-    protected void expandVersion()
-    {
-        ReactorProject reactorProject = DefaultReactorProject.adapt( project );
-        String originalVersion = getTychoProjectFacet().getArtifactKey( reactorProject ).getVersion();
-        reactorProject.setExpandedVersion( originalVersion, qualifier );
+    protected void expandVersion() {
+        ReactorProject reactorProject = DefaultReactorProject.adapt(project);
+        String originalVersion = getTychoProjectFacet().getArtifactKey(reactorProject).getVersion();
+        reactorProject.setExpandedVersion(originalVersion, qualifier);
     }
 
 }

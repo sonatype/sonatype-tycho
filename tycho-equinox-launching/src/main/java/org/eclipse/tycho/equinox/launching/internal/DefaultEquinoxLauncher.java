@@ -25,74 +25,57 @@ import org.eclipse.tycho.equinox.launching.EquinoxLauncher;
 import org.eclipse.tycho.equinox.launching.EquinoxLaunchingException;
 import org.eclipse.tycho.launching.LaunchConfiguration;
 
-@Component( role = EquinoxLauncher.class )
-public class DefaultEquinoxLauncher
-    implements EquinoxLauncher
-{
+@Component(role = EquinoxLauncher.class)
+public class DefaultEquinoxLauncher implements EquinoxLauncher {
     @Requirement
     private Logger log;
 
-    public int execute( LaunchConfiguration configuration, int forkedProcessTimeoutInSeconds )
-        throws EquinoxLaunchingException
-    {
+    public int execute(LaunchConfiguration configuration, int forkedProcessTimeoutInSeconds)
+            throws EquinoxLaunchingException {
         Commandline cli = new Commandline();
 
-        String executable = System.getProperty( "java.home" ) + File.separator + "bin" + File.separator + "java";
-        if ( File.separatorChar == '\\' )
-        {
+        String executable = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+        if (File.separatorChar == '\\') {
             executable = executable + ".exe";
         }
-        cli.setExecutable( executable );
-        
-        cli.setWorkingDirectory( configuration.getWorkingDirectory() );
+        cli.setExecutable(executable);
 
-        cli.addArguments( configuration.getVMArguments() );
+        cli.setWorkingDirectory(configuration.getWorkingDirectory());
 
-        cli.addArguments( new String[] { "-jar", getCanonicalPath( configuration.getLauncherJar() ) } );
+        cli.addArguments(configuration.getVMArguments());
 
-        cli.addArguments( configuration.getProgramArguments() );
+        cli.addArguments(new String[] { "-jar", getCanonicalPath(configuration.getLauncherJar()) });
 
-        for ( Map.Entry<String, String> var : configuration.getEnvironment().entrySet() )
-        {
-            cli.addEnvironment( var.getKey(), var.getValue() );
+        cli.addArguments(configuration.getProgramArguments());
+
+        for (Map.Entry<String, String> var : configuration.getEnvironment().entrySet()) {
+            cli.addEnvironment(var.getKey(), var.getValue());
         }
 
-        log.info( "Command line:\n\t" + cli.toString() );
+        log.info("Command line:\n\t" + cli.toString());
 
-        StreamConsumer out = new StreamConsumer()
-        {
-            public void consumeLine( String line )
-            {
-                System.out.println( line );
+        StreamConsumer out = new StreamConsumer() {
+            public void consumeLine(String line) {
+                System.out.println(line);
             }
         };
-        StreamConsumer err = new StreamConsumer()
-        {
-            public void consumeLine( String line )
-            {
-                System.err.println( line );
+        StreamConsumer err = new StreamConsumer() {
+            public void consumeLine(String line) {
+                System.err.println(line);
             }
         };
-        try
-        {
-            return CommandLineUtils.executeCommandLine( cli, out, err, forkedProcessTimeoutInSeconds );
-        }
-        catch ( CommandLineException e )
-        {
-            throw new EquinoxLaunchingException( e );
+        try {
+            return CommandLineUtils.executeCommandLine(cli, out, err, forkedProcessTimeoutInSeconds);
+        } catch (CommandLineException e) {
+            throw new EquinoxLaunchingException(e);
         }
     }
 
-    private String getCanonicalPath( File file )
-        throws EquinoxLaunchingException
-    {
-        try
-        {
+    private String getCanonicalPath(File file) throws EquinoxLaunchingException {
+        try {
             return file.getCanonicalPath();
-        }
-        catch ( IOException e )
-        {
-            throw new EquinoxLaunchingException( e );
+        } catch (IOException e) {
+            throw new EquinoxLaunchingException(e);
         }
     }
 }

@@ -19,13 +19,11 @@ import java.util.Set;
  * 
  * @TODO better class name
  */
-public interface MetadataSerializable
-{
+public interface MetadataSerializable {
 
     /**
      * Writes the given set of installable units to the given output stream in standard p2 metadata
      * repository format. The caller is responsible for closing the stream.
      */
-    void serialize( OutputStream stream, Set<?> installableUnits )
-        throws IOException;
+    void serialize(OutputStream stream, Set<?> installableUnits) throws IOException;
 }

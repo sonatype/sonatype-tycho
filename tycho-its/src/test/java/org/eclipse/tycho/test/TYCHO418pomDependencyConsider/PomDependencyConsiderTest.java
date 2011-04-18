@@ -17,25 +17,21 @@ import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PomDependencyConsiderTest
-    extends AbstractTychoIntegrationTest
-{
+public class PomDependencyConsiderTest extends AbstractTychoIntegrationTest {
     @Test
-    public void testPomDependenciesConsider()
-        throws Exception
-    {
-        Verifier verifier = getVerifier( "/TYCHO418pomDependencyConsider/artifact" );
-        verifier.executeGoal( "install" );
+    public void testPomDependenciesConsider() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO418pomDependencyConsider/artifact");
+        verifier.executeGoal("install");
         verifier.verifyErrorFreeLog();
 
-        verifier = getVerifier( "/TYCHO418pomDependencyConsider", false );
-        verifier.executeGoal( "install" );
+        verifier = getVerifier("/TYCHO418pomDependencyConsider", false);
+        verifier.executeGoal("install");
         verifier.verifyErrorFreeLog();
 
-        File basedir = new File( verifier.getBasedir() );
+        File basedir = new File(verifier.getBasedir());
 
-        Assert.assertTrue( new File( basedir,
-                                     "site/target/site/plugins/TYCHO418pomDependencyConsider.artifact_0.0.1.SNAPSHOT.jar" ).canRead() );
+        Assert.assertTrue(new File(basedir,
+                "site/target/site/plugins/TYCHO418pomDependencyConsider.artifact_0.0.1.SNAPSHOT.jar").canRead());
     }
 
 }

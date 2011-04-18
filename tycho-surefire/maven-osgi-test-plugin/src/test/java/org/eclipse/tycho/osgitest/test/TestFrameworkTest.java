@@ -20,64 +20,52 @@ import org.eclipse.tycho.core.osgitools.DefaultArtifactKey;
 import org.eclipse.tycho.core.osgitools.DefaultClasspathEntry;
 import org.eclipse.tycho.osgitest.TestFramework;
 
-public class TestFrameworkTest
-    extends PlexusTestCase
-{
+public class TestFrameworkTest extends PlexusTestCase {
 
-    public void testJunit_v3_only()
-        throws Exception
-    {
+    public void testJunit_v3_only() throws Exception {
         ArrayList<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
 
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT, "3.8.2" ) );
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT, "3.8.2"));
 
-        Assert.assertEquals( TestFramework.TEST_JUNIT, new TestFramework().getTestFramework( cp ) );
+        Assert.assertEquals(TestFramework.TEST_JUNIT, new TestFramework().getTestFramework(cp));
     }
 
-    public void testJunit_v4_only()
-        throws Exception
-    {
+    public void testJunit_v4_only() throws Exception {
         ArrayList<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
 
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT, "4.5.0" ) );
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT, "4.5.0"));
 
-        Assert.assertEquals( TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework( cp ) );
+        Assert.assertEquals(TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework(cp));
     }
 
-    public void testJunit4_only()
-        throws Exception
-    {
+    public void testJunit4_only() throws Exception {
         ArrayList<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
 
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT4, "4.5.0" ) );
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT4, "4.5.0"));
 
-        Assert.assertEquals( TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework( cp ) );
+        Assert.assertEquals(TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework(cp));
     }
 
-    public void testJunit_v3_and_v4()
-        throws Exception
-    {
+    public void testJunit_v3_and_v4() throws Exception {
         ArrayList<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
 
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT, "3.8.2" ) );
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT, "4.5.0" ) );
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT, "3.8.2"));
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT, "4.5.0"));
 
-        Assert.assertEquals( TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework( cp ) );
+        Assert.assertEquals(TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework(cp));
     }
 
-    public void testJunit_and_Junit4()
-        throws Exception
-    {
+    public void testJunit_and_Junit4() throws Exception {
         ArrayList<ClasspathEntry> cp = new ArrayList<ClasspathEntry>();
 
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT, "3.8.2" ) );
-        cp.add( newDefaultClasspathEntry( TestFramework.TEST_JUNIT4, "4.5.0" ) );
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT, "3.8.2"));
+        cp.add(newDefaultClasspathEntry(TestFramework.TEST_JUNIT4, "4.5.0"));
 
-        Assert.assertEquals( TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework( cp ) );
+        Assert.assertEquals(TestFramework.TEST_JUNIT4, new TestFramework().getTestFramework(cp));
     }
 
-    private ClasspathEntry newDefaultClasspathEntry( String id, String version )
-    {
-        return new DefaultClasspathEntry( null, new DefaultArtifactKey( org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id, version ), null, null );
+    private ClasspathEntry newDefaultClasspathEntry(String id, String version) {
+        return new DefaultClasspathEntry(null, new DefaultArtifactKey(
+                org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_PLUGIN, id, version), null, null);
     }
 }

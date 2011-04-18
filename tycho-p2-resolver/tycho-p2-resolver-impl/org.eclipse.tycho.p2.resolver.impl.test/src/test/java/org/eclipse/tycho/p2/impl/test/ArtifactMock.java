@@ -16,9 +16,7 @@ import java.util.Set;
 import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 import org.eclipse.tycho.p2.metadata.IReactorArtifactFacade;
 
-public class ArtifactMock
-    implements IArtifactFacade, IReactorArtifactFacade
-{
+public class ArtifactMock implements IArtifactFacade, IReactorArtifactFacade {
     private File location;
 
     private String groupId;
@@ -33,9 +31,8 @@ public class ArtifactMock
 
     private Set<Object> dependencyMetadata;
 
-    public ArtifactMock( File location, String groupId, String artifactId, String version, String packagingType,
-                         String classifier )
-    {
+    public ArtifactMock(File location, String groupId, String artifactId, String version, String packagingType,
+            String classifier) {
         this.location = location;
         this.groupId = groupId;
         this.artifactId = artifactId;
@@ -44,48 +41,39 @@ public class ArtifactMock
         this.classifier = classifier;
     }
 
-    public ArtifactMock( File location, String groupId, String artifactId, String version, String packagingType )
-    {
-        this( location, groupId, artifactId, version, packagingType, null );
+    public ArtifactMock(File location, String groupId, String artifactId, String version, String packagingType) {
+        this(location, groupId, artifactId, version, packagingType, null);
     }
 
-    public File getLocation()
-    {
+    public File getLocation() {
         return location;
     }
 
-    public String getGroupId()
-    {
+    public String getGroupId() {
         return groupId;
     }
 
-    public String getArtifactId()
-    {
+    public String getArtifactId() {
         return artifactId;
     }
 
-    public String getVersion()
-    {
+    public String getVersion() {
         return version;
     }
 
-    public String getPackagingType()
-    {
+    public String getPackagingType() {
         return packagingType;
     }
 
-    public String getClassidier()
-    {
+    public String getClassidier() {
         return classifier;
     }
 
-    public Set<Object> getDependencyMetadata()
-    {
+    public Set<Object> getDependencyMetadata() {
         return dependencyMetadata;
     }
 
-    public void setDependencyMetadata( Set<Object> dependencyMetadata )
-    {
+    public void setDependencyMetadata(Set<Object> dependencyMetadata) {
         this.dependencyMetadata = dependencyMetadata;
     }
 }

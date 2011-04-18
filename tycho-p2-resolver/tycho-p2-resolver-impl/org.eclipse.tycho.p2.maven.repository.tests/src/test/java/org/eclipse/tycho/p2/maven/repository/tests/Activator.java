@@ -19,41 +19,29 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-public class Activator
-    implements BundleActivator
-{
+public class Activator implements BundleActivator {
 
     private static BundleContext context;
 
-    public void start( BundleContext context )
-        throws Exception
-    {
+    public void start(BundleContext context) throws Exception {
         Activator.context = context;
     }
 
-    public void stop( BundleContext context )
-        throws Exception
-    {
+    public void stop(BundleContext context) throws Exception {
         Activator.context = null;
     }
 
-    public static BundleContext getContext()
-    {
+    public static BundleContext getContext() {
         return context;
     }
 
-    public static IProvisioningAgent createProvisioningAgent( final URI targetLocation )
-        throws ProvisionException
-    {
-        ServiceReference serviceReference = context.getServiceReference( IProvisioningAgentProvider.SERVICE_NAME );
-        IProvisioningAgentProvider agentFactory = (IProvisioningAgentProvider) context.getService( serviceReference );
-        try
-        {
-            return agentFactory.createAgent( targetLocation );
-        }
-        finally
-        {
-            context.ungetService( serviceReference );
+    public static IProvisioningAgent createProvisioningAgent(final URI targetLocation) throws ProvisionException {
+        ServiceReference serviceReference = context.getServiceReference(IProvisioningAgentProvider.SERVICE_NAME);
+        IProvisioningAgentProvider agentFactory = (IProvisioningAgentProvider) context.getService(serviceReference);
+        try {
+            return agentFactory.createAgent(targetLocation);
+        } finally {
+            context.ungetService(serviceReference);
         }
     }
 }

@@ -27,30 +27,20 @@ import org.apache.maven.plugin.MojoFailureException;
  * if there is more than one product file.
  * </p>
  */
-class ProductConfig
-{
+class ProductConfig {
     private List<Product> products;
 
-    public ProductConfig( List<Product> userConfig, File baseDir )
-        throws MojoFailureException
-    {
-        if ( userConfig != null )
-        {
+    public ProductConfig(List<Product> userConfig, File baseDir) throws MojoFailureException {
+        if (userConfig != null) {
             products = userConfig;
-            for ( Product product : products )
-            {
-                if ( product.getId() == null )
-                {
-                    throw new MojoFailureException( "Attribute 'id' is required in POM product configuration" );
-                }
-                else if ( !new File( baseDir, product.getId() ).isDirectory() )
-                {
-                    throw new MojoFailureException( "Product id '" + product.getId() + "' not found" );
+            for (Product product : products) {
+                if (product.getId() == null) {
+                    throw new MojoFailureException("Attribute 'id' is required in POM product configuration");
+                } else if (!new File(baseDir, product.getId()).isDirectory()) {
+                    throw new MojoFailureException("Product id '" + product.getId() + "' not found");
                 }
             }
-        }
-        else
-        {
+        } else {
             /*
              * We assume that the tycho-p2-publisher-plugin has created folders named after the
              * product IDs (see
@@ -59,33 +49,26 @@ class ProductConfig
              * eclipse-repository module (which calls the tycho-p2-publisher-plugin).
              */
             File[] productIDs = baseDir.listFiles();
-            products = new ArrayList<Product>( productIDs.length );
-            for ( File file : productIDs )
-            {
-                products.add( new Product( file.getName() ) );
+            products = new ArrayList<Product>(productIDs.length);
+            for (File file : productIDs) {
+                products.add(new Product(file.getName()));
             }
         }
     }
 
-    public boolean uniqueAttachIds()
-    {
+    public boolean uniqueAttachIds() {
         Set<String> attachIDs = new HashSet<String>();
-        for ( Product product : products )
-        {
-            if ( !attachIDs.contains( product.getAttachId() ) )
-            {
-                attachIDs.add( product.getAttachId() );
-            }
-            else
-            {
+        for (Product product : products) {
+            if (!attachIDs.contains(product.getAttachId())) {
+                attachIDs.add(product.getAttachId());
+            } else {
                 return false;
             }
         }
         return true;
     }
 
-    public List<Product> getProducts()
-    {
+    public List<Product> getProducts() {
         return products;
     }
 

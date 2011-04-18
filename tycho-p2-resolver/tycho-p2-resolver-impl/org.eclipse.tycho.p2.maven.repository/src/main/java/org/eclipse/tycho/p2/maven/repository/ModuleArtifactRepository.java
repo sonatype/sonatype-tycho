@@ -41,75 +41,59 @@ import org.eclipse.tycho.p2.repository.TychoRepositoryIndex;
  * @see RepositoryLayoutHelper#FILE_NAME_P2_ARTIFACTS
  * @see RepositoryLayoutHelper#FILE_NAME_LOCAL_ARTIFACTS
  */
-public class ModuleArtifactRepository
-    extends AbstractMavenArtifactRepository
-{
-    private static final GAV MODULE_GAV = new GAV( "dummy-groupId", "dummy-artifactId", "dummy-version" );
+public class ModuleArtifactRepository extends AbstractMavenArtifactRepository {
+    private static final GAV MODULE_GAV = new GAV("dummy-groupId", "dummy-artifactId", "dummy-version");
 
-    public ModuleArtifactRepository( IProvisioningAgent agent, File repositoryDir )
-        throws ProvisionException
-    {
-        super( agent, repositoryDir.toURI(), createSingletonIndex( MODULE_GAV ),
-               new ModuleArtifactReader( repositoryDir ) );
+    public ModuleArtifactRepository(IProvisioningAgent agent, File repositoryDir) throws ProvisionException {
+        super(agent, repositoryDir.toURI(), createSingletonIndex(MODULE_GAV), new ModuleArtifactReader(repositoryDir));
     }
 
-    private static TychoRepositoryIndex createSingletonIndex( final GAV moduleGAV )
-    {
-        return new MemoryTychoRepositoryIndex( Collections.singletonList( moduleGAV ) );
+    private static TychoRepositoryIndex createSingletonIndex(final GAV moduleGAV) {
+        return new MemoryTychoRepositoryIndex(Collections.singletonList(moduleGAV));
     }
 
     @Override
-    public IStatus getArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
-    {
-        return getRawArtifact( descriptor, destination, monitor );
+    public IStatus getArtifact(IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor) {
+        return getRawArtifact(descriptor, destination, monitor);
     }
 
-    @SuppressWarnings( "restriction" )
-    public IStatus getRawArtifact( IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor )
-    {
-        GAV gav = RepositoryLayoutHelper.getGAV( descriptor.getProperties() );
-        String classifier = descriptor.getProperty( RepositoryLayoutHelper.PROP_CLASSIFIER );
-        if ( gav == null )
-        {
-            return new Status( IStatus.ERROR, Activator.ID, "Maven coordinates in artifact "
-                + descriptor.getArtifactKey().toExternalForm() + " are missing" );
+    @SuppressWarnings("restriction")
+    public IStatus getRawArtifact(IArtifactDescriptor descriptor, OutputStream destination, IProgressMonitor monitor) {
+        GAV gav = RepositoryLayoutHelper.getGAV(descriptor.getProperties());
+        String classifier = descriptor.getProperty(RepositoryLayoutHelper.PROP_CLASSIFIER);
+        if (gav == null) {
+            return new Status(IStatus.ERROR, Activator.ID, "Maven coordinates in artifact "
+                    + descriptor.getArtifactKey().toExternalForm() + " are missing");
         }
 
-        try
-        {
+        try {
             String extension = null; // not needed
-            InputStream source = getContentLocator().getContents( gav, classifier, extension );
+            InputStream source = getContentLocator().getContents(gav, classifier, extension);
 
             // copy to destination and close source 
-            FileUtils.copyStream( source, true, destination, false );
-        }
-        catch ( IOException e )
-        {
-            return new Status( IStatus.ERROR, Activator.ID, "I/O exception while reading artifact "
-                + descriptor.getArtifactKey().toExternalForm(), e );
+            FileUtils.copyStream(source, true, destination, false);
+        } catch (IOException e) {
+            return new Status(IStatus.ERROR, Activator.ID, "I/O exception while reading artifact "
+                    + descriptor.getArtifactKey().toExternalForm(), e);
         }
 
         return Status.OK_STATUS;
     }
 
     @Override
-    public OutputStream getOutputStream( IArtifactDescriptor descriptor )
-        throws ProvisionException
-    {
+    public OutputStream getOutputStream(IArtifactDescriptor descriptor) throws ProvisionException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IStatus resolve( IArtifactDescriptor descriptor )
-    {
+    public IStatus resolve(IArtifactDescriptor descriptor) {
         // nothing to do
         return Status.OK_STATUS;
     }
 
-    static boolean canAttemptRead( File repositoryDir )
-    {
-        File requiredP2ArtifactsFile = new File( repositoryDir, RepositoryLayoutHelper.FILE_NAME_P2_ARTIFACTS );
-        File requiredLocalArtifactsFile = new File( repositoryDir, RepositoryLayoutHelper.FILE_NAME_LOCAL_ARTIFACTS );
+    static boolean canAttemptRead(File repositoryDir) {
+        File requiredP2ArtifactsFile = new File(repositoryDir, RepositoryLayoutHelper.FILE_NAME_P2_ARTIFACTS);
+        File requiredLocalArtifactsFile = new File(repositoryDir, RepositoryLayoutHelper.FILE_NAME_LOCAL_ARTIFACTS);
         return requiredP2ArtifactsFile.isFile() && requiredLocalArtifactsFile.isFile();
     }
 

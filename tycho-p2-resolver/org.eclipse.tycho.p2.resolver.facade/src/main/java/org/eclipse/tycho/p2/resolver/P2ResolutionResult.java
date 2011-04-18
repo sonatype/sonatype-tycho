@@ -19,11 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class P2ResolutionResult
-{
+public class P2ResolutionResult {
 
-    public static class Entry
-    {
+    public static class Entry {
         private final String type;
 
         private final String id;
@@ -36,8 +34,7 @@ public class P2ResolutionResult
 
         private final String classifier;
 
-        public Entry( String type, String id, String version, File location, String classifier )
-        {
+        public Entry(String type, String id, String version, File location, String classifier) {
             this.type = type;
             this.id = id;
             this.version = version;
@@ -45,42 +42,34 @@ public class P2ResolutionResult
             this.classifier = classifier;
         }
 
-        public String getType()
-        {
+        public String getType() {
             return type;
         }
 
-        public String getId()
-        {
+        public String getId() {
             return id;
         }
 
-        public String getVersion()
-        {
+        public String getVersion() {
             return version;
         }
 
-        public File getLocation()
-        {
+        public File getLocation() {
             return location;
         }
 
-        public Set<Object> getInstallableUnits()
-        {
+        public Set<Object> getInstallableUnits() {
             return installableUnits;
         }
 
-        void addInstallableUnit( Object installableUnit )
-        {
-            if ( installableUnits == null )
-            {
+        void addInstallableUnit(Object installableUnit) {
+            if (installableUnits == null) {
                 installableUnits = new LinkedHashSet<Object>();
             }
-            installableUnits.add( installableUnit );
+            installableUnits.add(installableUnit);
         }
 
-        public String getClassifier()
-        {
+        public String getClassifier() {
             return classifier;
         }
     }
@@ -88,73 +77,66 @@ public class P2ResolutionResult
     private final Map<List<String>, Entry> entries = new HashMap<List<String>, Entry>();
 
     /**
-     * Set of installable unit in the target platform of the module that do not come from the local reactor.
+     * Set of installable unit in the target platform of the module that do not come from the local
+     * reactor.
      */
     private final Set<Object/* IInstallableUnit */> nonReactorUnits = new LinkedHashSet<Object>();
 
     /**
-     * @param type is one of P2Resolver.TYPE_* constants
-     * @param id is Eclipse/OSGi artifact id
-     * @param version is Eclipse/OSGi artifact version
+     * @param type
+     *            is one of P2Resolver.TYPE_* constants
+     * @param id
+     *            is Eclipse/OSGi artifact id
+     * @param version
+     *            is Eclipse/OSGi artifact version
      */
-    public void addArtifact( String type, String id, String version, File location, String classifier,
-                             Object installableUnit )
-    {
+    public void addArtifact(String type, String id, String version, File location, String classifier,
+            Object installableUnit) {
         // {type,id,version} is unique and not null
         // {location,classifier} is unique but can be null for metadata-only results
 
-        List<String> key = newKey( type, id, version );
+        List<String> key = newKey(type, id, version);
 
-        Entry entry = entries.get( key );
+        Entry entry = entries.get(key);
 
-        if ( entry == null )
-        {
-            entry = new Entry( type, id, version, location, classifier );
-            entries.put( key, entry );
-        }
-        else
-        {
-            if ( !eq( entry.getLocation(), location ) || !eq( entry.getClassifier(), classifier ) )
-            {
-                throw new IllegalArgumentException( "Conflicting results for artifact at location " + location );
+        if (entry == null) {
+            entry = new Entry(type, id, version, location, classifier);
+            entries.put(key, entry);
+        } else {
+            if (!eq(entry.getLocation(), location) || !eq(entry.getClassifier(), classifier)) {
+                throw new IllegalArgumentException("Conflicting results for artifact at location " + location);
             }
         }
 
-        entry.addInstallableUnit( installableUnit );
+        entry.addInstallableUnit(installableUnit);
     }
 
-    private List<String> newKey( String type, String id, String version )
-    {
+    private List<String> newKey(String type, String id, String version) {
         ArrayList<String> key = new ArrayList<String>();
-        key.add( type );
-        key.add( id );
-        key.add( version );
+        key.add(type);
+        key.add(id);
+        key.add(version);
         return key;
     }
 
-    public Collection<Entry> getArtifacts()
-    {
+    public Collection<Entry> getArtifacts() {
         return entries.values();
     }
 
-    public Set<?> getNonReactorUnits()
-    {
+    public Set<?> getNonReactorUnits() {
         return nonReactorUnits;
     }
 
-    public void addNonReactorUnit( Object/* IInstallableUnit */installableUnit )
-    {
-        this.nonReactorUnits.add( installableUnit );
+    public void addNonReactorUnit(Object/* IInstallableUnit */installableUnit) {
+        this.nonReactorUnits.add(installableUnit);
     }
 
-    public void addNonReactorUnits( Set<?/* IInstallableUnit */> installableUnits )
-    {
-        this.nonReactorUnits.addAll( installableUnits );
+    public void addNonReactorUnits(Set<?/* IInstallableUnit */> installableUnits) {
+        this.nonReactorUnits.addAll(installableUnits);
     }
 
-    static <T> boolean eq( T a, T b )
-    {
-        return a != null ? a.equals( b ) : b == null;
+    static <T> boolean eq(T a, T b) {
+        return a != null ? a.equals(b) : b == null;
     }
 
 }

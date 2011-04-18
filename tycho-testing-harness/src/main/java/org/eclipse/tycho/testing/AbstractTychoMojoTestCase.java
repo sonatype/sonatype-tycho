@@ -31,7 +31,7 @@ import org.sonatype.aether.util.DefaultRepositorySystemSession;
 public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
 
     protected Maven maven;
-    
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();
@@ -44,41 +44,40 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
         super.tearDown();
     }
 
-	@Override
-    protected String getCustomConfigurationName()
-    {
-        String name = AbstractTychoMojoTestCase.class.getName().replace( '.', '/' ) + ".xml";
+    @Override
+    protected String getCustomConfigurationName() {
+        String name = AbstractTychoMojoTestCase.class.getName().replace('.', '/') + ".xml";
         return name;
     }
 
-	protected ArtifactRepository getLocalRepository() throws Exception {
-	    RepositorySystem repoSystem = lookup(RepositorySystem.class);
-		
-		File path = new File("target/local-repo").getCanonicalFile();
+    protected ArtifactRepository getLocalRepository() throws Exception {
+        RepositorySystem repoSystem = lookup(RepositorySystem.class);
 
-		ArtifactRepository r = repoSystem.createLocalRepository( path );
+        File path = new File("target/local-repo").getCanonicalFile();
 
-		return r;
-	}
+        ArtifactRepository r = repoSystem.createLocalRepository(path);
 
-	protected MavenExecutionRequest newMavenExecutionRequest(File pom) throws Exception {
-		Properties systemProps = new Properties();
-		systemProps.putAll(System.getProperties());
+        return r;
+    }
 
-		Properties userProps = new Properties();
-		userProps.put("tycho-version", "0.0.0");
+    protected MavenExecutionRequest newMavenExecutionRequest(File pom) throws Exception {
+        Properties systemProps = new Properties();
+        systemProps.putAll(System.getProperties());
+
+        Properties userProps = new Properties();
+        userProps.put("tycho-version", "0.0.0");
 
         MavenExecutionRequest request = new DefaultMavenExecutionRequest();
-		request.setBaseDirectory(pom.getParentFile());
-		request.setPom(pom);
-		request.setSystemProperties(systemProps);
-		request.setUserProperties(userProps);
-		request.setLocalRepository(getLocalRepository());
+        request.setBaseDirectory(pom.getParentFile());
+        request.setPom(pom);
+        request.setSystemProperties(systemProps);
+        request.setUserProperties(userProps);
+        request.setLocalRepository(getLocalRepository());
 
-        request.setGoals( Arrays.asList( "validate" ) );
+        request.setGoals(Arrays.asList("validate"));
 
-		return request;
-	}
+        return request;
+    }
 
     protected List<MavenProject> getSortedProjects(File basedir, File platform) throws Exception {
         File pom = new File(basedir, "pom.xml");
@@ -88,41 +87,35 @@ public class AbstractTychoMojoTestCase extends AbstractMojoTestCase {
         if (platform != null) {
             request.getUserProperties().put("tycho.targetPlatform", platform.getCanonicalPath());
         }
-        MavenExecutionResult result = maven.execute( request );
+        MavenExecutionResult result = maven.execute(request);
         if (result.hasExceptions()) {
             throw new CompoundRuntimeException(result.getExceptions());
         }
         return result.getTopologicallySortedProjects();
     }
 
-    protected MavenSession newMavenSession( MavenProject project, List<MavenProject> projects ) throws Exception
-    {
-        MavenExecutionRequest request = newMavenExecutionRequest( new File( project.getBasedir(), "pom.xml" ) );
+    protected MavenSession newMavenSession(MavenProject project, List<MavenProject> projects) throws Exception {
+        MavenExecutionRequest request = newMavenExecutionRequest(new File(project.getBasedir(), "pom.xml"));
         MavenExecutionResult result = new DefaultMavenExecutionResult();
         DefaultRepositorySystemSession repositorySession = new DefaultRepositorySystemSession();
         MavenSession session = new MavenSession(getContainer(), repositorySession, request, result);
-        session.setCurrentProject( project );
-        session.setProjects( projects );
+        session.setCurrentProject(project);
+        session.setProjects(projects);
         return session;
     }
 
-    protected MavenProject getProject( List<MavenProject> projects, String artifactId )
-    {
-        for ( MavenProject project : projects )
-        {
-            if ( artifactId.equals( project.getArtifactId() ) )
-            {
+    protected MavenProject getProject(List<MavenProject> projects, String artifactId) {
+        for (MavenProject project : projects) {
+            if (artifactId.equals(project.getArtifactId())) {
                 return project;
             }
         }
 
-        throw new IllegalArgumentException( "No project with artifactId " + artifactId );
+        throw new IllegalArgumentException("No project with artifactId " + artifactId);
     }
 
-    protected static File getBasedir( String name )
-        throws IOException
-    {
-        return TestUtil.getBasedir( name );
+    protected static File getBasedir(String name) throws IOException {
+        return TestUtil.getBasedir(name);
     }
 
 }

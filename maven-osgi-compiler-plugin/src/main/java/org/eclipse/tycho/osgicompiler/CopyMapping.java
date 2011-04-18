@@ -26,28 +26,27 @@ import org.codehaus.plexus.compiler.util.scan.mapping.SourceMapping;
  */
 public class CopyMapping implements SourceMapping {
 
-	List<SourceTargetPair> sourceTargetMappings = new ArrayList<SourceTargetPair>();
+    List<SourceTargetPair> sourceTargetMappings = new ArrayList<SourceTargetPair>();
 
-	public Set getTargetFiles(File targetDir, String source)
-			throws InclusionScanException {
-		File targetFile = new File(targetDir, source);
-		sourceTargetMappings.add(new SourceTargetPair(source, targetFile));
-		return Collections.singleton(targetFile);
-	}
+    public Set getTargetFiles(File targetDir, String source) throws InclusionScanException {
+        File targetFile = new File(targetDir, source);
+        sourceTargetMappings.add(new SourceTargetPair(source, targetFile));
+        return Collections.singleton(targetFile);
+    }
 
-	public List<SourceTargetPair> getSourceTargetPairs() {
-		return sourceTargetMappings;
-	}
+    public List<SourceTargetPair> getSourceTargetPairs() {
+        return sourceTargetMappings;
+    }
 
-	public static class SourceTargetPair {
+    public static class SourceTargetPair {
 
-		public String source;
-		public File target;
+        public String source;
+        public File target;
 
-		public SourceTargetPair(String source, File target) {
-			this.source = source;
-			this.target = target;
-		}
+        public SourceTargetPair(String source, File target) {
+            this.source = source;
+            this.target = target;
+        }
 
-	}
+    }
 }

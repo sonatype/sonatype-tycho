@@ -10,16 +10,15 @@
  *******************************************************************************/
 package org.eclipse.tycho.equinox.launching;
 
-public class BundleStartLevel
-{
+public class BundleStartLevel {
     /**
      * Bundle symbolic name.
      */
     private String id;
 
     /**
-     * Bundle start level. level==-1 is a hack, used to remove org.eclipse.org
-     * bundle from osgi.bundles system property value.
+     * Bundle start level. level==-1 is a hack, used to remove org.eclipse.org bundle from
+     * osgi.bundles system property value.
      */
     private int level;
 
@@ -28,45 +27,37 @@ public class BundleStartLevel
      */
     private boolean autoStart;
 
-    public BundleStartLevel()
-    {
+    public BundleStartLevel() {
         // default constructor used by mojo parameter injection
     }
 
-    public BundleStartLevel( String id, int level, boolean autoStart )
-    {
+    public BundleStartLevel(String id, int level, boolean autoStart) {
         this.id = id;
         this.level = level;
-        this.setAutoStart( autoStart );
+        this.setAutoStart(autoStart);
     }
 
-    public String getId()
-    {
+    public String getId() {
         return id;
     }
 
-    public void setId( String id )
-    {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public int getLevel()
-    {
+    public int getLevel() {
         return level;
     }
 
-    public void setLevel( int level )
-    {
+    public void setLevel(int level) {
         this.level = level;
     }
 
-    public void setAutoStart( boolean autoStart )
-    {
+    public void setAutoStart(boolean autoStart) {
         this.autoStart = autoStart;
     }
 
-    public boolean isAutoStart()
-    {
+    public boolean isAutoStart() {
         return autoStart;
     }
 }

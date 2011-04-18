@@ -34,113 +34,85 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class MetadataSerializableImplTest
-{
+public class MetadataSerializableImplTest {
 
     private IProvisioningAgent agent;
 
     @Before
-    public void setUp()
-        throws ProvisionException
-    {
+    public void setUp() throws ProvisionException {
         agent = Activator.newProvisioningAgent();
     }
 
     @After
-    public void tearDown()
-    {
+    public void tearDown() {
         agent.stop();
     }
 
     @Test
-    public void testSerializeAndLoadWithEmptyIUList()
-        throws IOException, ProvisionException, OperationCanceledException
-    {
+    public void testSerializeAndLoadWithEmptyIUList() throws IOException, ProvisionException,
+            OperationCanceledException {
 
-        File tmpDir = createTempDir( "repo" );
-        try
-        {
+        File tmpDir = createTempDir("repo");
+        try {
             Set<IInstallableUnit> units = new HashSet<IInstallableUnit>();
             MetadataSerializableImpl subject = new MetadataSerializableImpl();
-            serialize( subject, units, tmpDir );
-            Assert.assertEquals( units, deserialize( tmpDir ) );
-        }
-        finally
-        {
-            deleteRecursive( tmpDir );
+            serialize(subject, units, tmpDir);
+            Assert.assertEquals(units, deserialize(tmpDir));
+        } finally {
+            deleteRecursive(tmpDir);
         }
     }
 
     @Test
-    public void testSerializeAndLoad()
-        throws IOException, ProvisionException, OperationCanceledException
-    {
+    public void testSerializeAndLoad() throws IOException, ProvisionException, OperationCanceledException {
 
-        File tmpDir = createTempDir( "repo" );
-        try
-        {
-            Set<IInstallableUnit> units =
-                new HashSet<IInstallableUnit>(
-                                               Arrays.asList( InstallableUnitUtil.createIU( "org.example.test", "1.0.0" ) ) );
+        File tmpDir = createTempDir("repo");
+        try {
+            Set<IInstallableUnit> units = new HashSet<IInstallableUnit>(Arrays.asList(InstallableUnitUtil.createIU(
+                    "org.example.test", "1.0.0")));
             MetadataSerializableImpl subject = new MetadataSerializableImpl();
-            serialize( subject, units, tmpDir );
-            Assert.assertEquals( units, deserialize( tmpDir ) );
-        }
-        finally
-        {
-            deleteRecursive( tmpDir );
+            serialize(subject, units, tmpDir);
+            Assert.assertEquals(units, deserialize(tmpDir));
+        } finally {
+            deleteRecursive(tmpDir);
         }
     }
 
-    private Set<IInstallableUnit> deserialize( File tmpDir )
-        throws ProvisionException
-    {
-        IMetadataRepositoryManager manager =
-            (IMetadataRepositoryManager) agent.getService( IMetadataRepositoryManager.SERVICE_NAME );
-        IMetadataRepository repository = manager.loadRepository( tmpDir.toURI(), null );
-        IQueryResult<IInstallableUnit> queryResult = repository.query( QueryUtil.ALL_UNITS, null );
+    private Set<IInstallableUnit> deserialize(File tmpDir) throws ProvisionException {
+        IMetadataRepositoryManager manager = (IMetadataRepositoryManager) agent
+                .getService(IMetadataRepositoryManager.SERVICE_NAME);
+        IMetadataRepository repository = manager.loadRepository(tmpDir.toURI(), null);
+        IQueryResult<IInstallableUnit> queryResult = repository.query(QueryUtil.ALL_UNITS, null);
         Set<IInstallableUnit> result = queryResult.toSet();
         return result;
     }
 
-    private void serialize( MetadataSerializableImpl subject, Set<?> units, File tmpDir )
-        throws FileNotFoundException, IOException
-    {
-        FileOutputStream os = new FileOutputStream( new File( tmpDir, "content.xml" ) );
-        try
-        {
-            subject.serialize( os, units );
-        }
-        finally
-        {
+    private void serialize(MetadataSerializableImpl subject, Set<?> units, File tmpDir) throws FileNotFoundException,
+            IOException {
+        FileOutputStream os = new FileOutputStream(new File(tmpDir, "content.xml"));
+        try {
+            subject.serialize(os, units);
+        } finally {
             os.close();
         }
     }
 
-    private void deleteRecursive( File tmpDir )
-    {
-        for ( File file : tmpDir.listFiles() )
-        {
-            if ( file.isDirectory() )
-            {
-                deleteRecursive( file );
+    private void deleteRecursive(File tmpDir) {
+        for (File file : tmpDir.listFiles()) {
+            if (file.isDirectory()) {
+                deleteRecursive(file);
             }
             file.delete();
         }
     }
 
-    private File createTempDir( String prefix )
-        throws IOException
-    {
-        File directory = File.createTempFile( prefix, "" );
-        if ( directory.delete() )
-        {
+    private File createTempDir(String prefix) throws IOException {
+        File directory = File.createTempFile(prefix, "");
+        if (directory.delete()) {
             directory.mkdirs();
             return directory;
-        }
-        else
-        {
-            throw new IOException( "Could not create temp directory at: " + directory.getAbsolutePath() );
+        } else {
+            throw new IOException("Could not create temp directory at: " + directory.getAbsolutePath());
         }
     }
 }

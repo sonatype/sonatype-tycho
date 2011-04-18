@@ -16,56 +16,45 @@ import java.util.Set;
 import org.eclipse.tycho.ReactorProject;
 import org.eclipse.tycho.p2.metadata.IReactorArtifactFacade;
 
-public class ReactorArtifactFacade
-    implements IReactorArtifactFacade
-{
+public class ReactorArtifactFacade implements IReactorArtifactFacade {
     private final ReactorProject wrappedProject;
 
     private final String classifier;
 
-    public ReactorArtifactFacade( ReactorProject otherProject, String classifier )
-    {
+    public ReactorArtifactFacade(ReactorProject otherProject, String classifier) {
         this.wrappedProject = otherProject;
         this.classifier = classifier;
     }
 
-    public File getLocation()
-    {
+    public File getLocation() {
         return wrappedProject.getBasedir();
     }
 
-    public String getGroupId()
-    {
+    public String getGroupId() {
         return wrappedProject.getGroupId();
     }
 
-    public String getArtifactId()
-    {
+    public String getArtifactId() {
         return wrappedProject.getArtifactId();
     }
 
-    public String getClassifier()
-    {
+    public String getClassifier() {
         return classifier;
     }
 
-    public String getVersion()
-    {
+    public String getVersion() {
         return wrappedProject.getVersion();
     }
 
-    public String getPackagingType()
-    {
+    public String getPackagingType() {
         return wrappedProject.getPackaging();
     }
 
-    public Set<Object/* IInstallableUnit */> getDependencyMetadata()
-    {
-        return wrappedProject.getDependencyMetadata( classifier );
+    public Set<Object/* IInstallableUnit */> getDependencyMetadata() {
+        return wrappedProject.getDependencyMetadata(classifier);
     }
 
-    public String getClassidier()
-    {
+    public String getClassidier() {
         return classifier;
     }
 }

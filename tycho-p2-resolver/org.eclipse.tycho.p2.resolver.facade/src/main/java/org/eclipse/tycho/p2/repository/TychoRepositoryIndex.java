@@ -12,10 +12,7 @@ package org.eclipse.tycho.p2.repository;
 
 import java.util.List;
 
-
-
-public interface TychoRepositoryIndex
-{
+public interface TychoRepositoryIndex {
 
     List<GAV> getProjectGAVs();
 

@@ -46,9 +46,7 @@ import org.sonatype.jettytestsuite.proxy.MonitorableProxyServlet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class ProxySupportTest
-    extends AbstractTychoIntegrationTest
-{
+public class ProxySupportTest extends AbstractTychoIntegrationTest {
 
     private static final String TEST_BASEDIR = "/TYCHO279HttpProxy";
 
@@ -69,18 +67,14 @@ public class ProxySupportTest
     private File settings;
 
     @Before
-    public void setup()
-        throws Exception
-    {
-        baseDir = new File( getVerifier( TEST_BASEDIR ).getBasedir() );
-        settings = new File( baseDir, "settings.xml" );
+    public void setup() throws Exception {
+        baseDir = new File(getVerifier(TEST_BASEDIR).getBasedir());
+        settings = new File(baseDir, "settings.xml");
         startHttpServer();
     }
 
     @After
-    public void tearDown()
-        throws Exception
-    {
+    public void tearDown() throws Exception {
         httpServer.stop();
         httpServer.join();
         proxyServer.getServer().stop();
@@ -88,168 +82,141 @@ public class ProxySupportTest
     }
 
     @Test
-    public void testActiveProxy()
-        throws Exception
-    {
-        startHttpProxyServer( false, null, null );
-        Verifier verifier = getVerifier( TEST_BASEDIR, false );
-        configureProxyInSettingsXml( true, null, null );
-        replaceSettingsArg( verifier );
-        verifier.getSystemProperties().setProperty( "p2.repo", getP2RepoUrl() );
-        verifier.executeGoal( "package" );
+    public void testActiveProxy() throws Exception {
+        startHttpProxyServer(false, null, null);
+        Verifier verifier = getVerifier(TEST_BASEDIR, false);
+        configureProxyInSettingsXml(true, null, null);
+        replaceSettingsArg(verifier);
+        verifier.getSystemProperties().setProperty("p2.repo", getP2RepoUrl());
+        verifier.executeGoal("package");
         verifier.verifyErrorFreeLog();
         List<String> accessedUris = proxyServlet.getAccessedUris();
-        Assert.assertTrue( "proxy was not accessed", accessedUris.size() > 0 );
+        Assert.assertTrue("proxy was not accessed", accessedUris.size() > 0);
         String expectedUri = getP2RepoUrl() + "artifacts.xml";
-        Assert.assertTrue( "URL " + expectedUri + " was not accessed via proxy", accessedUris.contains( expectedUri ) );
+        Assert.assertTrue("URL " + expectedUri + " was not accessed via proxy", accessedUris.contains(expectedUri));
     }
 
     @Test
-    public void testProxyWithAuthentication()
-        throws Exception
-    {
+    public void testProxyWithAuthentication() throws Exception {
         final String proxyUser = "foo";
         final String proxyPassword = "bar";
-        startHttpProxyServer( true, proxyUser, proxyPassword );
-        Verifier verifier = getVerifier( TEST_BASEDIR, false );
-        configureProxyInSettingsXml( true, proxyUser, proxyPassword );
-        replaceSettingsArg( verifier );
-        verifier.getSystemProperties().setProperty( "p2.repo", getP2RepoUrl() );
-        verifier.executeGoal( "package" );
+        startHttpProxyServer(true, proxyUser, proxyPassword);
+        Verifier verifier = getVerifier(TEST_BASEDIR, false);
+        configureProxyInSettingsXml(true, proxyUser, proxyPassword);
+        replaceSettingsArg(verifier);
+        verifier.getSystemProperties().setProperty("p2.repo", getP2RepoUrl());
+        verifier.executeGoal("package");
         verifier.verifyErrorFreeLog();
         List<String> accessedUris = proxyServlet.getAccessedUris();
-        Assert.assertTrue( "proxy was not accessed", accessedUris.size() > 0 );
+        Assert.assertTrue("proxy was not accessed", accessedUris.size() > 0);
         String expectedUri = getP2RepoUrl() + "artifacts.xml";
-        Assert.assertTrue( "URL " + expectedUri + " was not accessed via proxy", accessedUris.contains( expectedUri ) );
+        Assert.assertTrue("URL " + expectedUri + " was not accessed via proxy", accessedUris.contains(expectedUri));
     }
 
     @Test
-    public void testInactiveProxy()
-        throws Exception
-    {
-        startHttpProxyServer( false, null, null );
-        Verifier verifier = getVerifier( TEST_BASEDIR, false );
-        configureProxyInSettingsXml( false, null, null );
-        replaceSettingsArg( verifier );
-        verifier.getSystemProperties().setProperty( "p2.repo", getP2RepoUrl() );
-        verifier.executeGoal( "package" ); // build fails
+    public void testInactiveProxy() throws Exception {
+        startHttpProxyServer(false, null, null);
+        Verifier verifier = getVerifier(TEST_BASEDIR, false);
+        configureProxyInSettingsXml(false, null, null);
+        replaceSettingsArg(verifier);
+        verifier.getSystemProperties().setProperty("p2.repo", getP2RepoUrl());
+        verifier.executeGoal("package"); // build fails
         List<String> accessedUris = proxyServlet.getAccessedUris();
-        Assert.assertTrue( "proxy was accessed although not active. Accessed URIs: " + accessedUris,
-                           accessedUris.size() == 0 );
+        Assert.assertTrue("proxy was accessed although not active. Accessed URIs: " + accessedUris,
+                accessedUris.size() == 0);
     }
 
-    private void startHttpProxyServer( boolean useAuthentication, String user, String password )
-        throws Exception
-    {
+    private void startHttpProxyServer(boolean useAuthentication, String user, String password) throws Exception {
         proxyServer = new ProxyServer();
         Server proxy = new Server();
         Connector connector = new SocketConnector();
         proxyPort = findFreePort();
-        connector.setPort( proxyPort );
-        proxy.addConnector( connector );
-        Context context = new Context( proxy, "/", 0 );
+        connector.setPort(proxyPort);
+        proxy.addConnector(connector);
+        Context context = new Context(proxy, "/", 0);
         Map<String, String> authMap = new HashMap<String, String>();
-        if ( useAuthentication )
-        {
-            authMap.put( user, password );
+        if (useAuthentication) {
+            authMap.put(user, password);
         }
-        proxyServlet = new MonitorableProxyServlet( useAuthentication, authMap );
-        context.addServlet( new ServletHolder( proxyServlet ), "/" );
-        proxyServer.setServer( proxy );
+        proxyServlet = new MonitorableProxyServlet(useAuthentication, authMap);
+        context.addServlet(new ServletHolder(proxyServlet), "/");
+        proxyServer.setServer(proxy);
         proxyServer.start();
     }
 
-    private void startHttpServer()
-        throws Exception
-    {
+    private void startHttpServer() throws Exception {
         httpServer = new Server();
         Connector connector = new SocketConnector();
         httpServerPort = findFreePort();
-        connector.setPort( httpServerPort );
-        httpServer.addConnector( connector );
-        Context context = new Context( httpServer, "/", 0 );
-        FileServerServlet servlet = new FileServerServlet( new File( baseDir, "repo" ) );
-        context.addServlet( new ServletHolder( servlet ), PATH + "*" );
+        connector.setPort(httpServerPort);
+        httpServer.addConnector(connector);
+        Context context = new Context(httpServer, "/", 0);
+        FileServerServlet servlet = new FileServerServlet(new File(baseDir, "repo"));
+        context.addServlet(new ServletHolder(servlet), PATH + "*");
         httpServer.start();
     }
 
-    private static int findFreePort()
-        throws IOException
-    {
-        ServerSocket serverSocket = new ServerSocket( 0 );
+    private static int findFreePort() throws IOException {
+        ServerSocket serverSocket = new ServerSocket(0);
         int port = serverSocket.getLocalPort();
         serverSocket.close();
         return port;
     }
 
-    private String getP2RepoUrl()
-    {
+    private String getP2RepoUrl() {
         return "http://localhost:" + httpServerPort + PATH;
     }
 
-    private void replaceSettingsArg( Verifier verifier )
-        throws IOException
-    {
+    private void replaceSettingsArg(Verifier verifier) throws IOException {
         List<String> cliOptions = verifier.getCliOptions();
-        for ( Iterator<String> iterator = cliOptions.iterator(); iterator.hasNext(); )
-        {
+        for (Iterator<String> iterator = cliOptions.iterator(); iterator.hasNext();) {
             String arg = iterator.next();
-            if ( arg.startsWith( "-s " ) )
-            {
+            if (arg.startsWith("-s ")) {
                 iterator.remove();
             }
         }
-        cliOptions.add( "-s " + settings.getCanonicalPath() );
+        cliOptions.add("-s " + settings.getCanonicalPath());
     }
 
-    private void configureProxyInSettingsXml( boolean isProxyActive, String user, String password )
-        throws Exception
-    {
-        Document dom = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse( settings );
+    private void configureProxyInSettingsXml(boolean isProxyActive, String user, String password) throws Exception {
+        Document dom = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(settings);
         XPath xpath = XPathFactory.newInstance().newXPath();
-        XPathExpression proxyExpr = xpath.compile( "/settings/proxies/proxy" );
-        Element proxyNode = (Element) proxyExpr.evaluate( dom.getDocumentElement(), XPathConstants.NODE );
+        XPathExpression proxyExpr = xpath.compile("/settings/proxies/proxy");
+        Element proxyNode = (Element) proxyExpr.evaluate(dom.getDocumentElement(), XPathConstants.NODE);
         {
-            XPathExpression portExpr = xpath.compile( "/settings/proxies/proxy/port" );
-            Element node = (Element) portExpr.evaluate( dom.getDocumentElement(), XPathConstants.NODE );
-            node.setTextContent( String.valueOf( proxyPort ) );
+            XPathExpression portExpr = xpath.compile("/settings/proxies/proxy/port");
+            Element node = (Element) portExpr.evaluate(dom.getDocumentElement(), XPathConstants.NODE);
+            node.setTextContent(String.valueOf(proxyPort));
         }
         {
-            XPathExpression activeExpr = xpath.compile( "/settings/proxies/proxy/active" );
-            Element activeNode = (Element) activeExpr.evaluate( dom.getDocumentElement(), XPathConstants.NODE );
-            activeNode.setTextContent( String.valueOf( isProxyActive ) );
+            XPathExpression activeExpr = xpath.compile("/settings/proxies/proxy/active");
+            Element activeNode = (Element) activeExpr.evaluate(dom.getDocumentElement(), XPathConstants.NODE);
+            activeNode.setTextContent(String.valueOf(isProxyActive));
         }
         {
-            XPathExpression userExpr = xpath.compile( "/settings/proxies/proxy/username" );
-            Element userNode = (Element) userExpr.evaluate( dom.getDocumentElement(), XPathConstants.NODE );
-            updateNodeValue( "username", userNode, user, dom, proxyNode );
+            XPathExpression userExpr = xpath.compile("/settings/proxies/proxy/username");
+            Element userNode = (Element) userExpr.evaluate(dom.getDocumentElement(), XPathConstants.NODE);
+            updateNodeValue("username", userNode, user, dom, proxyNode);
         }
         {
-            XPathExpression passwordExpr = xpath.compile( "/settings/proxies/proxy/password" );
-            Element passwordNode = (Element) passwordExpr.evaluate( dom.getDocumentElement(), XPathConstants.NODE );
-            updateNodeValue( "password", passwordNode, password, dom, proxyNode );
+            XPathExpression passwordExpr = xpath.compile("/settings/proxies/proxy/password");
+            Element passwordNode = (Element) passwordExpr.evaluate(dom.getDocumentElement(), XPathConstants.NODE);
+            updateNodeValue("password", passwordNode, password, dom, proxyNode);
         }
         Transformer xslTransformer = TransformerFactory.newInstance().newTransformer();
-        xslTransformer.transform( new DOMSource( dom.getDocumentElement() ), new StreamResult( settings ) );
+        xslTransformer.transform(new DOMSource(dom.getDocumentElement()), new StreamResult(settings));
     }
 
-    private static void updateNodeValue( String nodeName, Element node, String newValue, Document dom,
-                                         Element parentNode )
-    {
-        if ( newValue != null )
-        {
-            if ( node == null )
-            {
-                node = dom.createElement( nodeName );
-                parentNode.appendChild( node );
+    private static void updateNodeValue(String nodeName, Element node, String newValue, Document dom, Element parentNode) {
+        if (newValue != null) {
+            if (node == null) {
+                node = dom.createElement(nodeName);
+                parentNode.appendChild(node);
             }
-            node.setTextContent( newValue );
-        }
-        else
-        {
-            if ( node != null )
-            {
-                parentNode.removeChild( node );
+            node.setTextContent(newValue);
+        } else {
+            if (node != null) {
+                parentNode.removeChild(node);
             }
         }
     }

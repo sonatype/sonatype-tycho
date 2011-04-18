@@ -22,30 +22,24 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LocalArtifactRepositoryFactoryTest
-{
+public class LocalArtifactRepositoryFactoryTest {
 
     private LocalArtifactRepositoryFactory subject;
 
-    private final File basedir = new File( "target/repository/"
-        + LocalArtifactRepositoryFactoryTest.class.getSimpleName() ).getAbsoluteFile();
+    private final File basedir = new File("target/repository/"
+            + LocalArtifactRepositoryFactoryTest.class.getSimpleName()).getAbsoluteFile();
 
     @Before
-    public void cleanupRepository()
-    {
-        deleteDir( basedir );
+    public void cleanupRepository() {
+        deleteDir(basedir);
     }
 
-    private void deleteDir( File dir )
-    {
+    private void deleteDir(File dir) {
         File[] files = dir.listFiles();
-        if ( files != null )
-        {
-            for ( File file : files )
-            {
-                if ( file.isDirectory() )
-                {
-                    deleteDir( file );
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDir(file);
 
                 }
                 file.delete();
@@ -54,32 +48,25 @@ public class LocalArtifactRepositoryFactoryTest
     }
 
     @Before
-    public void setUp()
-    {
+    public void setUp() {
         subject = new LocalArtifactRepositoryFactory();
     }
 
-    @Test( expected = ProvisionException.class )
-    public void testCreate()
-        throws ProvisionException
-    {
-        subject.create( null, null, null, null );
+    @Test(expected = ProvisionException.class)
+    public void testCreate() throws ProvisionException {
+        subject.create(null, null, null, null);
     }
 
     @Test
-    public void testLoadWrongLocation()
-        throws ProvisionException
-    {
-        Assert.assertNull( subject.load( URI.create( "file:/testFileUri" ), 0, new NullProgressMonitor() ) );
+    public void testLoadWrongLocation() throws ProvisionException {
+        Assert.assertNull(subject.load(URI.create("file:/testFileUri"), 0, new NullProgressMonitor()));
     }
 
     @Test
-    public void testLoad()
-        throws ProvisionException
-    {
-        LocalArtifactRepository repo = new LocalArtifactRepository( basedir );
+    public void testLoad() throws ProvisionException {
+        LocalArtifactRepository repo = new LocalArtifactRepository(basedir);
         repo.save();
-        IArtifactRepository repo2 = subject.load( basedir.toURI(), 0, new NullProgressMonitor() );
-        Assert.assertEquals( repo, repo2 );
+        IArtifactRepository repo2 = subject.load(basedir.toURI(), 0, new NullProgressMonitor());
+        Assert.assertEquals(repo, repo2);
     }
 }

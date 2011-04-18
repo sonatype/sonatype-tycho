@@ -25,54 +25,53 @@ import org.apache.maven.plugin.MojoExecutionException;
  * @goal testCompile
  * @phase test-compile
  * @requiresDependencyResolution test
- * @description Compiles test application sources with eclipse plugin
- *              dependencies
+ * @description Compiles test application sources with eclipse plugin dependencies
  */
 public class OsgiTestCompilerMojo extends AbstractOsgiCompilerMojo {
 
-	/**
-	 * The source directories containing the test-source to be compiled.
-	 * 
-	 * @parameter expression="${project.testCompileSourceRoots}"
-	 * @required
-	 * @readonly
-	 */
-	private List<String> compileSourceRoots;
+    /**
+     * The source directories containing the test-source to be compiled.
+     * 
+     * @parameter expression="${project.testCompileSourceRoots}"
+     * @required
+     * @readonly
+     */
+    private List<String> compileSourceRoots;
 
-	/**
-	 * The directory where compiled test classes go.
-	 * 
-	 * @parameter expression="${project.build.testOutputDirectory}"
-	 * @required
-	 * @readonly
-	 */
-	private File testOutputDirectory;
+    /**
+     * The directory where compiled test classes go.
+     * 
+     * @parameter expression="${project.build.testOutputDirectory}"
+     * @required
+     * @readonly
+     */
+    private File testOutputDirectory;
 
-	/**
-	 * The directory where compiled test classes go.
-	 * 
-	 * @parameter expression="${project.build.outputDirectory}"
-	 * @required
-	 * @readonly
-	 */
-	private File outputDirectory;
+    /**
+     * The directory where compiled test classes go.
+     * 
+     * @parameter expression="${project.build.outputDirectory}"
+     * @required
+     * @readonly
+     */
+    private File outputDirectory;
 
-	@Override
-	protected List<String> getConfiguredCompileSourceRoots() {
-		return compileSourceRoots;
-	}
+    @Override
+    protected List<String> getConfiguredCompileSourceRoots() {
+        return compileSourceRoots;
+    }
 
-	/**
-	 * output directory for this compile - the test output directory
-	 */
-	protected File getConfiguredOutputDirectory() {
-		return testOutputDirectory;
-	}
+    /**
+     * output directory for this compile - the test output directory
+     */
+    protected File getConfiguredOutputDirectory() {
+        return testOutputDirectory;
+    }
 
-	public List getClasspathElements() throws MojoExecutionException {
-		List result = super.getClasspathElements();
-		result.add(0, outputDirectory.getAbsolutePath() + "[+**/*]");
-		return result;
-	}
+    public List getClasspathElements() throws MojoExecutionException {
+        List result = super.getClasspathElements();
+        result.add(0, outputDirectory.getAbsolutePath() + "[+**/*]");
+        return result;
+    }
 
 }

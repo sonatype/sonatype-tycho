@@ -34,19 +34,16 @@ import org.eclipse.tycho.p2.impl.publisher.rootfiles.FeatureRootAdvice;
 import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 import org.eclipse.tycho.p2.repository.RepositoryLayoutHelper;
 
-@SuppressWarnings( "restriction" )
-public class FeatureRootfileArtifactRepository
-    extends TransientArtifactRepository
-{
+@SuppressWarnings("restriction")
+public class FeatureRootfileArtifactRepository extends TransientArtifactRepository {
 
     /**
-     * This class is used to transport the required information for installing the artifact into the local repository.
+     * This class is used to transport the required information for installing the artifact into the
+     * local repository.
      * 
      * @see org.eclipse.tycho.p2.impl.publisher.P2GeneratorImpl
      */
-    public static class RootfileArtifact
-        implements IArtifactFacade
-    {
+    public static class RootfileArtifact implements IArtifactFacade {
         static final String ROOTFILE_CLASSIFIER = "root";
 
         private static final String ROOTFILE_EXTENSION = "zip";
@@ -55,39 +52,32 @@ public class FeatureRootfileArtifactRepository
 
         private String classifier;
 
-        public RootfileArtifact( File location, String classifier )
-        {
+        public RootfileArtifact(File location, String classifier) {
             this.location = location;
             this.classifier = classifier;
         }
 
-        public String getPackagingType()
-        {
+        public String getPackagingType() {
             return ROOTFILE_EXTENSION;
         }
 
-        public String getClassidier()
-        {
+        public String getClassidier() {
             return this.classifier;
         }
 
-        public File getLocation()
-        {
+        public File getLocation() {
             return location;
         }
 
-        public String getGroupId()
-        {
+        public String getGroupId() {
             throw new UnsupportedOperationException();
         }
 
-        public String getArtifactId()
-        {
+        public String getArtifactId() {
             throw new UnsupportedOperationException();
         }
 
-        public String getVersion()
-        {
+        public String getVersion() {
             throw new UnsupportedOperationException();
         }
     }
@@ -98,100 +88,78 @@ public class FeatureRootfileArtifactRepository
 
     private Map<String, IArtifactFacade> publishedArtifacts = new HashMap<String, IArtifactFacade>();
 
-    public FeatureRootfileArtifactRepository( PublisherInfo publisherInfo, File outputDirectory )
-    {
+    public FeatureRootfileArtifactRepository(PublisherInfo publisherInfo, File outputDirectory) {
         this.publisherInfo = publisherInfo;
         this.outputDirectory = outputDirectory;
     }
 
     @Override
-    public OutputStream getOutputStream( IArtifactDescriptor descriptor )
-        throws ProvisionException
-    {
+    public OutputStream getOutputStream(IArtifactDescriptor descriptor) throws ProvisionException {
         IArtifactKey artifactKey = descriptor.getArtifactKey();
-        if ( artifactKey != null && PublisherHelper.BINARY_ARTIFACT_CLASSIFIER.equals( artifactKey.getClassifier() ) )
-        {
-            try
-            {
-                return createRootfileOutputStream( artifactKey );
-            }
-            catch ( IOException e )
-            {
-                throw new ProvisionException( e.getMessage(), e );
+        if (artifactKey != null && PublisherHelper.BINARY_ARTIFACT_CLASSIFIER.equals(artifactKey.getClassifier())) {
+            try {
+                return createRootfileOutputStream(artifactKey);
+            } catch (IOException e) {
+                throw new ProvisionException(e.getMessage(), e);
             }
         }
 
-        return super.getOutputStream( descriptor );
+        return super.getOutputStream(descriptor);
     }
 
-    private OutputStream createRootfileOutputStream( IArtifactKey artifactKey )
-        throws ProvisionException, IOException
-    {
-        File outputFile =
-            new File( this.outputDirectory, artifactKey.getId() + "-" + artifactKey.getVersion() + "-"
-                + RootfileArtifact.ROOTFILE_CLASSIFIER + "." + RootfileArtifact.ROOTFILE_EXTENSION );
+    private OutputStream createRootfileOutputStream(IArtifactKey artifactKey) throws ProvisionException, IOException {
+        File outputFile = new File(this.outputDirectory, artifactKey.getId() + "-" + artifactKey.getVersion() + "-"
+                + RootfileArtifact.ROOTFILE_CLASSIFIER + "." + RootfileArtifact.ROOTFILE_EXTENSION);
 
         OutputStream target = null;
-        try
-        {
-            SimpleArtifactDescriptor simpleArtifactDescriptor =
-                (SimpleArtifactDescriptor) createArtifactDescriptor( artifactKey );
+        try {
+            SimpleArtifactDescriptor simpleArtifactDescriptor = (SimpleArtifactDescriptor) createArtifactDescriptor(artifactKey);
 
-            Collection<IPropertyAdvice> advices =
-                publisherInfo.getAdvice( null, false, simpleArtifactDescriptor.getArtifactKey().getId(),
-                                         simpleArtifactDescriptor.getArtifactKey().getVersion(), IPropertyAdvice.class );
+            Collection<IPropertyAdvice> advices = publisherInfo.getAdvice(null, false, simpleArtifactDescriptor
+                    .getArtifactKey().getId(), simpleArtifactDescriptor.getArtifactKey().getVersion(),
+                    IPropertyAdvice.class);
 
             boolean mavenPropAdviceExists = false;
-            for ( IPropertyAdvice entry : advices )
-            {
-                if ( entry instanceof MavenPropertiesAdvice )
-                {
+            for (IPropertyAdvice entry : advices) {
+                if (entry instanceof MavenPropertiesAdvice) {
                     mavenPropAdviceExists = true;
-                    entry.getArtifactProperties( null, simpleArtifactDescriptor );
+                    entry.getArtifactProperties(null, simpleArtifactDescriptor);
                 }
             }
 
-            if ( !mavenPropAdviceExists )
-            {
-                throw new ProvisionException( "MavenPropertiesAdvice does not exist for artifact: "
-                    + simpleArtifactDescriptor );
+            if (!mavenPropAdviceExists) {
+                throw new ProvisionException("MavenPropertiesAdvice does not exist for artifact: "
+                        + simpleArtifactDescriptor);
             }
 
-            String mavenArtifactClassifier =
-                getRootFileArtifactClassifier( simpleArtifactDescriptor.getArtifactKey().getId() );
-            simpleArtifactDescriptor.setProperty( RepositoryLayoutHelper.PROP_CLASSIFIER, mavenArtifactClassifier );
-            simpleArtifactDescriptor.setProperty( RepositoryLayoutHelper.PROP_EXTENSION,
-                                                  RootfileArtifact.ROOTFILE_EXTENSION );
+            String mavenArtifactClassifier = getRootFileArtifactClassifier(simpleArtifactDescriptor.getArtifactKey()
+                    .getId());
+            simpleArtifactDescriptor.setProperty(RepositoryLayoutHelper.PROP_CLASSIFIER, mavenArtifactClassifier);
+            simpleArtifactDescriptor.setProperty(RepositoryLayoutHelper.PROP_EXTENSION,
+                    RootfileArtifact.ROOTFILE_EXTENSION);
 
-            target = new BufferedOutputStream( new FileOutputStream( outputFile ) );
+            target = new BufferedOutputStream(new FileOutputStream(outputFile));
 
-            RootfileArtifact rootfileArtifact = new RootfileArtifact( outputFile, mavenArtifactClassifier );
-            this.publishedArtifacts.put( rootfileArtifact.getClassidier(), rootfileArtifact );
+            RootfileArtifact rootfileArtifact = new RootfileArtifact(outputFile, mavenArtifactClassifier);
+            this.publishedArtifacts.put(rootfileArtifact.getClassidier(), rootfileArtifact);
 
-            descriptors.add( simpleArtifactDescriptor );
-        }
-        catch ( FileNotFoundException e )
-        {
-            throw new ProvisionException( e.getMessage(), e );
+            descriptors.add(simpleArtifactDescriptor);
+        } catch (FileNotFoundException e) {
+            throw new ProvisionException(e.getMessage(), e);
         }
 
         return target;
     }
 
-    String getRootFileArtifactClassifier( String artifactId )
-    {
+    String getRootFileArtifactClassifier(String artifactId) {
         List<IPublisherAdvice> adviceList = this.publisherInfo.getAdvice();
 
-        for ( IPublisherAdvice publisherAdvice : adviceList )
-        {
-            if ( publisherAdvice instanceof FeatureRootAdvice )
-            {
-                String[] configurations = ( (FeatureRootAdvice) publisherAdvice ).getConfigurations();
+        for (IPublisherAdvice publisherAdvice : adviceList) {
+            if (publisherAdvice instanceof FeatureRootAdvice) {
+                String[] configurations = ((FeatureRootAdvice) publisherAdvice).getConfigurations();
 
-                for ( String config : configurations )
-                {
-                    if ( !"".equals( config ) && artifactId.endsWith( config ) )
-                    {
+                for (String config : configurations) {
+                    if (!"".equals(config) && artifactId.endsWith(config)) {
                         return RootfileArtifact.ROOTFILE_CLASSIFIER + "." + config;
                     }
                 }
@@ -201,8 +169,7 @@ public class FeatureRootfileArtifactRepository
         return RootfileArtifact.ROOTFILE_CLASSIFIER;
     }
 
-    public Map<String, IArtifactFacade> getPublishedArtifacts()
-    {
+    public Map<String, IArtifactFacade> getPublishedArtifacts() {
         return publishedArtifacts;
     }
 }

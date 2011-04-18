@@ -15,26 +15,22 @@ import java.util.List;
 
 import de.pdark.decentxml.Element;
 
-public class DependencyManagement
-{
+public class DependencyManagement {
     final Element dependencyManagement;
 
-    DependencyManagement( Element dependencyManagement )
-    {
+    DependencyManagement(Element dependencyManagement) {
         this.dependencyManagement = dependencyManagement;
     }
 
-    public List<GAV> getDependencies()
-    {
+    public List<GAV> getDependencies() {
 
         List<GAV> result = new ArrayList<GAV>();
 
-        Element dependencies = dependencyManagement.getChild( "dependencies" );
+        Element dependencies = dependencyManagement.getChild("dependencies");
 
-        if ( dependencies != null )
-        {
-            for ( Element dependency : dependencies.getChildren( "dependency" ) )
-                result.add( new GAV( dependency ) );
+        if (dependencies != null) {
+            for (Element dependency : dependencies.getChildren("dependency"))
+                result.add(new GAV(dependency));
         }
 
         return result;

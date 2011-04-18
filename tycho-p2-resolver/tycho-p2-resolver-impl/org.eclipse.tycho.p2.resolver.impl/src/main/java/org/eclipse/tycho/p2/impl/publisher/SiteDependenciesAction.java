@@ -22,41 +22,31 @@ import org.eclipse.equinox.p2.core.ProvisionException;
 import org.eclipse.equinox.p2.publisher.IPublisherInfo;
 import org.eclipse.equinox.p2.publisher.IPublisherResult;
 
-@SuppressWarnings( "restriction" )
-public class SiteDependenciesAction
-    extends AbstractSiteDependenciesAction
-{
+@SuppressWarnings("restriction")
+public class SiteDependenciesAction extends AbstractSiteDependenciesAction {
     private final File location;
 
     private UpdateSite updateSite;
 
-    public SiteDependenciesAction( File location, String id, String version )
-    {
-        super( id, version );
+    public SiteDependenciesAction(File location, String id, String version) {
+        super(id, version);
         this.location = location;
     }
-    
+
     @Override
-    SiteModel getSiteModel()
-    {
+    SiteModel getSiteModel() {
         return updateSite.getSite();
     }
-    
+
     @Override
-    public IStatus perform( IPublisherInfo publisherInfo, IPublisherResult results, IProgressMonitor monitor )
-    {
-        try
-        {
-            updateSite = UpdateSite.load( location.toURI(), monitor );
-        }
-        catch ( ProvisionException e )
-        {
-            return new Status( IStatus.ERROR, Activator.ID, "Error generating site xml action.", e );
+    public IStatus perform(IPublisherInfo publisherInfo, IPublisherResult results, IProgressMonitor monitor) {
+        try {
+            updateSite = UpdateSite.load(location.toURI(), monitor);
+        } catch (ProvisionException e) {
+            return new Status(IStatus.ERROR, Activator.ID, "Error generating site xml action.", e);
         }
 
-        return super.perform( publisherInfo, results, monitor );
+        return super.perform(publisherInfo, results, monitor);
     }
-
-
 
 }

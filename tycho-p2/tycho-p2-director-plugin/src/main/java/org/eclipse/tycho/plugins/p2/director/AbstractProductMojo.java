@@ -24,9 +24,7 @@ import org.eclipse.tycho.core.TargetPlatformConfiguration;
 import org.eclipse.tycho.core.TychoProject;
 import org.eclipse.tycho.core.utils.TychoProjectUtils;
 
-abstract class AbstractProductMojo
-    extends AbstractMojo
-{
+abstract class AbstractProductMojo extends AbstractMojo {
 
     /** @parameter expression="${project}" */
     private MavenProject project;
@@ -39,64 +37,50 @@ abstract class AbstractProductMojo
      */
     private List<Product> products;
 
-    MavenProject getProject()
-    {
+    MavenProject getProject() {
         return project;
     }
 
-    MavenSession getSession()
-    {
+    MavenSession getSession() {
         return session;
     }
 
-    File getBuildDirectory()
-    {
-        return new File( getProject().getBuild().getDirectory() );
+    File getBuildDirectory() {
+        return new File(getProject().getBuild().getDirectory());
     }
 
-    File getProductsBuildDirectory()
-    {
-        return new File( getBuildDirectory(), "products" );
+    File getProductsBuildDirectory() {
+        return new File(getBuildDirectory(), "products");
     }
 
-    File getProductMaterializeDirectory( Product product, TargetEnvironment env )
-    {
-        return new File( getProductsBuildDirectory(), product.getId() + "/" + getOsWsArch( env, '/' ) );
+    File getProductMaterializeDirectory(Product product, TargetEnvironment env) {
+        return new File(getProductsBuildDirectory(), product.getId() + "/" + getOsWsArch(env, '/'));
     }
 
-    List<TargetEnvironment> getEnvironments()
-    {
-        TargetPlatformConfiguration configuration = TychoProjectUtils.getTargetPlatformConfiguration( project );
+    List<TargetEnvironment> getEnvironments() {
+        TargetPlatformConfiguration configuration = TychoProjectUtils.getTargetPlatformConfiguration(project);
         return configuration.getEnvironments();
     }
 
-    TargetPlatform getTargetPlatform()
-    {
-        return getTychoProjectFacet( project.getPackaging() ).getTargetPlatform( project );
+    TargetPlatform getTargetPlatform() {
+        return getTychoProjectFacet(project.getPackaging()).getTargetPlatform(project);
     }
 
-    private TychoProject getTychoProjectFacet( String packaging )
-    {
+    private TychoProject getTychoProjectFacet(String packaging) {
         TychoProject facet;
-        try
-        {
-            facet = (TychoProject) session.lookup( TychoProject.class.getName(), packaging );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new IllegalStateException( "Could not lookup required component", e );
+        try {
+            facet = (TychoProject) session.lookup(TychoProject.class.getName(), packaging);
+        } catch (ComponentLookupException e) {
+            throw new IllegalStateException("Could not lookup required component", e);
         }
         return facet;
     }
 
-    ProductConfig getProductConfig()
-        throws MojoFailureException
-    {
-        return new ProductConfig( products, getProductsBuildDirectory() );
+    ProductConfig getProductConfig() throws MojoFailureException {
+        return new ProductConfig(products, getProductsBuildDirectory());
     }
 
-    static String getOsWsArch( TargetEnvironment env, char separator )
-    {
+    static String getOsWsArch(TargetEnvironment env, char separator) {
         return env.getOs() + separator + env.getWs() + separator + env.getArch();
     }
 }

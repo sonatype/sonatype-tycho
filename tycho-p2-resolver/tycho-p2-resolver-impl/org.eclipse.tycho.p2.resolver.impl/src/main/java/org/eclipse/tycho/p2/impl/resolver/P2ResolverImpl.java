@@ -81,16 +81,14 @@ import org.eclipse.tycho.p2.resolver.P2RepositoryCache;
 import org.eclipse.tycho.p2.resolver.P2ResolutionResult;
 import org.eclipse.tycho.p2.resolver.P2Resolver;
 
-@SuppressWarnings( "restriction" )
-public class P2ResolverImpl
-    implements P2Resolver
-{
+@SuppressWarnings("restriction")
+public class P2ResolverImpl implements P2Resolver {
     // BundlesAction.CAPABILITY_NS_OSGI_BUNDLE
     private static final String CAPABILITY_NS_OSGI_BUNDLE = "osgi.bundle";
 
     private static final IArtifactRequest[] ARTIFACT_REQUEST_ARRAY = new IArtifactRequest[0];
 
-    private final P2GeneratorImpl generator = new P2GeneratorImpl( true );
+    private final P2GeneratorImpl generator = new P2GeneratorImpl(true);
 
     private P2RepositoryCache repositoryCache;
 
@@ -127,14 +125,11 @@ public class P2ResolverImpl
 
     private IProgressMonitor monitor = new NullProgressMonitor();
 
-    private Map<ClassifiedLocation, IArtifactFacade> mavenArtifacts =
-        new HashMap<ClassifiedLocation, IArtifactFacade>();
+    private Map<ClassifiedLocation, IArtifactFacade> mavenArtifacts = new HashMap<ClassifiedLocation, IArtifactFacade>();
 
-    private Map<ClassifiedLocation, Set<IInstallableUnit>> mavenLocations =
-        new HashMap<ClassifiedLocation, Set<IInstallableUnit>>();
+    private Map<ClassifiedLocation, Set<IInstallableUnit>> mavenLocations = new HashMap<ClassifiedLocation, Set<IInstallableUnit>>();
 
-    private Map<IInstallableUnit, IArtifactFacade> mavenInstallableUnits =
-        new HashMap<IInstallableUnit, IArtifactFacade>();
+    private Map<IInstallableUnit, IArtifactFacade> mavenInstallableUnits = new HashMap<IInstallableUnit, IArtifactFacade>();
 
     private Set<String> reactorInstallableUnitIds = new HashSet<String>();
 
@@ -153,387 +148,309 @@ public class P2ResolverImpl
 
     private File localRepositoryLocation;
 
-    public P2ResolverImpl()
-    {
+    public P2ResolverImpl() {
     }
 
-    public void addReactorArtifact( IReactorArtifactFacade artifact )
-    {
-        Set<IInstallableUnit> units = toSet( artifact.getDependencyMetadata(), IInstallableUnit.class );
+    public void addReactorArtifact(IReactorArtifactFacade artifact) {
+        Set<IInstallableUnit> units = toSet(artifact.getDependencyMetadata(), IInstallableUnit.class);
 
-        addMavenArtifact( artifact, units );
+        addMavenArtifact(artifact, units);
 
-        for ( IInstallableUnit unit : units )
-        {
-            reactorInstallableUnitIds.add( unit.getId() );
+        for (IInstallableUnit unit : units) {
+            reactorInstallableUnitIds.add(unit.getId());
         }
     }
 
-    private static <T> Set<T> toSet( Collection<Object> collection, Class<T> targetType )
-    {
-        if ( collection == null || collection.isEmpty() )
-        {
+    private static <T> Set<T> toSet(Collection<Object> collection, Class<T> targetType) {
+        if (collection == null || collection.isEmpty()) {
             return Collections.emptySet();
         }
 
         LinkedHashSet<T> set = new LinkedHashSet<T>();
 
-        for ( Object o : collection )
-        {
-            set.add( targetType.cast( o ) );
+        for (Object o : collection) {
+            set.add(targetType.cast(o));
         }
 
         return set;
     }
 
-    public void addMavenArtifact( IArtifactFacade artifact )
-    {
+    public void addMavenArtifact(IArtifactFacade artifact) {
         LinkedHashSet<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
 
-        generator.generateMetadata( artifact, environments, units, null );
+        generator.generateMetadata(artifact, environments, units, null);
 
-        addMavenArtifact( artifact, units );
+        addMavenArtifact(artifact, units);
     }
 
-    void addMavenArtifact( IArtifactFacade artifact, Set<IInstallableUnit> units )
-    {
-        ClassifiedLocation key = new ClassifiedLocation( artifact );
-        mavenArtifacts.put( key, artifact );
-        mavenLocations.put( key, units );
+    void addMavenArtifact(IArtifactFacade artifact, Set<IInstallableUnit> units) {
+        ClassifiedLocation key = new ClassifiedLocation(artifact);
+        mavenArtifacts.put(key, artifact);
+        mavenLocations.put(key, units);
 
-        for ( IInstallableUnit unit : units )
-        {
-            mavenInstallableUnits.put( unit, artifact );
+        for (IInstallableUnit unit : units) {
+            mavenInstallableUnits.put(unit, artifact);
         }
     }
 
-    public void addP2Repository( URI location )
-    {
+    public void addP2Repository(URI location) {
         // check metadata cache, first
-        IMetadataRepository metadataRepository = (IMetadataRepository) repositoryCache.getMetadataRepository( location );
-        IArtifactRepository artifactRepository = (IArtifactRepository) repositoryCache.getArtifactRepository( location );
-        if ( metadataRepository != null && ( offline || artifactRepository != null ) )
-        {
+        IMetadataRepository metadataRepository = (IMetadataRepository) repositoryCache.getMetadataRepository(location);
+        IArtifactRepository artifactRepository = (IArtifactRepository) repositoryCache.getArtifactRepository(location);
+        if (metadataRepository != null && (offline || artifactRepository != null)) {
             // cache hit
-            metadataRepositories.add( metadataRepository );
-            if ( artifactRepository != null )
-            {
-                artifactRepositories.add( artifactRepository );
+            metadataRepositories.add(metadataRepository);
+            if (artifactRepository != null) {
+                artifactRepositories.add(artifactRepository);
             }
-            logger.info( "Adding repository (cached) " + location.toASCIIString() );
+            logger.info("Adding repository (cached) " + location.toASCIIString());
             return;
         }
 
-        if ( agent == null )
-        {
-            if ( localRepositoryLocation == null )
-            {
-                throw new IllegalStateException( "Maven local repository location is null" );
+        if (agent == null) {
+            if (localRepositoryLocation == null) {
+                throw new IllegalStateException("Maven local repository location is null");
             }
 
-            try
-            {
+            try {
                 agent = Activator.newProvisioningAgent();
 
                 TychoP2RepositoryCacheManager cacheMgr = new TychoP2RepositoryCacheManager();
-                cacheMgr.setOffline( offline );
-                cacheMgr.setLocalRepositoryLocation( localRepositoryLocation );
+                cacheMgr.setOffline(offline);
+                cacheMgr.setLocalRepositoryLocation(localRepositoryLocation);
 
-                agent.registerService( CacheManager.SERVICE_NAME, cacheMgr );
-            }
-            catch ( ProvisionException e )
-            {
-                throw new RuntimeException( e );
+                agent.registerService(CacheManager.SERVICE_NAME, cacheMgr);
+            } catch (ProvisionException e) {
+                throw new RuntimeException(e);
             }
         }
 
-        try
-        {
-            IMetadataRepositoryManager metadataRepositoryManager =
-                (IMetadataRepositoryManager) agent.getService( IMetadataRepositoryManager.SERVICE_NAME );
-            if ( metadataRepositoryManager == null )
-            {
-                throw new IllegalStateException( "No metadata repository manager found" ); //$NON-NLS-1$
+        try {
+            IMetadataRepositoryManager metadataRepositoryManager = (IMetadataRepositoryManager) agent
+                    .getService(IMetadataRepositoryManager.SERVICE_NAME);
+            if (metadataRepositoryManager == null) {
+                throw new IllegalStateException("No metadata repository manager found"); //$NON-NLS-1$
             }
 
-            metadataRepository = metadataRepositoryManager.loadRepository( location, monitor );
-            metadataRepositories.add( metadataRepository );
+            metadataRepository = metadataRepositoryManager.loadRepository(location, monitor);
+            metadataRepositories.add(metadataRepository);
 
-            if ( !offline || URIUtil.isFileURI( location ) )
-            {
-                IArtifactRepositoryManager artifactRepositoryManager =
-                    (IArtifactRepositoryManager) agent.getService( IArtifactRepositoryManager.SERVICE_NAME );
-                if ( artifactRepositoryManager == null )
-                {
-                    throw new IllegalStateException( "No artifact repository manager found" ); //$NON-NLS-1$
+            if (!offline || URIUtil.isFileURI(location)) {
+                IArtifactRepositoryManager artifactRepositoryManager = (IArtifactRepositoryManager) agent
+                        .getService(IArtifactRepositoryManager.SERVICE_NAME);
+                if (artifactRepositoryManager == null) {
+                    throw new IllegalStateException("No artifact repository manager found"); //$NON-NLS-1$
                 }
 
-                artifactRepository = artifactRepositoryManager.loadRepository( location, monitor );
-                artifactRepositories.add( artifactRepository );
+                artifactRepository = artifactRepositoryManager.loadRepository(location, monitor);
+                artifactRepositories.add(artifactRepository);
 
-                forceSingleThreadedDownload( artifactRepositoryManager, artifactRepository );
+                forceSingleThreadedDownload(artifactRepositoryManager, artifactRepository);
             }
 
-            repositoryCache.putRepository( location, metadataRepository, artifactRepository );
+            repositoryCache.putRepository(location, metadataRepository, artifactRepository);
 
             // processPartialIUs( metadataRepository, artifactRepository );
-        }
-        catch ( ProvisionException e )
-        {
-            throw new RuntimeException( e );
+        } catch (ProvisionException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    protected void forceSingleThreadedDownload( IArtifactRepositoryManager artifactRepositoryManager,
-                                                IArtifactRepository artifactRepository )
-    {
-        try
-        {
-            if ( artifactRepository instanceof SimpleArtifactRepository )
-            {
-                forceSingleThreadedDownload( (SimpleArtifactRepository) artifactRepository );
+    protected void forceSingleThreadedDownload(IArtifactRepositoryManager artifactRepositoryManager,
+            IArtifactRepository artifactRepository) {
+        try {
+            if (artifactRepository instanceof SimpleArtifactRepository) {
+                forceSingleThreadedDownload((SimpleArtifactRepository) artifactRepository);
+            } else if (artifactRepository instanceof CompositeArtifactRepository) {
+                forceSingleThreadedDownload(artifactRepositoryManager, (CompositeArtifactRepository) artifactRepository);
             }
-            else if ( artifactRepository instanceof CompositeArtifactRepository )
-            {
-                forceSingleThreadedDownload( artifactRepositoryManager,
-                                             (CompositeArtifactRepository) artifactRepository );
-            }
-        }
-        catch ( Exception e )
-        {
+        } catch (Exception e) {
             // we've tried
         }
     }
 
-    protected void forceSingleThreadedDownload( IArtifactRepositoryManager artifactRepositoryManager,
-                                                CompositeArtifactRepository artifactRepository )
-        throws ProvisionException
-    {
+    protected void forceSingleThreadedDownload(IArtifactRepositoryManager artifactRepositoryManager,
+            CompositeArtifactRepository artifactRepository) throws ProvisionException {
         List<URI> children = artifactRepository.getChildren();
-        for ( URI child : children )
-        {
-            forceSingleThreadedDownload( artifactRepositoryManager,
-                                         artifactRepositoryManager.loadRepository( child, monitor ) );
+        for (URI child : children) {
+            forceSingleThreadedDownload(artifactRepositoryManager,
+                    artifactRepositoryManager.loadRepository(child, monitor));
         }
     }
 
-    protected void forceSingleThreadedDownload( SimpleArtifactRepository artifactRepository )
-        throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException
-    {
-        Field field = AbstractRepository.class.getDeclaredField( "properties" );
-        field.setAccessible( true );
-        OrderedProperties p = (OrderedProperties) field.get( artifactRepository );
-        p.put( org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository.PROP_MAX_THREADS,
-               "1" );
+    protected void forceSingleThreadedDownload(SimpleArtifactRepository artifactRepository) throws SecurityException,
+            NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        Field field = AbstractRepository.class.getDeclaredField("properties");
+        field.setAccessible(true);
+        OrderedProperties p = (OrderedProperties) field.get(artifactRepository);
+        p.put(org.eclipse.equinox.internal.p2.artifact.repository.simple.SimpleArtifactRepository.PROP_MAX_THREADS, "1");
     }
 
-    public List<P2ResolutionResult> resolveProject( File projectLocation )
-    {
+    public List<P2ResolutionResult> resolveProject(File projectLocation) {
         ArrayList<P2ResolutionResult> results = new ArrayList<P2ResolutionResult>();
 
-        for ( Map<String, String> properties : environments )
-        {
-            results.add( resolveProject( projectLocation, new ProjectorResolutionStrategy( properties, logger ) ) );
+        for (Map<String, String> properties : environments) {
+            results.add(resolveProject(projectLocation, new ProjectorResolutionStrategy(properties, logger)));
         }
 
         return results;
     }
 
-    public P2ResolutionResult collectProjectDependencies( File projectLocation )
-    {
-        return resolveProject( projectLocation, new DependencyCollector( logger ) );
+    public P2ResolutionResult collectProjectDependencies(File projectLocation) {
+        return resolveProject(projectLocation, new DependencyCollector(logger));
     }
 
-    public P2ResolutionResult resolveMetadata( Map<String, String> properties )
-    {
-        ProjectorResolutionStrategy strategy = new ProjectorResolutionStrategy( properties, logger );
-        strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
-        strategy.setRootInstallableUnits( new HashSet<IInstallableUnit>() );
-        strategy.setAdditionalRequirements( additionalRequirements );
+    public P2ResolutionResult resolveMetadata(Map<String, String> properties) {
+        ProjectorResolutionStrategy strategy = new ProjectorResolutionStrategy(properties, logger);
+        strategy.setAvailableInstallableUnits(gatherAvailableInstallableUnits(monitor));
+        strategy.setRootInstallableUnits(new HashSet<IInstallableUnit>());
+        strategy.setAdditionalRequirements(additionalRequirements);
 
         P2ResolutionResult result = new P2ResolutionResult();
-        for ( IInstallableUnit iu : strategy.resolve( monitor ) )
-        {
-            result.addArtifact( TYPE_INSTALLABLE_UNIT, iu.getId(), iu.getVersion().toString(), null, null, iu );
+        for (IInstallableUnit iu : strategy.resolve(monitor)) {
+            result.addArtifact(TYPE_INSTALLABLE_UNIT, iu.getId(), iu.getVersion().toString(), null, null, iu);
         }
         return result;
     }
 
-    protected P2ResolutionResult resolveProject( File projectLocation, ResolutionStrategy strategy )
-    {
+    protected P2ResolutionResult resolveProject(File projectLocation, ResolutionStrategy strategy) {
         assertNoDuplicateReactorUIs();
 
-        strategy.setAvailableInstallableUnits( gatherAvailableInstallableUnits( monitor ) );
-        LinkedHashSet<IInstallableUnit> projectIUs = getProjectIUs( projectLocation );
-        strategy.setRootInstallableUnits( projectIUs );
-        strategy.setAdditionalRequirements( additionalRequirements );
+        strategy.setAvailableInstallableUnits(gatherAvailableInstallableUnits(monitor));
+        LinkedHashSet<IInstallableUnit> projectIUs = getProjectIUs(projectLocation);
+        strategy.setRootInstallableUnits(projectIUs);
+        strategy.setAdditionalRequirements(additionalRequirements);
 
-        Collection<IInstallableUnit> newState = strategy.resolve( monitor );
+        Collection<IInstallableUnit> newState = strategy.resolve(monitor);
 
         List<MavenMirrorRequest> requests = new ArrayList<MavenMirrorRequest>();
-        for ( IInstallableUnit iu : newState )
-        {
+        for (IInstallableUnit iu : newState) {
             // maven IUs either come from reactor or local maven repository, no need to download them from p2 repos
-            if ( getMavenArtifact( iu ) == null )
-            {
+            if (getMavenArtifact(iu) == null) {
                 Collection<IArtifactKey> artifactKeys = iu.getArtifacts();
-                for ( IArtifactKey key : artifactKeys )
-                {
-                    requests.add( new MavenMirrorRequest( key, localRepository ) );
+                for (IArtifactKey key : artifactKeys) {
+                    requests.add(new MavenMirrorRequest(key, localRepository));
                 }
             }
         }
 
-        for ( IArtifactRepository artifactRepository : artifactRepositories )
-        {
-            artifactRepository.getArtifacts( requests.toArray( ARTIFACT_REQUEST_ARRAY ), monitor );
+        for (IArtifactRepository artifactRepository : artifactRepositories) {
+            artifactRepository.getArtifacts(requests.toArray(ARTIFACT_REQUEST_ARRAY), monitor);
 
-            requests = filterCompletedRequests( requests );
+            requests = filterCompletedRequests(requests);
         }
 
         localRepository.save();
         localMetadataRepository.save();
 
         // check for locally installed artifacts, which are not available from any remote repo
-        for ( Iterator<MavenMirrorRequest> iter = requests.iterator(); iter.hasNext(); )
-        {
+        for (Iterator<MavenMirrorRequest> iter = requests.iterator(); iter.hasNext();) {
             MavenMirrorRequest request = iter.next();
-            if ( localRepository.contains( request.getArtifactKey() ) )
-            {
+            if (localRepository.contains(request.getArtifactKey())) {
                 iter.remove();
             }
         }
 
-        if ( !requests.isEmpty() )
-        {
-            StringBuilder msg = new StringBuilder( "Could not download artifacts from any repository\n" );
-            for ( MavenMirrorRequest request : requests )
-            {
-                msg.append( "   " ).append( request.getArtifactKey().toExternalForm() ).append( '\n' );
+        if (!requests.isEmpty()) {
+            StringBuilder msg = new StringBuilder("Could not download artifacts from any repository\n");
+            for (MavenMirrorRequest request : requests) {
+                msg.append("   ").append(request.getArtifactKey().toExternalForm()).append('\n');
             }
 
-            throw new RuntimeException( msg.toString() );
+            throw new RuntimeException(msg.toString());
         }
 
-        return toResolutionResult( newState );
+        return toResolutionResult(newState);
     }
 
-    private boolean isReactorInstallableUnit( IInstallableUnit iu )
-    {
-        return mavenInstallableUnits.get( iu ) instanceof IReactorArtifactFacade;
+    private boolean isReactorInstallableUnit(IInstallableUnit iu) {
+        return mavenInstallableUnits.get(iu) instanceof IReactorArtifactFacade;
     }
 
-    private void assertNoDuplicateReactorUIs()
-        throws DuplicateReactorIUsException
-    {
+    private void assertNoDuplicateReactorUIs() throws DuplicateReactorIUsException {
         Map<IInstallableUnit, Set<File>> reactorUIs = new HashMap<IInstallableUnit, Set<File>>();
         Map<IInstallableUnit, Set<File>> duplicateReactorUIs = new HashMap<IInstallableUnit, Set<File>>();
 
-        for ( Map.Entry<ClassifiedLocation, Set<IInstallableUnit>> entry : mavenLocations.entrySet() )
-        {
-            if ( mavenArtifacts.get( entry.getKey() ) instanceof IReactorArtifactFacade )
-            {
-                for ( IInstallableUnit iu : entry.getValue() )
-                {
-                    Set<File> locations = reactorUIs.get( iu );
-                    if ( locations == null )
-                    {
+        for (Map.Entry<ClassifiedLocation, Set<IInstallableUnit>> entry : mavenLocations.entrySet()) {
+            if (mavenArtifacts.get(entry.getKey()) instanceof IReactorArtifactFacade) {
+                for (IInstallableUnit iu : entry.getValue()) {
+                    Set<File> locations = reactorUIs.get(iu);
+                    if (locations == null) {
                         locations = new LinkedHashSet<File>();
-                        reactorUIs.put( iu, locations );
+                        reactorUIs.put(iu, locations);
                     }
-                    locations.add( entry.getKey().getLocation() );
-                    if ( locations.size() > 1 )
-                    {
-                        duplicateReactorUIs.put( iu, locations );
+                    locations.add(entry.getKey().getLocation());
+                    if (locations.size() > 1) {
+                        duplicateReactorUIs.put(iu, locations);
                     }
                 }
             }
         }
 
-        if ( !duplicateReactorUIs.isEmpty() )
-        {
-            throw new DuplicateReactorIUsException( duplicateReactorUIs );
+        if (!duplicateReactorUIs.isEmpty()) {
+            throw new DuplicateReactorIUsException(duplicateReactorUIs);
         }
     }
 
-    private P2ResolutionResult toResolutionResult( Collection<IInstallableUnit> newState )
-    {
+    private P2ResolutionResult toResolutionResult(Collection<IInstallableUnit> newState) {
         P2ResolutionResult result = new P2ResolutionResult();
-        for ( IInstallableUnit iu : newState )
-        {
-            IArtifactFacade mavenArtifact = getMavenArtifact( iu );
-            if ( mavenArtifact != null )
-            {
-                addMavenArtifact( result, mavenArtifact, iu );
-            }
-            else
-            {
-                for ( IArtifactKey key : iu.getArtifacts() )
-                {
-                    addArtifactFile( result, iu, key );
+        for (IInstallableUnit iu : newState) {
+            IArtifactFacade mavenArtifact = getMavenArtifact(iu);
+            if (mavenArtifact != null) {
+                addMavenArtifact(result, mavenArtifact, iu);
+            } else {
+                for (IArtifactKey key : iu.getArtifacts()) {
+                    addArtifactFile(result, iu, key);
                 }
             }
         }
 
-        collectNonReactorIUs(result, newState );
+        collectNonReactorIUs(result, newState);
         return result;
     }
 
-    private void collectNonReactorIUs( P2ResolutionResult result, Collection<IInstallableUnit> newState )
-    {
-        for ( IInstallableUnit iu : newState )
-        {
-            if ( !isReactorArtifact( iu ) )
-            {
-                result.addNonReactorUnit( iu );
+    private void collectNonReactorIUs(P2ResolutionResult result, Collection<IInstallableUnit> newState) {
+        for (IInstallableUnit iu : newState) {
+            if (!isReactorArtifact(iu)) {
+                result.addNonReactorUnit(iu);
             }
         }
     }
 
-    private boolean isReactorArtifact( IInstallableUnit iu )
-    {
-        return getMavenArtifact( iu ) instanceof IReactorArtifactFacade;
+    private boolean isReactorArtifact(IInstallableUnit iu) {
+        return getMavenArtifact(iu) instanceof IReactorArtifactFacade;
     }
 
-    private LinkedHashSet<IInstallableUnit> getProjectIUs( File location )
-    {
+    private LinkedHashSet<IInstallableUnit> getProjectIUs(File location) {
         LinkedHashSet<IInstallableUnit> ius = new LinkedHashSet<IInstallableUnit>();
 
-        for ( Map.Entry<ClassifiedLocation, Set<IInstallableUnit>> entry : mavenLocations.entrySet() )
-        {
-            if ( location.equals( entry.getKey().getLocation() ) )
-            {
-                ius.addAll( entry.getValue() );
+        for (Map.Entry<ClassifiedLocation, Set<IInstallableUnit>> entry : mavenLocations.entrySet()) {
+            if (location.equals(entry.getKey().getLocation())) {
+                ius.addAll(entry.getValue());
             }
         }
 
         return ius;
     }
 
-    private void addArtifactFile( P2ResolutionResult platform, IInstallableUnit iu, IArtifactKey key )
-    {
-        File file = getLocalArtifactFile( key );
-        if ( file == null )
-        {
+    private void addArtifactFile(P2ResolutionResult platform, IInstallableUnit iu, IArtifactKey key) {
+        File file = getLocalArtifactFile(key);
+        if (file == null) {
             return;
         }
 
-        IArtifactFacade reactorArtifact = getMavenArtifact( iu );
+        IArtifactFacade reactorArtifact = getMavenArtifact(iu);
 
         String id = iu.getId();
         String version = iu.getVersion().toString();
         String mavenClassidier = reactorArtifact != null ? reactorArtifact.getClassidier() : null;
 
-        if ( PublisherHelper.OSGI_BUNDLE_CLASSIFIER.equals( key.getClassifier() ) )
-        {
-            platform.addArtifact( P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, file, mavenClassidier, iu );
-        }
-        else if ( PublisherHelper.ECLIPSE_FEATURE_CLASSIFIER.equals( key.getClassifier() ) )
-        {
-            String featureId = getFeatureId( iu );
-            if ( featureId != null )
-            {
-                platform.addArtifact( P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, file, mavenClassidier, iu );
+        if (PublisherHelper.OSGI_BUNDLE_CLASSIFIER.equals(key.getClassifier())) {
+            platform.addArtifact(P2Resolver.TYPE_ECLIPSE_PLUGIN, id, version, file, mavenClassidier, iu);
+        } else if (PublisherHelper.ECLIPSE_FEATURE_CLASSIFIER.equals(key.getClassifier())) {
+            String featureId = getFeatureId(iu);
+            if (featureId != null) {
+                platform.addArtifact(P2Resolver.TYPE_ECLIPSE_FEATURE, featureId, version, file, mavenClassidier, iu);
             }
         }
 
@@ -541,105 +458,82 @@ public class P2ResolverImpl
         // throw new IllegalArgumentException();
     }
 
-    private IArtifactFacade getMavenArtifact( IInstallableUnit iu )
-    {
-        return mavenInstallableUnits.get( iu );
+    private IArtifactFacade getMavenArtifact(IInstallableUnit iu) {
+        return mavenInstallableUnits.get(iu);
     }
 
-    private void addMavenArtifact( P2ResolutionResult platform, IArtifactFacade mavenArtifact, IInstallableUnit iu )
-    {
+    private void addMavenArtifact(P2ResolutionResult platform, IArtifactFacade mavenArtifact, IInstallableUnit iu) {
         String type = mavenArtifact.getPackagingType();
         String id = iu.getId();
         String version = iu.getVersion().toString();
         File location = mavenArtifact.getLocation();
         String mavenClassidier = mavenArtifact.getClassidier();
 
-        if ( TYPE_ECLIPSE_FEATURE.equals( type ) )
-        {
-            id = getFeatureId( iu );
-            if ( id == null )
-            {
-                throw new IllegalStateException( "Feature id is null for maven artifact at "
-                    + mavenArtifact.getLocation() + " with classifier " + mavenArtifact.getClassidier() );
+        if (TYPE_ECLIPSE_FEATURE.equals(type)) {
+            id = getFeatureId(iu);
+            if (id == null) {
+                throw new IllegalStateException("Feature id is null for maven artifact at "
+                        + mavenArtifact.getLocation() + " with classifier " + mavenArtifact.getClassidier());
             }
-        }
-        else if ( "jar".equals( type ) )
-        {
+        } else if ("jar".equals(type)) {
             // this must be an OSGi bundle coming from a maven repository
             // TODO check if iu actually provides CAPABILITY_NS_OSGI_BUNDLE capability
             type = TYPE_ECLIPSE_PLUGIN;
         }
 
-        platform.addArtifact( type, id, version, location, mavenClassidier, iu );
+        platform.addArtifact(type, id, version, location, mavenClassidier, iu);
     }
 
-    private String getFeatureId( IInstallableUnit iu )
-    {
-        for ( IProvidedCapability provided : iu.getProvidedCapabilities() )
-        {
-            if ( PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE.equals( provided.getNamespace() ) )
-            {
+    private String getFeatureId(IInstallableUnit iu) {
+        for (IProvidedCapability provided : iu.getProvidedCapabilities()) {
+            if (PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE.equals(provided.getNamespace())) {
                 return provided.getName();
             }
         }
         return null;
     }
 
-    private File getLocalArtifactFile( IArtifactKey key )
-    {
-        for ( IArtifactDescriptor descriptor : localRepository.getArtifactDescriptors( key ) )
-        {
-            URI uri = localRepository.getLocation( descriptor );
-            if ( uri != null )
-            {
-                return new File( uri );
+    private File getLocalArtifactFile(IArtifactKey key) {
+        for (IArtifactDescriptor descriptor : localRepository.getArtifactDescriptors(key)) {
+            URI uri = localRepository.getLocation(descriptor);
+            if (uri != null) {
+                return new File(uri);
             }
         }
 
         return null;
     }
 
-    private List<MavenMirrorRequest> filterCompletedRequests( List<MavenMirrorRequest> requests )
-    {
+    private List<MavenMirrorRequest> filterCompletedRequests(List<MavenMirrorRequest> requests) {
         ArrayList<MavenMirrorRequest> filteredRequests = new ArrayList<MavenMirrorRequest>();
-        for ( MavenMirrorRequest request : requests )
-        {
-            if ( request.getResult() == null || !request.getResult().isOK() )
-            {
-                filteredRequests.add( request );
+        for (MavenMirrorRequest request : requests) {
+            if (request.getResult() == null || !request.getResult().isOK()) {
+                filteredRequests.add(request);
             }
         }
         return filteredRequests;
     }
 
-    public IQueryable<IInstallableUnit> gatherAvailableInstallableUnits( IProgressMonitor monitor )
-    {
+    public IQueryable<IInstallableUnit> gatherAvailableInstallableUnits(IProgressMonitor monitor) {
         Set<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
-        result.addAll( mavenInstallableUnits.keySet() );
+        result.addAll(mavenInstallableUnits.keySet());
 
-        SubMonitor sub = SubMonitor.convert( monitor, metadataRepositories.size() * 200 );
-        for ( IMetadataRepository repository : metadataRepositories )
-        {
-            IQueryResult<IInstallableUnit> matches = repository.query( QueryUtil.ALL_UNITS, sub.newChild( 100 ) );
-            for ( Iterator<IInstallableUnit> it = matches.iterator(); it.hasNext(); )
-            {
+        SubMonitor sub = SubMonitor.convert(monitor, metadataRepositories.size() * 200);
+        for (IMetadataRepository repository : metadataRepositories) {
+            IQueryResult<IInstallableUnit> matches = repository.query(QueryUtil.ALL_UNITS, sub.newChild(100));
+            for (Iterator<IInstallableUnit> it = matches.iterator(); it.hasNext();) {
                 IInstallableUnit iu = it.next();
 
-                if ( isPartialIU( iu ) )
-                {
-                    logger.debug( "PARTIAL IU: " + iu );
+                if (isPartialIU(iu)) {
+                    logger.debug("PARTIAL IU: " + iu);
                     continue;
                 }
 
-                if ( !isReactorInstallableUnit( iu ) )
-                {
-                    if ( !reactorInstallableUnitIds.contains( iu.getId() ) )
-                    {
-                        result.add( iu );
-                    }
-                    else
-                    {
+                if (!isReactorInstallableUnit(iu)) {
+                    if (!reactorInstallableUnitIds.contains(iu.getId())) {
+                        result.add(iu);
+                    } else {
                         // this produces too much noise in STDOUT
 //                        logger.debug( "External IU " + iu + " from repository " + repository.getLocation()
 //                            + " has the same id as reactor project. External IU is ignored." );
@@ -647,191 +541,157 @@ public class P2ResolverImpl
                 }
             }
         }
-        result.addAll( createJREIUs() );
+        result.addAll(createJREIUs());
         sub.done();
         // this is a real shame
-        return new QueryableArray( result.toArray( new IInstallableUnit[result.size()] ) );
+        return new QueryableArray(result.toArray(new IInstallableUnit[result.size()]));
     }
 
-    private static boolean isPartialIU( IInstallableUnit iu )
-    {
-        return Boolean.valueOf( iu.getProperty( IInstallableUnit.PROP_PARTIAL_IU ) ).booleanValue();
+    private static boolean isPartialIU(IInstallableUnit iu) {
+        return Boolean.valueOf(iu.getProperty(IInstallableUnit.PROP_PARTIAL_IU)).booleanValue();
     }
 
     /**
-     * these dummy IUs are needed to satisfy Import-Package requirements to packages provided by the JDK.
+     * these dummy IUs are needed to satisfy Import-Package requirements to packages provided by the
+     * JDK.
      */
-    private Collection<IInstallableUnit> createJREIUs()
-    {
+    private Collection<IInstallableUnit> createJREIUs() {
         PublisherResult results = new PublisherResult();
         // TODO use the appropriate profile name
-        new JREAction( (String) null ).perform( new PublisherInfo(), results, new NullProgressMonitor() );
-        return results.query( QueryUtil.ALL_UNITS, new NullProgressMonitor() ).toSet();
+        new JREAction((String) null).perform(new PublisherInfo(), results, new NullProgressMonitor());
+        return results.query(QueryUtil.ALL_UNITS, new NullProgressMonitor()).toSet();
     }
 
-    public void setLocalRepositoryLocation( File location )
-    {
+    public void setLocalRepositoryLocation(File location) {
         this.localRepositoryLocation = location;
         URI uri = location.toURI();
 
-        localRepository = (LocalArtifactRepository) repositoryCache.getArtifactRepository( uri );
-        localMetadataRepository = (LocalMetadataRepository) repositoryCache.getMetadataRepository( uri );
+        localRepository = (LocalArtifactRepository) repositoryCache.getArtifactRepository(uri);
+        localMetadataRepository = (LocalMetadataRepository) repositoryCache.getMetadataRepository(uri);
 
-        if ( localRepository == null || localMetadataRepository == null )
-        {
-            RepositoryReader contentLocator = new LocalRepositoryReader( location );
-            LocalTychoRepositoryIndex artifactsIndex =
-                new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH );
-            LocalTychoRepositoryIndex metadataIndex =
-                new LocalTychoRepositoryIndex( location, LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH );
+        if (localRepository == null || localMetadataRepository == null) {
+            RepositoryReader contentLocator = new LocalRepositoryReader(location);
+            LocalTychoRepositoryIndex artifactsIndex = new LocalTychoRepositoryIndex(location,
+                    LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH);
+            LocalTychoRepositoryIndex metadataIndex = new LocalTychoRepositoryIndex(location,
+                    LocalTychoRepositoryIndex.METADATA_INDEX_RELPATH);
 
-            localRepository = new LocalArtifactRepository( location, artifactsIndex, contentLocator );
-            localMetadataRepository = new LocalMetadataRepository( uri, metadataIndex, contentLocator );
+            localRepository = new LocalArtifactRepository(location, artifactsIndex, contentLocator);
+            localMetadataRepository = new LocalMetadataRepository(uri, metadataIndex, contentLocator);
 
-            repositoryCache.putRepository( uri, localMetadataRepository, localRepository );
+            repositoryCache.putRepository(uri, localMetadataRepository, localRepository);
         }
 
         // XXX remove old
-        metadataRepositories.add( localMetadataRepository );
+        metadataRepositories.add(localMetadataRepository);
     }
 
-    public void setEnvironments( List<Map<String, String>> environments )
-    {
+    public void setEnvironments(List<Map<String, String>> environments) {
         this.environments = environments;
     }
 
-    public void addDependency( String type, String id, String versionRange )
-    {
-        if ( P2Resolver.TYPE_INSTALLABLE_UNIT.equals( type ) )
-        {
-            additionalRequirements.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, id,
-                                                                           new VersionRange( versionRange ), null, false,
-                                                                           true ) );
-        }
-        else if ( P2Resolver.TYPE_ECLIPSE_PLUGIN.equals( type ) )
-        {
-            additionalRequirements.add( MetadataFactory.createRequirement( CAPABILITY_NS_OSGI_BUNDLE, id,
-                                                                           new VersionRange( versionRange ), null, false,
-                                                                           true ) );
+    public void addDependency(String type, String id, String versionRange) {
+        if (P2Resolver.TYPE_INSTALLABLE_UNIT.equals(type)) {
+            additionalRequirements.add(MetadataFactory.createRequirement(IInstallableUnit.NAMESPACE_IU_ID, id,
+                    new VersionRange(versionRange), null, false, true));
+        } else if (P2Resolver.TYPE_ECLIPSE_PLUGIN.equals(type)) {
+            additionalRequirements.add(MetadataFactory.createRequirement(CAPABILITY_NS_OSGI_BUNDLE, id,
+                    new VersionRange(versionRange), null, false, true));
         }
     }
 
-    public void addMavenRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator )
-    {
-        MavenMetadataRepository metadataRepository =
-            (MavenMetadataRepository) repositoryCache.getMetadataRepository( location );
-        MavenArtifactRepository artifactRepository =
-            (MavenArtifactRepository) repositoryCache.getArtifactRepository( location );
+    public void addMavenRepository(URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator) {
+        MavenMetadataRepository metadataRepository = (MavenMetadataRepository) repositoryCache
+                .getMetadataRepository(location);
+        MavenArtifactRepository artifactRepository = (MavenArtifactRepository) repositoryCache
+                .getArtifactRepository(location);
 
-        if ( metadataRepository == null || artifactRepository == null )
-        {
-            metadataRepository = new MavenMetadataRepository( location, projectIndex, contentLocator );
-            artifactRepository = new MavenArtifactRepository( location, projectIndex, contentLocator );
+        if (metadataRepository == null || artifactRepository == null) {
+            metadataRepository = new MavenMetadataRepository(location, projectIndex, contentLocator);
+            artifactRepository = new MavenArtifactRepository(location, projectIndex, contentLocator);
 
-            repositoryCache.putRepository( location, metadataRepository, artifactRepository );
+            repositoryCache.putRepository(location, metadataRepository, artifactRepository);
         }
 
-        metadataRepositories.add( metadataRepository );
-        artifactRepositories.add( artifactRepository );
+        metadataRepositories.add(metadataRepository);
+        artifactRepositories.add(artifactRepository);
     }
 
-    public void setLogger( P2Logger logger )
-    {
+    public void setLogger(P2Logger logger) {
         this.logger = logger;
-        this.monitor = new LoggingProgressMonitor( logger );
+        this.monitor = new LoggingProgressMonitor(logger);
     }
 
-    public void setRepositoryCache( P2RepositoryCache repositoryCache )
-    {
+    public void setRepositoryCache(P2RepositoryCache repositoryCache) {
         this.repositoryCache = repositoryCache;
     }
 
     // creating copy&paste from org.eclipse.equinox.internal.p2.repository.Credentials.forLocation(URI, boolean,
     // AuthenticationInfo)
-    public void setCredentials( URI location, String username, String password )
-    {
+    public void setCredentials(URI location, String username, String password) {
         ISecurePreferences securePreferences = SecurePreferencesFactory.getDefault();
 
         // if URI is not opaque, just getting the host may be enough
         String host = location.getHost();
-        if ( host == null )
-        {
+        if (host == null) {
             String scheme = location.getScheme();
-            if ( URIUtil.isFileURI( location ) || scheme == null )
-            {
+            if (URIUtil.isFileURI(location) || scheme == null) {
                 // If the URI references a file, a password could possibly be needed for the directory
                 // (it could be a protected zip file representing a compressed directory) - in this
                 // case the key is the path without the last segment.
                 // Using "Path" this way may result in an empty string - which later will result in
                 // an invalid key.
-                host = new Path( location.toString() ).removeLastSegments( 1 ).toString();
-            }
-            else
-            {
+                host = new Path(location.toString()).removeLastSegments(1).toString();
+            } else {
                 // it is an opaque URI - details are unknown - can only use entire string.
                 host = location.toString();
             }
         }
         String nodeKey;
-        try
-        {
-            nodeKey = URLEncoder.encode( host, "UTF-8" ); //$NON-NLS-1$
-        }
-        catch ( UnsupportedEncodingException e2 )
-        {
+        try {
+            nodeKey = URLEncoder.encode(host, "UTF-8"); //$NON-NLS-1$
+        } catch (UnsupportedEncodingException e2) {
             // fall back to default platform encoding
-            try
-            {
+            try {
                 // Uses getProperty "file.encoding" instead of using deprecated URLEncoder.encode(String location)
                 // which does the same, but throws NPE on missing property.
-                String enc = System.getProperty( "file.encoding" );//$NON-NLS-1$
-                if ( enc == null )
-                {
+                String enc = System.getProperty("file.encoding");//$NON-NLS-1$
+                if (enc == null) {
                     throw new UnsupportedEncodingException(
-                                                            "No UTF-8 encoding and missing system property: file.encoding" ); //$NON-NLS-1$
+                            "No UTF-8 encoding and missing system property: file.encoding"); //$NON-NLS-1$
                 }
-                nodeKey = URLEncoder.encode( host, enc );
-            }
-            catch ( UnsupportedEncodingException e )
-            {
-                throw new RuntimeException( e );
+                nodeKey = URLEncoder.encode(host, enc);
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
             }
         }
         String nodeName = IRepository.PREFERENCE_NODE + '/' + nodeKey;
 
-        ISecurePreferences prefNode = securePreferences.node( nodeName );
+        ISecurePreferences prefNode = securePreferences.node(nodeName);
 
-        try
-        {
-            if ( !username.equals( prefNode.get( IRepository.PROP_USERNAME, username ) )
-                || !password.equals( prefNode.get( IRepository.PROP_PASSWORD, password ) ) )
-            {
-                logger.info( "Redefining access credentials for repository host " + host );
+        try {
+            if (!username.equals(prefNode.get(IRepository.PROP_USERNAME, username))
+                    || !password.equals(prefNode.get(IRepository.PROP_PASSWORD, password))) {
+                logger.info("Redefining access credentials for repository host " + host);
             }
-            prefNode.put( IRepository.PROP_USERNAME, username, false );
-            prefNode.put( IRepository.PROP_PASSWORD, password, false );
-        }
-        catch ( StorageException e )
-        {
-            throw new RuntimeException( e );
+            prefNode.put(IRepository.PROP_USERNAME, username, false);
+            prefNode.put(IRepository.PROP_PASSWORD, password, false);
+        } catch (StorageException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void setOffline( boolean offline )
-    {
+    public void setOffline(boolean offline) {
         this.offline = offline;
     }
 
-    public void stop()
-    {
-        if ( agent != null )
-        {
+    public void stop() {
+        if (agent != null) {
             agent.stop();
         }
     }
 
-    public List<IRequirement> getAdditionalRequirements()
-    {
+    public List<IRequirement> getAdditionalRequirements() {
         return additionalRequirements;
     }
 }

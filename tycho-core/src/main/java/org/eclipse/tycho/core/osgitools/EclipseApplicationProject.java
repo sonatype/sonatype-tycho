@@ -23,43 +23,33 @@ import org.eclipse.tycho.core.TargetEnvironment;
 import org.eclipse.tycho.core.TychoProject;
 import org.eclipse.tycho.model.ProductConfiguration;
 
-@Component( role = TychoProject.class, hint = org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION )
-public class EclipseApplicationProject
-    extends AbstractArtifactBasedProject
-{
+@Component(role = TychoProject.class, hint = org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION)
+public class EclipseApplicationProject extends AbstractArtifactBasedProject {
     @Override
-    protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
-    {
-        final ProductConfiguration product = loadProduct( DefaultReactorProject.adapt( project ) );
-        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ),
-                                                     getEnvironments( project, environment ) )
-        {
-            public void walk( ArtifactDependencyVisitor visitor )
-            {
-                traverseProduct( product, visitor );
+    protected ArtifactDependencyWalker newDependencyWalker(MavenProject project, TargetEnvironment environment) {
+        final ProductConfiguration product = loadProduct(DefaultReactorProject.adapt(project));
+        return new AbstractArtifactDependencyWalker(getTargetPlatform(project, environment), getEnvironments(project,
+                environment)) {
+            public void walk(ArtifactDependencyVisitor visitor) {
+                traverseProduct(product, visitor);
             }
         };
     }
 
-    protected ProductConfiguration loadProduct( final ReactorProject project )
-    {
-        File file = new File( project.getBasedir(), project.getArtifactId() + ".product" );
-        try
-        {
-            return ProductConfiguration.read( file );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not read product configuration file " + file.getAbsolutePath(), e );
+    protected ProductConfiguration loadProduct(final ReactorProject project) {
+        File file = new File(project.getBasedir(), project.getArtifactId() + ".product");
+        try {
+            return ProductConfiguration.read(file);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read product configuration file " + file.getAbsolutePath(), e);
         }
     }
 
-    public ArtifactKey getArtifactKey( ReactorProject project )
-    {
-        ProductConfiguration product = loadProduct( project );
+    public ArtifactKey getArtifactKey(ReactorProject project) {
+        ProductConfiguration product = loadProduct(project);
         String id = product.getId() != null ? product.getId() : project.getArtifactId();
-        String version = product.getVersion() != null ? product.getVersion() : getOsgiVersion( project );
+        String version = product.getVersion() != null ? product.getVersion() : getOsgiVersion(project);
 
-        return new DefaultArtifactKey( org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION, id, version );
+        return new DefaultArtifactKey(org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_APPLICATION, id, version);
     }
 }

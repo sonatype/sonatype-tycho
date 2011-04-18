@@ -14,18 +14,14 @@ import org.apache.maven.it.Verifier;
 import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Test;
 
-public class TargetLocationTypesTest
-    extends AbstractTychoIntegrationTest
-{
+public class TargetLocationTypesTest extends AbstractTychoIntegrationTest {
     @Test
-    public void testMultiplatformReactorBuild()
-        throws Exception
-    {
-        Verifier verifier = getVerifier( "/TYCHO411targetLocationTypes", false );
-        verifier.executeGoal( "compile" );
+    public void testMultiplatformReactorBuild() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO411targetLocationTypes", false);
+        verifier.executeGoal("compile");
         verifier.verifyErrorFreeLog();
-        verifier.verifyTextInLog( "Target location type: Directory is not supported" );
-        verifier.verifyTextInLog( "Target location type: Profile is not supported" );
+        verifier.verifyTextInLog("Target location type: Directory is not supported");
+        verifier.verifyTextInLog("Target location type: Profile is not supported");
     }
 
 }

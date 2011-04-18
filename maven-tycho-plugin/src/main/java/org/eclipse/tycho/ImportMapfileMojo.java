@@ -44,114 +44,105 @@ import org.eclipse.tycho.mapfile.MapfileUtils;
  */
 public class ImportMapfileMojo extends AbstractMojo implements Contextualizable {
 
-	private PlexusContainer plexus;
+    private PlexusContainer plexus;
 
-	/**
-	 * @parameter expression="${mapfile}"
-	 * @required
-	 */
-	private File mapfile;
+    /**
+     * @parameter expression="${mapfile}"
+     * @required
+     */
+    private File mapfile;
 
-	/**
-	 * @parameter expression="${scmSystem}" default-value="cvs"
-	 * @required
-	 */
-	private String scmSystem;
+    /**
+     * @parameter expression="${scmSystem}" default-value="cvs"
+     * @required
+     */
+    private String scmSystem;
 
-	private File baseFolder;
+    private File baseFolder;
 
-	private ScmManager scmManager;
+    private ScmManager scmManager;
 
-	public void contextualize(Context ctx) throws ContextException {
-		plexus = (PlexusContainer) ctx.get(PlexusConstants.PLEXUS_KEY);
-	}
+    public void contextualize(Context ctx) throws ContextException {
+        plexus = (PlexusContainer) ctx.get(PlexusConstants.PLEXUS_KEY);
+    }
 
-	@SuppressWarnings("unchecked")
-	public void execute() throws MojoExecutionException, MojoFailureException {
-		if (mapfile == null) {
-			throw new MojoExecutionException("Mapfile not defined!");
-		}
-		if (!mapfile.exists()) {
-			throw new MojoExecutionException("Mapfile not found "
-					+ mapfile.getAbsolutePath());
-		}
+    @SuppressWarnings("unchecked")
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (mapfile == null) {
+            throw new MojoExecutionException("Mapfile not defined!");
+        }
+        if (!mapfile.exists()) {
+            throw new MojoExecutionException("Mapfile not found " + mapfile.getAbsolutePath());
+        }
 
-		try {
-			scmManager = (ScmManager) plexus.lookup(ScmManager.ROLE);
-		} catch (ComponentLookupException e) {
-			throw new MojoFailureException("Unable to access scm manager", e);
-		}
+        try {
+            scmManager = (ScmManager) plexus.lookup(ScmManager.ROLE);
+        } catch (ComponentLookupException e) {
+            throw new MojoFailureException("Unable to access scm manager", e);
+        }
 
-		baseFolder = new File(mapfile.getParentFile(), FilenameUtils
-				.getBaseName(mapfile.getName())
-				+ ".src");
+        baseFolder = new File(mapfile.getParentFile(), FilenameUtils.getBaseName(mapfile.getName()) + ".src");
 
-		List<String> lines;
-		try {
-			lines = FileUtils.readLines(mapfile);
-		} catch (IOException e) {
-			throw new MojoExecutionException("Error reading mapfile", e);
-		}
+        List<String> lines;
+        try {
+            lines = FileUtils.readLines(mapfile);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error reading mapfile", e);
+        }
 
-		for (String line : lines) {
-			MapEntry entry = MapfileUtils.parse(line);
-			if (entry == null) {
-				continue;
-			}
-			try {
-				checkout(entry);
-			} catch (ScmException e) {
-				throw new MojoExecutionException("Error fetching SCM ", e);
-			}
-		}
-	}
+        for (String line : lines) {
+            MapEntry entry = MapfileUtils.parse(line);
+            if (entry == null) {
+                continue;
+            }
+            try {
+                checkout(entry);
+            } catch (ScmException e) {
+                throw new MojoExecutionException("Error fetching SCM ", e);
+            }
+        }
+    }
 
-	private void checkout(MapEntry entry) throws ScmException,
-			MojoExecutionException {
-		String scmModule = entry.getScmPath();
-		if (scmModule == null) {
-			scmModule = entry.getName();
-		}
+    private void checkout(MapEntry entry) throws ScmException, MojoExecutionException {
+        String scmModule = entry.getScmPath();
+        if (scmModule == null) {
+            scmModule = entry.getName();
+        }
 
-		String childName;
-		if (scmModule.contains("/")) {
-			childName = scmModule.substring(scmModule.lastIndexOf('/') + 1);
-		} else {
-			childName = scmModule;
-		}
+        String childName;
+        if (scmModule.contains("/")) {
+            childName = scmModule.substring(scmModule.lastIndexOf('/') + 1);
+        } else {
+            childName = scmModule;
+        }
 
-		File workingDirectory = new File(baseFolder, childName);
+        File workingDirectory = new File(baseFolder, childName);
 
-		char separator;
-		if (entry.getScmUrl().indexOf('|') != -1) {
-			separator = '|';
-		} else {
-			separator = ':';
-		}
+        char separator;
+        if (entry.getScmUrl().indexOf('|') != -1) {
+            separator = '|';
+        } else {
+            separator = ':';
+        }
 
-		ScmRepository scmRepository = scmManager.makeScmRepository("scm:"
-				+ scmSystem + entry.getScmUrl() + separator + scmModule);
+        ScmRepository scmRepository = scmManager.makeScmRepository("scm:" + scmSystem + entry.getScmUrl() + separator
+                + scmModule);
 
-		ScmVersion version = new ScmTag(entry.getVersion());
+        ScmVersion version = new ScmTag(entry.getVersion());
 
-		ScmResult result;
-		if (workingDirectory.exists()) {
-			result = scmManager.update(scmRepository, new ScmFileSet(
-					workingDirectory), version);
-		} else if (workingDirectory.mkdirs()) {
-			result = scmManager.checkOut(scmRepository, new ScmFileSet(
-					workingDirectory), version);
-		} else {
-			throw new MojoExecutionException(
-					"Unable to create output folder for "
-							+ workingDirectory.getAbsolutePath());
-		}
+        ScmResult result;
+        if (workingDirectory.exists()) {
+            result = scmManager.update(scmRepository, new ScmFileSet(workingDirectory), version);
+        } else if (workingDirectory.mkdirs()) {
+            result = scmManager.checkOut(scmRepository, new ScmFileSet(workingDirectory), version);
+        } else {
+            throw new MojoExecutionException("Unable to create output folder for " + workingDirectory.getAbsolutePath());
+        }
 
-		if (!result.isSuccess()) {
-			throw new MojoExecutionException("Command failed."
-					+ StringUtils.defaultString(result.getProviderMessage()));
-		}
+        if (!result.isSuccess()) {
+            throw new MojoExecutionException("Command failed." + StringUtils.defaultString(result.getProviderMessage()));
+        }
 
-	}
+    }
 
 }

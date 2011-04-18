@@ -30,12 +30,11 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ModuleMetadataRepositoryTest
-{
+public class ModuleMetadataRepositoryTest {
 
-    private static final IVersionedId BUNDLE_UNIT = new VersionedId( "bundle", "1.2.3.201011101425" );
+    private static final IVersionedId BUNDLE_UNIT = new VersionedId("bundle", "1.2.3.201011101425");
 
-    private static final IVersionedId SOURCE_UNIT = new VersionedId( "bundle.source", "1.2.3.TAGNAME" );
+    private static final IVersionedId SOURCE_UNIT = new VersionedId("bundle.source", "1.2.3.TAGNAME");
 
     private static File moduleDir;
 
@@ -44,59 +43,49 @@ public class ModuleMetadataRepositoryTest
     private ModuleMetadataRepository subject;
 
     @BeforeClass
-    public static void init()
-        throws Exception
-    {
-        moduleDir = new File( "resources/repositories/module/target" ).getAbsoluteFile();
+    public static void init() throws Exception {
+        moduleDir = new File("resources/repositories/module/target").getAbsoluteFile();
     }
 
-    @SuppressWarnings( "restriction" )
+    @SuppressWarnings("restriction")
     @After
-    public void cleanUp()
-    {
-        if ( tempDir != null )
-            FileUtils.deleteAll( tempDir );
+    public void cleanUp() {
+        if (tempDir != null)
+            FileUtils.deleteAll(tempDir);
         tempDir = null;
     }
 
     @Test
-    public void testLoadRepository()
-        throws Exception
-    {
-        subject = new ModuleMetadataRepository( null, moduleDir );
+    public void testLoadRepository() throws Exception {
+        subject = new ModuleMetadataRepository(null, moduleDir);
 
-        assertQueryForUnit( subject, BUNDLE_UNIT );
-        assertQueryForUnit( subject, SOURCE_UNIT );
+        assertQueryForUnit(subject, BUNDLE_UNIT);
+        assertQueryForUnit(subject, SOURCE_UNIT);
     }
 
     @Test
-    public void testLoadRepositoryWithFactory()
-        throws Exception
-    {
+    public void testLoadRepositoryWithFactory() throws Exception {
         tempDir = createTempDir();
-        IProvisioningAgent agent = Activator.createProvisioningAgent( tempDir.toURI() );
-        IMetadataRepositoryManager repoManager =
-            (IMetadataRepositoryManager) agent.getService( IMetadataRepositoryManager.SERVICE_NAME );
+        IProvisioningAgent agent = Activator.createProvisioningAgent(tempDir.toURI());
+        IMetadataRepositoryManager repoManager = (IMetadataRepositoryManager) agent
+                .getService(IMetadataRepositoryManager.SERVICE_NAME);
 
-        IMetadataRepository subject = repoManager.loadRepository( moduleDir.toURI(), null );
+        IMetadataRepository subject = repoManager.loadRepository(moduleDir.toURI(), null);
 
-        assertQueryForUnit( subject, BUNDLE_UNIT );
-        assertQueryForUnit( subject, SOURCE_UNIT );
+        assertQueryForUnit(subject, BUNDLE_UNIT);
+        assertQueryForUnit(subject, SOURCE_UNIT);
     }
 
-    private static void assertQueryForUnit( IMetadataRepository subject, IVersionedId unitIdentifier )
-    {
-        IQueryResult<IInstallableUnit> result = subject.query( QueryUtil.createIUQuery( unitIdentifier.getId() ), null );
+    private static void assertQueryForUnit(IMetadataRepository subject, IVersionedId unitIdentifier) {
+        IQueryResult<IInstallableUnit> result = subject.query(QueryUtil.createIUQuery(unitIdentifier.getId()), null);
         Iterator<IInstallableUnit> iterator = result.iterator();
-        assertEquals( true, iterator.hasNext() );
+        assertEquals(true, iterator.hasNext());
         IInstallableUnit unit = iterator.next();
-        assertEquals( false, iterator.hasNext() );
-        assertEquals( unitIdentifier.getVersion(), unit.getVersion() );
+        assertEquals(false, iterator.hasNext());
+        assertEquals(unitIdentifier.getVersion(), unit.getVersion());
     }
 
-    private static File createTempDir()
-        throws IOException
-    {
-        return ModuleArtifactRepositoryTest.createTempDir( ModuleMetadataRepositoryTest.class );
+    private static File createTempDir() throws IOException {
+        return ModuleArtifactRepositoryTest.createTempDir(ModuleMetadataRepositoryTest.class);
     }
 }

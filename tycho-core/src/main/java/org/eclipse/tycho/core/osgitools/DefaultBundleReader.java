@@ -37,217 +37,176 @@ import org.osgi.framework.Constants;
 
 import copy.org.eclipse.core.runtime.internal.adaptor.PluginConverterImpl;
 
-@Component( role = BundleReader.class )
-public class DefaultBundleReader
-    extends AbstractLogEnabled
-    implements BundleReader
-{
+@Component(role = BundleReader.class)
+public class DefaultBundleReader extends AbstractLogEnabled implements BundleReader {
     public static final String CACHE_PATH = ".cache/tycho";
 
     private File cacheDir;
 
     private static final Map<File, Manifest> manifestCache = new HashMap<File, Manifest>();
 
-    @Requirement( hint = "zip" )
+    @Requirement(hint = "zip")
     private UnArchiver zipUnArchiver;
 
-    public Manifest loadManifest( File bundleLocation )
-    {
-        Manifest manifest = manifestCache.get( bundleLocation );
-        if ( manifest == null )
-        {
-            manifest = doLoadManifest( bundleLocation );
-            manifestCache.put( bundleLocation, manifest );
+    public Manifest loadManifest(File bundleLocation) {
+        Manifest manifest = manifestCache.get(bundleLocation);
+        if (manifest == null) {
+            manifest = doLoadManifest(bundleLocation);
+            manifestCache.put(bundleLocation, manifest);
         }
         return manifest;
     }
 
-    private Manifest doLoadManifest( File bundleLocation )
-    {
-        try
-        {
-            if ( bundleLocation.isDirectory() )
-            {
-                File m = new File( bundleLocation, JarFile.MANIFEST_NAME );
-                if ( m.canRead() )
-                {
-                    return loadManifestFile( m );
+    private Manifest doLoadManifest(File bundleLocation) {
+        try {
+            if (bundleLocation.isDirectory()) {
+                File m = new File(bundleLocation, JarFile.MANIFEST_NAME);
+                if (m.canRead()) {
+                    return loadManifestFile(m);
                 }
-                m = convertPluginManifest( bundleLocation );
-                if ( m != null && m.canRead() )
-                {
-                    return loadManifestFile( m );
+                m = convertPluginManifest(bundleLocation);
+                if (m != null && m.canRead()) {
+                    return loadManifestFile(m);
                 }
                 return null;
             }
 
             // it's a file, make sure we can read it
-            if ( !bundleLocation.canRead() )
-            {
+            if (!bundleLocation.canRead()) {
                 return null;
             }
 
             // file but not a jar, assume it is MANIFEST.MF
-            if ( !bundleLocation.getName().toLowerCase().endsWith( ".jar" ) )
-            {
-                return loadManifestFile( bundleLocation );
+            if (!bundleLocation.getName().toLowerCase().endsWith(".jar")) {
+                return loadManifestFile(bundleLocation);
             }
 
             // it is a jar, lets see if it has OSGi bundle manifest
-            ZipFile jar = new ZipFile( bundleLocation, ZipFile.OPEN_READ );
-            try
-            {
-                ZipEntry me = jar.getEntry( JarFile.MANIFEST_NAME );
-                if ( me != null )
-                {
-                    InputStream is = jar.getInputStream( me );
-                    try
-                    {
-                        Manifest mf = new Manifest( is );
-                        if ( mf.getMainAttributes().getValue( Constants.BUNDLE_SYMBOLICNAME ) != null )
-                        {
+            ZipFile jar = new ZipFile(bundleLocation, ZipFile.OPEN_READ);
+            try {
+                ZipEntry me = jar.getEntry(JarFile.MANIFEST_NAME);
+                if (me != null) {
+                    InputStream is = jar.getInputStream(me);
+                    try {
+                        Manifest mf = new Manifest(is);
+                        if (mf.getMainAttributes().getValue(Constants.BUNDLE_SYMBOLICNAME) != null) {
                             return mf;
                         }
-                    }
-                    finally
-                    {
+                    } finally {
                         is.close();
                     }
                 }
-            }
-            finally
-            {
+            } finally {
                 jar.close();
             }
 
             // it is a jar, does not have OSGi bundle manifest, lets try plugin.xml/fragment.xml
-            File m = convertPluginManifest( bundleLocation );
-            if ( m != null && m.canRead() )
-            {
-                return loadManifestFile( m );
+            File m = convertPluginManifest(bundleLocation);
+            if (m != null && m.canRead()) {
+                return loadManifestFile(m);
             }
-        }
-        catch ( IOException e )
-        {
-            getLogger().warn( "Exception reading bundle manifest", e );
-        }
-        catch ( PluginConversionException e )
-        {
-            getLogger().warn( "Exception reading bundle manifest: " + e.getMessage() );
+        } catch (IOException e) {
+            getLogger().warn("Exception reading bundle manifest", e);
+        } catch (PluginConversionException e) {
+            getLogger().warn("Exception reading bundle manifest: " + e.getMessage());
         }
 
         // not a bundle
         return null;
     }
 
-    public Manifest loadManifestFile( File m )
-        throws IOException
-    {
-        if ( !m.canRead() )
-        {
+    public Manifest loadManifestFile(File m) throws IOException {
+        if (!m.canRead()) {
             return null;
         }
-        InputStream is = new FileInputStream( m );
-        try
-        {
-            return new Manifest( is );
-        }
-        finally
-        {
-            IOUtil.close( is );
+        InputStream is = new FileInputStream(m);
+        try {
+            return new Manifest(is);
+        } finally {
+            IOUtil.close(is);
         }
     }
 
-    private File convertPluginManifest( File bundleLocation )
-        throws PluginConversionException
-    {
-        PluginConverterImpl converter = new PluginConverterImpl( null, null );
+    private File convertPluginManifest(File bundleLocation) throws PluginConversionException {
+        PluginConverterImpl converter = new PluginConverterImpl(null, null);
         String name = bundleLocation.getName();
-        if ( name.endsWith( ".jar" ) )
-        {
-            name = name.substring( 0, name.length() - 4 );
+        if (name.endsWith(".jar")) {
+            name = name.substring(0, name.length() - 4);
         }
-        File manifestFile = new File( cacheDir, name + "/META-INF/MANIFEST.MF" );
+        File manifestFile = new File(cacheDir, name + "/META-INF/MANIFEST.MF");
         manifestFile.getParentFile().mkdirs();
-        converter.convertManifest( bundleLocation, manifestFile, false /* compatibility */, "3.2" /* target version */,
-                                   true /* analyse jars to set export-package */, null /* devProperties */);
-        if ( manifestFile.exists() )
-        {
+        converter
+                .convertManifest(bundleLocation, manifestFile, false /* compatibility */, "3.2" /*
+                                                                                                 * target
+                                                                                                 * version
+                                                                                                 */, true /*
+                                                                                                           * analyse
+                                                                                                           * jars
+                                                                                                           * to
+                                                                                                           * set
+                                                                                                           * export
+                                                                                                           * -
+                                                                                                           * package
+                                                                                                           */, null /* devProperties */);
+        if (manifestFile.exists()) {
             return manifestFile;
         }
         return null;
     }
 
-    public void setLocationRepository( File basedir )
-    {
-        this.cacheDir = new File( basedir, CACHE_PATH );
+    public void setLocationRepository(File basedir) {
+        this.cacheDir = new File(basedir, CACHE_PATH);
     }
 
-    public Properties toProperties( Manifest mf )
-    {
+    public Properties toProperties(Manifest mf) {
         Attributes attrs = mf.getMainAttributes();
         Iterator<?> iter = attrs.keySet().iterator();
         Properties result = new Properties();
-        while ( iter.hasNext() )
-        {
+        while (iter.hasNext()) {
             Attributes.Name key = (Attributes.Name) iter.next();
-            result.put( key.toString(), attrs.get( key ) );
+            result.put(key.toString(), attrs.get(key));
         }
         return result;
     }
 
-    public ManifestElement[] parseHeader( String header, Manifest mf )
-    {
-        String property = toProperties( mf ).getProperty( header );
+    public ManifestElement[] parseHeader(String header, Manifest mf) {
+        String property = toProperties(mf).getProperty(header);
 
-        if ( property == null )
-        {
+        if (property == null) {
             return null;
         }
 
-        try
-        {
-            return ManifestElement.parseHeader( header, property );
-        }
-        catch ( BundleException e )
-        {
-            throw new RuntimeException( e );
+        try {
+            return ManifestElement.parseHeader(header, property);
+        } catch (BundleException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public boolean isDirectoryShape( Manifest mf )
-    {
-        ManifestElement[] elements = parseHeader( "Eclipse-BundleShape", mf );
+    public boolean isDirectoryShape(Manifest mf) {
+        ManifestElement[] elements = parseHeader("Eclipse-BundleShape", mf);
 
-        return elements != null && elements.length > 0 && "dir".equals( elements[0].getValue() );
+        return elements != null && elements.length > 0 && "dir".equals(elements[0].getValue());
     }
 
-    public File getEntry( File bundleLocation, String path )
-    {
-        if ( bundleLocation.isDirectory() )
-        {
-            File file = new File( bundleLocation, path );
+    public File getEntry(File bundleLocation, String path) {
+        if (bundleLocation.isDirectory()) {
+            File file = new File(bundleLocation, path);
             return file.exists() ? file : null;
         }
-        try
-        {
-            zipUnArchiver.setSourceFile( bundleLocation );
-            File outputDirectory = new File( cacheDir, bundleLocation.getName() );
-            zipUnArchiver.extract( path, outputDirectory );
-            File result = new File( outputDirectory, path );
-            if ( result.exists() )
-            {
+        try {
+            zipUnArchiver.setSourceFile(bundleLocation);
+            File outputDirectory = new File(cacheDir, bundleLocation.getName());
+            zipUnArchiver.extract(path, outputDirectory);
+            File result = new File(outputDirectory, path);
+            if (result.exists()) {
                 return result;
-            }
-            else
-            {
-                getLogger().warn( "Could not read bundle entry " + bundleLocation + "!/" + path );
+            } else {
+                getLogger().warn("Could not read bundle entry " + bundleLocation + "!/" + path);
                 return null;
             }
-        }
-        catch ( ArchiverException e )
-        {
-            throw new RuntimeException( e );
+        } catch (ArchiverException e) {
+            throw new RuntimeException(e);
         }
     }
 }

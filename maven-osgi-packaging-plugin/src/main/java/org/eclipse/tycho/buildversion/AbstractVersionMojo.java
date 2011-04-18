@@ -17,9 +17,7 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.tycho.core.TychoProject;
 import org.eclipse.tycho.core.osgitools.DefaultReactorProject;
 
-public abstract class AbstractVersionMojo
-    extends AbstractMojo
-{
+public abstract class AbstractVersionMojo extends AbstractMojo {
 
     /**
      * @parameter default-value="${project}"
@@ -40,15 +38,13 @@ public abstract class AbstractVersionMojo
      */
     protected Map<String, TychoProject> projectTypes;
 
-    protected String getOSGiVersion()
-    {
-        TychoProject projectType = projectTypes.get( packaging );
-        if ( projectType == null )
-        {
+    protected String getOSGiVersion() {
+        TychoProject projectType = projectTypes.get(packaging);
+        if (projectType == null) {
             return null;
         }
 
-        return projectType.getArtifactKey( DefaultReactorProject.adapt( project ) ).getVersion();
+        return projectType.getArtifactKey(DefaultReactorProject.adapt(project)).getVersion();
     }
 
 }

@@ -23,29 +23,21 @@ import org.eclipse.tycho.p2.repository.LocalTychoRepositoryIndex;
 /**
  * @goal update-local-index
  */
-public class UpdateLocalIndexMojo
-    extends AbstractMojo
-{
+public class UpdateLocalIndexMojo extends AbstractMojo {
     /** @parameter expression="${session}" */
     private MavenSession session;
 
     /** @parameter expression="${project}" */
     private MavenProject project;
 
-    public void execute()
-        throws MojoExecutionException,
-            MojoFailureException
-    {
-        File location = new File( session.getLocalRepository().getBasedir() );
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        File location = new File(session.getLocalRepository().getBasedir());
 
-        try
-        {
-            LocalTychoRepositoryIndex.addProject( location, project.getGroupId(), project.getArtifactId(), project
-                .getArtifact().getVersion() );
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Could not update local repository index", e );
+        try {
+            LocalTychoRepositoryIndex.addProject(location, project.getGroupId(), project.getArtifactId(), project
+                    .getArtifact().getVersion());
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not update local repository index", e);
         }
     }
 

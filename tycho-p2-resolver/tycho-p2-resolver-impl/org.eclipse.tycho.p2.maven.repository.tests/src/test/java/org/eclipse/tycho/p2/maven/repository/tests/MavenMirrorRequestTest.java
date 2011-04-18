@@ -31,36 +31,33 @@ import org.eclipse.tycho.p2.maven.repository.MavenMirrorRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class MavenMirrorRequestTest
-{
+public class MavenMirrorRequestTest {
     private IProgressMonitor monitor = new NullProgressMonitor();
 
     @Test
-    public void testMirror()
-        throws Exception
-    {
+    public void testMirror() throws Exception {
         IProvisioningAgent agent = Activator.getProvisioningAgent();
 
-        IArtifactRepositoryManager manager =
-            (IArtifactRepositoryManager) agent.getService( IArtifactRepositoryManager.SERVICE_NAME );
+        IArtifactRepositoryManager manager = (IArtifactRepositoryManager) agent
+                .getService(IArtifactRepositoryManager.SERVICE_NAME);
 
-        IArtifactRepository repository =
-            manager.loadRepository( new File( "resources/repositories/e342" ).toURI(), monitor );
+        IArtifactRepository repository = manager.loadRepository(new File("resources/repositories/e342").toURI(),
+                monitor);
 
-        LocalArtifactRepository localRepository = new LocalArtifactRepository( new File( "target/local" ) );
-        LocalMetadataRepository localMetadataRepository =
-            new LocalMetadataRepository( new File( "target/local" ).toURI(), "local" );
+        LocalArtifactRepository localRepository = new LocalArtifactRepository(new File("target/local"));
+        LocalMetadataRepository localMetadataRepository = new LocalMetadataRepository(new File("target/local").toURI(),
+                "local");
 
-        IArtifactKey key =
-            new ArtifactKey( "osgi.bundle", "org.eclipse.osgi", Version.parseVersion( "3.4.3.R34x_v20081215-1030" ) );
+        IArtifactKey key = new ArtifactKey("osgi.bundle", "org.eclipse.osgi",
+                Version.parseVersion("3.4.3.R34x_v20081215-1030"));
 
         InstallableUnitDescription iud = new InstallableUnitDescription();
-        IInstallableUnit iu = MetadataFactory.createInstallableUnit( iud );
+        IInstallableUnit iu = MetadataFactory.createInstallableUnit(iud);
 
-        MavenMirrorRequest request = new MavenMirrorRequest( key, localRepository );
+        MavenMirrorRequest request = new MavenMirrorRequest(key, localRepository);
 
-        repository.getArtifacts( new IArtifactRequest[] { request }, monitor );
+        repository.getArtifacts(new IArtifactRequest[] { request }, monitor);
 
-        Assert.assertEquals( 1, localRepository.getArtifactDescriptors( key ).length );
+        Assert.assertEquals(1, localRepository.getArtifactDescriptors(key).length);
     }
 }

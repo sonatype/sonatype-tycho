@@ -27,10 +27,8 @@ import org.eclipse.tycho.p2.tools.director.DirectorApplicationWrapper;
  * @phase package
  * @goal materialize-products
  */
-@SuppressWarnings( "nls" )
-public final class DirectorMojo
-    extends AbstractProductMojo
-{
+@SuppressWarnings("nls")
+public final class DirectorMojo extends AbstractProductMojo {
     /** @component */
     private EquinoxServiceFactory p2;
 
@@ -40,59 +38,50 @@ public final class DirectorMojo
     /** @component */
     private RepositoryReferenceTool repositoryReferenceTool;
 
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
-        for ( Product product : getProductConfig().getProducts() )
-        {
-            for ( TargetEnvironment env : getEnvironments() )
-            {
-                final DirectorApplicationWrapper director = p2.getService( DirectorApplicationWrapper.class );
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        for (Product product : getProductConfig().getProducts()) {
+            for (TargetEnvironment env : getEnvironments()) {
+                final DirectorApplicationWrapper director = p2.getService(DirectorApplicationWrapper.class);
                 int flags = RepositoryReferenceTool.REPOSITORIES_INCLUDE_CURRENT_MODULE;
-                RepositoryReferences sources =
-                    repositoryReferenceTool.getVisibleRepositories( getProject(), getSession(), flags );
+                RepositoryReferences sources = repositoryReferenceTool.getVisibleRepositories(getProject(),
+                        getSession(), flags);
 
-                File destination = getProductMaterializeDirectory( product, env );
+                File destination = getProductMaterializeDirectory(product, env);
                 String rootFolder = product.getRootFolder();
-                if ( rootFolder != null && rootFolder.length() > 0 )
-                {
-                    destination = new File( destination, rootFolder );
+                if (rootFolder != null && rootFolder.length() > 0) {
+                    destination = new File(destination, rootFolder);
                 }
 
-                String metadataRepositoryURLs = toCommaSeparatedList( sources.getMetadataRepositories() );
-                String artifactRepositoryURLs = toCommaSeparatedList( sources.getArtifactRepositories() );
+                String metadataRepositoryURLs = toCommaSeparatedList(sources.getMetadataRepositories());
+                String artifactRepositoryURLs = toCommaSeparatedList(sources.getArtifactRepositories());
                 String[] args = new String[] { "-metadatarepository", metadataRepositoryURLs, //
-                    "-artifactrepository", artifactRepositoryURLs, //
-                    "-installIU", product.getId(), //
-                    "-destination", destination.getAbsolutePath(), //
-                    "-profile", profile, //
-                    "-profileProperties", "org.eclipse.update.install.features=true", //
-                    "-roaming", //
-                    "-p2.os", env.getOs(), "-p2.ws", env.getWs(), "-p2.arch", env.getArch() };
-                getLog().info( "Calling director with arguments: " + Arrays.toString( args ) );
-                final Object result = director.run( args );
-                if ( !DirectorApplicationWrapper.EXIT_OK.equals( result ) )
-                {
-                    throw new MojoFailureException( "P2 director return code was " + result );
+                        "-artifactrepository", artifactRepositoryURLs, //
+                        "-installIU", product.getId(), //
+                        "-destination", destination.getAbsolutePath(), //
+                        "-profile", profile, //
+                        "-profileProperties", "org.eclipse.update.install.features=true", //
+                        "-roaming", //
+                        "-p2.os", env.getOs(), "-p2.ws", env.getWs(), "-p2.arch", env.getArch() };
+                getLog().info("Calling director with arguments: " + Arrays.toString(args));
+                final Object result = director.run(args);
+                if (!DirectorApplicationWrapper.EXIT_OK.equals(result)) {
+                    throw new MojoFailureException("P2 director return code was " + result);
                 }
             }
         }
     }
 
-    private String toCommaSeparatedList( List<URI> repositories )
-    {
-        if ( repositories.size() == 0 )
-        {
+    private String toCommaSeparatedList(List<URI> repositories) {
+        if (repositories.size() == 0) {
             return "";
         }
 
         StringBuilder result = new StringBuilder();
-        for ( URI uri : repositories )
-        {
-            result.append( uri.toString() );
-            result.append( ',' );
+        for (URI uri : repositories) {
+            result.append(uri.toString());
+            result.append(',');
         }
-        result.setLength( result.length() - 1 );
+        result.setLength(result.length() - 1);
         return result.toString();
     }
 }

@@ -17,12 +17,8 @@ import org.apache.maven.plugin.MojoFailureException;
 /**
  * @goal noop
  */
-public class Noop
-    extends AbstractMojo
-{
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
+public class Noop extends AbstractMojo {
+    public void execute() throws MojoExecutionException, MojoFailureException {
     }
 
 }

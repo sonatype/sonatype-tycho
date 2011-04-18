@@ -38,15 +38,12 @@ import org.eclipse.tycho.p2.repository.RepositoryLayoutHelper;
 import org.eclipse.tycho.p2.repository.RepositoryReader;
 import org.eclipse.tycho.p2.repository.TychoRepositoryIndex;
 
-public abstract class AbstractMavenArtifactRepository
-    extends AbstractArtifactRepository
-{
+public abstract class AbstractMavenArtifactRepository extends AbstractArtifactRepository {
     public static final String VERSION = "1.0.0";
 
     private static final IArtifactDescriptor[] ARTIFACT_DESCRIPTOR_ARRAY = new IArtifactDescriptor[0];
 
-    protected Map<IArtifactKey, Set<IArtifactDescriptor>> descriptorsMap =
-        new HashMap<IArtifactKey, Set<IArtifactDescriptor>>();
+    protected Map<IArtifactKey, Set<IArtifactDescriptor>> descriptorsMap = new HashMap<IArtifactKey, Set<IArtifactDescriptor>>();
 
     protected Set<IArtifactDescriptor> descriptors = new HashSet<IArtifactDescriptor>();
 
@@ -54,57 +51,44 @@ public abstract class AbstractMavenArtifactRepository
 
     private final TychoRepositoryIndex projectIndex;
 
-    protected AbstractMavenArtifactRepository( URI uri, TychoRepositoryIndex projectIndex,
-                                               RepositoryReader contentLocator )
-    {
-        this( Activator.getProvisioningAgent(), uri, projectIndex, contentLocator );
+    protected AbstractMavenArtifactRepository(URI uri, TychoRepositoryIndex projectIndex,
+            RepositoryReader contentLocator) {
+        this(Activator.getProvisioningAgent(), uri, projectIndex, contentLocator);
     }
 
-    protected AbstractMavenArtifactRepository( IProvisioningAgent agent, URI uri, TychoRepositoryIndex projectIndex,
-                                               RepositoryReader contentLocator )
-    {
-        super( agent, "Maven Local Repository", AbstractMavenArtifactRepository.class.getName(), VERSION, uri, null,
-               null, null );
+    protected AbstractMavenArtifactRepository(IProvisioningAgent agent, URI uri, TychoRepositoryIndex projectIndex,
+            RepositoryReader contentLocator) {
+        super(agent, "Maven Local Repository", AbstractMavenArtifactRepository.class.getName(), VERSION, uri, null,
+                null, null);
         this.projectIndex = projectIndex;
         this.contentLocator = contentLocator;
 
         loadMaven();
     }
 
-    protected void loadMaven()
-    {
+    protected void loadMaven() {
         final ArtifactsIO io = new ArtifactsIO();
 
-        for ( final GAV gav : projectIndex.getProjectGAVs() )
-        {
-            try
-            {
-                final InputStream is =
-                    contentLocator.getContents( gav, RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
-                                                RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS );
-                try
-                {
-                    final Set<IArtifactDescriptor> gavDescriptors = io.readXML( is );
-                    for ( IArtifactDescriptor descriptor : gavDescriptors )
-                    {
+        for (final GAV gav : projectIndex.getProjectGAVs()) {
+            try {
+                final InputStream is = contentLocator.getContents(gav, RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS,
+                        RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS);
+                try {
+                    final Set<IArtifactDescriptor> gavDescriptors = io.readXML(is);
+                    for (IArtifactDescriptor descriptor : gavDescriptors) {
                         final IArtifactKey key = descriptor.getArtifactKey();
-                        Set<IArtifactDescriptor> descriptorsForKey = descriptorsMap.get( key );
-                        if ( descriptorsForKey == null )
-                        {
+                        Set<IArtifactDescriptor> descriptorsForKey = descriptorsMap.get(key);
+                        if (descriptorsForKey == null) {
                             descriptorsForKey = new HashSet<IArtifactDescriptor>();
-                            descriptorsMap.put( key, descriptorsForKey );
+                            descriptorsMap.put(key, descriptorsForKey);
                         }
-                        descriptorsForKey.add( descriptor );
+                        descriptorsForKey.add(descriptor);
                     }
-                    descriptors.addAll( gavDescriptors );
-                }
-                finally
-                {
+                    descriptors.addAll(gavDescriptors);
+                } finally {
                     is.close();
                 }
-            }
-            catch ( IOException e )
-            {
+            } catch (IOException e) {
                 // TODO throw properly typed exception if repository cannot be loaded
                 e.printStackTrace();
             }
@@ -112,114 +96,92 @@ public abstract class AbstractMavenArtifactRepository
     }
 
     @Override
-    public boolean contains( IArtifactDescriptor descriptor )
-    {
-        return descriptor != null && descriptors.contains( descriptor );
+    public boolean contains(IArtifactDescriptor descriptor) {
+        return descriptor != null && descriptors.contains(descriptor);
     }
 
     @Override
-    public boolean contains( IArtifactKey key )
-    {
-        return key != null && descriptorsMap.containsKey( key );
+    public boolean contains(IArtifactKey key) {
+        return key != null && descriptorsMap.containsKey(key);
     }
 
     @Override
-    public IArtifactDescriptor[] getArtifactDescriptors( IArtifactKey key )
-    {
-        Set<IArtifactDescriptor> descriptors = descriptorsMap.get( key );
-        if ( descriptors == null )
-        {
+    public IArtifactDescriptor[] getArtifactDescriptors(IArtifactKey key) {
+        Set<IArtifactDescriptor> descriptors = descriptorsMap.get(key);
+        if (descriptors == null) {
             return ARTIFACT_DESCRIPTOR_ARRAY;
         }
-        return descriptors.toArray( ARTIFACT_DESCRIPTOR_ARRAY );
+        return descriptors.toArray(ARTIFACT_DESCRIPTOR_ARRAY);
     }
 
-    protected GAV getP2GAV( IArtifactDescriptor descriptor )
-    {
+    protected GAV getP2GAV(IArtifactDescriptor descriptor) {
         IArtifactKey key = descriptor.getArtifactKey();
         StringBuffer version = new StringBuffer();
-        key.getVersion().toString( version );
-        return RepositoryLayoutHelper.getP2Gav( key.getClassifier(), key.getId(), version.toString() );
+        key.getVersion().toString(version);
+        return RepositoryLayoutHelper.getP2Gav(key.getClassifier(), key.getId(), version.toString());
     }
 
-    protected RepositoryReader getContentLocator()
-    {
+    protected RepositoryReader getContentLocator() {
         return contentLocator;
     }
 
-    public abstract IStatus resolve( IArtifactDescriptor descriptor );
+    public abstract IStatus resolve(IArtifactDescriptor descriptor);
 
     @Override
-    public void addDescriptor( IArtifactDescriptor descriptor )
-    {
-        super.addDescriptor( descriptor );
+    public void addDescriptor(IArtifactDescriptor descriptor) {
+        super.addDescriptor(descriptor);
 
-        descriptors.add( descriptor );
+        descriptors.add(descriptor);
 
         IArtifactKey key = descriptor.getArtifactKey();
 
-        Set<IArtifactDescriptor> keyDescriptors = descriptorsMap.get( key );
+        Set<IArtifactDescriptor> keyDescriptors = descriptorsMap.get(key);
 
-        if ( keyDescriptors == null )
-        {
+        if (keyDescriptors == null) {
             keyDescriptors = new HashSet<IArtifactDescriptor>();
-            descriptorsMap.put( key, keyDescriptors );
+            descriptorsMap.put(key, keyDescriptors);
         }
 
-        keyDescriptors.add( descriptor );
+        keyDescriptors.add(descriptor);
     }
 
-    public GAV getGAV( IArtifactDescriptor descriptor )
-    {
-        GAV gav = RepositoryLayoutHelper.getGAV( ( (ArtifactDescriptor) descriptor ).getProperties() );
+    public GAV getGAV(IArtifactDescriptor descriptor) {
+        GAV gav = RepositoryLayoutHelper.getGAV(((ArtifactDescriptor) descriptor).getProperties());
 
-        if ( gav == null )
-        {
-            gav = getP2GAV( descriptor );
+        if (gav == null) {
+            gav = getP2GAV(descriptor);
         }
 
         return gav;
     }
 
-    public IQueryResult<IArtifactKey> query( IQuery<IArtifactKey> query, IProgressMonitor monitor )
-    {
-        return query.perform( descriptorsMap.keySet().iterator() );
+    public IQueryResult<IArtifactKey> query(IQuery<IArtifactKey> query, IProgressMonitor monitor) {
+        return query.perform(descriptorsMap.keySet().iterator());
     }
 
-    public IQueryable<IArtifactDescriptor> descriptorQueryable()
-    {
-        return new IQueryable<IArtifactDescriptor>()
-        {
-            public IQueryResult<IArtifactDescriptor> query( IQuery<IArtifactDescriptor> query, IProgressMonitor monitor )
-            {
-                return query.perform( descriptors.iterator() );
+    public IQueryable<IArtifactDescriptor> descriptorQueryable() {
+        return new IQueryable<IArtifactDescriptor>() {
+            public IQueryResult<IArtifactDescriptor> query(IQuery<IArtifactDescriptor> query, IProgressMonitor monitor) {
+                return query.perform(descriptors.iterator());
             }
         };
     }
 
     @Override
-    public IStatus getArtifacts( IArtifactRequest[] requests, IProgressMonitor monitor )
-    {
-        SubMonitor subMonitor = SubMonitor.convert( monitor, requests.length );
-        try
-        {
-            MultiStatus result = new MultiStatus( Activator.ID, 0, "Error while getting requested artifacts", null );
-            for ( IArtifactRequest request : requests )
-            {
-                request.perform( this, subMonitor.newChild( 1 ) );
-                result.add( request.getResult() );
+    public IStatus getArtifacts(IArtifactRequest[] requests, IProgressMonitor monitor) {
+        SubMonitor subMonitor = SubMonitor.convert(monitor, requests.length);
+        try {
+            MultiStatus result = new MultiStatus(Activator.ID, 0, "Error while getting requested artifacts", null);
+            for (IArtifactRequest request : requests) {
+                request.perform(this, subMonitor.newChild(1));
+                result.add(request.getResult());
             }
-            if ( !result.isOK() )
-            {
+            if (!result.isOK()) {
                 return result;
-            }
-            else
-            {
+            } else {
                 return Status.OK_STATUS;
             }
-        }
-        finally
-        {
+        } finally {
             monitor.done();
         }
     }

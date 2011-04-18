@@ -22,48 +22,34 @@ import org.eclipse.equinox.p2.query.IQueryable;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.tycho.p2.maven.repository.xmlio.MetadataIO;
 
-@SuppressWarnings( "restriction" )
-public class ResolverDebugUtils
-{
-    public static String toDebugString( IQueryable<IInstallableUnit> ius, boolean verbose, IProgressMonitor monitor )
-    {
-        IQueryResult<IInstallableUnit> collector = ius.query( QueryUtil.ALL_UNITS, monitor );
-        return toDebugString( collector.toUnmodifiableSet(), verbose );
+@SuppressWarnings("restriction")
+public class ResolverDebugUtils {
+    public static String toDebugString(IQueryable<IInstallableUnit> ius, boolean verbose, IProgressMonitor monitor) {
+        IQueryResult<IInstallableUnit> collector = ius.query(QueryUtil.ALL_UNITS, monitor);
+        return toDebugString(collector.toUnmodifiableSet(), verbose);
     }
 
-    public static String toDebugString( Collection<IInstallableUnit> ius, boolean verbose )
-    {
-        if ( ius == null || ius.isEmpty() )
-        {
+    public static String toDebugString(Collection<IInstallableUnit> ius, boolean verbose) {
+        if (ius == null || ius.isEmpty()) {
             return "<empty>";
         }
 
         StringBuilder sb = new StringBuilder();
-        if ( verbose )
-        {
-            try
-            {
+        if (verbose) {
+            try {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
-                try
-                {
-                    new MetadataIO().writeXML( new LinkedHashSet<IInstallableUnit>( ius ), os );
-                }
-                finally
-                {
+                try {
+                    new MetadataIO().writeXML(new LinkedHashSet<IInstallableUnit>(ius), os);
+                } finally {
                     os.close();
                 }
-                sb.append( os.toString( "UTF-8" ) );
+                sb.append(os.toString("UTF-8"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            catch ( IOException e )
-            {
-                throw new RuntimeException( e );
-            }
-        }
-        else
-        {
-            for ( IInstallableUnit iu : ius )
-            {
-                sb.append("  ").append( iu.toString() ).append( "\n" );
+        } else {
+            for (IInstallableUnit iu : ius) {
+                sb.append("  ").append(iu.toString()).append("\n");
             }
         }
         return sb.toString();

@@ -19,9 +19,8 @@ import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
 import org.osgi.framework.Version;
 
-public interface EquinoxInstallationDescription
-{
-    public static final Version EQUINOX_VERSION_3_3_0 = Version.parseVersion( "3.3.0" );
+public interface EquinoxInstallationDescription {
+    public static final Version EQUINOX_VERSION_3_3_0 = Version.parseVersion("3.3.0");
 
     public static final String EQUINOX_LAUNCHER = "org.eclipse.equinox.launcher";
 
@@ -31,7 +30,7 @@ public interface EquinoxInstallationDescription
 
     public ArtifactDescriptor getSystemBundle();
 
-    public ArtifactDescriptor getBundle( String symbolicName, String highestVersion );
+    public ArtifactDescriptor getBundle(String symbolicName, String highestVersion);
 
     public List<File> getFrameworkExtensions();
 
@@ -41,21 +40,21 @@ public interface EquinoxInstallationDescription
 
     // mutators
 
-    public void addBundle( ArtifactKey key, File basedir );
+    public void addBundle(ArtifactKey key, File basedir);
 
-    public void addBundle( ArtifactKey key, File basedir, boolean override );
+    public void addBundle(ArtifactKey key, File basedir, boolean override);
 
-    public void addBundle( ArtifactDescriptor artifact );
+    public void addBundle(ArtifactDescriptor artifact);
 
     /**
      * This one is kinda odd, it reads bundle manifest to extract ArtifactKey.
      */
     // public void addBundle( File file, boolean override );
 
-    public void addFrameworkExtensions( List<File> frameworkExtensions );
+    public void addFrameworkExtensions(List<File> frameworkExtensions);
 
-    public void addBundlesToExplode( List<String> bundlesToExplode );
+    public void addBundlesToExplode(List<String> bundlesToExplode);
 
-    public void addBundleStartLevel( BundleStartLevel level );
+    public void addBundleStartLevel(BundleStartLevel level);
 
 }

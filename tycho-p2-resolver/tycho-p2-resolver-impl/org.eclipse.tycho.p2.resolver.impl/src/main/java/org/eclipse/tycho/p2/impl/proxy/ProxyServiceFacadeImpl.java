@@ -23,120 +23,92 @@ import org.eclipse.tycho.p2.metadata.ProxyServiceFacade;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
-@SuppressWarnings( "restriction" )
-public class ProxyServiceFacadeImpl
-    implements ProxyServiceFacade
-{
+@SuppressWarnings("restriction")
+public class ProxyServiceFacadeImpl implements ProxyServiceFacade {
     private static final String MAVEN_SETTINGS_SOURCE = "MAVEN_SETTINGS";
 
-    private static final Pattern NON_PROXY_DELIMITERS = Pattern.compile( "\\s*[|,]\\s*" );
+    private static final Pattern NON_PROXY_DELIMITERS = Pattern.compile("\\s*[|,]\\s*");
 
     private IProxyService proxyService;
 
-    public void configureProxy( String protocol, String host, int port, String user, String password,
-                                String nonProxyHosts )
-    {
-        try
-        {
-            ProxyData proxyData = new ProxyData( getProxyType( protocol ) );
-            proxyData.setHost( host );
-            proxyData.setPort( port );
-            proxyData.setUserid( user );
-            proxyData.setPassword( password );
-            proxyData.setSource( MAVEN_SETTINGS_SOURCE );
-            proxyService.setProxyData( new IProxyData[] { proxyData } );
-            if ( nonProxyHosts != null  && nonProxyHosts.trim().length() > 0 )
-            {
-                proxyService.setNonProxiedHosts( NON_PROXY_DELIMITERS.split( nonProxyHosts.trim() ) );
+    public void configureProxy(String protocol, String host, int port, String user, String password,
+            String nonProxyHosts) {
+        try {
+            ProxyData proxyData = new ProxyData(getProxyType(protocol));
+            proxyData.setHost(host);
+            proxyData.setPort(port);
+            proxyData.setUserid(user);
+            proxyData.setPassword(password);
+            proxyData.setSource(MAVEN_SETTINGS_SOURCE);
+            proxyService.setProxyData(new IProxyData[] { proxyData });
+            if (nonProxyHosts != null && nonProxyHosts.trim().length() > 0) {
+                proxyService.setNonProxiedHosts(NON_PROXY_DELIMITERS.split(nonProxyHosts.trim()));
             }
             // have to register authenticator manually as this is provided as extension point in
             // org.eclipse.ui.net only ...
-            registerAuthenticator( user, password );
-            proxyService.setProxiesEnabled( true );
+            registerAuthenticator(user, password);
+            proxyService.setProxiesEnabled(true);
             // disable the eclipse native proxy providers
-            proxyService.setSystemProxiesEnabled( false );
-        }
-        catch ( Throwable e )
-        {
+            proxyService.setSystemProxiesEnabled(false);
+        } catch (Throwable e) {
             e.printStackTrace();
-            throw new RuntimeException( e );
+            throw new RuntimeException(e);
         }
     }
 
-    private void registerAuthenticator( final String user, final String password )
-    {
-        if ( user == null || password == null )
-        {
+    private void registerAuthenticator(final String user, final String password) {
+        if (user == null || password == null) {
             return;
         }
-        Authenticator authenticator = new Authenticator()
-        {
+        Authenticator authenticator = new Authenticator() {
 
             @Override
-            protected PasswordAuthentication getPasswordAuthentication()
-            {
-                return new PasswordAuthentication( user, password.toCharArray() );
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(user, password.toCharArray());
             }
 
         };
         // not exactly pretty but this is how org.eclipse.core.net does it
-        Authenticator.setDefault( authenticator );
+        Authenticator.setDefault(authenticator);
     }
 
-    private static String getProxyType( String protocol )
-    {
-        protocol = protocol.trim().toLowerCase( Locale.ENGLISH );
+    private static String getProxyType(String protocol) {
+        protocol = protocol.trim().toLowerCase(Locale.ENGLISH);
         String type;
-        if ( "http".equals( protocol ) )
-        {
+        if ("http".equals(protocol)) {
             type = IProxyData.HTTP_PROXY_TYPE;
-        }
-        else if ( "https".equals( protocol ) )
-        {
+        } else if ("https".equals(protocol)) {
             type = IProxyData.HTTPS_PROXY_TYPE;
-        }
-        else if ( "socks4".equals( protocol ) || "socks_5".equals( protocol ) )
-        {
+        } else if ("socks4".equals(protocol) || "socks_5".equals(protocol)) {
             type = IProxyData.SOCKS_PROXY_TYPE;
-        }
-        else
-        {
-            throw new IllegalArgumentException( "unknown proxy protocol: " + protocol );
+        } else {
+            throw new IllegalArgumentException("unknown proxy protocol: " + protocol);
         }
         return type;
     }
 
-    public void clearPersistentProxySettings()
-    {
+    public void clearPersistentProxySettings() {
         Preferences netPreferences = Activator.getInstance().getPreferences();
-        try
-        {
-            recursiveClear( netPreferences );
+        try {
+            recursiveClear(netPreferences);
             netPreferences.flush();
-        }
-        catch ( BackingStoreException e )
-        {
-            throw new RuntimeException( e );
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private static void recursiveClear( Preferences preferences )
-        throws BackingStoreException
-    {
-        for ( String child : preferences.childrenNames() )
-        {
-            recursiveClear( preferences.node( child ) );
+    private static void recursiveClear(Preferences preferences) throws BackingStoreException {
+        for (String child : preferences.childrenNames()) {
+            recursiveClear(preferences.node(child));
         }
         preferences.clear();
     }
 
-    public void setProxyServer( IProxyService proxyService )
-    {
+    public void setProxyServer(IProxyService proxyService) {
         this.proxyService = proxyService;
     }
 
-    public void unsetProxyServer( IProxyService proxyService )
-    {
+    public void unsetProxyServer(IProxyService proxyService) {
         this.proxyService = null;
     }
 }

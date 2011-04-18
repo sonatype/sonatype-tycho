@@ -19,28 +19,24 @@ import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.query.IQueryable;
 
-public abstract class ResolutionStrategy
-{
+public abstract class ResolutionStrategy {
     protected IQueryable<IInstallableUnit> availableIUs;
 
     protected Set<IInstallableUnit> rootIUs;
 
     protected List<IRequirement> additionalRequirements;
 
-    public void setAvailableInstallableUnits( IQueryable<IInstallableUnit> availableIUs )
-    {
+    public void setAvailableInstallableUnits(IQueryable<IInstallableUnit> availableIUs) {
         this.availableIUs = availableIUs;
     }
 
-    public void setRootInstallableUnits( Set<IInstallableUnit> rootIUs )
-    {
+    public void setRootInstallableUnits(Set<IInstallableUnit> rootIUs) {
         this.rootIUs = rootIUs;
     }
 
-    public void setAdditionalRequirements( List<IRequirement> additionalRequirements )
-    {
+    public void setAdditionalRequirements(List<IRequirement> additionalRequirements) {
         this.additionalRequirements = additionalRequirements;
     }
 
-    public abstract Collection<IInstallableUnit> resolve( IProgressMonitor monitor );
+    public abstract Collection<IInstallableUnit> resolve(IProgressMonitor monitor);
 }

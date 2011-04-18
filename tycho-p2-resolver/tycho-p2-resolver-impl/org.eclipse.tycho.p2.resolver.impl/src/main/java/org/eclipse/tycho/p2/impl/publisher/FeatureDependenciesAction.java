@@ -27,141 +27,121 @@ import org.eclipse.equinox.p2.publisher.eclipse.FeatureEntry;
 import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.equinox.spi.p2.publisher.PublisherHelper;
 
-@SuppressWarnings( "restriction" )
-public class FeatureDependenciesAction
-    extends AbstractDependenciesAction
-{
+@SuppressWarnings("restriction")
+public class FeatureDependenciesAction extends AbstractDependenciesAction {
     /**
-     * Comma separated list of IInstallableUnit ids that are included (as opposed to required by) the feature.
+     * Comma separated list of IInstallableUnit ids that are included (as opposed to required by)
+     * the feature.
      */
     public static final String INCLUDED_IUS = "org.eclipse.tycho.p2.includedIUs";
 
     private final Feature feature;
 
-    public FeatureDependenciesAction( Feature feature )
-    {
+    public FeatureDependenciesAction(Feature feature) {
         this.feature = feature;
     }
 
-    private String getInstallableUnitId( FeatureEntry entry )
-    {
-        if ( entry.isPlugin() )
-        {
+    private String getInstallableUnitId(FeatureEntry entry) {
+        if (entry.isPlugin()) {
             return entry.getId();
-        }
-        else
-        {
+        } else {
             return entry.getId() + FEATURE_GROUP_IU_SUFFIX;
         }
     }
 
     /**
-     * Copy&Paste from 3.6M7 org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction.getVersionRange(FeatureEntry)
+     * Copy&Paste from 3.6M7
+     * org.eclipse.equinox.p2.publisher.eclipse.FeaturesAction.getVersionRange(FeatureEntry)
      */
-    private VersionRange getVersionRange( FeatureEntry entry )
-    {
+    private VersionRange getVersionRange(FeatureEntry entry) {
         String versionSpec = entry.getVersion();
-        if ( versionSpec == null )
+        if (versionSpec == null)
             return VersionRange.emptyRange;
-        Version version = Version.parseVersion( versionSpec );
-        if ( version.equals( Version.emptyVersion ) )
+        Version version = Version.parseVersion(versionSpec);
+        if (version.equals(Version.emptyVersion))
             return VersionRange.emptyRange;
-        if ( !entry.isRequires() )
-            return new VersionRange( version, true, version, true );
+        if (!entry.isRequires())
+            return new VersionRange(version, true, version, true);
         String match = entry.getMatch();
-        if ( match == null )
+        if (match == null)
             // TODO should really be returning VersionRange.emptyRange here...
             return null;
-        if ( match.equals( "perfect" ) ) //$NON-NLS-1$
-            return new VersionRange( version, true, version, true );
+        if (match.equals("perfect")) //$NON-NLS-1$
+            return new VersionRange(version, true, version, true);
 
-        org.osgi.framework.Version osgiVersion = PublisherHelper.toOSGiVersion( version );
-        if ( match.equals( "equivalent" ) ) { //$NON-NLS-1$
-            Version upper = Version.createOSGi( osgiVersion.getMajor(), osgiVersion.getMinor() + 1, 0 );
-            return new VersionRange( version, true, upper, false );
+        org.osgi.framework.Version osgiVersion = PublisherHelper.toOSGiVersion(version);
+        if (match.equals("equivalent")) { //$NON-NLS-1$
+            Version upper = Version.createOSGi(osgiVersion.getMajor(), osgiVersion.getMinor() + 1, 0);
+            return new VersionRange(version, true, upper, false);
         }
-        if ( match.equals( "compatible" ) ) { //$NON-NLS-1$
-            Version upper = Version.createOSGi( osgiVersion.getMajor() + 1, 0, 0 );
-            return new VersionRange( version, true, upper, false );
+        if (match.equals("compatible")) { //$NON-NLS-1$
+            Version upper = Version.createOSGi(osgiVersion.getMajor() + 1, 0, 0);
+            return new VersionRange(version, true, upper, false);
         }
-        if ( match.equals( "greaterOrEqual" ) ) //$NON-NLS-1$
-            return new VersionRange( version, true, new VersionRange( null ).getMaximum(), true );
+        if (match.equals("greaterOrEqual")) //$NON-NLS-1$
+            return new VersionRange(version, true, new VersionRange(null).getMaximum(), true);
         return null;
     }
 
     @Override
-    protected Set<IRequirement> getRequiredCapabilities()
-    {
+    protected Set<IRequirement> getRequiredCapabilities() {
         Set<IRequirement> required = new LinkedHashSet<IRequirement>();
 
-        for ( FeatureEntry entry : feature.getEntries() )
-        {
+        for (FeatureEntry entry : feature.getEntries()) {
             VersionRange range;
-            if ( entry.isRequires() )
-            {
-                range = getVersionRange( entry );
+            if (entry.isRequires()) {
+                range = getVersionRange(entry);
+            } else {
+                range = getVersionRange(createVersion(entry.getVersion()));
             }
-            else
-            {
-                range = getVersionRange( createVersion( entry.getVersion() ) );
-            }
-            String id = getInstallableUnitId( entry );
-            String filter = getFilter( entry.getFilter(), entry.getOS(), entry.getWS(), entry.getArch(), entry.getNL() );
+            String id = getInstallableUnitId(entry);
+            String filter = getFilter(entry.getFilter(), entry.getOS(), entry.getWS(), entry.getArch(), entry.getNL());
             boolean optional = entry.isOptional();
-            required.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, id, range,
-                                                             InstallableUnit.parseFilter( filter ), optional, false ) );
+            required.add(MetadataFactory.createRequirement(IInstallableUnit.NAMESPACE_IU_ID, id, range,
+                    InstallableUnit.parseFilter(filter), optional, false));
         }
         return required;
     }
 
     @Override
-    protected Version getVersion()
-    {
-        return Version.create( feature.getVersion() );
+    protected Version getVersion() {
+        return Version.create(feature.getVersion());
     }
 
     @Override
-    protected String getId()
-    {
+    protected String getId() {
         return feature.getId() + FEATURE_GROUP_IU_SUFFIX;
     }
 
     @Override
-    protected void addProvidedCapabilities( Set<IProvidedCapability> provided )
-    {
-        provided.add( MetadataFactory.createProvidedCapability( PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE,
-                                                                feature.getId(), getVersion() ) );
+    protected void addProvidedCapabilities(Set<IProvidedCapability> provided) {
+        provided.add(MetadataFactory.createProvidedCapability(PublisherHelper.CAPABILITY_NS_UPDATE_FEATURE,
+                feature.getId(), getVersion()));
     }
 
     @Override
-    protected void addProperties( InstallableUnitDescription iud )
-    {
-        iud.setProperty( QueryUtil.PROP_TYPE_GROUP, "true" );
+    protected void addProperties(InstallableUnitDescription iud) {
+        iud.setProperty(QueryUtil.PROP_TYPE_GROUP, "true");
 
         StringBuilder includedIUs = new StringBuilder();
-        for ( FeatureEntry entry : feature.getEntries() )
-        {
-            String id = getInstallableUnitId( entry );
-            if ( includedIUs.length() > 0 )
-            {
-                includedIUs.append( ',' );
+        for (FeatureEntry entry : feature.getEntries()) {
+            String id = getInstallableUnitId(entry);
+            if (includedIUs.length() > 0) {
+                includedIUs.append(',');
             }
-            includedIUs.append( id );
+            includedIUs.append(id);
         }
-        iud.setProperty( INCLUDED_IUS, includedIUs.toString() );
+        iud.setProperty(INCLUDED_IUS, includedIUs.toString());
     }
 
-    public static Set<String> getIncludedUIs( IInstallableUnit iu )
-    {
+    public static Set<String> getIncludedUIs(IInstallableUnit iu) {
         Set<String> includedIUs = new LinkedHashSet<String>();
 
-        String prop = iu.getProperty( INCLUDED_IUS );
-        if ( prop != null )
-        {
-            StringTokenizer st = new StringTokenizer( prop, "," );
-            while ( st.hasMoreTokens() )
-            {
-                includedIUs.add( st.nextToken() );
+        String prop = iu.getProperty(INCLUDED_IUS);
+        if (prop != null) {
+            StringTokenizer st = new StringTokenizer(prop, ",");
+            while (st.hasMoreTokens()) {
+                includedIUs.add(st.nextToken());
             }
         }
         return includedIUs;

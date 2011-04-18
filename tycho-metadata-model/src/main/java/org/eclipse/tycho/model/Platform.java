@@ -28,182 +28,182 @@ import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 /**
- * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/update_platform_xml.html
+ * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/
+ * update_platform_xml.html
  */
 public class Platform {
 
-	final Xpp3Dom dom;
-	
-	public Platform(Xpp3Dom dom) {
-		this.dom = dom;
-	}
+    final Xpp3Dom dom;
 
-	public Platform(Platform other) {
-		this.dom = new Xpp3Dom(other.dom);
+    public Platform(Xpp3Dom dom) {
+        this.dom = dom;
+    }
 
-		setTimestamp(System.currentTimeMillis());
-	}
+    public Platform(Platform other) {
+        this.dom = new Xpp3Dom(other.dom);
 
-	public Platform() {
-		this.dom = new Xpp3Dom("config");
-		
-		dom.setAttribute("version", "3.0");
-		setTimestamp(System.currentTimeMillis());
-		setTransient(true);
-	}
+        setTimestamp(System.currentTimeMillis());
+    }
 
-	public void setTimestamp(long timestamp) {
-		dom.setAttribute("date", Long.toString(timestamp));
-	}
+    public Platform() {
+        this.dom = new Xpp3Dom("config");
 
-	public static class Site {
+        dom.setAttribute("version", "3.0");
+        setTimestamp(System.currentTimeMillis());
+        setTransient(true);
+    }
 
-		final Xpp3Dom dom;
+    public void setTimestamp(long timestamp) {
+        dom.setAttribute("date", Long.toString(timestamp));
+    }
 
-		public Site(Xpp3Dom dom) {
-			this.dom = dom;
-		}
+    public static class Site {
 
-		public Site(String url) {
-			this.dom = new Xpp3Dom("site");
+        final Xpp3Dom dom;
 
-			dom.setAttribute("url", url);
-			dom.setAttribute("enabled", "true");
-			dom.setAttribute("updateable", "true");
-			dom.setAttribute("policy", "USER-INCLUDE");
-		}
+        public Site(Xpp3Dom dom) {
+            this.dom = dom;
+        }
 
-		public List<Feature> getFeatures() {
-			ArrayList<Feature> features = new ArrayList<Feature>();
-			for (Xpp3Dom featureDom : dom.getChildren("feature")) {
-				features.add(new Feature(featureDom));
-			}
-			return Collections.unmodifiableList(features);
-		}
+        public Site(String url) {
+            this.dom = new Xpp3Dom("site");
 
-		public List<String> getPlugins() {
-			ArrayList<String> plugins = new ArrayList<String>();
-			String pluginsStr = getPluginsStr();
-			if (pluginsStr != null) {
-				StringTokenizer st = new StringTokenizer(pluginsStr, ",");
-				while (st.hasMoreTokens()) {
-					plugins.add(st.nextToken());
-				}
-			}
-			return Collections.unmodifiableList(plugins);
-		}
+            dom.setAttribute("url", url);
+            dom.setAttribute("enabled", "true");
+            dom.setAttribute("updateable", "true");
+            dom.setAttribute("policy", "USER-INCLUDE");
+        }
 
-		public void setPlugins(List<String> plugins) {
-			StringBuilder sb = new StringBuilder();
-			for (String plugin : plugins) {
-				if (sb.length() > 0) {
-					sb.append(',');
-				}
-				sb.append(plugin);
-			}
-			setPluginsStr(sb.toString());			
-		}
+        public List<Feature> getFeatures() {
+            ArrayList<Feature> features = new ArrayList<Feature>();
+            for (Xpp3Dom featureDom : dom.getChildren("feature")) {
+                features.add(new Feature(featureDom));
+            }
+            return Collections.unmodifiableList(features);
+        }
 
-		public String getPluginsStr() {
-			return dom.getAttribute("list");
-		}
+        public List<String> getPlugins() {
+            ArrayList<String> plugins = new ArrayList<String>();
+            String pluginsStr = getPluginsStr();
+            if (pluginsStr != null) {
+                StringTokenizer st = new StringTokenizer(pluginsStr, ",");
+                while (st.hasMoreTokens()) {
+                    plugins.add(st.nextToken());
+                }
+            }
+            return Collections.unmodifiableList(plugins);
+        }
 
-		public void setPluginsStr(String plugins) {
-			dom.setAttribute("list", plugins);
-		}
+        public void setPlugins(List<String> plugins) {
+            StringBuilder sb = new StringBuilder();
+            for (String plugin : plugins) {
+                if (sb.length() > 0) {
+                    sb.append(',');
+                }
+                sb.append(plugin);
+            }
+            setPluginsStr(sb.toString());
+        }
 
-		public void setFeatures(List<Feature> features) {
-			for (int i = 0; i < dom.getChildCount(); ) {
-				if ("feature".equals(dom.getChild(i).getName())) {
-					dom.removeChild(i);
-				} else {
-					i++;
-				}
-			}
-			if (features != null) {
-				for (Feature feature : features) {
-					dom.addChild(feature.dom);
-				}
-			}
-		}
+        public String getPluginsStr() {
+            return dom.getAttribute("list");
+        }
 
-	}
+        public void setPluginsStr(String plugins) {
+            dom.setAttribute("list", plugins);
+        }
 
-	public static class Feature {
+        public void setFeatures(List<Feature> features) {
+            for (int i = 0; i < dom.getChildCount();) {
+                if ("feature".equals(dom.getChild(i).getName())) {
+                    dom.removeChild(i);
+                } else {
+                    i++;
+                }
+            }
+            if (features != null) {
+                for (Feature feature : features) {
+                    dom.addChild(feature.dom);
+                }
+            }
+        }
 
-		private final Xpp3Dom dom;
+    }
 
-		public Feature(Xpp3Dom dom) {
-			this.dom = dom;
-		}
+    public static class Feature {
 
-		public Feature() {
-			this.dom = new Xpp3Dom("feature");
-		}
+        private final Xpp3Dom dom;
 
-		public void setId(String value) {
-			dom.setAttribute("id", value);
-		}
+        public Feature(Xpp3Dom dom) {
+            this.dom = dom;
+        }
 
-		public String getId() {
-			return dom.getAttribute("id");
-		}
+        public Feature() {
+            this.dom = new Xpp3Dom("feature");
+        }
 
-		public void setVersion(String value) {
-			dom.setAttribute("version", value);
-		}
+        public void setId(String value) {
+            dom.setAttribute("id", value);
+        }
 
-		public String getVersion() {
-			return dom.getAttribute("version");
-		}
+        public String getId() {
+            return dom.getAttribute("id");
+        }
 
-		public void setUrl(String value) {
-			dom.setAttribute("url", value);
-		}
+        public void setVersion(String value) {
+            dom.setAttribute("version", value);
+        }
 
-		public String getUrl() {
-			return dom.getAttribute("url");
-		}
-	}
+        public String getVersion() {
+            return dom.getAttribute("version");
+        }
 
-	@SuppressWarnings("deprecation")
-	public static Platform read(File file) throws IOException, XmlPullParserException {
-		XmlStreamReader reader = ReaderFactory.newXmlReader(file);
-		try {
-			return new Platform(Xpp3DomBuilder.build(reader));
-		} finally {
-			reader.close();
-		}
-	}
+        public void setUrl(String value) {
+            dom.setAttribute("url", value);
+        }
 
+        public String getUrl() {
+            return dom.getAttribute("url");
+        }
+    }
 
-	public static void write(Platform platform, File file) throws IOException {
-		file.getParentFile().mkdirs();
-		Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
-		try {
-			Xpp3DomWriter.write(writer, platform.dom);
-		} finally {
-			writer.close();
-		}
-	}
+    @SuppressWarnings("deprecation")
+    public static Platform read(File file) throws IOException, XmlPullParserException {
+        XmlStreamReader reader = ReaderFactory.newXmlReader(file);
+        try {
+            return new Platform(Xpp3DomBuilder.build(reader));
+        } finally {
+            reader.close();
+        }
+    }
 
-	public boolean isTransient() {
-		return Boolean.parseBoolean(dom.getAttribute("transient"));
-	}
+    public static void write(Platform platform, File file) throws IOException {
+        file.getParentFile().mkdirs();
+        Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+        try {
+            Xpp3DomWriter.write(writer, platform.dom);
+        } finally {
+            writer.close();
+        }
+    }
 
-	public void setTransient(boolean value) {
-		dom.setAttribute("transient", value? "true": "false");		
-	}
+    public boolean isTransient() {
+        return Boolean.parseBoolean(dom.getAttribute("transient"));
+    }
 
-	public List<Site> getSites() {
-		ArrayList<Site> sites = new ArrayList<Site>();
-		for (Xpp3Dom siteDom : dom.getChildren("site")) {
-			sites.add(new Site(siteDom));
-		}
-		return Collections.unmodifiableList(sites);
-	}
+    public void setTransient(boolean value) {
+        dom.setAttribute("transient", value ? "true" : "false");
+    }
 
-	public void addSite(Site site) {
-		dom.addChild(site.dom);
-	}	
+    public List<Site> getSites() {
+        ArrayList<Site> sites = new ArrayList<Site>();
+        for (Xpp3Dom siteDom : dom.getChildren("site")) {
+            sites.add(new Site(siteDom));
+        }
+        return Collections.unmodifiableList(sites);
+    }
+
+    public void addSite(Site site) {
+        dom.addChild(site.dom);
+    }
 }

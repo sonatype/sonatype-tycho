@@ -32,137 +32,124 @@ import org.osgi.framework.BundleException;
 
 public class OsgiSurefireBooter {
 
-	public static int run(String[] args) throws Exception {
-		
-		Properties p = loadProperties(getTestProperties(args));
-		
-		String plugin = p.getProperty("testpluginname");
-		File testDir = new File(p.getProperty("testclassesdirectory"));
-		File reportsDir = new File(p.getProperty("reportsdirectory"));
-		
-		String runner = p.getProperty("testrunner");
-		
-		ArrayList<String> includes = getIncludesExcludes(p.getProperty("includes"));
-		ArrayList<String> excludes = getIncludesExcludes(p.getProperty("excludes"));
+    public static int run(String[] args) throws Exception {
 
-		ClassLoader testClassLoader = getBundleClassLoader(plugin);
-		ClassLoader surefireClassLoader = Surefire.class.getClassLoader();
+        Properties p = loadProperties(getTestProperties(args));
 
-		Surefire surefire = new Surefire();
+        String plugin = p.getProperty("testpluginname");
+        File testDir = new File(p.getProperty("testclassesdirectory"));
+        File reportsDir = new File(p.getProperty("reportsdirectory"));
 
-		List reports = new ArrayList();
-		reports.add(new Object[] {
-			"org.apache.maven.surefire.report.BriefConsoleReporter",
-			new Object[] {
-				Boolean.TRUE /*trimStackTrace*/
-			}
-		});
-        reports.add(new Object[] {
-            "org.apache.maven.surefire.report.FileReporter",
-            new Object[] {
-                reportsDir,
-                Boolean.TRUE /*trimStackTrace*/
+        String runner = p.getProperty("testrunner");
+
+        ArrayList<String> includes = getIncludesExcludes(p.getProperty("includes"));
+        ArrayList<String> excludes = getIncludesExcludes(p.getProperty("excludes"));
+
+        ClassLoader testClassLoader = getBundleClassLoader(plugin);
+        ClassLoader surefireClassLoader = Surefire.class.getClassLoader();
+
+        Surefire surefire = new Surefire();
+
+        List reports = new ArrayList();
+        reports.add(new Object[] { "org.apache.maven.surefire.report.BriefConsoleReporter", new Object[] { Boolean.TRUE /* trimStackTrace */
+        } });
+        reports.add(new Object[] { "org.apache.maven.surefire.report.FileReporter",
+                new Object[] { reportsDir, Boolean.TRUE /* trimStackTrace */
+                } });
+        reports.add(new Object[] { "org.apache.maven.surefire.report.XMLReporter",
+                new Object[] { reportsDir, Boolean.TRUE /* trimStackTrace */
+                } });
+
+        List tests = new ArrayList();
+        tests.add(new Object[] { runner, new Object[] { testDir, includes, excludes } });
+
+        Boolean failIfNoTests;
+        if ("false".equalsIgnoreCase(p.getProperty("failifnotests"))) {
+            failIfNoTests = Boolean.FALSE;
+        } else {
+            failIfNoTests = Boolean.TRUE;
+        }
+        return surefire.run(reports, tests, surefireClassLoader, testClassLoader, failIfNoTests);
+    }
+
+    private static File getTestProperties(String[] args) throws CoreException {
+        String arg = null;
+        for (int i = 0; i < args.length; i++) {
+            if ("-testproperties".equals(args[i].toLowerCase())) {
+                arg = args[i + 1];
+                break;
             }
-        });
-		reports.add(new Object[] {
-			"org.apache.maven.surefire.report.XMLReporter",
-			new Object[] {
-				reportsDir,
-				Boolean.TRUE /*trimStackTrace*/
-			}
-		});
+        }
+        if (arg != null) {
+            File file = new File(arg);
+            if (file.canRead()) {
+                return file;
+            }
+        }
+        throw new CoreException(
+                new Status(
+                        IStatus.ERROR,
+                        Activator.PLUGIN_ID,
+                        0,
+                        "-testproperties command line parameter is not specified or does not point to an accessible file",
+                        null));
+    }
 
-		List tests = new ArrayList();
-		tests.add(new Object[] {
-			runner,
-			new Object[] {
-				testDir,
-				includes,
-				excludes
-			}
-		});
+    private static ArrayList<String> getIncludesExcludes(String string) {
+        ArrayList<String> list = new ArrayList<String>();
+        if (string != null) {
+            list.addAll(Arrays.asList(string.split(",")));
+        }
+        return list;
+    }
 
-		Boolean failIfNoTests;
-		if ("false".equalsIgnoreCase(p.getProperty("failifnotests"))) {
-			failIfNoTests = Boolean.FALSE;
-		} else {
-			failIfNoTests = Boolean.TRUE;
-		}
-		return surefire.run(reports, tests, surefireClassLoader, testClassLoader, failIfNoTests);
-	}
+    private static Properties loadProperties(File file) throws IOException {
+        Properties p = new Properties();
+        BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+        try {
+            p.load(in);
+        } finally {
+            in.close();
+        }
+        return p;
+    }
 
-	private static File getTestProperties(String[] args) throws CoreException {
-		String arg = null; 
-		for (int i = 0; i < args.length; i++) {
-			if ("-testproperties".equals(args[i].toLowerCase())) {
-				arg = args[i+1];
-				break;
-			}
-		}
-		if (arg != null) {
-			File file = new File(arg);
-			if (file.canRead()) {
-				return file;
-			}
-		}
-		throw new CoreException(new Status(IStatus.ERROR, Activator.PLUGIN_ID, 0, "-testproperties command line parameter is not specified or does not point to an accessible file", null));
-	}
+    private static ClassLoader getBundleClassLoader(String symbolicName) throws BundleException {
+        Bundle bundle = Activator.getBundle(symbolicName);
+        if (bundle == null) {
+            throw new RuntimeException("Bundle " + symbolicName + " is not found");
+        }
 
-	private static ArrayList<String> getIncludesExcludes(String string) {
-		ArrayList<String> list = new ArrayList<String>();
-		if (string != null) {
-			list.addAll(Arrays.asList(string.split(",")));
-		}
-		return list;
-	}
+        Set<ResolverError> errors = Activator.getResolutionErrors(bundle);
+        if (errors.size() > 0) {
+            System.err.println("Resolution errors for " + bundle.toString());
+            for (ResolverError error : errors) {
+                System.err.println("\t" + error.toString());
+            }
+        }
 
-	private static Properties loadProperties(File file) throws IOException {
-		Properties p = new Properties();
-		BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-		try {
-			p.load(in);
-		} finally {
-			in.close();
-		}
-		return p;
-	}
+        bundle.start();
 
-	private static ClassLoader getBundleClassLoader(String symbolicName) throws BundleException {
-		Bundle bundle = Activator.getBundle(symbolicName);
-		if (bundle == null) {
-			throw new RuntimeException("Bundle " + symbolicName + " is not found");
-		}
+        return new BundleClassLoader(bundle);
+    }
 
-		Set<ResolverError> errors = Activator.getResolutionErrors(bundle);
-		if (errors.size() > 0) {
-			System.err.println("Resolution errors for " + bundle.toString());
-			for (ResolverError error : errors) {
-				System.err.println("\t" + error.toString());
-			}
-		}
+    private static class BundleClassLoader extends ClassLoader {
+        private Bundle bundle;
 
-		bundle.start();
+        public BundleClassLoader(Bundle target) {
+            this.bundle = target;
+        }
 
-		return new BundleClassLoader(bundle);
-	}
+        protected Class findClass(String name) throws ClassNotFoundException {
+            return bundle.loadClass(name);
+        }
 
-	private static class BundleClassLoader extends ClassLoader {
-		private Bundle bundle;
+        protected URL findResource(String name) {
+            return bundle.getResource(name);
+        }
 
-		public BundleClassLoader(Bundle target) {
-			this.bundle = target;
-		}
-
-		protected Class findClass(String name) throws ClassNotFoundException {
-			return bundle.loadClass(name);
-		}
-
-		protected URL findResource(String name) {
-			return bundle.getResource(name);
-		}
-
-		protected Enumeration findResources(String name) throws IOException {
-			return bundle.getResources(name);
-		}
-	}
+        protected Enumeration findResources(String name) throws IOException {
+            return bundle.getResources(name);
+        }
+    }
 }

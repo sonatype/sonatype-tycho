@@ -13,8 +13,7 @@ package org.eclipse.tycho.launching;
 import java.io.File;
 import java.util.Map;
 
-public interface LaunchConfiguration
-{
+public interface LaunchConfiguration {
     public Map<String, String> getEnvironment();
 
     public File getWorkingDirectory();

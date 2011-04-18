@@ -17,9 +17,7 @@ import org.eclipse.tycho.ArtifactDescriptor;
 import org.eclipse.tycho.ArtifactKey;
 import org.eclipse.tycho.ReactorProject;
 
-public class DefaultArtifactDescriptor
-    implements ArtifactDescriptor
-{
+public class DefaultArtifactDescriptor implements ArtifactDescriptor {
 
     private final ArtifactKey key;
 
@@ -31,9 +29,8 @@ public class DefaultArtifactDescriptor
 
     private final Set<Object> installableUnits;
 
-    public DefaultArtifactDescriptor( ArtifactKey key, File location, ReactorProject project, String classifier,
-                                      Set<Object> installableUnits )
-    {
+    public DefaultArtifactDescriptor(ArtifactKey key, File location, ReactorProject project, String classifier,
+            Set<Object> installableUnits) {
         this.key = key;
         this.location = location;
         this.project = project;
@@ -41,43 +38,34 @@ public class DefaultArtifactDescriptor
         this.installableUnits = installableUnits;
     }
 
-    public ArtifactKey getKey()
-    {
+    public ArtifactKey getKey() {
         return key;
     }
 
-    public File getLocation()
-    {
+    public File getLocation() {
         return location;
     }
 
-    public ReactorProject getMavenProject()
-    {
+    public ReactorProject getMavenProject() {
         return project;
     }
 
-    public String getClassifier()
-    {
+    public String getClassifier() {
         return classifier;
     }
 
-    public Set<Object> getInstallableUnits()
-    {
+    public Set<Object> getInstallableUnits() {
         return installableUnits;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append( key.toString() ).append( ": " );
-        if ( project != null )
-        {
-            sb.append( project.toString() );
-        }
-        else
-        {
-            sb.append( location );
+        sb.append(key.toString()).append(": ");
+        if (project != null) {
+            sb.append(project.toString());
+        } else {
+            sb.append(location);
         }
         return sb.toString();
     }

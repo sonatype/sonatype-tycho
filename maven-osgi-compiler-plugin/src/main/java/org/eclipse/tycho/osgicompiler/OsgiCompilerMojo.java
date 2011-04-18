@@ -19,7 +19,6 @@ package org.eclipse.tycho.osgicompiler;
 import java.io.File;
 import java.util.List;
 
-
 /**
  * @goal compile
  * @phase compile
@@ -28,32 +27,30 @@ import java.util.List;
  */
 public class OsgiCompilerMojo extends AbstractOsgiCompilerMojo {
 
-	/**
-	 * The source directories containing the test-source to be compiled.
-	 * 
-	 * @parameter expression="${project.compileSourceRoots}"
-	 * @required
-	 * @readonly
-	 */
-	private List<String> compileSourceRoots;
+    /**
+     * The source directories containing the test-source to be compiled.
+     * 
+     * @parameter expression="${project.compileSourceRoots}"
+     * @required
+     * @readonly
+     */
+    private List<String> compileSourceRoots;
 
-	/**
-	 * The directory where compiled test classes go.
-	 * 
-	 * @parameter expression="${project.build.outputDirectory}"
-	 * @required
-	 * @readonly
-	 */
-	private File outputDirectory;
+    /**
+     * The directory where compiled test classes go.
+     * 
+     * @parameter expression="${project.build.outputDirectory}"
+     * @required
+     * @readonly
+     */
+    private File outputDirectory;
 
-	@Override
-    protected List<String> getConfiguredCompileSourceRoots()
-    {
+    @Override
+    protected List<String> getConfiguredCompileSourceRoots() {
         return compileSourceRoots;
     }
 
-    protected File getConfiguredOutputDirectory()
-    {
+    protected File getConfiguredOutputDirectory() {
         return outputDirectory;
     }
 

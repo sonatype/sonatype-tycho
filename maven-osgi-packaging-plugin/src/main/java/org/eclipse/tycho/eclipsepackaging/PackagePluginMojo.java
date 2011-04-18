@@ -40,153 +40,149 @@ import org.eclipse.tycho.core.osgitools.project.EclipsePluginProject;
  */
 public class PackagePluginMojo extends AbstractTychoPackagingMojo {
 
-	/**
-	 * @parameter expression="${project.build.directory}"
-	 * @required
-	 */
-	protected File buildDirectory;
+    /**
+     * @parameter expression="${project.build.directory}"
+     * @required
+     */
+    protected File buildDirectory;
 
-	protected EclipsePluginProject pdeProject;
+    protected EclipsePluginProject pdeProject;
 
-	/**
-	 * The Jar archiver.
-	 * 
-	 * parameter expression="${component.org.codehaus.plexus.archiver.Archiver#jar}"
-	 * required
-	 */
-	private JarArchiver jarArchiver = new JarArchiver();
+    /**
+     * The Jar archiver.
+     * 
+     * parameter expression="${component.org.codehaus.plexus.archiver.Archiver#jar}" required
+     */
+    private JarArchiver jarArchiver = new JarArchiver();
 
-	/**
-	 * Name of the generated JAR.
-	 * 
-	 * @parameter alias="jarName" expression="${project.build.finalName}"
-	 * @required
-	 */
-	protected String finalName;
+    /**
+     * Name of the generated JAR.
+     * 
+     * @parameter alias="jarName" expression="${project.build.finalName}"
+     * @required
+     */
+    protected String finalName;
 
-	/**
-	 * The maven archiver to use.
-	 * 
-	 * @parameter
-	 */
-	private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
+    /**
+     * The maven archiver to use.
+     * 
+     * @parameter
+     */
+    private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
-	public void execute() throws MojoExecutionException {
-		pdeProject = (EclipsePluginProject) project.getContextValue( TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT );
-		
-		expandVersion();
+    public void execute() throws MojoExecutionException {
+        pdeProject = (EclipsePluginProject) project.getContextValue(TychoConstants.CTX_ECLIPSE_PLUGIN_PROJECT);
 
-		createSubJars();
+        expandVersion();
 
-		File pluginFile = createPluginJar();
+        createSubJars();
 
-		project.getArtifact().setFile(pluginFile);
-	}
+        File pluginFile = createPluginJar();
 
-	private void createSubJars() throws MojoExecutionException {
-	    BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
+        project.getArtifact().setFile(pluginFile);
+    }
+
+    private void createSubJars() throws MojoExecutionException {
+        BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
         String dotOutputJarName = dotOutputJar != null ? dotOutputJar.getName() : ".";
-		for (BuildOutputJar jar : pdeProject.getOutputJars()) {
-            if (!jar.getName().equals( dotOutputJarName )) {
-				makeJar(jar.getName(), jar.getOutputDirectory());
-			}
-		}
-	}
+        for (BuildOutputJar jar : pdeProject.getOutputJars()) {
+            if (!jar.getName().equals(dotOutputJarName)) {
+                makeJar(jar.getName(), jar.getOutputDirectory());
+            }
+        }
+    }
 
-	private File makeJar(String jarName, File classesFolder) throws MojoExecutionException {
-		try {
-			File jarFile = new File(project.getBasedir(), jarName);
-			JarArchiver archiver = new JarArchiver();
-			archiver.setDestFile(jarFile);
-			archiver.addDirectory(classesFolder);
-	        archiver.createArchive();
-			return jarFile;
-		} catch (Exception e) {
-			throw new MojoExecutionException("Could not create jar " + jarName, e);
-		}
-	}
+    private File makeJar(String jarName, File classesFolder) throws MojoExecutionException {
+        try {
+            File jarFile = new File(project.getBasedir(), jarName);
+            JarArchiver archiver = new JarArchiver();
+            archiver.setDestFile(jarFile);
+            archiver.addDirectory(classesFolder);
+            archiver.createArchive();
+            return jarFile;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Could not create jar " + jarName, e);
+        }
+    }
 
-	private File createPluginJar() throws MojoExecutionException {
-		try {
-			MavenArchiver archiver = new MavenArchiver();
-			archiver.setArchiver(jarArchiver);
+    private File createPluginJar() throws MojoExecutionException {
+        try {
+            MavenArchiver archiver = new MavenArchiver();
+            archiver.setArchiver(jarArchiver);
 
-			File pluginFile = new File(buildDirectory, finalName + ".jar");
-			if (pluginFile.exists()) {
-				pluginFile.delete();
-			}
-			Properties buildProperties = pdeProject.getBuildProperties();
-			List<String> binInludesList = toFilePattern(buildProperties.getProperty("bin.includes"));
-			List<String> binExcludesList = toFilePattern(buildProperties.getProperty("bin.excludes"));
+            File pluginFile = new File(buildDirectory, finalName + ".jar");
+            if (pluginFile.exists()) {
+                pluginFile.delete();
+            }
+            Properties buildProperties = pdeProject.getBuildProperties();
+            List<String> binInludesList = toFilePattern(buildProperties.getProperty("bin.includes"));
+            List<String> binExcludesList = toFilePattern(buildProperties.getProperty("bin.excludes"));
 
-			BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
-			if (dotOutputJar != null && binInludesList.contains(dotOutputJar.getName())) {
-			    String prefix;
-                if ( dotOutputJar.getName().endsWith( "/" ) )
-                {
-				    // prefix is a relative path to folder inside the jar: something like WEB-INF/classes/
-				    prefix = dotOutputJar.getName();
-				} else {
-				    // dotOutputJar.getName().equals(".")
-				    prefix = "";
-				}
-				archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory(), prefix);
-			}
-			
-			if (binInludesList.size() > 0) {
-				archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), binInludesList, binExcludesList));
-			}
+            BuildOutputJar dotOutputJar = pdeProject.getDotOutputJar();
+            if (dotOutputJar != null && binInludesList.contains(dotOutputJar.getName())) {
+                String prefix;
+                if (dotOutputJar.getName().endsWith("/")) {
+                    // prefix is a relative path to folder inside the jar: something like WEB-INF/classes/
+                    prefix = dotOutputJar.getName();
+                } else {
+                    // dotOutputJar.getName().equals(".")
+                    prefix = "";
+                }
+                archiver.getArchiver().addDirectory(dotOutputJar.getOutputDirectory(), prefix);
+            }
 
-			File manifest = updateManifest();
-			if (manifest.exists()) {
-				archive.setManifestFile(manifest);
-			}
+            if (binInludesList.size() > 0) {
+                archiver.getArchiver().addFileSet(getFileSet(project.getBasedir(), binInludesList, binExcludesList));
+            }
 
-			archiver.setOutputFile(pluginFile);
-            if ( !archive.isForced() )
-            {
+            File manifest = updateManifest();
+            if (manifest.exists()) {
+                archive.setManifestFile(manifest);
+            }
+
+            archiver.setOutputFile(pluginFile);
+            if (!archive.isForced()) {
                 // optimized archive creation not supported for now because of build qualifier mismatch issues
                 // see TYCHO-502
-                getLog().warn( "ignoring unsupported archive forced = false parameter." );
-                archive.setForced( true );
+                getLog().warn("ignoring unsupported archive forced = false parameter.");
+                archive.setForced(true);
             }
-			archiver.createArchive(project, archive);
+            archiver.createArchive(project, archive);
 
-			return pluginFile;
-		} catch (Exception e) {
-			throw new MojoExecutionException("Error assembling JAR", e);
-		}
-	}
+            return pluginFile;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error assembling JAR", e);
+        }
+    }
 
-	private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException 
-	{
-		File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
+    private File updateManifest() throws FileNotFoundException, IOException, MojoExecutionException {
+        File mfile = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
 
-		InputStream is = new FileInputStream(mfile);
-		Manifest mf;
-		try {
-			mf = new Manifest(is);
-		} finally {
-			is.close();
-		}
-		Attributes attributes = mf.getMainAttributes();
+        InputStream is = new FileInputStream(mfile);
+        Manifest mf;
+        try {
+            mf = new Manifest(is);
+        } finally {
+            is.close();
+        }
+        Attributes attributes = mf.getMainAttributes();
 
-		if (attributes.getValue(Name.MANIFEST_VERSION) == null) {
-		    attributes.put(Name.MANIFEST_VERSION, "1.0");
-		}
+        if (attributes.getValue(Name.MANIFEST_VERSION) == null) {
+            attributes.put(Name.MANIFEST_VERSION, "1.0");
+        }
 
-        ReactorProject reactorProject = DefaultReactorProject.adapt( project );
+        ReactorProject reactorProject = DefaultReactorProject.adapt(project);
         attributes.putValue("Bundle-Version", reactorProject.getExpandedVersion());
 
-		mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
-		mfile.getParentFile().mkdirs();
-		BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(mfile));
-		try {
-			mf.write(os);
-		} finally {
-			os.close();
-		}
+        mfile = new File(project.getBuild().getDirectory(), "MANIFEST.MF");
+        mfile.getParentFile().mkdirs();
+        BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(mfile));
+        try {
+            mf.write(os);
+        } finally {
+            os.close();
+        }
 
-		return mfile;
-	}
+        return mfile;
+    }
 }

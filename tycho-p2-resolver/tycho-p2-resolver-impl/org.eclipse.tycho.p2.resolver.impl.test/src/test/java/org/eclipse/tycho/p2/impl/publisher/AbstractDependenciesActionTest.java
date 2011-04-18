@@ -20,60 +20,46 @@ import org.eclipse.tycho.p2.impl.publisher.AbstractDependenciesAction;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractDependenciesActionTest
-{
+public class AbstractDependenciesActionTest {
 
     private AbstractDependenciesAction dependenciesAction;
 
-    private static final class DependenciesAction
-        extends AbstractDependenciesAction
-    {
+    private static final class DependenciesAction extends AbstractDependenciesAction {
         @Override
-        protected Version getVersion()
-        {
+        protected Version getVersion() {
             return null;
         }
 
         @Override
-        protected Set<IRequirement> getRequiredCapabilities()
-        {
+        protected Set<IRequirement> getRequiredCapabilities() {
             return null;
         }
 
         @Override
-        protected String getId()
-        {
+        protected String getId() {
             return null;
         }
     }
 
     @Before
-    public void setup()
-    {
+    public void setup() {
         dependenciesAction = new DependenciesAction();
     }
 
     @Test
-    public void testOsWsArchFilter()
-        throws Exception
-    {
-        assertEquals( "(& (osgi.os=test-os) (osgi.ws=test-ws) (osgi.arch=test-arch) )",
-                      dependenciesAction.getFilter( "test-os", "test-ws", "test-arch" ) );
+    public void testOsWsArchFilter() throws Exception {
+        assertEquals("(& (osgi.os=test-os) (osgi.ws=test-ws) (osgi.arch=test-arch) )",
+                dependenciesAction.getFilter("test-os", "test-ws", "test-arch"));
     }
 
     @Test
-    public void testOsArchFilter()
-        throws Exception
-    {
-        assertEquals( "(& (osgi.os=test-os) (osgi.arch=test-arch) )",
-                      dependenciesAction.getFilter( "test-os", null, "test-arch" ) );
+    public void testOsArchFilter() throws Exception {
+        assertEquals("(& (osgi.os=test-os) (osgi.arch=test-arch) )",
+                dependenciesAction.getFilter("test-os", null, "test-arch"));
     }
 
     @Test
-    public void testOsFilter()
-        throws Exception
-    {
-        assertEquals( "(osgi.os=test-os)",
-                      dependenciesAction.getFilter( "test-os", null, null ) );
+    public void testOsFilter() throws Exception {
+        assertEquals("(osgi.os=test-os)", dependenciesAction.getFilter("test-os", null, null));
     }
 }

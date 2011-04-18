@@ -40,49 +40,42 @@ import org.apache.maven.plugin.version.PluginVersionResolutionException;
 import org.apache.maven.project.MavenProject;
 
 /**
- * A stub implementation that assumes an empty lifecycle to bypass interaction with the plugin manager and to avoid
- * plugin artifact resolution from repositories.
+ * A stub implementation that assumes an empty lifecycle to bypass interaction with the plugin
+ * manager and to avoid plugin artifact resolution from repositories.
  * 
  * @author Benjamin Bentmann
  */
-public class EmptyLifecycleExecutor
-    implements LifecycleExecutor
-{
+public class EmptyLifecycleExecutor implements LifecycleExecutor {
 
-    public Set<Plugin> getPluginsBoundByDefaultToAllLifecycles( String packaging )
-    {
+    public Set<Plugin> getPluginsBoundByDefaultToAllLifecycles(String packaging) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public MavenExecutionPlan calculateExecutionPlan( MavenSession session, String... tasks )
-        throws PluginNotFoundException, PluginResolutionException, PluginDescriptorParsingException,
-        MojoNotFoundException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException,
-        PluginManagerException, LifecyclePhaseNotFoundException, LifecycleNotFoundException,
-        PluginVersionResolutionException
-    {
+    public MavenExecutionPlan calculateExecutionPlan(MavenSession session, String... tasks)
+            throws PluginNotFoundException, PluginResolutionException, PluginDescriptorParsingException,
+            MojoNotFoundException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException,
+            PluginManagerException, LifecyclePhaseNotFoundException, LifecycleNotFoundException,
+            PluginVersionResolutionException {
         // TODO Auto-generated method stub
         return null;
     }
 
-    public void execute( MavenSession session )
-    {
+    public void execute(MavenSession session) {
         // TODO Auto-generated method stub
-        
+
     }
 
-    public void calculateForkedExecutions( MojoExecution mojoExecution, MavenSession session )
-        throws MojoNotFoundException, PluginNotFoundException, PluginResolutionException,
-        PluginDescriptorParsingException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException,
-        LifecyclePhaseNotFoundException, LifecycleNotFoundException, PluginVersionResolutionException
-    {
+    public void calculateForkedExecutions(MojoExecution mojoExecution, MavenSession session)
+            throws MojoNotFoundException, PluginNotFoundException, PluginResolutionException,
+            PluginDescriptorParsingException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException,
+            LifecyclePhaseNotFoundException, LifecycleNotFoundException, PluginVersionResolutionException {
         // TODO Auto-generated method stub
-        
+
     }
 
-    public List<MavenProject> executeForkedExecutions( MojoExecution mojoExecution, MavenSession session )
-        throws LifecycleExecutionException
-    {
+    public List<MavenProject> executeForkedExecutions(MojoExecution mojoExecution, MavenSession session)
+            throws LifecycleExecutionException {
         // TODO Auto-generated method stub
         return null;
     }

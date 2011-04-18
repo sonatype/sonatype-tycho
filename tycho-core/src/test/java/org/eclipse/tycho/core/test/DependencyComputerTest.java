@@ -29,64 +29,54 @@ import org.eclipse.tycho.testing.AbstractTychoMojoTestCase;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DependencyComputerTest
-    extends AbstractTychoMojoTestCase
-{
+public class DependencyComputerTest extends AbstractTychoMojoTestCase {
     private DependencyComputer dependencyComputer;
 
-    protected void setUp()
-        throws Exception
-    {
+    protected void setUp() throws Exception {
         super.setUp();
-        dependencyComputer = (DependencyComputer) lookup( DependencyComputer.class );
+        dependencyComputer = (DependencyComputer) lookup(DependencyComputer.class);
     }
 
     @Override
-    protected void tearDown()
-        throws Exception
-    {
+    protected void tearDown() throws Exception {
         dependencyComputer = null;
         super.tearDown();
     }
 
     @Test
-    public void testExportPackage()
-        throws Exception
-    {
-        File basedir = getBasedir( "projects/exportpackage" );
-        File pom = new File( basedir, "pom.xml" );
-        MavenExecutionRequest request = newMavenExecutionRequest( pom );
-        request.getProjectBuildingRequest().setProcessPlugins( false );
-        MavenExecutionResult result = maven.execute( request );
+    public void testExportPackage() throws Exception {
+        File basedir = getBasedir("projects/exportpackage");
+        File pom = new File(basedir, "pom.xml");
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getProjectBuildingRequest().setProcessPlugins(false);
+        MavenExecutionResult result = maven.execute(request);
 
-        EquinoxResolver resolver = lookup( EquinoxResolver.class );
+        EquinoxResolver resolver = lookup(EquinoxResolver.class);
 
-        Map<File, MavenProject> basedirMap = MavenSessionUtils.getBasedirMap( result.getTopologicallySortedProjects() );
+        Map<File, MavenProject> basedirMap = MavenSessionUtils.getBasedirMap(result.getTopologicallySortedProjects());
 
-        MavenProject project = basedirMap.get( new File( basedir, "bundle" ) );
-        TargetPlatform platform = (TargetPlatform) project.getContextValue( TychoConstants.CTX_TARGET_PLATFORM );
+        MavenProject project = basedirMap.get(new File(basedir, "bundle"));
+        TargetPlatform platform = (TargetPlatform) project.getContextValue(TychoConstants.CTX_TARGET_PLATFORM);
 
-        State state = resolver.newResolvedState( project, platform );
-        BundleDescription bundle = state.getBundleByLocation( project.getBasedir().getAbsolutePath() );
+        State state = resolver.newResolvedState(project, platform);
+        BundleDescription bundle = state.getBundleByLocation(project.getBasedir().getAbsolutePath());
 
-        List<DependencyEntry> dependencies = dependencyComputer.computeDependencies( state.getStateHelper(), bundle );
-        Assert.assertEquals( 3, dependencies.size() );
-        Assert.assertEquals( "dep", dependencies.get( 0 ).desc.getSymbolicName() );
-        Assert.assertEquals( "dep2", dependencies.get( 1 ).desc.getSymbolicName() );
-        Assert.assertEquals( "dep3", dependencies.get( 2 ).desc.getSymbolicName() );
-        Assert.assertTrue( dependencies.get( 2 ).rules.isEmpty() );
+        List<DependencyEntry> dependencies = dependencyComputer.computeDependencies(state.getStateHelper(), bundle);
+        Assert.assertEquals(3, dependencies.size());
+        Assert.assertEquals("dep", dependencies.get(0).desc.getSymbolicName());
+        Assert.assertEquals("dep2", dependencies.get(1).desc.getSymbolicName());
+        Assert.assertEquals("dep3", dependencies.get(2).desc.getSymbolicName());
+        Assert.assertTrue(dependencies.get(2).rules.isEmpty());
     }
 
     @Test
-    public void testTYCHO0378unwantedSelfDependency()
-        throws Exception
-    {
-        File basedir = getBasedir( "projects/TYCHO0378unwantedSelfDependency" );
-        File pom = new File( basedir, "pom.xml" );
-        MavenExecutionRequest request = newMavenExecutionRequest( pom );
-        request.getProjectBuildingRequest().setProcessPlugins( false );
-        MavenExecutionResult result = maven.execute( request );
+    public void testTYCHO0378unwantedSelfDependency() throws Exception {
+        File basedir = getBasedir("projects/TYCHO0378unwantedSelfDependency");
+        File pom = new File(basedir, "pom.xml");
+        MavenExecutionRequest request = newMavenExecutionRequest(pom);
+        request.getProjectBuildingRequest().setProcessPlugins(false);
+        MavenExecutionResult result = maven.execute(request);
 
-        Assert.assertEquals( 0, result.getProject().getDependencies().size() );
+        Assert.assertEquals(0, result.getProject().getDependencies().size());
     }
 }

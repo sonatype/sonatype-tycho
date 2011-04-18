@@ -19,9 +19,7 @@ import org.eclipse.tycho.core.TargetEnvironment;
 import org.eclipse.tycho.core.osgitools.BundleReader;
 import org.eclipse.tycho.model.PluginRef;
 
-public class ProductAssembler
-    extends UpdateSiteAssembler
-{
+public class ProductAssembler extends UpdateSiteAssembler {
 
     private final TargetEnvironment environment;
 
@@ -29,58 +27,50 @@ public class ProductAssembler
 
     private final BundleReader manifestReader;
 
-    public ProductAssembler( MavenSession session, BundleReader manifestReader, File target, TargetEnvironment environment )
-    {
-        super( session, target );
+    public ProductAssembler(MavenSession session, BundleReader manifestReader, File target,
+            TargetEnvironment environment) {
+        super(session, target);
         this.manifestReader = manifestReader;
-        setUnpackPlugins( true );
-        setUnpackFeatures( true );
+        setUnpackPlugins(true);
+        setUnpackFeatures(true);
         this.environment = environment;
     }
-    
+
     @Override
-    public void visitPlugin( PluginDescription plugin )
-    {
-        if ( !matchEntivonment( plugin ) )
-        {
+    public void visitPlugin(PluginDescription plugin) {
+        if (!matchEntivonment(plugin)) {
             return;
         }
 
-        if ( !includeSources && isSourceBundle( plugin ) )
-        {
+        if (!includeSources && isSourceBundle(plugin)) {
             return;
         }
 
-        super.visitPlugin( plugin );
+        super.visitPlugin(plugin);
     }
 
-    private boolean isSourceBundle( PluginDescription plugin )
-    {
-        Manifest mf = manifestReader.loadManifest( plugin.getLocation() );
-        return manifestReader.parseHeader( "Eclipse-SourceBundle", mf ) != null;
+    private boolean isSourceBundle(PluginDescription plugin) {
+        Manifest mf = manifestReader.loadManifest(plugin.getLocation());
+        return manifestReader.parseHeader("Eclipse-SourceBundle", mf) != null;
     }
 
     @Override
-    protected boolean isDirectoryShape( PluginDescription plugin, File location )
-    {
-        if ( super.isDirectoryShape( plugin, location ) )
-        {
+    protected boolean isDirectoryShape(PluginDescription plugin, File location) {
+        if (super.isDirectoryShape(plugin, location)) {
             return true;
         }
 
-        Manifest mf = manifestReader.loadManifest( location );
+        Manifest mf = manifestReader.loadManifest(location);
 
-        return manifestReader.isDirectoryShape( mf );
+        return manifestReader.isDirectoryShape(mf);
     }
 
-    protected boolean matchEntivonment( PluginDescription plugin )
-    {
+    protected boolean matchEntivonment(PluginDescription plugin) {
         PluginRef ref = plugin.getPluginRef();
-        return ref == null || environment == null || environment.match( ref.getOs(), ref.getWs(), ref.getArch() );
+        return ref == null || environment == null || environment.match(ref.getOs(), ref.getWs(), ref.getArch());
     }
 
-    public void setIncludeSources( boolean includeSources )
-    {
+    public void setIncludeSources(boolean includeSources) {
         this.includeSources = includeSources;
     }
 

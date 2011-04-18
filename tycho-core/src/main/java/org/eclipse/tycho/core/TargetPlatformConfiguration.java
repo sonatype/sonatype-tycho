@@ -15,8 +15,7 @@ import java.util.List;
 
 import org.eclipse.tycho.model.Target;
 
-public class TargetPlatformConfiguration
-{
+public class TargetPlatformConfiguration {
 
     public static final String POM_DEPENDENCIES_CONSIDER = "consider";
 
@@ -40,73 +39,59 @@ public class TargetPlatformConfiguration
      * 
      * @see #isImplicitTargetEnvironment()
      */
-    public List<TargetEnvironment> getEnvironments()
-    {
+    public List<TargetEnvironment> getEnvironments() {
         return environments;
     }
 
-    public String getTargetPlatformResolver()
-    {
+    public String getTargetPlatformResolver() {
         return resolver;
     }
 
-    public Target getTarget()
-    {
+    public Target getTarget() {
         return target;
     }
 
-    public void addEnvironment( TargetEnvironment environment )
-    {
-        this.environments.add( environment );
+    public void addEnvironment(TargetEnvironment environment) {
+        this.environments.add(environment);
     }
 
-    public void setResolver( String resolver )
-    {
+    public void setResolver(String resolver) {
         this.resolver = resolver;
     }
 
-    public void setTarget( Target target )
-    {
+    public void setTarget(Target target) {
         this.target = target;
     }
 
-    public void setPomDependencies( String pomDependencies )
-    {
+    public void setPomDependencies(String pomDependencies) {
         this.pomDependencies = pomDependencies;
     }
 
-    public String getPomDependencies()
-    {
+    public String getPomDependencies() {
         return pomDependencies;
     }
 
-    public void setIgnoreTychoRepositories( boolean ignoreTychoRepositories )
-    {
+    public void setIgnoreTychoRepositories(boolean ignoreTychoRepositories) {
         this.ignoreTychoRepositories = ignoreTychoRepositories;
     }
 
-    public boolean isIgnoreTychoRepositories()
-    {
+    public boolean isIgnoreTychoRepositories() {
         return ignoreTychoRepositories;
     }
 
-    public boolean isImplicitTargetEnvironment()
-    {
+    public boolean isImplicitTargetEnvironment() {
         return implicitTargetEnvironment;
     }
 
-    public void setImplicitTargetEnvironment( boolean implicitTargetEnvironment )
-    {
+    public void setImplicitTargetEnvironment(boolean implicitTargetEnvironment) {
         this.implicitTargetEnvironment = implicitTargetEnvironment;
     }
 
-    public void setAllowConflictingDependencies( Boolean allow )
-    {
+    public void setAllowConflictingDependencies(Boolean allow) {
         this.allowConflictingDependencies = allow;
     }
 
-    public Boolean getAllowConflictingDependencies()
-    {
+    public Boolean getAllowConflictingDependencies() {
         return allowConflictingDependencies;
     }
 }

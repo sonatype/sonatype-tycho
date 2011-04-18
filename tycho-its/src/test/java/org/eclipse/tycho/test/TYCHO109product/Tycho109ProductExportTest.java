@@ -22,49 +22,45 @@ import org.junit.Test;
 
 public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 
-	@Test
-	public void exportFeatureProduct() throws Exception {
-		Verifier verifier;
-		if (isEclipse32Platform()) {
-			verifier = getVerifier("/TYCHO109product/eclipse32/feature-rcp");
-		} else {
-			verifier = getVerifier("/TYCHO109product/feature-rcp");
-		}
+    @Test
+    public void exportFeatureProduct() throws Exception {
+        Verifier verifier;
+        if (isEclipse32Platform()) {
+            verifier = getVerifier("/TYCHO109product/eclipse32/feature-rcp");
+        } else {
+            verifier = getVerifier("/TYCHO109product/feature-rcp");
+        }
 
-		verifier.executeGoal("package");
-		verifier.verifyErrorFreeLog();
+        verifier.executeGoal("package");
+        verifier.verifyErrorFreeLog();
 
-		File basedir = new File(verifier.getBasedir());
-		File output = new File(basedir, "HeadlessProduct/target/linux.gtk.x86_64/eclipse");
+        File basedir = new File(verifier.getBasedir());
+        File output = new File(basedir, "HeadlessProduct/target/linux.gtk.x86_64/eclipse");
 
-		Assert.assertTrue("Exported product folder not found\n"
-				+ output.getAbsolutePath(), output.isDirectory());
-		File launcher = new File(output, "launcher");
-		Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
-		Assert.assertTrue("config.ini not found", new File(output,
-				"configuration/config.ini").isFile());
+        Assert.assertTrue("Exported product folder not found\n" + output.getAbsolutePath(), output.isDirectory());
+        File launcher = new File(output, "launcher");
+        Assert.assertTrue("Launcher not found\n" + launcher, launcher.isFile());
+        Assert.assertTrue("config.ini not found", new File(output, "configuration/config.ini").isFile());
 
-		File plugins = new File(output, "plugins");
-		Assert.assertTrue("Plugins folder not found", plugins.isDirectory());
-		// On linux the number is not same, can't rely on that
-		/*
-		 * Assert.assertTrue("No found the expected plugins number", 324,
-		 * plugins.list().length);
-		 */
-		
-		//MNGECLIPSE-974
-		File headlessPlugin = new File(plugins, "HeadlessPlugin_1.0.0");
-		Assert.assertTrue("Plugin should be unpacked", headlessPlugin.isDirectory());
+        File plugins = new File(output, "plugins");
+        Assert.assertTrue("Plugins folder not found", plugins.isDirectory());
+        // On linux the number is not same, can't rely on that
+        /*
+         * Assert.assertTrue("No found the expected plugins number", 324, plugins.list().length);
+         */
 
-		File features = new File(output, "features");
-		Assert.assertTrue("Features folder not found", features.isDirectory());
-		// On linux the number is not same, can't rely on that
-		/*
-		 * Assert.assertEquals("No found the expected features number", 18,
-		 * features.list().length);
-		 */
+        //MNGECLIPSE-974
+        File headlessPlugin = new File(plugins, "HeadlessPlugin_1.0.0");
+        Assert.assertTrue("Plugin should be unpacked", headlessPlugin.isDirectory());
 
-		// launch to be sure
+        File features = new File(output, "features");
+        Assert.assertTrue("Features folder not found", features.isDirectory());
+        // On linux the number is not same, can't rely on that
+        /*
+         * Assert.assertEquals("No found the expected features number", 18, features.list().length);
+         */
+
+        // launch to be sure
 //		Commandline cmd = new Commandline();
 //		cmd.setExecutable(launcher.getAbsolutePath());
 //
@@ -75,7 +71,7 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 //		Assert.assertTrue("Didn't get a controlled exit\n"
 //				+ logWriter.toString(), logWriter.toString().startsWith(
 //				"Headless application OK!"));
-	}
+    }
 
 //	private File getLauncher(File output, String expectedName) {
 //		if (expectedName == null) {
@@ -94,23 +90,21 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
 //		}
 //	}
 
-	@Test
-	public void exportPluginRcpApplication() throws Exception {
-		if (isEclipse32Platform()) {
-			// regression test for TYCHO-199, no need to verify on e32 
-			return;
-		}
+    @Test
+    public void exportPluginRcpApplication() throws Exception {
+        if (isEclipse32Platform()) {
+            // regression test for TYCHO-199, no need to verify on e32 
+            return;
+        }
 
-		Verifier verifier = getVerifier("/TYCHO109product/plugin-rcp-app");
+        Verifier verifier = getVerifier("/TYCHO109product/plugin-rcp-app");
 
-		verifier.executeGoal("package");
-		verifier.verifyErrorFreeLog();
-	}
+        verifier.executeGoal("package");
+        verifier.verifyErrorFreeLog();
+    }
 
-	@Test
-	public void productNoZip() 
-	    throws Exception
-	{
+    @Test
+    public void productNoZip() throws Exception {
         if (isEclipse32Platform()) {
             // regression test for TYCHO-199, no need to verify on e32 
             return;
@@ -123,6 +117,6 @@ public class Tycho109ProductExportTest extends AbstractTychoIntegrationTest {
         verifier.verifyErrorFreeLog();
 
         File basedir = new File(verifier.getBasedir());
-        Assert.assertFalse( new File(basedir, "product/target/product-1.0.0.zip").canRead() );
-	}
+        Assert.assertFalse(new File(basedir, "product/target/product-1.0.0.zip").canRead());
+    }
 }

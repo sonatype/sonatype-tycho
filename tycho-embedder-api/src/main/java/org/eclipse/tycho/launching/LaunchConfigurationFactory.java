@@ -14,7 +14,6 @@ import java.util.List;
 
 import org.eclipse.tycho.ReactorProject;
 
-public interface LaunchConfigurationFactory
-{
-    public LaunchConfiguration createLaunchConfiguration( List<ReactorProject> reactorProjects );
+public interface LaunchConfigurationFactory {
+    public LaunchConfiguration createLaunchConfiguration(List<ReactorProject> reactorProjects);
 }

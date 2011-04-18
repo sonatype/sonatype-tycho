@@ -20,65 +20,50 @@ import org.eclipse.tycho.versions.engine.MetadataManipulator;
 import org.eclipse.tycho.versions.engine.ProjectMetadata;
 import org.eclipse.tycho.versions.engine.VersionChange;
 
-@Component( role = MetadataManipulator.class, hint = "bundle-manifest" )
-public class BundleManifestManipulator
-    extends AbstractMetadataManipulator
-{
+@Component(role = MetadataManipulator.class, hint = "bundle-manifest")
+public class BundleManifestManipulator extends AbstractMetadataManipulator {
 
-    public void applyChange( ProjectMetadata project, VersionChange change, Set<VersionChange> allChanges )
-    {
-        if ( isBundle( project ) )
-        {
+    public void applyChange(ProjectMetadata project, VersionChange change, Set<VersionChange> allChanges) {
+        if (isBundle(project)) {
             // only update bundle version for now
-            if ( isBundleVersionChange( change ) && isBundleIdEquals( project, change ) )
-            {
-                MutableBundleManifest mf = getBundleManifest( project );
+            if (isBundleVersionChange(change) && isBundleIdEquals(project, change)) {
+                MutableBundleManifest mf = getBundleManifest(project);
 
-                logger.info( "  META-INF/MANIFEST.MF//Bundle-Version: " + change.getVersion() + " => "
-                    + change.getNewVersion() );
+                logger.info("  META-INF/MANIFEST.MF//Bundle-Version: " + change.getVersion() + " => "
+                        + change.getNewVersion());
 
-                mf.setVersion( change.getNewVersion() );
+                mf.setVersion(change.getNewVersion());
             }
         }
     }
 
-    private boolean isBundleIdEquals( ProjectMetadata project, VersionChange change )
-    {
-        MutableBundleManifest mf = getBundleManifest( project );
-        return change.getArtifactId().equals( mf.getSymbolicName() ) && change.getVersion().equals( mf.getVersion() );
+    private boolean isBundleIdEquals(ProjectMetadata project, VersionChange change) {
+        MutableBundleManifest mf = getBundleManifest(project);
+        return change.getArtifactId().equals(mf.getSymbolicName()) && change.getVersion().equals(mf.getVersion());
     }
 
-    private MutableBundleManifest getBundleManifest( ProjectMetadata project )
-    {
-        MutableBundleManifest mf = project.getMetadata( MutableBundleManifest.class );
-        if ( mf == null )
-        {
-            File file = new File( project.getBasedir(), "META-INF/MANIFEST.MF" );
-            try
-            {
-                mf = MutableBundleManifest.read( file );
+    private MutableBundleManifest getBundleManifest(ProjectMetadata project) {
+        MutableBundleManifest mf = project.getMetadata(MutableBundleManifest.class);
+        if (mf == null) {
+            File file = new File(project.getBasedir(), "META-INF/MANIFEST.MF");
+            try {
+                mf = MutableBundleManifest.read(file);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Could not parse bundle manifest " + file, e);
             }
-            catch ( IOException e )
-            {
-                throw new IllegalArgumentException( "Could not parse bundle manifest " + file, e );
-            }
-            project.putMetadata( mf );
+            project.putMetadata(mf);
         }
         return mf;
     }
 
-    private boolean isBundleVersionChange( VersionChange change )
-    {
-        return isBundle( change.getProject() );
+    private boolean isBundleVersionChange(VersionChange change) {
+        return isBundle(change.getProject());
     }
 
-    public void writeMetadata( ProjectMetadata project )
-        throws IOException
-    {
-        MutableBundleManifest mf = project.getMetadata( MutableBundleManifest.class );
-        if ( mf != null )
-        {
-            MutableBundleManifest.write( mf, new File( project.getBasedir(), "META-INF/MANIFEST.MF" ) );
+    public void writeMetadata(ProjectMetadata project) throws IOException {
+        MutableBundleManifest mf = project.getMetadata(MutableBundleManifest.class);
+        if (mf != null) {
+            MutableBundleManifest.write(mf, new File(project.getBasedir(), "META-INF/MANIFEST.MF"));
         }
     }
 }

@@ -12,16 +12,14 @@ package org.eclipse.tycho.p2.tools;
 
 import java.util.HashMap;
 
-public class TargetEnvironment
-{
+public class TargetEnvironment {
     private final String ws;
 
     private final String os;
 
     private final String arch;
 
-    public TargetEnvironment( String ws, String os, String arch )
-    {
+    public TargetEnvironment(String ws, String os, String arch) {
         this.ws = ws;
         this.os = os;
         this.arch = arch;
@@ -30,24 +28,21 @@ public class TargetEnvironment
     /**
      * Returns the windowing system of the represented target environment.
      */
-    public String getWs()
-    {
+    public String getWs() {
         return ws;
     }
 
     /**
      * Returns the operating system of the represented target environment.
      */
-    public String getOs()
-    {
+    public String getOs() {
         return os;
     }
 
     /**
      * Returns the architecture of the represented target environment.
      */
-    public String getArch()
-    {
+    public String getArch() {
         return arch;
     }
 
@@ -55,8 +50,7 @@ public class TargetEnvironment
      * Returns the target environment as string of the form <code>ws.os.arch</code>. This format is
      * used by the p2 publishers and in that context called "configuration" or "config spec".
      */
-    public String toConfigSpec()
-    {
+    public String toConfigSpec() {
         return ws + '.' + os + '.' + arch;
     }
 
@@ -66,12 +60,11 @@ public class TargetEnvironment
      * 
      * @return a new instance of {@link HashMap} with the target environment set
      */
-    public HashMap<String, String> toFilter()
-    {
+    public HashMap<String, String> toFilter() {
         HashMap<String, String> result = new HashMap<String, String>();
-        result.put( "osgi.ws", ws );
-        result.put( "osgi.os", os );
-        result.put( "osgi.arch", arch );
+        result.put("osgi.ws", ws);
+        result.put("osgi.os", os);
+        result.put("osgi.arch", arch);
         return result;
     }
 }

@@ -25,9 +25,7 @@ import org.eclipse.tycho.p2.tools.mirroring.MirrorApplicationService;
 /**
  * @goal assemble-repository
  */
-public class AssembleRepositoryMojo
-    extends AbstractRepositoryMojo
-{
+public class AssembleRepositoryMojo extends AbstractRepositoryMojo {
     /**
      * Defines whether the artifacts of the included products, features, and bundles shall be
      * assembled into a p2 artifact repository. If <code>false</code>, only a p2 metadata repository
@@ -53,7 +51,7 @@ public class AssembleRepositoryMojo
      * @parameter default-value="true"
      */
     private boolean compress;
-    
+
     /**
      * Defines the name of the p2 repository. The default value is the project name.
      * 
@@ -67,46 +65,35 @@ public class AssembleRepositoryMojo
     /** @component */
     private EquinoxServiceFactory p2;
 
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
-        try
-        {
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        try {
             File destination = getAssemblyRepositoryLocation();
             destination.mkdirs();
 
-            Collection<?> rootIUs =
-                (Collection<?>) getProject().getContextValue( TychoConstants.CTX_PUBLISHED_ROOT_IUS );
-            if ( rootIUs == null || rootIUs.size() == 0 )
-            {
-                throw new MojoFailureException( "No content specified for p2 repository" );
+            Collection<?> rootIUs = (Collection<?>) getProject().getContextValue(TychoConstants.CTX_PUBLISHED_ROOT_IUS);
+            if (rootIUs == null || rootIUs.size() == 0) {
+                throw new MojoFailureException("No content specified for p2 repository");
             }
 
             RepositoryReferences sources = getVisibleRepositories();
 
             int flags = compress ? MirrorApplicationService.REPOSITORY_COMPRESS : 0;
-            if ( includeAllDependencies )
-            {
+            if (includeAllDependencies) {
                 flags = flags | MirrorApplicationService.INCLUDE_ALL_DEPENDENCIES;
             }
-            if ( createArtifactRepository )
-            {
+            if (createArtifactRepository) {
                 flags = flags | MirrorApplicationService.MIRROR_ARTIFACTS;
             }
 
-            MirrorApplicationService mirrorApp = p2.getService( MirrorApplicationService.class );
-            mirrorApp.mirror( sources, destination, rootIUs, getBuildContext(), flags, repositoryName );
-        }
-        catch ( FacadeException e )
-        {
-            throw new MojoExecutionException( "Could not assemble p2 repository", e );
+            MirrorApplicationService mirrorApp = p2.getService(MirrorApplicationService.class);
+            mirrorApp.mirror(sources, destination, rootIUs, getBuildContext(), flags, repositoryName);
+        } catch (FacadeException e) {
+            throw new MojoExecutionException("Could not assemble p2 repository", e);
         }
     }
 
-    protected RepositoryReferences getVisibleRepositories()
-        throws MojoExecutionException, MojoFailureException
-    {
+    protected RepositoryReferences getVisibleRepositories() throws MojoExecutionException, MojoFailureException {
         int flags = RepositoryReferenceTool.REPOSITORIES_INCLUDE_CURRENT_MODULE;
-        return repositoryReferenceTool.getVisibleRepositories( getProject(), getSession(), flags );
+        return repositoryReferenceTool.getVisibleRepositories(getProject(), getSession(), flags);
     }
 }

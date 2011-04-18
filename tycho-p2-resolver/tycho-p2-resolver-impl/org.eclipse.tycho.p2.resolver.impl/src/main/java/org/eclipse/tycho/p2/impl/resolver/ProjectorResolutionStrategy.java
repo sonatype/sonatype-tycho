@@ -42,25 +42,21 @@ import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.tycho.p2.resolver.P2Logger;
 import org.eclipse.tycho.p2.util.StatusTool;
 
-@SuppressWarnings( "restriction" )
-public class ProjectorResolutionStrategy
-    extends ResolutionStrategy
-{
+@SuppressWarnings("restriction")
+public class ProjectorResolutionStrategy extends ResolutionStrategy {
     private static final IInstallableUnit[] IU_ARRAY = new IInstallableUnit[0];
 
     private final Map<String, String> properties;
 
     private final P2Logger logger;
 
-    public ProjectorResolutionStrategy( Map<String, String> properties, P2Logger logger )
-    {
+    public ProjectorResolutionStrategy(Map<String, String> properties, P2Logger logger) {
         this.properties = properties;
         this.logger = logger;
     }
 
-    public Collection<IInstallableUnit> resolve( IProgressMonitor monitor )
-    {
-        Map<String, String> newSelectionContext = SimplePlanner.createSelectionContext( properties );
+    public Collection<IInstallableUnit> resolve(IProgressMonitor monitor) {
+        Map<String, String> newSelectionContext = SimplePlanner.createSelectionContext(properties);
 
         // additional requirements can be either ius or bundles, and apparently projector does not like bundle
         // requirements to be listed directly under entryPointIU (i.e. the first Project.encode parameter)
@@ -72,87 +68,73 @@ public class ProjectorResolutionStrategy
         Set<IInstallableUnit> extraIUs = createAdditionalRequirementsIU();
 
         Set<IInstallableUnit> rootWithExtraIUs = new LinkedHashSet<IInstallableUnit>();
-        rootWithExtraIUs.addAll( rootIUs );
-        rootWithExtraIUs.addAll( extraIUs );
+        rootWithExtraIUs.addAll(rootIUs);
+        rootWithExtraIUs.addAll(extraIUs);
 
-        if ( logger.isDebugEnabled() )
-        {
-            logger.debug( "Available IUs:\n" + ResolverDebugUtils.toDebugString( availableIUs, false, monitor ) );
-            logger.debug( "Root IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
-            logger.debug( "Extra IUs:\n" + ResolverDebugUtils.toDebugString( rootIUs, true ) );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Available IUs:\n" + ResolverDebugUtils.toDebugString(availableIUs, false, monitor));
+            logger.debug("Root IUs:\n" + ResolverDebugUtils.toDebugString(rootIUs, true));
+            logger.debug("Extra IUs:\n" + ResolverDebugUtils.toDebugString(rootIUs, true));
         }
 
-        Slicer slicer = new Slicer( availableIUs, newSelectionContext, false );
-        IQueryable<IInstallableUnit> slice = slicer.slice( rootWithExtraIUs.toArray( IU_ARRAY ), monitor );
+        Slicer slicer = new Slicer(availableIUs, newSelectionContext, false);
+        IQueryable<IInstallableUnit> slice = slicer.slice(rootWithExtraIUs.toArray(IU_ARRAY), monitor);
 
-        if ( slice == null )
-        {
-            throw new RuntimeException( StatusTool.collectProblems( slicer.getStatus() ),
-                                        new CoreException( slicer.getStatus() ) );
+        if (slice == null) {
+            throw new RuntimeException(StatusTool.collectProblems(slicer.getStatus()), new CoreException(
+                    slicer.getStatus()));
         }
 
-        if ( logger.isDebugEnabled() )
-        {
-            logger.debug( "Slice:\n" + ResolverDebugUtils.toDebugString( slice, false, monitor ) );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Slice:\n" + ResolverDebugUtils.toDebugString(slice, false, monitor));
         }
 
-        Projector projector = new Projector( slice, newSelectionContext, new HashSet<IInstallableUnit>(), false );
-        projector.encode( createMetaIU( rootIUs ), extraIUs.toArray( IU_ARRAY ) /* alreadyExistingRoots */,
-                          new QueryableArray( IU_ARRAY ) /* installed IUs */, rootIUs /* newRoots */, monitor );
-        IStatus s = projector.invokeSolver( monitor );
-        if ( s.getSeverity() == IStatus.ERROR )
-        {
-            Set<Explanation> explanation = projector.getExplanation( monitor );
+        Projector projector = new Projector(slice, newSelectionContext, new HashSet<IInstallableUnit>(), false);
+        projector.encode(createMetaIU(rootIUs), extraIUs.toArray(IU_ARRAY) /* alreadyExistingRoots */,
+                new QueryableArray(IU_ARRAY) /* installed IUs */, rootIUs /* newRoots */, monitor);
+        IStatus s = projector.invokeSolver(monitor);
+        if (s.getSeverity() == IStatus.ERROR) {
+            Set<Explanation> explanation = projector.getExplanation(monitor);
 
-            logger.info( newSelectionContext.toString() );
-            logger.info( explanation.toString() );
+            logger.info(newSelectionContext.toString());
+            logger.info(explanation.toString());
 
-            throw new RuntimeException( new ProvisionException( s ) );
+            throw new RuntimeException(new ProvisionException(s));
         }
         Collection<IInstallableUnit> newState = projector.extractSolution();
 
-        fixSWT( newState, newSelectionContext, monitor );
+        fixSWT(newState, newSelectionContext, monitor);
 
-        if ( logger.isDebugEnabled() )
-        {
-            logger.debug( "Resolved IUs:\n" + ResolverDebugUtils.toDebugString( newState, false ) );
+        if (logger.isDebugEnabled()) {
+            logger.debug("Resolved IUs:\n" + ResolverDebugUtils.toDebugString(newState, false));
         }
 
         return newState;
     }
 
-    private void fixSWT( Collection<IInstallableUnit> ius, Map<String, String> newSelectionContext,
-                         IProgressMonitor monitor )
-    {
+    private void fixSWT(Collection<IInstallableUnit> ius, Map<String, String> newSelectionContext,
+            IProgressMonitor monitor) {
         boolean swt = false;
-        for ( IInstallableUnit iu : ius )
-        {
-            if ( "org.eclipse.swt".equals( iu.getId() ) )
-            {
+        for (IInstallableUnit iu : ius) {
+            if ("org.eclipse.swt".equals(iu.getId())) {
                 swt = true;
                 break;
             }
         }
 
-        if ( !swt )
-        {
+        if (!swt) {
             return;
         }
 
         IInstallableUnit swtFragment = null;
 
-        all_ius: for ( Iterator<IInstallableUnit> iter = availableIUs.query( QueryUtil.ALL_UNITS, monitor ).iterator(); iter.hasNext(); )
-        {
+        all_ius: for (Iterator<IInstallableUnit> iter = availableIUs.query(QueryUtil.ALL_UNITS, monitor).iterator(); iter
+                .hasNext();) {
             IInstallableUnit iu = iter.next();
-            if ( iu.getId().startsWith( "org.eclipse.swt" ) && isApplicable( newSelectionContext, iu.getFilter() ) )
-            {
-                for ( IProvidedCapability provided : iu.getProvidedCapabilities() )
-                {
-                    if ( "osgi.fragment".equals( provided.getNamespace() )
-                        && "org.eclipse.swt".equals( provided.getName() ) )
-                    {
-                        if ( swtFragment == null || swtFragment.getVersion().compareTo( iu.getVersion() ) < 0 )
-                        {
+            if (iu.getId().startsWith("org.eclipse.swt") && isApplicable(newSelectionContext, iu.getFilter())) {
+                for (IProvidedCapability provided : iu.getProvidedCapabilities()) {
+                    if ("osgi.fragment".equals(provided.getNamespace()) && "org.eclipse.swt".equals(provided.getName())) {
+                        if (swtFragment == null || swtFragment.getVersion().compareTo(iu.getVersion()) < 0) {
                             swtFragment = iu;
                         }
                         continue all_ius;
@@ -161,59 +143,52 @@ public class ProjectorResolutionStrategy
             }
         }
 
-        if ( swtFragment == null )
-        {
-            throw new RuntimeException( "Could not determine SWT implementation fragment bundle" );
+        if (swtFragment == null) {
+            throw new RuntimeException("Could not determine SWT implementation fragment bundle");
         }
 
-        ius.add( swtFragment );
+        ius.add(swtFragment);
     }
 
-    protected boolean isApplicable( Map<String, String> selectionContext, IMatchExpression<IInstallableUnit> filter )
-    {
-        if ( filter == null )
-        {
+    protected boolean isApplicable(Map<String, String> selectionContext, IMatchExpression<IInstallableUnit> filter) {
+        if (filter == null) {
             return true;
         }
 
-        return filter.isMatch( InstallableUnit.contextIU( selectionContext ) );
+        return filter.isMatch(InstallableUnit.contextIU(selectionContext));
     }
 
-    private IInstallableUnit createMetaIU( Set<IInstallableUnit> rootIUs )
-    {
+    private IInstallableUnit createMetaIU(Set<IInstallableUnit> rootIUs) {
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
-        String time = Long.toString( System.currentTimeMillis() );
-        iud.setId( time );
-        iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
+        String time = Long.toString(System.currentTimeMillis());
+        iud.setId(time);
+        iud.setVersion(Version.createOSGi(0, 0, 0, time));
 
         ArrayList<IRequirement> requirements = new ArrayList<IRequirement>();
-        for ( IInstallableUnit iu : rootIUs )
-        {
-            VersionRange range = new VersionRange( iu.getVersion(), true, iu.getVersion(), true );
-            requirements.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, iu.getId(), range,
-                                                                 iu.getFilter(), 1 /* min */, iu.isSingleton() ? 1
-                                                                                 : Integer.MAX_VALUE /* max */, true /* greedy */) );
+        for (IInstallableUnit iu : rootIUs) {
+            VersionRange range = new VersionRange(iu.getVersion(), true, iu.getVersion(), true);
+            requirements
+                    .add(MetadataFactory.createRequirement(IInstallableUnit.NAMESPACE_IU_ID, iu.getId(), range,
+                            iu.getFilter(), 1 /* min */, iu.isSingleton() ? 1 : Integer.MAX_VALUE /* max */, true /* greedy */));
         }
 
-        requirements.addAll( additionalRequirements );
+        requirements.addAll(additionalRequirements);
 
-        iud.setRequirements( (IRequirement[]) requirements.toArray( new IRequirement[requirements.size()] ) );
-        return MetadataFactory.createInstallableUnit( iud );
+        iud.setRequirements((IRequirement[]) requirements.toArray(new IRequirement[requirements.size()]));
+        return MetadataFactory.createInstallableUnit(iud);
     }
 
-    private Set<IInstallableUnit> createAdditionalRequirementsIU()
-    {
+    private Set<IInstallableUnit> createAdditionalRequirementsIU() {
         LinkedHashSet<IInstallableUnit> result = new LinkedHashSet<IInstallableUnit>();
 
-        if ( !additionalRequirements.isEmpty() )
-        {
+        if (!additionalRequirements.isEmpty()) {
             InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
-            String time = Long.toString( System.currentTimeMillis() );
-            iud.setId( "extra-" + time );
-            iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
-            iud.setRequirements( additionalRequirements.toArray( new IRequiredCapability[additionalRequirements.size()] ) );
+            String time = Long.toString(System.currentTimeMillis());
+            iud.setId("extra-" + time);
+            iud.setVersion(Version.createOSGi(0, 0, 0, time));
+            iud.setRequirements(additionalRequirements.toArray(new IRequiredCapability[additionalRequirements.size()]));
 
-            result.add( MetadataFactory.createInstallableUnit( iud ) );
+            result.add(MetadataFactory.createInstallableUnit(iud));
         }
 
         return result;

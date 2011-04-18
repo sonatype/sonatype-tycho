@@ -18,22 +18,17 @@ import org.eclipse.tycho.ReactorProject;
 import org.eclipse.tycho.core.PluginDescription;
 import org.eclipse.tycho.model.PluginRef;
 
-public class DefaultPluginDescription
-    extends DefaultArtifactDescriptor
-    implements PluginDescription
-{
+public class DefaultPluginDescription extends DefaultArtifactDescriptor implements PluginDescription {
 
     private PluginRef pluginRef;
 
-    public DefaultPluginDescription( ArtifactKey key, File location, ReactorProject project, String classifier,
-                                     PluginRef pluginRef, Set<Object> installableUnits )
-    {
-        super( key, location, project, classifier, installableUnits );
+    public DefaultPluginDescription(ArtifactKey key, File location, ReactorProject project, String classifier,
+            PluginRef pluginRef, Set<Object> installableUnits) {
+        super(key, location, project, classifier, installableUnits);
         this.pluginRef = pluginRef;
     }
 
-    public PluginRef getPluginRef()
-    {
+    public PluginRef getPluginRef() {
         return pluginRef;
     }
 

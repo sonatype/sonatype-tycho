@@ -26,9 +26,7 @@ import org.eclipse.tycho.versions.engine.VersionsEngine;
  * @requiresProject true
  * @requiresDirectInvocation true
  */
-public class SetMojo
-    extends AbstractMojo
-{
+public class SetMojo extends AbstractMojo {
     /**
      * The new version number to set.
      * 
@@ -40,8 +38,8 @@ public class SetMojo
     /**
      * Comma separated list of artifact ids to set the new version to.
      * <p/>
-     * By default, the new version will be set on the current project and all references to the project, including all
-     * <parent/> elements if the project is a parent pom.
+     * By default, the new version will be set on the current project and all references to the
+     * project, including all <parent/> elements if the project is a parent pom.
      * 
      * @parameter expression="${artifacts}" default-value="${project.artifactId}"
      */
@@ -57,31 +55,24 @@ public class SetMojo
      */
     private VersionsEngine engine;
 
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
-        if ( newVersion == null || newVersion.length() == 0 )
-        {
-            throw new MojoExecutionException( "Missing required parameter newVersion" );
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        if (newVersion == null || newVersion.length() == 0) {
+            throw new MojoExecutionException("Missing required parameter newVersion");
         }
 
-        try
-        {
-            engine.addBasedir( session.getCurrentProject().getBasedir() );
+        try {
+            engine.addBasedir(session.getCurrentProject().getBasedir());
 
             // initial changes
-            StringTokenizer st = new StringTokenizer( artifacts, "," );
-            while ( st.hasMoreTokens() )
-            {
+            StringTokenizer st = new StringTokenizer(artifacts, ",");
+            while (st.hasMoreTokens()) {
                 String artifactId = st.nextToken().trim();
-                engine.addVersionChange( artifactId, newVersion );
+                engine.addVersionChange(artifactId, newVersion);
             }
 
             engine.apply();
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Could not set version", e );
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not set version", e);
         }
     }
 

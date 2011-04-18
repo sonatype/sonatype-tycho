@@ -15,9 +15,7 @@ import org.eclipse.tycho.core.TargetPlatformResolver;
 import org.eclipse.tycho.core.osgitools.targetplatform.LocalTargetPlatformResolver;
 
 // TODO romove me as part of TYCHO-527
-@Component( role = TargetPlatformResolver.class, hint = "p2", instantiationStrategy = "per-lookup" )
-public class StubP2TargetPlatformResolver
-    extends LocalTargetPlatformResolver
-{
+@Component(role = TargetPlatformResolver.class, hint = "p2", instantiationStrategy = "per-lookup")
+public class StubP2TargetPlatformResolver extends LocalTargetPlatformResolver {
 
 }

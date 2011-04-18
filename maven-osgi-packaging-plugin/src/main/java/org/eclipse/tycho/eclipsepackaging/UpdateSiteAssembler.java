@@ -39,9 +39,7 @@ import org.eclipse.tycho.model.PluginRef;
  * 
  * @author igor
  */
-public class UpdateSiteAssembler
-    extends ArtifactDependencyVisitor
-{
+public class UpdateSiteAssembler extends ArtifactDependencyVisitor {
 
     public static final String PLUGINS_DIR = "plugins/";
 
@@ -59,150 +57,118 @@ public class UpdateSiteAssembler
     private boolean pack200;
 
     /**
-     * If true, generated update site will include plugins folders for plugins with PluginRef.unpack. If false, will
-     * include plugin jars regardless of PluginRef.unpack.
+     * If true, generated update site will include plugins folders for plugins with
+     * PluginRef.unpack. If false, will include plugin jars regardless of PluginRef.unpack.
      */
     private boolean unpackPlugins;
 
     /**
-     * If true, generated update site will include feature directories. If false, generated update site will include
-     * feature jars.
+     * If true, generated update site will include feature directories. If false, generated update
+     * site will include feature jars.
      */
     private boolean unpackFeatures;
 
-    public UpdateSiteAssembler( MavenSession session, File target )
-    {
+    public UpdateSiteAssembler(MavenSession session, File target) {
         this.session = session;
         this.target = target;
     }
 
-    public boolean visitFeature( FeatureDescription feature )
-    {
+    public boolean visitFeature(FeatureDescription feature) {
         File location = feature.getLocation();
         String artifactId = feature.getKey().getId();
         String version = feature.getKey().getVersion();
 
         ReactorProject featureProject = feature.getMavenProject();
 
-        if ( featureProject != null )
-        {
+        if (featureProject != null) {
             version = featureProject.getExpandedVersion();
 
             location = featureProject.getArtifact();
 
-            if ( location.isDirectory() )
-            {
-                throw new IllegalStateException( "Should at least run ``package'' phase" );
+            if (location.isDirectory()) {
+                throw new IllegalStateException("Should at least run ``package'' phase");
             }
         }
 
-        if ( unpackFeatures )
-        {
-            File outputJar = getOutputFile( FEATURES_DIR, artifactId, version, null );
-            if ( location.isDirectory() )
-            {
-                copyDir( location, outputJar );
+        if (unpackFeatures) {
+            File outputJar = getOutputFile(FEATURES_DIR, artifactId, version, null);
+            if (location.isDirectory()) {
+                copyDir(location, outputJar);
+            } else {
+                unpackJar(location, outputJar);
             }
-            else
-            {
-                unpackJar( location, outputJar );
-            }
-        }
-        else
-        {
-            File outputJar = getOutputFile( FEATURES_DIR, artifactId, version, ".jar" );
-            if ( location.isDirectory() )
-            {
-                packDir( location, outputJar );
-            }
-            else
-            {
-                copyFile( location, outputJar );
+        } else {
+            File outputJar = getOutputFile(FEATURES_DIR, artifactId, version, ".jar");
+            if (location.isDirectory()) {
+                packDir(location, outputJar);
+            } else {
+                copyFile(location, outputJar);
             }
         }
 
         return true; // keep visiting
     }
 
-    private File getOutputFile( String prefix, String id, String version, String extension )
-    {
-        StringBuilder sb = new StringBuilder( prefix );
-        sb.append( id );
-        sb.append( '_' );
-        sb.append( version );
-        if ( extension != null )
-        {
-            sb.append( extension );
+    private File getOutputFile(String prefix, String id, String version, String extension) {
+        StringBuilder sb = new StringBuilder(prefix);
+        sb.append(id);
+        sb.append('_');
+        sb.append(version);
+        if (extension != null) {
+            sb.append(extension);
         }
 
-        return new File( target, sb.toString() );
+        return new File(target, sb.toString());
     }
 
-    public void visitPlugin( PluginDescription plugin )
-    {
+    public void visitPlugin(PluginDescription plugin) {
         String bundleId = plugin.getKey().getId();
         String version = plugin.getKey().getVersion();
 
         String relPath = PLUGINS_DIR + bundleId + "_" + version + ".jar";
-        if ( archives != null && archives.containsKey( relPath ) )
-        {
-            copyUrl( archives.get( relPath ), new File( target, relPath ) );
+        if (archives != null && archives.containsKey(relPath)) {
+            copyUrl(archives.get(relPath), new File(target, relPath));
             return;
         }
 
-        if ( plugin.getLocation() == null )
-        {
-            throw new IllegalStateException( "Unresolved bundle reference " + bundleId + "_" + version );
+        if (plugin.getLocation() == null) {
+            throw new IllegalStateException("Unresolved bundle reference " + bundleId + "_" + version);
         }
 
         ReactorProject bundleProject = plugin.getMavenProject();
         File location = null;
-        if ( bundleProject != null )
-        {
-            location = bundleProject.getArtifact( plugin.getClassifier() );
-            if ( location == null )
-            {
-                throw new IllegalStateException( bundleProject.getId() + " does not provide an artifact with classifier '"
-                    + plugin.getClassifier() + "'" );
+        if (bundleProject != null) {
+            location = bundleProject.getArtifact(plugin.getClassifier());
+            if (location == null) {
+                throw new IllegalStateException(bundleProject.getId()
+                        + " does not provide an artifact with classifier '" + plugin.getClassifier() + "'");
             }
-            if ( location.isDirectory() )
-            {
-                throw new RuntimeException( "Bundle project " + bundleProject.getId()
-                    + " artifact is a directory. The build should at least run ``package'' phase." );
+            if (location.isDirectory()) {
+                throw new RuntimeException("Bundle project " + bundleProject.getId()
+                        + " artifact is a directory. The build should at least run ``package'' phase.");
             }
             version = bundleProject.getExpandedVersion();
-        }
-        else
-        {
+        } else {
             location = plugin.getLocation();
         }
 
-        if ( unpackPlugins && isDirectoryShape( plugin, location ) )
-        {
+        if (unpackPlugins && isDirectoryShape(plugin, location)) {
             // need a directory
-            File outputJar = getOutputFile( PLUGINS_DIR, bundleId, version, null );
+            File outputJar = getOutputFile(PLUGINS_DIR, bundleId, version, null);
 
-            if ( location.isDirectory() )
-            {
-                copyDir( location, outputJar );
+            if (location.isDirectory()) {
+                copyDir(location, outputJar);
+            } else {
+                unpackJar(location, outputJar);
             }
-            else
-            {
-                unpackJar( location, outputJar );
-            }
-        }
-        else
-        {
+        } else {
             // need a jar
-            File outputJar = getOutputFile( PLUGINS_DIR, bundleId, version, ".jar" );
+            File outputJar = getOutputFile(PLUGINS_DIR, bundleId, version, ".jar");
 
-            if ( location.isDirectory() )
-            {
-                packDir( location, outputJar );
-            }
-            else
-            {
-                copyFile( location, outputJar );
+            if (location.isDirectory()) {
+                packDir(location, outputJar);
+            } else {
+                copyFile(location, outputJar);
             }
 
             // if ( pack200 )
@@ -212,175 +178,128 @@ public class UpdateSiteAssembler
         }
     }
 
-    protected boolean isDirectoryShape( PluginDescription plugin, File location )
-    {
+    protected boolean isDirectoryShape(PluginDescription plugin, File location) {
         PluginRef pluginRef = plugin.getPluginRef();
-        return ( ( pluginRef != null && pluginRef.isUnpack() ) || location.isDirectory() );
+        return ((pluginRef != null && pluginRef.isUnpack()) || location.isDirectory());
     }
 
-    private void unpackJar( File location, File outputJar )
-    {
+    private void unpackJar(File location, File outputJar) {
         ZipUnArchiver unzip;
-        try
-        {
-            unzip = (ZipUnArchiver) session.lookup( ZipUnArchiver.ROLE, "zip" );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new RuntimeException( "Could not lookup required component", e );
+        try {
+            unzip = (ZipUnArchiver) session.lookup(ZipUnArchiver.ROLE, "zip");
+        } catch (ComponentLookupException e) {
+            throw new RuntimeException("Could not lookup required component", e);
         }
 
         outputJar.mkdirs();
 
-        if ( !outputJar.isDirectory() )
-        {
-            throw new RuntimeException( "Could not create output directory " + outputJar.getAbsolutePath() );
+        if (!outputJar.isDirectory()) {
+            throw new RuntimeException("Could not create output directory " + outputJar.getAbsolutePath());
         }
 
-        unzip.setSourceFile( location );
-        unzip.setDestDirectory( outputJar );
+        unzip.setSourceFile(location);
+        unzip.setDestDirectory(outputJar);
 
-        try
-        {
+        try {
             unzip.extract();
-        }
-        catch ( ArchiverException e )
-        {
-            throw new RuntimeException( "Could not unpack jar", e );
+        } catch (ArchiverException e) {
+            throw new RuntimeException("Could not unpack jar", e);
         }
     }
 
-    private void copyDir( File location, File outputJar )
-    {
-        try
-        {
-            FileUtils.copyDirectoryStructure( location, outputJar );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not copy directory", e );
+    private void copyDir(File location, File outputJar) {
+        try {
+            FileUtils.copyDirectoryStructure(location, outputJar);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not copy directory", e);
         }
     }
 
-    private void copyUrl( String source, File destination )
-    {
-        try
-        {
-            URL url = new URL( source );
+    private void copyUrl(String source, File destination) {
+        try {
+            URL url = new URL(source);
             InputStream is = url.openStream();
-            try
-            {
-                OutputStream os = new BufferedOutputStream( new FileOutputStream( destination ) );
-                try
-                {
-                    IOUtil.copy( is, os );
-                }
-                finally
-                {
+            try {
+                OutputStream os = new BufferedOutputStream(new FileOutputStream(destination));
+                try {
+                    IOUtil.copy(is, os);
+                } finally {
                     os.close();
                 }
-            }
-            finally
-            {
+            } finally {
                 is.close();
             }
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not copy URL contents", e );
+        } catch (IOException e) {
+            throw new RuntimeException("Could not copy URL contents", e);
         }
     }
 
-    private void copyFile( File source, File destination )
-    {
-        try
-        {
-            FileUtils.copyFile( source, destination );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not copy file", e );
+    private void copyFile(File source, File destination) {
+        try {
+            FileUtils.copyFile(source, destination);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not copy file", e);
         }
     }
 
-    private void shipPack200( File jar )
-    {
+    private void shipPack200(File jar) {
         // TODO validate if the jar has been pack200 pre-conditioned
 
-        File outputPack = new File( jar.getParentFile(), jar.getName() + ".pack" );
+        File outputPack = new File(jar.getParentFile(), jar.getName() + ".pack");
 
         Pack200Archiver packArchiver = new Pack200Archiver();
-        packArchiver.setSourceJar( jar );
-        packArchiver.setDestFile( outputPack );
-        try
-        {
+        packArchiver.setSourceJar(jar);
+        packArchiver.setDestFile(outputPack);
+        try {
             packArchiver.createArchive();
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not create pack200 archive", e );
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create pack200 archive", e);
         }
 
         GZipCompressor gzCompressor = new GZipCompressor();
-        gzCompressor.setDestFile( new File( jar.getParentFile(), jar.getName() + ".pack.gz" ) );
-        gzCompressor.setSourceFile( outputPack );
-        try
-        {
+        gzCompressor.setDestFile(new File(jar.getParentFile(), jar.getName() + ".pack.gz"));
+        gzCompressor.setSourceFile(outputPack);
+        try {
             gzCompressor.execute();
-        }
-        catch ( ArchiverException e )
-        {
-            throw new RuntimeException( e.getMessage(), e );
+        } catch (ArchiverException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
 
         outputPack.delete();
     }
 
-    private void packDir( File sourceDir, File targetZip )
-    {
+    private void packDir(File sourceDir, File targetZip) {
         ZipArchiver archiver;
-        try
-        {
-            archiver = (ZipArchiver) session.lookup( ZipArchiver.ROLE, "zip" );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new RuntimeException( "Unable to resolve ZipArchiver", e );
+        try {
+            archiver = (ZipArchiver) session.lookup(ZipArchiver.ROLE, "zip");
+        } catch (ComponentLookupException e) {
+            throw new RuntimeException("Unable to resolve ZipArchiver", e);
         }
 
-        archiver.setDestFile( targetZip );
-        try
-        {
-            archiver.addDirectory( sourceDir );
+        archiver.setDestFile(targetZip);
+        try {
+            archiver.addDirectory(sourceDir);
             archiver.createArchive();
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Error packing zip", e );
-        }
-        catch ( ArchiverException e )
-        {
-            throw new RuntimeException( "Error packing zip", e );
+        } catch (IOException e) {
+            throw new RuntimeException("Error packing zip", e);
+        } catch (ArchiverException e) {
+            throw new RuntimeException("Error packing zip", e);
         }
     }
 
-    public void setArchives( Map<String, String> archives )
-    {
+    public void setArchives(Map<String, String> archives) {
         this.archives = archives;
     }
 
-    public void setPack200( boolean pack200 )
-    {
+    public void setPack200(boolean pack200) {
         this.pack200 = pack200;
     }
 
-    public void setUnpackPlugins( boolean unpack )
-    {
+    public void setUnpackPlugins(boolean unpack) {
         this.unpackPlugins = unpack;
     }
 
-    public void setUnpackFeatures( boolean unpack )
-    {
+    public void setUnpackFeatures(boolean unpack) {
         this.unpackFeatures = unpack;
     }
 }

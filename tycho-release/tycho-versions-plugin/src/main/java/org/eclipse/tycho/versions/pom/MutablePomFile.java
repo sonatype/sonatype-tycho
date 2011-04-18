@@ -32,194 +32,151 @@ import de.pdark.decentxml.XMLIOSource;
 import de.pdark.decentxml.XMLParser;
 import de.pdark.decentxml.XMLWriter;
 
-public class MutablePomFile
-{
+public class MutablePomFile {
     private static XMLParser parser = new XMLParser();
 
     private Document document;
 
     private Element project;
 
-    public MutablePomFile( Document pom )
-    {
+    public MutablePomFile(Document pom) {
         this.document = pom;
         this.project = document.getRootElement();
     }
 
-    public static MutablePomFile read( File file )
-        throws IOException
-    {
-        InputStream is = new BufferedInputStream( new FileInputStream( file ) );
-        try
-        {
-            return read( is );
-        }
-        finally
-        {
-            IOUtil.close( is );
+    public static MutablePomFile read(File file) throws IOException {
+        InputStream is = new BufferedInputStream(new FileInputStream(file));
+        try {
+            return read(is);
+        } finally {
+            IOUtil.close(is);
         }
     }
 
-    public static MutablePomFile read( InputStream input )
-        throws IOException
-    {
-        return new MutablePomFile( parser.parse( new XMLIOSource( input ) ) );
+    public static MutablePomFile read(InputStream input) throws IOException {
+        return new MutablePomFile(parser.parse(new XMLIOSource(input)));
     }
 
-    public static void write( MutablePomFile pom, OutputStream out )
-        throws IOException
-    {
-        Writer w =
-            pom.document.getEncoding() != null ? new OutputStreamWriter( out, pom.document.getEncoding() )
-                            : new OutputStreamWriter( out );
-        XMLWriter xw = new XMLWriter( w );
-        try
-        {
-            pom.document.toXML( xw );
-        }
-        finally
-        {
+    public static void write(MutablePomFile pom, OutputStream out) throws IOException {
+        Writer w = pom.document.getEncoding() != null ? new OutputStreamWriter(out, pom.document.getEncoding())
+                : new OutputStreamWriter(out);
+        XMLWriter xw = new XMLWriter(w);
+        try {
+            pom.document.toXML(xw);
+        } finally {
             xw.flush();
         }
     }
 
-    public static void write( MutablePomFile pom, File file )
-        throws IOException
-    {
-        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
-        try
-        {
-            write( pom, os );
-        }
-        finally
-        {
-            IOUtil.close( os );
+    public static void write(MutablePomFile pom, File file) throws IOException {
+        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+        try {
+            write(pom, os);
+        } finally {
+            IOUtil.close(os);
         }
     }
 
-    public void setVersion( String version )
-    {
-        Element element = project.getChild( "version" );
-        if ( element == null )
-        {
-            element = new Element( project, "version" );
+    public void setVersion(String version) {
+        Element element = project.getChild("version");
+        if (element == null) {
+            element = new Element(project, "version");
         }
-        element.setText( version );
+        element.setText(version);
     }
 
-    public void setParentVersion( String newVersion )
-    {
-        Element element = project.getChild( "parent/version" );
-        if ( element == null )
-        {
-            throw new IllegalArgumentException( "No parent/version" );
+    public void setParentVersion(String newVersion) {
+        Element element = project.getChild("parent/version");
+        if (element == null) {
+            throw new IllegalArgumentException("No parent/version");
         }
 
-        element.setText( newVersion );
+        element.setText(newVersion);
     }
 
-    public String getVersion()
-    {
-        Element element = project.getChild( "version" );
+    public String getVersion() {
+        Element element = project.getChild("version");
         return element != null ? element.getText() : null;
     }
 
-    public String getEffectiveVersion()
-    {
+    public String getEffectiveVersion() {
         String version = getVersion();
-        if ( version == null )
-        {
+        if (version == null) {
             version = getParentVersion();
         }
         return version;
     }
 
-    public String getPackaging()
-    {
-        Element packaging = project.getChild( "packaging" );
+    public String getPackaging() {
+        Element packaging = project.getChild("packaging");
         return packaging != null ? packaging.getText() : "jar";
     }
 
-    public String getParentVersion()
-    {
+    public String getParentVersion() {
         return getParent().getVersion();
     }
 
-    public String getGroupId()
-    {
-        Element element = project.getChild( "groupId" );
+    public String getGroupId() {
+        Element element = project.getChild("groupId");
         return element != null ? element.getText() : null;
     }
 
-    public String getEffectiveGroupId()
-    {
+    public String getEffectiveGroupId() {
         String groupId = getGroupId();
-        if ( groupId == null )
-        {
+        if (groupId == null) {
             groupId = getParent().getGroupId();
         }
         return groupId;
     }
 
-    public String getArtifactId()
-    {
-        Element element = project.getChild( "artifactId" );
+    public String getArtifactId() {
+        Element element = project.getChild("artifactId");
         return element != null ? element.getText() : null;
     }
 
-    public GAV getParent()
-    {
-        Element element = project.getChild( "parent" );
-        return element != null ? new GAV( element ) : null;
+    public GAV getParent() {
+        Element element = project.getChild("parent");
+        return element != null ? new GAV(element) : null;
     }
 
-    public List<String> getModules()
-    {
+    public List<String> getModules() {
         LinkedHashSet<String> result = new LinkedHashSet<String>();
-        for ( Element modules : project.getChildren( "modules" ) )
-        {
-            for ( Element module : modules.getChildren( "module" ) )
-            {
-                result.add( module.getText() );
+        for (Element modules : project.getChildren("modules")) {
+            for (Element module : modules.getChildren("module")) {
+                result.add(module.getText());
             }
         }
-        return new ArrayList<String>( result );
+        return new ArrayList<String>(result);
     }
 
-    public List<Profile> getProfiles()
-    {
+    public List<Profile> getProfiles() {
         ArrayList<Profile> result = new ArrayList<Profile>();
-        for ( Element profiles : project.getChildren( "profiles" ) )
-        {
-            for ( Element profile : profiles.getChildren( "profile" ) )
-            {
-                result.add( new Profile( profile ) );
+        for (Element profiles : project.getChildren("profiles")) {
+            for (Element profile : profiles.getChildren("profile")) {
+                result.add(new Profile(profile));
             }
         }
         return result;
     }
 
-    public DependencyManagement getDependencyManagement()
-    {
+    public DependencyManagement getDependencyManagement() {
 
-        Element dependencyManagement = project.getChild( "dependencyManagement" );
+        Element dependencyManagement = project.getChild("dependencyManagement");
 
-        if ( dependencyManagement == null )
+        if (dependencyManagement == null)
             return null;
 
-        return new DependencyManagement( dependencyManagement );
+        return new DependencyManagement(dependencyManagement);
     }
 
-    public List<GAV> getDependencies()
-    {
+    public List<GAV> getDependencies() {
         ArrayList<GAV> result = new ArrayList<GAV>();
 
-        Element dependencies = project.getChild( "dependencies" );
+        Element dependencies = project.getChild("dependencies");
 
-        if ( dependencies != null )
-        {
-            for ( Element dependency : dependencies.getChildren( "dependency" ) )
-                result.add( new GAV( dependency ) );
+        if (dependencies != null) {
+            for (Element dependency : dependencies.getChildren("dependency"))
+                result.add(new GAV(dependency));
         }
 
         return result;

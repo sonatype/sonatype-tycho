@@ -13,9 +13,6 @@ package org.eclipse.tycho.core.osgitools.targetplatform;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.eclipse.tycho.core.TargetPlatformResolver;
 
-public abstract class AbstractTargetPlatformResolver
-    extends AbstractLogEnabled
-    implements TargetPlatformResolver
-{
+public abstract class AbstractTargetPlatformResolver extends AbstractLogEnabled implements TargetPlatformResolver {
 
 }

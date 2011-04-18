@@ -17,28 +17,23 @@ import org.eclipse.tycho.model.Target;
 import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Test;
 
-public class TargetDefinitionTest
-    extends AbstractTychoIntegrationTest
-{
+public class TargetDefinitionTest extends AbstractTychoIntegrationTest {
     @Test
-    public void testMultiplatformReactorBuild()
-        throws Exception
-    {
-        Verifier verifier = getVerifier( "/TYCHO59targetDefinition" );
+    public void testMultiplatformReactorBuild() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO59targetDefinition");
 
-        File platformFile = new File( verifier.getBasedir(), "target-platform/platform.target" );
-        Target platform = Target.read( platformFile );
+        File platformFile = new File(verifier.getBasedir(), "target-platform/platform.target");
+        Target platform = Target.read(platformFile);
 
-        for ( Target.Location location : platform.getLocations() )
-        {
-            Target.Repository repository = location.getRepositories().get( 0 );
-            File file = new File( repository.getLocation() );
-            repository.setLocation( file.getCanonicalFile().toURI().toASCIIString() );
+        for (Target.Location location : platform.getLocations()) {
+            Target.Repository repository = location.getRepositories().get(0);
+            File file = new File(repository.getLocation());
+            repository.setLocation(file.getCanonicalFile().toURI().toASCIIString());
         }
 
-        Target.write( platform, platformFile );
+        Target.write(platform, platformFile);
 
-        verifier.executeGoal( "integration-test" );
+        verifier.executeGoal("integration-test");
         verifier.verifyErrorFreeLog();
     }
 

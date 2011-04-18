@@ -23,36 +23,27 @@ import org.codehaus.plexus.archiver.ArchiverException;
  * 
  * @goal archive-repository
  */
-public final class ArchiveRepositoryMojo
-    extends AbstractRepositoryMojo
-{
+public final class ArchiveRepositoryMojo extends AbstractRepositoryMojo {
 
     /**
      * @component role="org.codehaus.plexus.archiver.Archiver" role-hint="zip"
      */
     private Archiver inflater;
 
-    public void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
-        File destFile = new File( getBuildDirectory(), getProject().getArtifactId() + ".zip" );
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        File destFile = new File(getBuildDirectory(), getProject().getArtifactId() + ".zip");
 
-        try
-        {
-            inflater.addDirectory( getAssemblyRepositoryLocation() );
-            inflater.setDestFile( destFile );
+        try {
+            inflater.addDirectory(getAssemblyRepositoryLocation());
+            inflater.setDestFile(destFile);
             inflater.createArchive();
-        }
-        catch ( ArchiverException e )
-        {
-            throw new MojoExecutionException( "Error packing p2 repository", e );
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "Error packing p2 repository", e );
+        } catch (ArchiverException e) {
+            throw new MojoExecutionException("Error packing p2 repository", e);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error packing p2 repository", e);
         }
 
-        getProject().getArtifact().setFile( destFile );
+        getProject().getArtifact().setFile(destFile);
     }
 
 }

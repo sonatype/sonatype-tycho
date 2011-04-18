@@ -33,58 +33,47 @@ import org.eclipse.tycho.p2.tools.impl.Activator;
 import org.eclipse.tycho.p2.tools.mirroring.MirrorApplicationService;
 import org.eclipse.tycho.p2.util.StatusTool;
 
-@SuppressWarnings( "restriction" )
-public class MirrorApplicationServiceImpl
-    implements MirrorApplicationService
-{
+@SuppressWarnings("restriction")
+public class MirrorApplicationServiceImpl implements MirrorApplicationService {
 
     private static final String MIRROR_FAILURE_MESSAGE = "Copying p2 repository content failed";
 
-    public void mirror( RepositoryReferences sources, File destination, Collection<?> rootUnits, BuildContext context,
-                        int flags, String name )
-        throws FacadeException
-    {
-        IProvisioningAgent agent = Activator.createProvisioningAgent( context.getTargetDirectory() );
-        try
-        {
-            final MirrorApplication mirrorApp = new MirrorApplication( agent );
+    public void mirror(RepositoryReferences sources, File destination, Collection<?> rootUnits, BuildContext context,
+            int flags, String name) throws FacadeException {
+        IProvisioningAgent agent = Activator.createProvisioningAgent(context.getTargetDirectory());
+        try {
+            final MirrorApplication mirrorApp = new MirrorApplication(agent);
 
-            setSourceRepositories( mirrorApp, sources );
+            setSourceRepositories(mirrorApp, sources);
 
             final RepositoryDescriptor destinationDescriptor = new RepositoryDescriptor();
-            destinationDescriptor.setLocation( destination.toURI() );
-            destinationDescriptor.setAppend( true );
-            destinationDescriptor.setName( name );
-            boolean compressed = ( flags & REPOSITORY_COMPRESS ) != 0;
-            destinationDescriptor.setCompressed( compressed );
-            if ( ( flags & MIRROR_ARTIFACTS ) != 0 )
-            {
+            destinationDescriptor.setLocation(destination.toURI());
+            destinationDescriptor.setAppend(true);
+            destinationDescriptor.setName(name);
+            boolean compressed = (flags & REPOSITORY_COMPRESS) != 0;
+            destinationDescriptor.setCompressed(compressed);
+            if ((flags & MIRROR_ARTIFACTS) != 0) {
                 // metadata and artifacts is the default
-            }
-            else
-            {
+            } else {
                 // only mirror metadata
-                destinationDescriptor.setKind( RepositoryDescriptor.KIND_METADATA );
+                destinationDescriptor.setKind(RepositoryDescriptor.KIND_METADATA);
             }
-            mirrorApp.addDestination( destinationDescriptor );
+            mirrorApp.addDestination(destinationDescriptor);
 
-            mirrorApp.setSourceIUs( toInstallableUnitList( rootUnits ) );
+            mirrorApp.setSourceIUs(toInstallableUnitList(rootUnits));
 
             final SlicingOptions options = new SlicingOptions();
-            boolean includeAllDepenendcies = ( flags & INCLUDE_ALL_DEPENDENCIES ) != 0;
-            options.considerStrictDependencyOnly( !includeAllDepenendcies );
+            boolean includeAllDepenendcies = (flags & INCLUDE_ALL_DEPENDENCIES) != 0;
+            options.considerStrictDependencyOnly(!includeAllDepenendcies);
 
-            for ( TargetEnvironment environment : context.getEnvironments() )
-            {
+            for (TargetEnvironment environment : context.getEnvironments()) {
                 Map<String, String> filter = environment.toFilter();
-                addFilterForFeatureJARs( filter );
-                options.setFilter( filter );
+                addFilterForFeatureJARs(filter);
+                options.setFilter(filter);
 
-                executeMirroring( mirrorApp, options );
+                executeMirroring(mirrorApp, options);
             }
-        }
-        finally
-        {
+        } finally {
             agent.stop();
         }
     }
@@ -92,98 +81,77 @@ public class MirrorApplicationServiceImpl
     /**
      * Set filter value so that the feature JAR units and artifacts are included when mirroring.
      */
-    private static void addFilterForFeatureJARs( Map<String, String> filter )
-    {
-        filter.put( "org.eclipse.update.install.features", "true" );
+    private static void addFilterForFeatureJARs(Map<String, String> filter) {
+        filter.put("org.eclipse.update.install.features", "true");
     }
 
-    private void executeMirroring( MirrorApplication mirrorApp, SlicingOptions options )
-        throws FacadeException
-    {
-        try
-        {
+    private void executeMirroring(MirrorApplication mirrorApp, SlicingOptions options) throws FacadeException {
+        try {
             LogListener logListener = new LogListener();
-            mirrorApp.setLog( logListener );
+            mirrorApp.setLog(logListener);
             // mirrorApp.setValidate( true ); // TODO Broken; fix at Eclipse
 
-            mirrorApp.setSlicingOptions( options );
+            mirrorApp.setSlicingOptions(options);
 
-            IStatus returnStatus = mirrorApp.run( null );
-            checkStatus( returnStatus );
+            IStatus returnStatus = mirrorApp.run(null);
+            checkStatus(returnStatus);
             /*
              * Treat the slicer warnings (typically "unable to satisfy dependency") as errors
              * because some expected content is missing.
              */
-            for ( IStatus logStatus : logListener.getSlicerProblems() )
-            {
-                checkStatus( logStatus );
+            for (IStatus logStatus : logListener.getSlicerProblems()) {
+                checkStatus(logStatus);
             }
-        }
-        catch ( ProvisionException e )
-        {
-            throw new FacadeException( MIRROR_FAILURE_MESSAGE + ": " + StatusTool.collectProblems( e.getStatus() ), e );
+        } catch (ProvisionException e) {
+            throw new FacadeException(MIRROR_FAILURE_MESSAGE + ": " + StatusTool.collectProblems(e.getStatus()), e);
         }
     }
 
-    private static void setSourceRepositories( MirrorApplication mirrorApp, RepositoryReferences sources )
-    {
-        setSourceRepositories( mirrorApp, sources.getMetadataRepositories(), RepositoryDescriptor.KIND_METADATA );
-        setSourceRepositories( mirrorApp, sources.getArtifactRepositories(), RepositoryDescriptor.KIND_ARTIFACT );
+    private static void setSourceRepositories(MirrorApplication mirrorApp, RepositoryReferences sources) {
+        setSourceRepositories(mirrorApp, sources.getMetadataRepositories(), RepositoryDescriptor.KIND_METADATA);
+        setSourceRepositories(mirrorApp, sources.getArtifactRepositories(), RepositoryDescriptor.KIND_ARTIFACT);
     }
 
-    private static void setSourceRepositories( MirrorApplication mirrorApp, Collection<URI> repositoryLocations,
-                                               String repositoryKind )
-    {
-        for ( URI repositoryLocation : repositoryLocations )
-        {
+    private static void setSourceRepositories(MirrorApplication mirrorApp, Collection<URI> repositoryLocations,
+            String repositoryKind) {
+        for (URI repositoryLocation : repositoryLocations) {
             RepositoryDescriptor repository = new RepositoryDescriptor();
-            repository.setKind( repositoryKind );
-            repository.setLocation( repositoryLocation );
-            mirrorApp.addSource( repository );
+            repository.setKind(repositoryKind);
+            repository.setLocation(repositoryLocation);
+            mirrorApp.addSource(repository);
         }
     }
 
-    private static List<IInstallableUnit> toInstallableUnitList( Collection<?> units )
-    {
-        List<IInstallableUnit> result = new ArrayList<IInstallableUnit>( units.size() );
-        for ( Object unit : units )
-        {
-            result.add( (IInstallableUnit) unit );
+    private static List<IInstallableUnit> toInstallableUnitList(Collection<?> units) {
+        List<IInstallableUnit> result = new ArrayList<IInstallableUnit>(units.size());
+        for (Object unit : units) {
+            result.add((IInstallableUnit) unit);
         }
         return result;
     }
 
-    private static void checkStatus( IStatus status )
-        throws FacadeException
-    {
-        if ( !status.isOK() )
-        {
-            throw new FacadeException( MIRROR_FAILURE_MESSAGE + ": " + StatusTool.collectProblems( status ),
-                                       status.getException() );
+    private static void checkStatus(IStatus status) throws FacadeException {
+        if (!status.isOK()) {
+            throw new FacadeException(MIRROR_FAILURE_MESSAGE + ": " + StatusTool.collectProblems(status),
+                    status.getException());
         }
     }
 
-    static class LogListener
-        implements IArtifactMirrorLog
-    {
+    static class LogListener implements IArtifactMirrorLog {
         List<IStatus> entries = new ArrayList<IStatus>();
 
-        public void log( IArtifactDescriptor descriptor, IStatus status )
-        {
+        public void log(IArtifactDescriptor descriptor, IStatus status) {
             // artifact comparator result -> ignore
         }
 
-        public void log( IStatus status )
-        {
-            entries.add( status );
+        public void log(IStatus status) {
+            entries.add(status);
         }
 
-        public void close()
-        {
+        public void close() {
         }
 
-        List<IStatus> getSlicerProblems()
-        {
+        List<IStatus> getSlicerProblems() {
             // TODO request from Eclipse that they identify the slicer warnings with a dedicated code
             return entries;
         }

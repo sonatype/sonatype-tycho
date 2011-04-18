@@ -16,39 +16,27 @@ import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ValidateVersionTest
-    extends AbstractTychoIntegrationTest
-{
+public class ValidateVersionTest extends AbstractTychoIntegrationTest {
 
     @Test
-    public void testPlugin()
-        throws Exception
-    {
-        Verifier verifier = getVerifier( "/TYCHO330validateVersion/bundle", false );
-        try
-        {
-            verifier.executeGoal( "verify" );
+    public void testPlugin() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO330validateVersion/bundle", false);
+        try {
+            verifier.executeGoal("verify");
             Assert.fail();
-        }
-        catch ( VerificationException e )
-        {
+        } catch (VerificationException e) {
             // good enough for now
         }
 
     }
 
     @Test
-    public void testFeature()
-        throws Exception
-    {
-        Verifier verifier = getVerifier( "/TYCHO330validateVersion/feature", false );
-        try
-        {
-            verifier.executeGoal( "verify" );
+    public void testFeature() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO330validateVersion/feature", false);
+        try {
+            verifier.executeGoal("verify");
             Assert.fail();
-        }
-        catch ( VerificationException e )
-        {
+        } catch (VerificationException e) {
             // good enough for now
         }
     }

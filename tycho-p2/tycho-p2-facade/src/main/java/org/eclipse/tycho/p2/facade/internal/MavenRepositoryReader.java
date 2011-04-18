@@ -31,13 +31,11 @@ import org.eclipse.tycho.p2.repository.GAV;
 import org.eclipse.tycho.p2.repository.RepositoryReader;
 
 /**
- * Implementation of RepositoryReader interface that delegates to Maven repository subsystem to retrieve artifacts from
- * remote repository.
+ * Implementation of RepositoryReader interface that delegates to Maven repository subsystem to
+ * retrieve artifacts from remote repository.
  */
-@Component( role = MavenRepositoryReader.class, instantiationStrategy = "per-lookup" )
-public class MavenRepositoryReader
-    implements RepositoryReader
-{
+@Component(role = MavenRepositoryReader.class, instantiationStrategy = "per-lookup")
+public class MavenRepositoryReader implements RepositoryReader {
     @Requirement
     private RepositorySystem repositorySystem;
 
@@ -45,99 +43,79 @@ public class MavenRepositoryReader
 
     private ArtifactRepository localRepository;
 
-    public InputStream getContents( GAV gav, String classifier, String extension )
-        throws IOException
-    {
-        Artifact a = repositorySystem.createArtifactWithClassifier( gav.getGroupId(), gav.getArtifactId(), gav
-            .getVersion(), extension, classifier );
+    public InputStream getContents(GAV gav, String classifier, String extension) throws IOException {
+        Artifact a = repositorySystem.createArtifactWithClassifier(gav.getGroupId(), gav.getArtifactId(),
+                gav.getVersion(), extension, classifier);
 
         ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-        request.setArtifact( a );
-        request.setLocalRepository( localRepository );
-        request.setRemoteRepositories( repositories );
-        ArtifactResolutionResult result = repositorySystem.resolve( request );
+        request.setArtifact(a);
+        request.setLocalRepository(localRepository);
+        request.setRemoteRepositories(repositories);
+        ArtifactResolutionResult result = repositorySystem.resolve(request);
 
-        if ( !a.isResolved() )
-        {
-            IOException exception = new IOException( "Could not resolve artifact" );
-            if ( result.hasExceptions() )
-            {
-                exception.initCause( result.getExceptions().get( 0 ) );
+        if (!a.isResolved()) {
+            IOException exception = new IOException("Could not resolve artifact");
+            if (result.hasExceptions()) {
+                exception.initCause(result.getExceptions().get(0));
             }
             throw exception;
         }
 
-        return new FileInputStream( a.getFile() );
+        return new FileInputStream(a.getFile());
     }
-    
-    public InputStream getContents( String remoteRelpath )
-        throws IOException
-    {
-        if ( repositories.size() != 1 )
-        {
-            throw new IllegalStateException( "Ambiguous repository request" );
+
+    public InputStream getContents(String remoteRelpath) throws IOException {
+        if (repositories.size() != 1) {
+            throw new IllegalStateException("Ambiguous repository request");
         }
 
-        ArtifactRepository repository = repositories.get( 0 );
+        ArtifactRepository repository = repositories.get(0);
 
-        final File file = File.createTempFile( repository.getId(), ".tmp" );
+        final File file = File.createTempFile(repository.getId(), ".tmp");
 
-        try
-        {
-            repositorySystem.retrieve( repository, file, remoteRelpath, null );
-        }
-        catch ( ArtifactTransferFailedException cause )
-        {
+        try {
+            repositorySystem.retrieve(repository, file, remoteRelpath, null);
+        } catch (ArtifactTransferFailedException cause) {
             IOException e = new FileNotFoundException();
-            e.initCause( cause );
+            e.initCause(cause);
             throw e;
-        }
-        catch ( ArtifactDoesNotExistException cause )
-        {
+        } catch (ArtifactDoesNotExistException cause) {
             IOException e = new FileNotFoundException();
-            e.initCause( cause );
+            e.initCause(cause);
             throw e;
         }
 
-        return new FileInputStream( file )
-        {
+        return new FileInputStream(file) {
             @Override
-            public void close()
-                throws IOException
-            {
+            public void close() throws IOException {
                 super.close();
                 file.delete();
             }
         };
     }
 
-    private String getKey( GAV gav, String classifier, String extension )
-    {
+    private String getKey(GAV gav, String classifier, String extension) {
         StringBuilder sb = new StringBuilder();
-        sb.append( gav.getGroupId() );
-        sb.append( ':' ).append( gav.getArtifactId() );
-        sb.append( ':' ).append( gav.getVersion() );
-        sb.append( ':' );
-        if ( classifier != null )
-        {
-            sb.append( classifier );
+        sb.append(gav.getGroupId());
+        sb.append(':').append(gav.getArtifactId());
+        sb.append(':').append(gav.getVersion());
+        sb.append(':');
+        if (classifier != null) {
+            sb.append(classifier);
         }
-        sb.append( ':' );
-        if ( extension != null )
-        {
-            sb.append( extension );
+        sb.append(':');
+        if (extension != null) {
+            sb.append(extension);
         }
         return sb.toString();
     }
 
-    public void setArtifactRepository( ArtifactRepository repository )
-    {
+    public void setArtifactRepository(ArtifactRepository repository) {
         this.repositories = new ArrayList<ArtifactRepository>();
-        this.repositories.add( repository );
+        this.repositories.add(repository);
     }
 
-    public void setLocalRepository( ArtifactRepository localRepository )
-    {
+    public void setLocalRepository(ArtifactRepository localRepository) {
         this.localRepository = localRepository;
     }
 }

@@ -13,8 +13,7 @@ package org.eclipse.tycho.classpath;
 import java.io.File;
 import java.util.List;
 
-public interface SourcepathEntry
-{
+public interface SourcepathEntry {
     public File getOutputDirectory();
 
     public File getSourcesRoot();

@@ -27,54 +27,49 @@ import org.eclipse.tycho.p2.impl.resolver.DependencyCollector;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DependencyCollectorTest
-{
+public class DependencyCollectorTest {
 
     @Test
-    public void missingDependencies()
-    {
-        DependencyCollector dc = new DependencyCollector( new NullP2Logger() );
+    public void missingDependencies() {
+        DependencyCollector dc = new DependencyCollector(new NullP2Logger());
 
         InstallableUnitDescription iud = new MetadataFactory.InstallableUnitDescription();
-        String time = Long.toString( System.currentTimeMillis() );
-        iud.setId( time );
-        iud.setVersion( Version.createOSGi( 0, 0, 0, time ) );
+        String time = Long.toString(System.currentTimeMillis());
+        iud.setId(time);
+        iud.setVersion(Version.createOSGi(0, 0, 0, time));
 
         ArrayList<IRequirement> requirements = new ArrayList<IRequirement>();
 
-        VersionRange range = new VersionRange( "[1.2.3,1.2.4)" );
-        requirements.add( MetadataFactory.createRequirement( IInstallableUnit.NAMESPACE_IU_ID, "this.is.a.missing.iu",
-                                                             range, null, 1 /* min */, 1 /* max */, true /* greedy */) );
+        VersionRange range = new VersionRange("[1.2.3,1.2.4)");
+        requirements.add(MetadataFactory.createRequirement(IInstallableUnit.NAMESPACE_IU_ID, "this.is.a.missing.iu",
+                range, null, 1 /* min */, 1 /* max */, true /* greedy */));
 
-        iud.setRequirements( (IRequirement[]) requirements.toArray( new IRequirement[requirements.size()] ) );
+        iud.setRequirements((IRequirement[]) requirements.toArray(new IRequirement[requirements.size()]));
 
         HashSet<IInstallableUnit> rootUIs = new HashSet<IInstallableUnit>();
-        rootUIs.add( MetadataFactory.createInstallableUnit( iud ) );
+        rootUIs.add(MetadataFactory.createInstallableUnit(iud));
 
-        dc.setRootInstallableUnits( rootUIs );
-        dc.setAdditionalRequirements( new ArrayList<IRequirement>() );
-        dc.setAvailableInstallableUnits( new CollectionResult<IInstallableUnit>( new ArrayList<IInstallableUnit>() ) );
+        dc.setRootInstallableUnits(rootUIs);
+        dc.setAdditionalRequirements(new ArrayList<IRequirement>());
+        dc.setAvailableInstallableUnits(new CollectionResult<IInstallableUnit>(new ArrayList<IInstallableUnit>()));
 
-        try
-        {
-            dc.resolve( new NullProgressMonitor() );
+        try {
+            dc.resolve(new NullProgressMonitor());
             Assert.fail();
-        }
-        catch ( RuntimeException e )
-        {
+        } catch (RuntimeException e) {
             Throwable cause = e.getCause();
 
-            Assert.assertTrue( cause instanceof ProvisionException );
+            Assert.assertTrue(cause instanceof ProvisionException);
 
             ProvisionException pe = (ProvisionException) cause;
 
-            Assert.assertTrue( pe.getStatus().isMultiStatus() );
+            Assert.assertTrue(pe.getStatus().isMultiStatus());
 
             MultiStatus status = (MultiStatus) pe.getStatus();
 
-            Assert.assertEquals( 1, status.getChildren().length );
+            Assert.assertEquals(1, status.getChildren().length);
 
-            Assert.assertTrue( e.toString().contains( "this.is.a.missing.iu" ) );
+            Assert.assertTrue(e.toString().contains("this.is.a.missing.iu"));
         }
     }
 }

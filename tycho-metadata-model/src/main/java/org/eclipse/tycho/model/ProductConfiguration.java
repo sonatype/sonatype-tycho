@@ -36,56 +36,40 @@ import de.pdark.decentxml.XMLParser;
 import de.pdark.decentxml.XMLWriter;
 
 /**
- * As of eclipse 3.5.1, file format does not seem to be documented. There are most likely multiple parser
- * implementations. org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile
+ * As of eclipse 3.5.1, file format does not seem to be documented. There are most likely multiple
+ * parser implementations. org.eclipse.equinox.internal.p2.publisher.eclipse.ProductFile
  */
-public class ProductConfiguration
-{
+public class ProductConfiguration {
     private static XMLParser parser = new XMLParser();
 
-    public static ProductConfiguration read( File file )
-        throws IOException
-    {
-        InputStream is = new BufferedInputStream( new FileInputStream( file ) );
-        return read( is ); // closes the stream
+    public static ProductConfiguration read(File file) throws IOException {
+        InputStream is = new BufferedInputStream(new FileInputStream(file));
+        return read(is); // closes the stream
     }
 
-    public static ProductConfiguration read( InputStream input )
-        throws IOException
-    {
-        try
-        {
-            return new ProductConfiguration( parser.parse( new XMLIOSource( input ) ) );
-        }
-        finally
-        {
-            IOUtil.close( input );
+    public static ProductConfiguration read(InputStream input) throws IOException {
+        try {
+            return new ProductConfiguration(parser.parse(new XMLIOSource(input)));
+        } finally {
+            IOUtil.close(input);
         }
     }
 
-    public static void write( ProductConfiguration product, File file )
-        throws IOException
-    {
-        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
+    public static void write(ProductConfiguration product, File file) throws IOException {
+        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
 
         Document document = product.document;
-        try
-        {
+        try {
             String enc = document.getEncoding() != null ? document.getEncoding() : "UTF-8";
-            Writer w = new OutputStreamWriter( os, enc );
-            XMLWriter xw = new XMLWriter( w );
-            try
-            {
-                document.toXML( xw );
-            }
-            finally
-            {
+            Writer w = new OutputStreamWriter(os, enc);
+            XMLWriter xw = new XMLWriter(w);
+            try {
+                document.toXML(xw);
+            } finally {
                 xw.flush();
             }
-        }
-        finally
-        {
-            IOUtil.close( os );
+        } finally {
+            IOUtil.close(os);
         }
     }
 
@@ -93,177 +77,144 @@ public class ProductConfiguration
 
     private Document document;
 
-    public ProductConfiguration( Document document )
-    {
+    public ProductConfiguration(Document document) {
         this.document = document;
         this.dom = document.getRootElement();
     }
 
-    public String getProduct()
-    {
-        return dom.getAttributeValue( "id" );
+    public String getProduct() {
+        return dom.getAttributeValue("id");
     }
 
-    public String getApplication()
-    {
-        return dom.getAttributeValue( "application" );
+    public String getApplication() {
+        return dom.getAttributeValue("application");
     }
 
-    public List<FeatureRef> getFeatures()
-    {
-        Element featuresDom = dom.getChild( "features" );
-        if ( featuresDom == null )
-        {
+    public List<FeatureRef> getFeatures() {
+        Element featuresDom = dom.getChild("features");
+        if (featuresDom == null) {
             return Collections.emptyList();
         }
 
         ArrayList<FeatureRef> features = new ArrayList<FeatureRef>();
-        for ( Element pluginDom : featuresDom.getChildren( "feature" ) )
-        {
-            features.add( new FeatureRef( pluginDom ) );
+        for (Element pluginDom : featuresDom.getChildren("feature")) {
+            features.add(new FeatureRef(pluginDom));
         }
-        return Collections.unmodifiableList( features );
+        return Collections.unmodifiableList(features);
     }
 
-    public String getId()
-    {
-        return dom.getAttributeValue( "uid" );
+    public String getId() {
+        return dom.getAttributeValue("uid");
     }
 
-    public Launcher getLauncher()
-    {
-        Element domLauncher = dom.getChild( "launcher" );
-        if ( domLauncher == null )
-        {
+    public Launcher getLauncher() {
+        Element domLauncher = dom.getChild("launcher");
+        if (domLauncher == null) {
             return null;
         }
-        return new Launcher( domLauncher );
+        return new Launcher(domLauncher);
     }
 
-    public String getName()
-    {
-        return dom.getAttributeValue( "name" );
+    public String getName() {
+        return dom.getAttributeValue("name");
     }
 
-    public List<PluginRef> getPlugins()
-    {
-        Element pluginsDom = dom.getChild( "plugins" );
-        if ( pluginsDom == null )
-        {
+    public List<PluginRef> getPlugins() {
+        Element pluginsDom = dom.getChild("plugins");
+        if (pluginsDom == null) {
             return Collections.emptyList();
         }
 
         ArrayList<PluginRef> plugins = new ArrayList<PluginRef>();
-        for ( Element pluginDom : pluginsDom.getChildren( "plugin" ) )
-        {
-            plugins.add( new PluginRef( pluginDom ) );
+        for (Element pluginDom : pluginsDom.getChildren("plugin")) {
+            plugins.add(new PluginRef(pluginDom));
         }
-        return Collections.unmodifiableList( plugins );
+        return Collections.unmodifiableList(plugins);
     }
 
-    public boolean useFeatures()
-    {
-        return Boolean.parseBoolean( dom.getAttributeValue( "useFeatures" ) );
+    public boolean useFeatures() {
+        return Boolean.parseBoolean(dom.getAttributeValue("useFeatures"));
     }
 
-    public boolean includeLaunchers()
-    {
-        String attribute = dom.getAttributeValue( "includeLaunchers" );
-        return attribute == null ? true : Boolean.parseBoolean( attribute );
+    public boolean includeLaunchers() {
+        String attribute = dom.getAttributeValue("includeLaunchers");
+        return attribute == null ? true : Boolean.parseBoolean(attribute);
     }
 
-    public String getVersion()
-    {
-        return dom.getAttributeValue( "version" );
+    public String getVersion() {
+        return dom.getAttributeValue("version");
     }
 
-    public void setVersion( String version )
-    {
-        dom.setAttribute( "version", version );
+    public void setVersion(String version) {
+        dom.setAttribute("version", version);
     }
 
-    public List<String> getW32Icons()
-    {
-        Element domLauncher = dom.getChild( "launcher" );
-        if ( domLauncher == null )
-        {
+    public List<String> getW32Icons() {
+        Element domLauncher = dom.getChild("launcher");
+        if (domLauncher == null) {
 
             return null;
         }
-        Element win = domLauncher.getChild( "win" );
-        if ( win == null )
-        {
+        Element win = domLauncher.getChild("win");
+        if (win == null) {
             return null;
         }
         List<String> icons = new ArrayList<String>();
-        String useIco = win.getAttributeValue( "useIco" );
-        if ( Boolean.valueOf( useIco ) )
-        {
+        String useIco = win.getAttributeValue("useIco");
+        if (Boolean.valueOf(useIco)) {
             // for (Element ico : win.getChildren("ico"))
             {
-                Element ico = win.getChild( "ico" );
+                Element ico = win.getChild("ico");
                 // should be only 1
-                icons.add( ico.getAttributeValue( "path" ) );
+                icons.add(ico.getAttributeValue("path"));
             }
-        }
-        else
-        {
-            for ( Element bmp : win.getChildren( "bmp" ) )
-            {
+        } else {
+            for (Element bmp : win.getChildren("bmp")) {
                 List<Attribute> attibuteNames = bmp.getAttributes();
-                if ( attibuteNames != null && attibuteNames.size() > 0 )
-                    icons.add( attibuteNames.get( 0 ).getValue() );
+                if (attibuteNames != null && attibuteNames.size() > 0)
+                    icons.add(attibuteNames.get(0).getValue());
             }
         }
         return icons;
     }
 
-    public String getLinuxIcon()
-    {
-        Element domLauncher = dom.getChild( "launcher" );
-        if ( domLauncher == null )
-        {
+    public String getLinuxIcon() {
+        Element domLauncher = dom.getChild("launcher");
+        if (domLauncher == null) {
 
             return null;
         }
-        Element linux = domLauncher.getChild( "linux" );
-        if ( linux == null )
-        {
+        Element linux = domLauncher.getChild("linux");
+        if (linux == null) {
             return null;
         }
 
-        return linux.getAttributeValue( "icon" );
+        return linux.getAttributeValue("icon");
     }
 
-    public Map<String, BundleConfiguration> getPluginConfiguration()
-    {
-        Element configurationsDom = dom.getChild( "configurations" );
-        if ( configurationsDom == null )
-        {
+    public Map<String, BundleConfiguration> getPluginConfiguration() {
+        Element configurationsDom = dom.getChild("configurations");
+        if (configurationsDom == null) {
             return null;
         }
 
         Map<String, BundleConfiguration> configs = new HashMap<String, BundleConfiguration>();
-        for ( Element pluginDom : configurationsDom.getChildren( "plugin" ) )
-        {
-            configs.put( pluginDom.getAttributeValue( "id" ), new BundleConfiguration( pluginDom ) );
+        for (Element pluginDom : configurationsDom.getChildren("plugin")) {
+            configs.put(pluginDom.getAttributeValue("id"), new BundleConfiguration(pluginDom));
         }
-        return Collections.unmodifiableMap( configs );
+        return Collections.unmodifiableMap(configs);
     }
 
-    public String getMacIcon()
-    {
-        Element domLauncher = dom.getChild( "launcher" );
-        if ( domLauncher == null )
-        {
+    public String getMacIcon() {
+        Element domLauncher = dom.getChild("launcher");
+        if (domLauncher == null) {
 
             return null;
         }
-        Element linux = domLauncher.getChild( "macosx" );
-        if ( linux == null )
-        {
+        Element linux = domLauncher.getChild("macosx");
+        if (linux == null) {
             return null;
         }
-        return linux.getAttributeValue( "icon" );
+        return linux.getAttributeValue("icon");
     }
 }

@@ -16,9 +16,7 @@ import java.util.List;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 
-public interface TychoP2RuntimeResolver
-{
-    public List<File> getRuntimeLocations( MavenSession session )
-        throws MavenExecutionException;
+public interface TychoP2RuntimeResolver {
+    public List<File> getRuntimeLocations(MavenSession session) throws MavenExecutionException;
 
 }

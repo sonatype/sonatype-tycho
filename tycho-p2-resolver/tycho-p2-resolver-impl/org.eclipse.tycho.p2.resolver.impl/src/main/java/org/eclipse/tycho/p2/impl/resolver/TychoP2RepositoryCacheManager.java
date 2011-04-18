@@ -21,55 +21,44 @@ import org.eclipse.equinox.p2.core.ProvisionException;
 /**
  * @author igor
  */
-@SuppressWarnings( "restriction" )
-public class TychoP2RepositoryCacheManager
-    extends CacheManager
-{
+@SuppressWarnings("restriction")
+public class TychoP2RepositoryCacheManager extends CacheManager {
     public static final String CACHE_RELPATH = ".cache/tycho/p2-repository-metadata";
 
     private boolean offline;
 
     private File localRepositoryLocation;
 
-    public TychoP2RepositoryCacheManager()
-    {
-        super( null );
+    public TychoP2RepositoryCacheManager() {
+        super(null);
     }
 
     @Override
-    public File createCache( URI repositoryLocation, String prefix, IProgressMonitor monitor )
-        throws IOException, ProvisionException
-    {
-        File cacheFile = getCache( repositoryLocation, prefix );
-        if ( offline )
-        {
-            if ( cacheFile != null )
-            {
+    public File createCache(URI repositoryLocation, String prefix, IProgressMonitor monitor) throws IOException,
+            ProvisionException {
+        File cacheFile = getCache(repositoryLocation, prefix);
+        if (offline) {
+            if (cacheFile != null) {
                 return cacheFile;
             }
 
-            throw new ProvisionException( "Repository system is offline and no local cache available for "
-                + repositoryLocation.toString() );
-        }
-        else
-        {
-            return super.createCache( repositoryLocation, prefix, monitor );
+            throw new ProvisionException("Repository system is offline and no local cache available for "
+                    + repositoryLocation.toString());
+        } else {
+            return super.createCache(repositoryLocation, prefix, monitor);
         }
     }
 
     @Override
-    protected File getCacheDirectory()
-    {
-        return new File( localRepositoryLocation, CACHE_RELPATH );
+    protected File getCacheDirectory() {
+        return new File(localRepositoryLocation, CACHE_RELPATH);
     }
 
-    public void setOffline( boolean offline )
-    {
+    public void setOffline(boolean offline) {
         this.offline = offline;
     }
 
-    public void setLocalRepositoryLocation( File localRepositoryLocation )
-    {
+    public void setLocalRepositoryLocation(File localRepositoryLocation) {
         this.localRepositoryLocation = localRepositoryLocation;
     }
 }

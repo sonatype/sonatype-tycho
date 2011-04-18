@@ -16,8 +16,7 @@ import java.util.Set;
 /**
  * An artifact (i.e. a file) in project build target platform.
  */
-public interface ArtifactDescriptor
-{
+public interface ArtifactDescriptor {
     /**
      * Eclipse/OSGi artifact key (a.k.a. "coordinates") that uniquely identify the artifact
      */
@@ -29,15 +28,16 @@ public interface ArtifactDescriptor
     public File getLocation();
 
     /**
-     * ReactorProject corresponding to the artifact or null if the artifact does not come from a reactor project.
+     * ReactorProject corresponding to the artifact or null if the artifact does not come from a
+     * reactor project.
      * 
      * @TODO should come from separate ReactorArtifactDescriptor
      */
     public ReactorProject getMavenProject();
 
     /**
-     * Maven artifact classifier. Not null only for classified artifacts coming from a reactor project (eg, sources
-     * jar).
+     * Maven artifact classifier. Not null only for classified artifacts coming from a reactor
+     * project (eg, sources jar).
      * 
      * @TODO should come from separate ReactorArtifactDescriptor
      */

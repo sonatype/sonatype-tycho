@@ -34,10 +34,10 @@ import de.pdark.decentxml.XMLParser;
 import de.pdark.decentxml.XMLWriter;
 
 /**
- * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/feature_manifest.html
+ * http://help.eclipse.org/ganymede/topic/org.eclipse.platform.doc.isv/reference/misc/
+ * feature_manifest.html
  */
-public class Feature
-{
+public class Feature {
 
     public static final String FEATURE_XML = "feature.xml";
 
@@ -51,175 +51,133 @@ public class Feature
 
     private ArrayList<FeatureRef> features;
 
-    public Feature( Document document )
-    {
+    public Feature(Document document) {
         this.document = document;
         this.dom = document.getRootElement();
     }
 
     /** copy constructor */
-    public Feature( Feature other )
-    {
-        this( other.document.copy() );
+    public Feature(Feature other) {
+        this(other.document.copy());
     }
 
-    public List<PluginRef> getPlugins()
-    {
-        if ( plugins == null )
-        {
+    public List<PluginRef> getPlugins() {
+        if (plugins == null) {
             plugins = new ArrayList<PluginRef>();
-            for ( Element pluginDom : dom.getChildren( "plugin" ) )
-            {
-                plugins.add( new PluginRef( pluginDom ) );
+            for (Element pluginDom : dom.getChildren("plugin")) {
+                plugins.add(new PluginRef(pluginDom));
             }
         }
-        return Collections.unmodifiableList( plugins );
+        return Collections.unmodifiableList(plugins);
     }
 
-    public void setVersion( String version )
-    {
-        dom.setAttribute( "version", version );
+    public void setVersion(String version) {
+        dom.setAttribute("version", version);
     }
 
-    public List<FeatureRef> getIncludedFeatures()
-    {
-        if ( features == null )
-        {
+    public List<FeatureRef> getIncludedFeatures() {
+        if (features == null) {
             features = new ArrayList<FeatureRef>();
-            for ( Element featureDom : dom.getChildren( "includes" ) )
-            {
-                features.add( new FeatureRef( featureDom ) );
+            for (Element featureDom : dom.getChildren("includes")) {
+                features.add(new FeatureRef(featureDom));
             }
         }
-        return Collections.unmodifiableList( features );
+        return Collections.unmodifiableList(features);
     }
 
-    public List<RequiresRef> getRequires()
-    {
+    public List<RequiresRef> getRequires() {
         ArrayList<RequiresRef> requires = new ArrayList<RequiresRef>();
-        for ( Element requiresDom : dom.getChildren( "requires" ) )
-        {
-            requires.add( new RequiresRef( requiresDom ) );
+        for (Element requiresDom : dom.getChildren("requires")) {
+            requires.add(new RequiresRef(requiresDom));
         }
-        return Collections.unmodifiableList( requires );
+        return Collections.unmodifiableList(requires);
     }
 
-    public static class RequiresRef
-    {
+    public static class RequiresRef {
 
         private final Element dom;
 
-        public RequiresRef( Element dom )
-        {
+        public RequiresRef(Element dom) {
             this.dom = dom;
         }
 
-        public List<ImportRef> getImports()
-        {
+        public List<ImportRef> getImports() {
             ArrayList<ImportRef> imports = new ArrayList<ImportRef>();
-            for ( Element importsDom : dom.getChildren( "import" ) )
-            {
-                imports.add( new ImportRef( importsDom ) );
+            for (Element importsDom : dom.getChildren("import")) {
+                imports.add(new ImportRef(importsDom));
             }
-            return Collections.unmodifiableList( imports );
+            return Collections.unmodifiableList(imports);
         }
 
     }
 
-    public static class ImportRef
-    {
+    public static class ImportRef {
 
         private final Element dom;
 
-        public ImportRef( Element dom )
-        {
+        public ImportRef(Element dom) {
             this.dom = dom;
         }
 
-        public String getPlugin()
-        {
-            return dom.getAttributeValue( "plugin" );
+        public String getPlugin() {
+            return dom.getAttributeValue("plugin");
         }
 
-        public String getFeature()
-        {
-            return dom.getAttributeValue( "feature" );
+        public String getFeature() {
+            return dom.getAttributeValue("feature");
         }
 
     }
 
-    public String getVersion()
-    {
-        return dom.getAttributeValue( "version" );
+    public String getVersion() {
+        return dom.getAttributeValue("version");
     }
 
-    public String getId()
-    {
-        return dom.getAttributeValue( "id" );
+    public String getId() {
+        return dom.getAttributeValue("id");
     }
 
-    public static Feature read( File file )
-        throws IOException
-    {
-        FileInputStream is = new FileInputStream( file );
-        return read( is ); // closes the stream
+    public static Feature read(File file) throws IOException {
+        FileInputStream is = new FileInputStream(file);
+        return read(is); // closes the stream
     }
 
-    public static Feature read( InputStream input )
-        throws IOException
-    {
-        try
-        {
-            return new Feature( parser.parse( new XMLIOSource( input ) ) );
-        }
-        finally
-        {
-            IOUtil.close( input );
+    public static Feature read(InputStream input) throws IOException {
+        try {
+            return new Feature(parser.parse(new XMLIOSource(input)));
+        } finally {
+            IOUtil.close(input);
         }
     }
 
-    public static void write( Feature feature, File file )
-        throws IOException
-    {
-        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
+    public static void write(Feature feature, File file) throws IOException {
+        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
 
         Document document = feature.document;
-        try
-        {
+        try {
             String enc = document.getEncoding() != null ? document.getEncoding() : "UTF-8";
-            Writer w = new OutputStreamWriter( os, enc );
-            XMLWriter xw = new XMLWriter( w );
-            try
-            {
-                document.toXML( xw );
-            }
-            finally
-            {
+            Writer w = new OutputStreamWriter(os, enc);
+            XMLWriter xw = new XMLWriter(w);
+            try {
+                document.toXML(xw);
+            } finally {
                 xw.flush();
             }
-        }
-        finally
-        {
-            IOUtil.close( os );
+        } finally {
+            IOUtil.close(os);
         }
     }
 
-    public static Feature readJar( File file )
-        throws IOException
-    {
-        JarFile jar = new JarFile( file );
-        try
-        {
-            ZipEntry ze = jar.getEntry( FEATURE_XML );
-            if ( ze != null )
-            {
-                InputStream is = jar.getInputStream( ze );
-                return read( is );
+    public static Feature readJar(File file) throws IOException {
+        JarFile jar = new JarFile(file);
+        try {
+            ZipEntry ze = jar.getEntry(FEATURE_XML);
+            if (ze != null) {
+                InputStream is = jar.getInputStream(ze);
+                return read(is);
             }
-            throw new IOException( file.getAbsolutePath() + " does not have " + FEATURE_XML + " entry." );
-        }
-        finally
-        {
+            throw new IOException(file.getAbsolutePath() + " does not have " + FEATURE_XML + " entry.");
+        } finally {
             jar.close();
         }
     }
@@ -227,27 +185,21 @@ public class Feature
     /**
      * Convenience method to load feature.xml file from either feature jar file or directory.
      * 
-     * @throws RuntimeException if feature descriptor can not be read or parsed.
+     * @throws RuntimeException
+     *             if feature descriptor can not be read or parsed.
      */
-    public static Feature loadFeature( File location )
-    {
-        try
-        {
+    public static Feature loadFeature(File location) {
+        try {
             Feature feature;
-            if ( location.isDirectory() )
-            {
-                feature = Feature.read( new File( location, Feature.FEATURE_XML ) );
-            }
-            else
-            {
+            if (location.isDirectory()) {
+                feature = Feature.read(new File(location, Feature.FEATURE_XML));
+            } else {
                 // eclipse does NOT support packed features
-                feature = Feature.readJar( location );
+                feature = Feature.readJar(location);
             }
             return feature;
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Could not read feature descriptor at " + location.getAbsolutePath(), e );
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read feature descriptor at " + location.getAbsolutePath(), e);
         }
     }
 

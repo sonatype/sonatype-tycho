@@ -17,9 +17,7 @@ import org.eclipse.tycho.ArtifactKey;
 import org.eclipse.tycho.ReactorProject;
 import org.eclipse.tycho.classpath.ClasspathEntry;
 
-public class DefaultClasspathEntry
-    implements ClasspathEntry
-{
+public class DefaultClasspathEntry implements ClasspathEntry {
     private final ReactorProject project;
 
     private final ArtifactKey key;
@@ -28,70 +26,57 @@ public class DefaultClasspathEntry
 
     private final List<AccessRule> rules;
 
-    public static class DefaultAccessRule
-        implements AccessRule
-    {
+    public static class DefaultAccessRule implements AccessRule {
         private final String pattern;
 
         private final boolean discouraged;
 
-        public DefaultAccessRule( String path, boolean discouraged )
-        {
+        public DefaultAccessRule(String path, boolean discouraged) {
             this.pattern = path;
             this.discouraged = discouraged;
         }
 
-        public boolean equals( Object obj )
-        {
-            if ( this == obj )
-            {
+        public boolean equals(Object obj) {
+            if (this == obj) {
                 return true;
             }
-            if ( !( obj instanceof AccessRule ) )
-            {
+            if (!(obj instanceof AccessRule)) {
                 return false;
             }
             AccessRule other = (AccessRule) obj;
-            return isDiscouraged() == other.isDiscouraged() && getPattern().equals( other.getPattern() );
+            return isDiscouraged() == other.isDiscouraged() && getPattern().equals(other.getPattern());
         }
 
-        public String getPattern()
-        {
+        public String getPattern() {
             return pattern;
         }
 
-        public boolean isDiscouraged()
-        {
+        public boolean isDiscouraged() {
             return discouraged;
         }
 
     }
 
-    public DefaultClasspathEntry( ReactorProject project, ArtifactKey key, List<File> locations, List<AccessRule> rules )
-    {
+    public DefaultClasspathEntry(ReactorProject project, ArtifactKey key, List<File> locations, List<AccessRule> rules) {
         this.project = project;
         this.key = key;
         this.locations = locations;
         this.rules = rules;
     }
 
-    public List<File> getLocations()
-    {
+    public List<File> getLocations() {
         return locations;
     }
 
-    public List<AccessRule> getAccessRules()
-    {
+    public List<AccessRule> getAccessRules() {
         return rules;
     }
 
-    public ArtifactKey getArtifactKey()
-    {
+    public ArtifactKey getArtifactKey() {
         return key;
     }
 
-    public ReactorProject getMavenProject()
-    {
+    public ReactorProject getMavenProject() {
         return project;
     }
 }

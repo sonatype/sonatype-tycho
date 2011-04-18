@@ -22,28 +22,23 @@ import org.eclipse.tycho.core.TargetEnvironment;
 import org.eclipse.tycho.core.TychoProject;
 import org.eclipse.tycho.model.Feature;
 
-@Component( role = TychoProject.class, hint = org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE )
-public class EclipseFeatureProject
-    extends AbstractArtifactBasedProject
-{
+@Component(role = TychoProject.class, hint = org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE)
+public class EclipseFeatureProject extends AbstractArtifactBasedProject {
     @Override
-    protected ArtifactDependencyWalker newDependencyWalker( MavenProject project, TargetEnvironment environment )
-    {
+    protected ArtifactDependencyWalker newDependencyWalker(MavenProject project, TargetEnvironment environment) {
         final File location = project.getBasedir();
-        final Feature feature = Feature.loadFeature( location );
-        return new AbstractArtifactDependencyWalker( getTargetPlatform( project, environment ),
-                                                     getEnvironments( project, environment ) )
-        {
-            public void walk( ArtifactDependencyVisitor visitor )
-            {
-                traverseFeature( location, feature, visitor );
+        final Feature feature = Feature.loadFeature(location);
+        return new AbstractArtifactDependencyWalker(getTargetPlatform(project, environment), getEnvironments(project,
+                environment)) {
+            public void walk(ArtifactDependencyVisitor visitor) {
+                traverseFeature(location, feature, visitor);
             }
         };
     }
 
-    public ArtifactKey getArtifactKey( ReactorProject project )
-    {
-        Feature feature = Feature.loadFeature( project.getBasedir() );
-        return new DefaultArtifactKey( org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, feature.getId(), feature.getVersion() );
+    public ArtifactKey getArtifactKey(ReactorProject project) {
+        Feature feature = Feature.loadFeature(project.getBasedir());
+        return new DefaultArtifactKey(org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, feature.getId(),
+                feature.getVersion());
     }
 }

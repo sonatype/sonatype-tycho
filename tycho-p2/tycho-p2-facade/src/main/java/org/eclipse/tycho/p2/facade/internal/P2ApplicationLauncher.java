@@ -36,9 +36,8 @@ import org.eclipse.tycho.equinox.launching.internal.EquinoxLaunchConfiguration;
  * 
  * @author igor
  */
-@Component( role = P2ApplicationLauncher.class, instantiationStrategy = "per-lookup" )
-public class P2ApplicationLauncher
-{
+@Component(role = P2ApplicationLauncher.class, instantiationStrategy = "per-lookup")
+public class P2ApplicationLauncher {
     @Requirement
     private Logger logger;
 
@@ -51,7 +50,7 @@ public class P2ApplicationLauncher
     @Requirement
     private EquinoxRuntimeLocator runtimeLocator;
 
-    @Requirement( role = TychoProject.class, hint = ArtifactKey.TYPE_ECLIPSE_PLUGIN )
+    @Requirement(role = TychoProject.class, hint = ArtifactKey.TYPE_ECLIPSE_PLUGIN)
     private OsgiBundleProject osgiBundle;
 
     private File workingDirectory;
@@ -62,105 +61,82 @@ public class P2ApplicationLauncher
 
     private final List<String> args = new ArrayList<String>();
 
-    public void setWorkingDirectory( File workingDirectory )
-    {
+    public void setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
     }
 
-    public void setApplicationName( String applicationName )
-    {
+    public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
     }
 
-    public void addArguments( String... args )
-    {
-        for ( String arg : args )
-        {
-            this.args.add( arg );
+    public void addArguments(String... args) {
+        for (String arg : args) {
+            this.args.add(arg);
         }
     }
 
-    public void addVMArguments( String... vmargs )
-    {
-        for ( String vmarg : vmargs )
-        {
-            this.vmargs.add( vmarg );
+    public void addVMArguments(String... vmargs) {
+        for (String vmarg : vmargs) {
+            this.vmargs.add(vmarg);
         }
     }
 
-    public int execute( int forkedProcessTimeoutInSeconds )
-    {
-        try
-        {
+    public int execute(int forkedProcessTimeoutInSeconds) {
+        try {
             File installationFolder = newTemporaryFolder();
 
-            try
-            {
+            try {
                 EquinoxInstallationDescription description = new DefaultEquinoxInstallationDescription();
 
                 List<File> locations = runtimeLocator.getRuntimeLocations();
 
-                for ( File location : locations )
-                {
-                    if ( location.isDirectory() )
-                    {
-                        for ( File file : new File( location, "plugins" ).listFiles() )
-                        {
-                            addBundle( description, file );
+                for (File location : locations) {
+                    if (location.isDirectory()) {
+                        for (File file : new File(location, "plugins").listFiles()) {
+                            addBundle(description, file);
                         }
-                    }
-                    else
-                    {
-                        addBundle( description, location );
+                    } else {
+                        addBundle(description, location);
                     }
                 }
 
-                EquinoxInstallation installation =
-                    installationFactory.createInstallation( description, installationFolder );
+                EquinoxInstallation installation = installationFactory.createInstallation(description,
+                        installationFolder);
 
-                EquinoxLaunchConfiguration launchConfiguration = new EquinoxLaunchConfiguration( installation );
-                launchConfiguration.setWorkingDirectory( workingDirectory );
+                EquinoxLaunchConfiguration launchConfiguration = new EquinoxLaunchConfiguration(installation);
+                launchConfiguration.setWorkingDirectory(workingDirectory);
 
                 // logging
 
-                if ( logger.isDebugEnabled() )
-                {
-                    launchConfiguration.addProgramArguments( "-debug", "-consoleLog" );
+                if (logger.isDebugEnabled()) {
+                    launchConfiguration.addProgramArguments("-debug", "-consoleLog");
                 }
 
                 // application and application arguments
 
-                launchConfiguration.addProgramArguments( "-nosplash", "-application", applicationName );
+                launchConfiguration.addProgramArguments("-nosplash", "-application", applicationName);
 
-                launchConfiguration.addProgramArguments( true, args.toArray( new String[args.size()] ) );
+                launchConfiguration.addProgramArguments(true, args.toArray(new String[args.size()]));
 
-                return launcher.execute( launchConfiguration, forkedProcessTimeoutInSeconds );
+                return launcher.execute(launchConfiguration, forkedProcessTimeoutInSeconds);
+            } finally {
+                FileUtils.deleteDirectory(installationFolder);
             }
-            finally
-            {
-                FileUtils.deleteDirectory( installationFolder );
-            }
-        }
-        catch ( Exception e )
-        {
+        } catch (Exception e) {
             // TODO better exception?
-            throw new RuntimeException( e );
+            throw new RuntimeException(e);
         }
     }
 
-    private void addBundle( EquinoxInstallationDescription description, File file )
-    {
-        ArtifactKey key = osgiBundle.readArtifactKey( file );
-        if ( key != null )
-        {
-            description.addBundle( key, file );
+    private void addBundle(EquinoxInstallationDescription description, File file) {
+        ArtifactKey key = osgiBundle.readArtifactKey(file);
+        if (key != null) {
+            description.addBundle(key, file);
         }
     }
 
-    private File newTemporaryFolder()
-        throws IOException
-    {
-        File tmp = File.createTempFile( "tycho-p2-runtime", ".tmp" );
+    private File newTemporaryFolder() throws IOException {
+        File tmp = File.createTempFile("tycho-p2-runtime", ".tmp");
         tmp.delete();
         tmp.mkdir(); // anyone got any better idea?
         return tmp;

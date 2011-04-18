@@ -28,56 +28,43 @@ import org.eclipse.tycho.p2.tools.publisher.PublisherService;
  * @see http://wiki.eclipse.org/Equinox/p2/Publisher
  * @goal publish-categories
  */
-public final class PublishCategoriesMojo
-    extends AbstractPublishMojo
-{
+public final class PublishCategoriesMojo extends AbstractPublishMojo {
 
     @Override
-    protected Collection<?> publishContent( PublisherService publisherService )
-        throws MojoExecutionException, MojoFailureException
-    {
-        try
-        {
+    protected Collection<?> publishContent(PublisherService publisherService) throws MojoExecutionException,
+            MojoFailureException {
+        try {
             List<Object> categoryIUs = new ArrayList<Object>();
-            for ( Category category : getCategories() )
-            {
-                final File buildCategoryFile = prepareBuildCategory( category, getBuildDirectory() );
+            for (Category category : getCategories()) {
+                final File buildCategoryFile = prepareBuildCategory(category, getBuildDirectory());
 
-                Collection<?> ius = publisherService.publishCategories( buildCategoryFile );
-                categoryIUs.addAll( ius );
+                Collection<?> ius = publisherService.publishCategories(buildCategoryFile);
+                categoryIUs.addAll(ius);
             }
             return categoryIUs;
-        }
-        catch ( FacadeException e )
-        {
-            throw new MojoExecutionException( "Exception while publishing categories: " + e.getMessage(), e );
+        } catch (FacadeException e) {
+            throw new MojoExecutionException("Exception while publishing categories: " + e.getMessage(), e);
         }
     }
 
     /**
      * Writes the Tycho-internal representation of categories back to a category.xml.
      * 
-     * @param category a category, with "qualifier" literals already replaced by the build
-     *            qualifier.
+     * @param category
+     *            a category, with "qualifier" literals already replaced by the build qualifier.
      */
-    private File prepareBuildCategory( Category category, File buildFolder )
-        throws MojoExecutionException
-    {
-        try
-        {
-            File ret = new File( buildFolder, "category.xml" );
+    private File prepareBuildCategory(Category category, File buildFolder) throws MojoExecutionException {
+        try {
+            File ret = new File(buildFolder, "category.xml");
             buildFolder.mkdirs();
-            Category.write( category, ret );
+            Category.write(category, ret);
             return ret;
-        }
-        catch ( IOException e )
-        {
-            throw new MojoExecutionException( "I/O exception while writing category definition to disk", e );
+        } catch (IOException e) {
+            throw new MojoExecutionException("I/O exception while writing category definition to disk", e);
         }
     }
 
-    private List<Category> getCategories()
-    {
-        return getEclipseRepositoryProject().loadCategories( getProject() );
+    private List<Category> getCategories() {
+        return getEclipseRepositoryProject().loadCategories(getProject());
     }
 }

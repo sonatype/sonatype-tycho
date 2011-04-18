@@ -20,20 +20,18 @@ import org.eclipse.tycho.ReactorProject;
  * @author igor
  * @noimplement This interface is not intended to be implemented by clients.
  */
-public interface ClasspathEntry
-{
+public interface ClasspathEntry {
 
     /**
      * @noimplement This interface is not intended to be implemented by clients.
      */
-    public static interface AccessRule
-    {
+    public static interface AccessRule {
         public String getPattern();
 
         public boolean isDiscouraged();
     }
 
-    /** 
+    /**
      * ArtifactKey that corresponds to this classpath entry. Not null.
      */
     public ArtifactKey getArtifactKey();
@@ -44,8 +42,8 @@ public interface ClasspathEntry
     public ReactorProject getMavenProject();
 
     /**
-     * Jar files and/or class folders that correspond to this classpath entry. Projects and bundles with nested jars
-     * can have multiple locations.
+     * Jar files and/or class folders that correspond to this classpath entry. Projects and bundles
+     * with nested jars can have multiple locations.
      */
     public List<File> getLocations();
 

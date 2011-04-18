@@ -19,8 +19,8 @@ import org.junit.Test;
 
 public class P2MetadataGenerationTest extends AbstractTychoIntegrationTest {
 
-	@Test
-	public void test() throws Exception {
+    @Test
+    public void test() throws Exception {
         Verifier verifier = getVerifier("tycho001");
 
         verifier.executeGoal("package");
@@ -30,6 +30,6 @@ public class P2MetadataGenerationTest extends AbstractTychoIntegrationTest {
         Assert.assertTrue(new File(site, "artifacts.xml").canRead());
         Assert.assertTrue(new File(site, "content.xml").canRead());
 
-	}
+    }
 
 }

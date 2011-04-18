@@ -14,37 +14,34 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.tycho.ArtifactKey;
 import org.eclipse.tycho.ReactorProject;
 
-
 /**
  * tycho-specific behaviour associated with MavenProject instances. stateless.
  * 
  * TODO take target environments into account!
  */
-public interface TychoProject
-{
+public interface TychoProject {
     /**
      * Walks all project dependencies, regardless of runtime environment filters.
      */
-    public ArtifactDependencyWalker getDependencyWalker( MavenProject project );
+    public ArtifactDependencyWalker getDependencyWalker(MavenProject project);
 
     /**
      * Walks project dependencies resolved for the specified runtime environment.
      */
-    public ArtifactDependencyWalker getDependencyWalker( MavenProject project, TargetEnvironment environment );
+    public ArtifactDependencyWalker getDependencyWalker(MavenProject project, TargetEnvironment environment);
 
     /**
-     * Returns project build target platform. For projects targeting multiple 
-     * runtime environments, returned target platforms includes artifacts 
-     * for all supported runtime environments. 
+     * Returns project build target platform. For projects targeting multiple runtime environments,
+     * returned target platforms includes artifacts for all supported runtime environments.
      */
-    public TargetPlatform getTargetPlatform( MavenProject project );
+    public TargetPlatform getTargetPlatform(MavenProject project);
 
     /**
      * Returns project build target platform resolved for specified runtime environment.
      */
-    public TargetPlatform getTargetPlatform( MavenProject project, TargetEnvironment environment );
+    public TargetPlatform getTargetPlatform(MavenProject project, TargetEnvironment environment);
 
     // implementation must not depend on target platform
-    public ArtifactKey getArtifactKey( ReactorProject project );
+    public ArtifactKey getArtifactKey(ReactorProject project);
 
 }

@@ -18,16 +18,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class NoDotJarTest extends AbstractTychoIntegrationTest {
-	
-	@Test
-	public void test() throws Exception {
+
+    @Test
+    public void test() throws Exception {
         Verifier verifier = getVerifier("MNGECLIPSE1031/bundle.test");
 
         verifier.executeGoal("integration-test");
         verifier.verifyErrorFreeLog();
-		
+
         File testReport = new File(verifier.getBasedir(), "target/surefire-reports/TEST-bundle.test.BundleTest.xml");
         Assert.assertTrue(testReport.exists());
-	}
+    }
 
 }

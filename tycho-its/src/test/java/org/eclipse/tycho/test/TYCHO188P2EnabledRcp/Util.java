@@ -26,89 +26,62 @@ import de.pdark.decentxml.Element;
 import de.pdark.decentxml.XMLIOSource;
 import de.pdark.decentxml.XMLParser;
 
-public class Util
-{
-    public static Document openXmlFromZip( File zipFile, String xmlFile )
-        throws IOException, ZipException
-    {
+public class Util {
+    public static Document openXmlFromZip(File zipFile, String xmlFile) throws IOException, ZipException {
         XMLParser parser = new XMLParser();
-        ZipFile zip = new ZipFile( zipFile );
-        try
-        {
-            ZipEntry contentXmlEntry = zip.getEntry( xmlFile );
-            InputStream entryStream = zip.getInputStream( contentXmlEntry );
-            try
-            {
-                return parser.parse( new XMLIOSource( entryStream ) );
-            }
-            finally
-            {
+        ZipFile zip = new ZipFile(zipFile);
+        try {
+            ZipEntry contentXmlEntry = zip.getEntry(xmlFile);
+            InputStream entryStream = zip.getInputStream(contentXmlEntry);
+            try {
+                return parser.parse(new XMLIOSource(entryStream));
+            } finally {
                 entryStream.close();
             }
-        }
-        finally
-        {
+        } finally {
             zip.close();
         }
     }
 
-    static Properties openPropertiesFromZip( File zipFile, String propertyFile )
-        throws IOException, ZipException
-    {
-        ZipFile zip = new ZipFile( zipFile );
+    static Properties openPropertiesFromZip(File zipFile, String propertyFile) throws IOException, ZipException {
+        ZipFile zip = new ZipFile(zipFile);
         Properties configIni = new Properties();
-        try
-        {
-            ZipEntry configIniEntry = zip.getEntry( propertyFile );
-            InputStream entryStream = zip.getInputStream( configIniEntry );
-            try
-            {
-                configIni.load( entryStream );
-            }
-            finally
-            {
+        try {
+            ZipEntry configIniEntry = zip.getEntry(propertyFile);
+            InputStream entryStream = zip.getInputStream(configIniEntry);
+            try {
+                configIni.load(entryStream);
+            } finally {
                 entryStream.close();
             }
-        }
-        finally
-        {
+        } finally {
             zip.close();
         }
         return configIni;
     }
 
-    static public boolean containsIU( Document contentXML, String iuId )
-    {
-        return containsIUWithProperty( contentXML, iuId, null, null );
-    }
-    
-    static int countIUWithProperty( Document contentXML, String iuId )
-    {
-        return countIUWithProperty( contentXML, iuId, null, null );
+    static public boolean containsIU(Document contentXML, String iuId) {
+        return containsIUWithProperty(contentXML, iuId, null, null);
     }
 
-    static int countIUWithProperty( Document contentXML, String iuId, String propName, String propValue )
-    {
+    static int countIUWithProperty(Document contentXML, String iuId) {
+        return countIUWithProperty(contentXML, iuId, null, null);
+    }
+
+    static int countIUWithProperty(Document contentXML, String iuId, String propName, String propValue) {
         int foundIUCounter = 0;
 
         Element repository = contentXML.getRootElement();
-        for ( Element unit : repository.getChild( "units" ).getChildren( "unit" ) )
-        {
-            if ( iuId.equals( unit.getAttributeValue( "id" ) ) )
-            {
-                if ( propName != null )
-                {
-                    for ( Element property : unit.getChild( "properties" ).getChildren( "property" ) )
-                    {
-                        if ( propName.equals( property.getAttributeValue( "name" ) )
-                            && propValue.equals( ( property.getAttributeValue( "value" ) ) ) )
-                        {
+        for (Element unit : repository.getChild("units").getChildren("unit")) {
+            if (iuId.equals(unit.getAttributeValue("id"))) {
+                if (propName != null) {
+                    for (Element property : unit.getChild("properties").getChildren("property")) {
+                        if (propName.equals(property.getAttributeValue("name"))
+                                && propValue.equals((property.getAttributeValue("value")))) {
                             foundIUCounter++;
                         }
                     }
-                }
-                else
-                {
+                } else {
                     foundIUCounter++;
                 }
             }
@@ -116,71 +89,55 @@ public class Util
         return foundIUCounter;
     }
 
-    static public boolean containsIUWithProperty( Document contentXML, String iuId, String propName, String propValue )
-    {
-        Set<Element> ius = findIU( contentXML, iuId );
-        for ( Element unitElement : ius )
-        {
-            if ( iuHasProperty( unitElement, propName, propValue ) )
+    static public boolean containsIUWithProperty(Document contentXML, String iuId, String propName, String propValue) {
+        Set<Element> ius = findIU(contentXML, iuId);
+        for (Element unitElement : ius) {
+            if (iuHasProperty(unitElement, propName, propValue))
                 return true;
         }
         return false;
     }
 
-    static public Set<Element> findIU( Document contentXML, String iuId )
-    {
+    static public Set<Element> findIU(Document contentXML, String iuId) {
         Set<Element> foundIUs = new HashSet<Element>();
 
         Element repository = contentXML.getRootElement();
-        for ( Element unit : repository.getChild( "units" ).getChildren( "unit" ) )
-        {
-            if ( iuId.equals( unit.getAttributeValue( "id" ) ) )
-            {
-                foundIUs.add( unit );
+        for (Element unit : repository.getChild("units").getChildren("unit")) {
+            if (iuId.equals(unit.getAttributeValue("id"))) {
+                foundIUs.add(unit);
             }
         }
         return foundIUs;
     }
 
-    static public boolean iuHasProperty( Element unit, String propName, String propValue )
-    {
+    static public boolean iuHasProperty(Element unit, String propName, String propValue) {
         boolean foundIU = false;
 
-        if ( propName != null )
-        {
-            for ( Element property : unit.getChild( "properties" ).getChildren( "property" ) )
-            {
-                if ( propName.equals( property.getAttributeValue( "name" ) )
-                    && propValue.equals( ( property.getAttributeValue( "value" ) ) ) )
-                {
+        if (propName != null) {
+            for (Element property : unit.getChild("properties").getChildren("property")) {
+                if (propName.equals(property.getAttributeValue("name"))
+                        && propValue.equals((property.getAttributeValue("value")))) {
                     foundIU = true;
                     break;
                 }
             }
-        }
-        else
-        {
+        } else {
             foundIU = true;
         }
         return foundIU;
     }
 
-    static public boolean iuHasAllRequirements( Element unit, String... requiredIus )
-    {
+    static public boolean iuHasAllRequirements(Element unit, String... requiredIus) {
         boolean hasAllRequirements = true;
-        for ( String requiredIu : requiredIus )
-        {
+        for (String requiredIu : requiredIus) {
             boolean foundIU = false;
-            for ( Element property : unit.getChild( "requires" ).getChildren( "required" ) )
-            {
-                if ( requiredIu.equals( property.getAttributeValue( "name" ) ) )
-                {
+            for (Element property : unit.getChild("requires").getChildren("required")) {
+                if (requiredIu.equals(property.getAttributeValue("name"))) {
                     foundIU = true;
                     break;
                 }
             }
-            if ( !foundIU )
-            {
+            if (!foundIU) {
                 hasAllRequirements = false;
                 break;
             }
@@ -188,18 +145,13 @@ public class Util
         return hasAllRequirements;
     }
 
-    static public boolean iuHasTouchpointDataInstruction( Element unit, String instructionTrimmedText )
-    {
-        Element touchpointDataElem = unit.getChild( "touchpointData" );
+    static public boolean iuHasTouchpointDataInstruction(Element unit, String instructionTrimmedText) {
+        Element touchpointDataElem = unit.getChild("touchpointData");
 
-        if ( touchpointDataElem != null )
-        {
-            for ( Element instructions : touchpointDataElem.getChildren( "instructions" ) )
-            {
-                for ( Element instruction : instructions.getChildren( "instruction" ) )
-                {
-                    if ( instructionTrimmedText.equals( instruction.getTrimmedText() ) )
-                    {
+        if (touchpointDataElem != null) {
+            for (Element instructions : touchpointDataElem.getChildren("instructions")) {
+                for (Element instruction : instructions.getChildren("instruction")) {
+                    if (instructionTrimmedText.equals(instruction.getTrimmedText())) {
                         return true;
                     }
                 }

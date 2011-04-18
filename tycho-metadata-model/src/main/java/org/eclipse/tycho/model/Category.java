@@ -32,8 +32,7 @@ import de.pdark.decentxml.XMLIOSource;
 import de.pdark.decentxml.XMLParser;
 import de.pdark.decentxml.XMLWriter;
 
-public class Category
-{
+public class Category {
 
     public static final String CATEGORY_XML = "category.xml";
 
@@ -43,64 +42,46 @@ public class Category
 
     private final Document document;
 
-    public Category( Document document )
-    {
+    public Category(Document document) {
         this.document = document;
         this.dom = document.getRootElement();
     }
 
-    public List<FeatureRef> getFeatures()
-    {
+    public List<FeatureRef> getFeatures() {
         ArrayList<FeatureRef> features = new ArrayList<FeatureRef>();
-        for ( Element featureDom : dom.getChildren( "feature" ) )
-        {
-            features.add( new FeatureRef( featureDom ) );
+        for (Element featureDom : dom.getChildren("feature")) {
+            features.add(new FeatureRef(featureDom));
         }
-        return Collections.unmodifiableList( features );
+        return Collections.unmodifiableList(features);
     }
 
-    public static Category read( File file )
-        throws IOException
-    {
-        return read( new BufferedInputStream( new FileInputStream( file ) ) );
+    public static Category read(File file) throws IOException {
+        return read(new BufferedInputStream(new FileInputStream(file)));
     }
 
-    public static Category read( InputStream is )
-        throws IOException
-    {
-        try
-        {
-            return new Category( parser.parse( new XMLIOSource( is ) ) );
-        }
-        finally
-        {
-            IOUtil.close( is );
+    public static Category read(InputStream is) throws IOException {
+        try {
+            return new Category(parser.parse(new XMLIOSource(is)));
+        } finally {
+            IOUtil.close(is);
         }
     }
 
-    public static void write( Category category, File file )
-        throws IOException
-    {
-        OutputStream os = new BufferedOutputStream( new FileOutputStream( file ) );
+    public static void write(Category category, File file) throws IOException {
+        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
 
         Document document = category.document;
-        try
-        {
+        try {
             String enc = document.getEncoding() != null ? document.getEncoding() : "UTF-8";
-            Writer w = new OutputStreamWriter( os, enc );
-            XMLWriter xw = new XMLWriter( w );
-            try
-            {
-                document.toXML( xw );
-            }
-            finally
-            {
+            Writer w = new OutputStreamWriter(os, enc);
+            XMLWriter xw = new XMLWriter(w);
+            try {
+                document.toXML(xw);
+            } finally {
                 xw.flush();
             }
-        }
-        finally
-        {
-            IOUtil.close( os );
+        } finally {
+            IOUtil.close(os);
         }
     }
 

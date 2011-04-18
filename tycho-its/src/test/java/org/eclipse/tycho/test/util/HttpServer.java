@@ -40,46 +40,36 @@ import org.mortbay.jetty.servlet.ServletHandler;
 import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.util.URIUtil;
 
-public class HttpServer
-{
-    private static class MonitoringServlet
-        extends DefaultServlet
-    {
+public class HttpServer {
+    private static class MonitoringServlet extends DefaultServlet {
         private List<String> accessedURIs = new ArrayList<String>();
 
         @Override
-        public String getInitParameter( String name )
-        {
+        public String getInitParameter(String name) {
             // no directory listing allowed
-            if ( "dirAllowed".equals( name ) )
-            {
+            if ("dirAllowed".equals(name)) {
                 return "false";
-            }
-            else
-            {
-                return super.getInitParameter( name );
+            } else {
+                return super.getInitParameter(name);
             }
         }
 
-        public List<String> getAccessedURIs()
-        {
+        public List<String> getAccessedURIs() {
             return accessedURIs;
         }
 
         @Override
-        protected void doGet( HttpServletRequest request, HttpServletResponse response )
-            throws ServletException, IOException
-        {
-            accessedURIs.add( ( (Request) request ).getUri().toString() );
-            super.doGet( request, response );
+        protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+                IOException {
+            accessedURIs.add(((Request) request).getUri().toString());
+            super.doGet(request, response);
         }
 
         @Override
-        protected void doPost( HttpServletRequest request, HttpServletResponse response )
-            throws ServletException, IOException
-        {
-            accessedURIs.add( ( (Request) request ).getUri().toString() );
-            super.doPost( request, response );
+        protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
+                IOException {
+            accessedURIs.add(((Request) request).getUri().toString());
+            super.doPost(request, response);
         }
     }
 
@@ -95,118 +85,96 @@ public class HttpServer
 
     private ContextHandlerCollection contexts;
 
-    private HttpServer( int port, Server server, ContextHandlerCollection contexts )
-    {
+    private HttpServer(int port, Server server, ContextHandlerCollection contexts) {
         this.port = port;
         this.server = server;
         this.contexts = contexts;
     }
 
-    public static HttpServer startServer()
-        throws Exception
-    {
-        return startServer( null, null );
+    public static HttpServer startServer() throws Exception {
+        return startServer(null, null);
     }
 
-    public static HttpServer startServer( String username, String password )
-        throws Exception
-    {
+    public static HttpServer startServer(String username, String password) throws Exception {
         int baseport = EnvironmentUtil.getHttpServerPort();
         BindException cause = null;
-        for ( int i = 0; i < BIND_ATTEMPTS; i++ )
-        {
-            int port = baseport + rnd.nextInt( 65534 - baseport );
-            try
-            {
-                return doStartServer( username, password, port );
-            }
-            catch ( BindException e )
-            {
+        for (int i = 0; i < BIND_ATTEMPTS; i++) {
+            int port = baseport + rnd.nextInt(65534 - baseport);
+            try {
+                return doStartServer(username, password, port);
+            } catch (BindException e) {
                 cause = e;
             }
         }
 
-        throw new IllegalStateException( "Could not allocate available port", cause );
+        throw new IllegalStateException("Could not allocate available port", cause);
     }
 
-    private static HttpServer doStartServer( String username, String password, int port )
-        throws Exception
-    {
+    private static HttpServer doStartServer(String username, String password, int port) throws Exception {
         Server server = new Server();
         ContextHandlerCollection contexts = new ContextHandlerCollection();
         server.setHandler(contexts);
         Connector connector = new SocketConnector();
-        connector.setPort( port );
-        server.addConnector( connector );
+        connector.setPort(port);
+        server.addConnector(connector);
         server.start();
 
         Context context;
-        if ( username != null )
-        {
-            context = new Context( server, "/", Context.SESSIONS | Context.SECURITY );
+        if (username != null) {
+            context = new Context(server, "/", Context.SESSIONS | Context.SECURITY);
 
-            HashUserRealm userRealm = new HashUserRealm( "default" );
-            userRealm.put( username, new Password( password ) );
+            HashUserRealm userRealm = new HashUserRealm("default");
+            userRealm.put(username, new Password(password));
 
-            Constraint constraint = new Constraint( Constraint.__BASIC_AUTH, Constraint.ANY_ROLE );
-            constraint.setAuthenticate( true );
+            Constraint constraint = new Constraint(Constraint.__BASIC_AUTH, Constraint.ANY_ROLE);
+            constraint.setAuthenticate(true);
 
             ConstraintMapping constraintMapping = new ConstraintMapping();
-            constraintMapping.setPathSpec( "/*" );
-            constraintMapping.setConstraint( constraint );
+            constraintMapping.setPathSpec("/*");
+            constraintMapping.setConstraint(constraint);
 
-            context.getSecurityHandler().setUserRealm( userRealm );
-            context.getSecurityHandler().setAuthMethod( Constraint.__BASIC_AUTH );
-            context.getSecurityHandler().setConstraintMappings( new ConstraintMapping[] { constraintMapping } );
-        }
-        else
-        {
-            context = new Context( server, "/", 0 );
+            context.getSecurityHandler().setUserRealm(userRealm);
+            context.getSecurityHandler().setAuthMethod(Constraint.__BASIC_AUTH);
+            context.getSecurityHandler().setConstraintMappings(new ConstraintMapping[] { constraintMapping });
+        } else {
+            context = new Context(server, "/", 0);
         }
 
-        return new HttpServer( port, server, contexts );
+        return new HttpServer(port, server, contexts);
     }
 
-    public void stop()
-        throws Exception
-    {
+    public void stop() throws Exception {
         server.stop();
         server.join();
     }
 
-    public String addServer( String contextName, final File content )
-    {
+    public String addServer(String contextName, final File content) {
         ContextHandler context = new ContextHandler();
-        context.setContextPath( URIUtil.SLASH + contextName );
+        context.setContextPath(URIUtil.SLASH + contextName);
         {
-            context.setResourceBase( content.getAbsolutePath() );
+            context.setResourceBase(content.getAbsolutePath());
             MonitoringServlet monitoringServlet = new MonitoringServlet();
             // no dir listing
-            contextName2servletsMap.put( contextName, monitoringServlet );
+            contextName2servletsMap.put(contextName, monitoringServlet);
             ServletHandler servletHandler = new ServletHandler();
-            servletHandler.addServletWithMapping( new ServletHolder( monitoringServlet ), URIUtil.SLASH );
-            context.setHandler( servletHandler );
-            contexts.addHandler( context );
-            try
-            {
+            servletHandler.addServletWithMapping(new ServletHolder(monitoringServlet), URIUtil.SLASH);
+            context.setHandler(servletHandler);
+            contexts.addHandler(context);
+            try {
                 context.start();
-            }
-            catch ( Exception e )
-            {
-              throw new RuntimeException( e );
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
-        return getUrl( contextName );
+        return getUrl(contextName);
     }
 
-    public String getUrl( String contextName )
-    {
+    public String getUrl(String contextName) {
         return "http://localhost:" + port + "/" + contextName;
     }
 
-    public List<String> getAccessedUrls( String contextName )
-    {
-        return contextName2servletsMap.get( contextName ).getAccessedURIs();
+    public List<String> getAccessedUrls(String contextName) {
+        return contextName2servletsMap.get(contextName).getAccessedURIs();
     }
 
 }

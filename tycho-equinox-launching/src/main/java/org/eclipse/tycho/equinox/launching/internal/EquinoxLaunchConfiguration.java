@@ -20,9 +20,7 @@ import org.codehaus.plexus.util.cli.Commandline.Argument;
 import org.eclipse.tycho.equinox.launching.EquinoxInstallation;
 import org.eclipse.tycho.launching.LaunchConfiguration;
 
-public class EquinoxLaunchConfiguration
-    implements LaunchConfiguration
-{
+public class EquinoxLaunchConfiguration implements LaunchConfiguration {
     private File workingDirectory;
 
     private final Map<String, String> env = new LinkedHashMap<String, String>();
@@ -33,99 +31,79 @@ public class EquinoxLaunchConfiguration
 
     private final EquinoxInstallation installation;
 
-    public EquinoxLaunchConfiguration( EquinoxInstallation installation )
-    {
+    public EquinoxLaunchConfiguration(EquinoxInstallation installation) {
         this.installation = installation;
     }
 
-    public void addEnvironmentVariables( Map<String, String> variables )
-    {
-        env.putAll( variables );
+    public void addEnvironmentVariables(Map<String, String> variables) {
+        env.putAll(variables);
     }
 
-    public Map<String, String> getEnvironment()
-    {
+    public Map<String, String> getEnvironment() {
         return env;
     }
 
-    public void setWorkingDirectory( File workingDirectory )
-    {
+    public void setWorkingDirectory(File workingDirectory) {
         this.workingDirectory = workingDirectory;
     }
 
-    public File getWorkingDirectory()
-    {
+    public File getWorkingDirectory() {
         return workingDirectory;
     }
 
     /**
      * Fully equivalent to <code>addProgramArguments(false, vmargs)</code>
      */
-    public void addProgramArguments( String... args )
-    {
-        addProgramArguments( false, args );
+    public void addProgramArguments(String... args) {
+        addProgramArguments(false, args);
     }
 
-    public void addProgramArguments( boolean escape, String... args )
-    {
-        addArguments( this.args, escape, args );
+    public void addProgramArguments(boolean escape, String... args) {
+        addArguments(this.args, escape, args);
     }
 
-    private void addArguments( List<Argument> to, boolean escape, String... args )
-    {
-        for ( String str : args )
-        {
+    private void addArguments(List<Argument> to, boolean escape, String... args) {
+        for (String str : args) {
             Argument arg = new Argument();
-            if ( escape )
-            {
-                arg.setValue( str );
+            if (escape) {
+                arg.setValue(str);
+            } else {
+                arg.setLine(str);
             }
-            else
-            {
-                arg.setLine( str );
-            }
-            to.add( arg );
+            to.add(arg);
         }
     }
 
-    public String[] getProgramArguments()
-    {
-        return toStringArray( args );
+    public String[] getProgramArguments() {
+        return toStringArray(args);
     }
 
-    private static String[] toStringArray( List<Argument> args )
-    {
+    private static String[] toStringArray(List<Argument> args) {
         ArrayList<String> result = new ArrayList<String>();
-        for ( Argument arg : args )
-        {
-            for ( String str : arg.getParts() )
-            {
-                result.add( str );
+        for (Argument arg : args) {
+            for (String str : arg.getParts()) {
+                result.add(str);
             }
         }
-        return result.toArray( new String[result.size()] );
+        return result.toArray(new String[result.size()]);
     }
 
     /**
      * Fully equivalent to <code>addVMArguments(false, vmargs)</code>
      */
-    public void addVMArguments( String... vmargs )
-    {
-        this.addVMArguments( false, vmargs );
+    public void addVMArguments(String... vmargs) {
+        this.addVMArguments(false, vmargs);
     }
 
-    public void addVMArguments( boolean escape, String... vmargs )
-    {
-        addArguments( this.vmargs, escape, vmargs );
+    public void addVMArguments(boolean escape, String... vmargs) {
+        addArguments(this.vmargs, escape, vmargs);
     }
 
-    public String[] getVMArguments()
-    {
-        return toStringArray( vmargs );
+    public String[] getVMArguments() {
+        return toStringArray(vmargs);
     }
 
-    public File getLauncherJar()
-    {
+    public File getLauncherJar() {
         return installation.getLauncherJar();
     }
 

@@ -20,38 +20,25 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-public class Activator
-    implements BundleActivator
-{
+public class Activator implements BundleActivator {
     private static BundleContext context;
 
-    public void start( BundleContext context )
-        throws Exception
-    {
+    public void start(BundleContext context) throws Exception {
         Activator.context = context;
     }
 
-    public void stop( BundleContext context )
-        throws Exception
-    {
+    public void stop(BundleContext context) throws Exception {
     }
 
-    public static IProvisioningAgent createProvisioningAgent( final File targetDirectory )
-        throws FacadeException
-    {
-        ServiceReference serviceReference = context.getServiceReference( IProvisioningAgentProvider.SERVICE_NAME );
-        IProvisioningAgentProvider agentFactory = (IProvisioningAgentProvider) context.getService( serviceReference );
-        try
-        {
-            return agentFactory.createAgent( new File( targetDirectory, "p2agent" ).toURI() );
-        }
-        catch ( ProvisionException e )
-        {
-            throw new FacadeException( e );
-        }
-        finally
-        {
-            context.ungetService( serviceReference );
+    public static IProvisioningAgent createProvisioningAgent(final File targetDirectory) throws FacadeException {
+        ServiceReference serviceReference = context.getServiceReference(IProvisioningAgentProvider.SERVICE_NAME);
+        IProvisioningAgentProvider agentFactory = (IProvisioningAgentProvider) context.getService(serviceReference);
+        try {
+            return agentFactory.createAgent(new File(targetDirectory, "p2agent").toURI());
+        } catch (ProvisionException e) {
+            throw new FacadeException(e);
+        } finally {
+            context.ungetService(serviceReference);
         }
     }
 }

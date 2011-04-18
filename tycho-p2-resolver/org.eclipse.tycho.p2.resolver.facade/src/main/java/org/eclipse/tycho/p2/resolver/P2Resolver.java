@@ -20,8 +20,7 @@ import org.eclipse.tycho.p2.metadata.IReactorArtifactFacade;
 import org.eclipse.tycho.p2.repository.RepositoryReader;
 import org.eclipse.tycho.p2.repository.TychoRepositoryIndex;
 
-public interface P2Resolver
-{
+public interface P2Resolver {
     /** @see org.eclipse.tycho.ArtifactKey */
     public static final String TYPE_ECLIPSE_PLUGIN = "eclipse-plugin";
 
@@ -47,36 +46,36 @@ public interface P2Resolver
 
     public static final String ANY_QUALIFIER = "qualifier";
 
-    public void addReactorArtifact( IReactorArtifactFacade project );
+    public void addReactorArtifact(IReactorArtifactFacade project);
 
-    public void addMavenArtifact( IArtifactFacade artifact );
+    public void addMavenArtifact(IArtifactFacade artifact);
 
-    public void addP2Repository( URI location );
+    public void addP2Repository(URI location);
 
-    public void addMavenRepository( URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator );
+    public void addMavenRepository(URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator);
 
-    public void setLocalRepositoryLocation( File location );
+    public void setLocalRepositoryLocation(File location);
 
-    public void setEnvironments( List<Map<String, String>> properties );
+    public void setEnvironments(List<Map<String, String>> properties);
 
-    public void addDependency( String type, String id, String versionRange );
+    public void addDependency(String type, String id, String versionRange);
 
-    public List<P2ResolutionResult> resolveProject( File location );
+    public List<P2ResolutionResult> resolveProject(File location);
 
-    public P2ResolutionResult collectProjectDependencies( File projectLocation );
+    public P2ResolutionResult collectProjectDependencies(File projectLocation);
 
-    public void setLogger( P2Logger logger );
+    public void setLogger(P2Logger logger);
 
-    public void setRepositoryCache( P2RepositoryCache repositoryCache );
+    public void setRepositoryCache(P2RepositoryCache repositoryCache);
 
-    public void setCredentials( URI location, String username, String password );
+    public void setCredentials(URI location, String username, String password);
 
-    public void setOffline( boolean offline );
+    public void setOffline(boolean offline);
 
     /**
      * Releases all resources used by the resolver instance
      */
     public void stop();
 
-    public P2ResolutionResult resolveMetadata( Map<String, String> properties );
+    public P2ResolutionResult resolveMetadata(Map<String, String> properties);
 }

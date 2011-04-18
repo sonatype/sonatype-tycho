@@ -21,9 +21,7 @@ import org.eclipse.tycho.core.utils.TychoProjectUtils;
 import org.eclipse.tycho.p2.tools.BuildContext;
 import org.eclipse.tycho.p2.tools.TargetEnvironment;
 
-public abstract class AbstractRepositoryMojo
-    extends AbstractMojo
-{
+public abstract class AbstractRepositoryMojo extends AbstractMojo {
     /** @parameter expression="${session}" */
     private MavenSession session;
 
@@ -37,44 +35,37 @@ public abstract class AbstractRepositoryMojo
      */
     private String qualifier;
 
-    protected MavenProject getProject()
-    {
+    protected MavenProject getProject() {
         return project;
     }
 
-    protected MavenSession getSession()
-    {
+    protected MavenSession getSession() {
         return session;
     }
 
-    protected File getBuildDirectory()
-    {
-        return new File( getProject().getBuild().getDirectory() );
+    protected File getBuildDirectory() {
+        return new File(getProject().getBuild().getDirectory());
     }
 
-    protected BuildContext getBuildContext()
-    {
-        return new BuildContext( qualifier, getEnvironmentsForFacade(), getBuildDirectory() );
+    protected BuildContext getBuildContext() {
+        return new BuildContext(qualifier, getEnvironmentsForFacade(), getBuildDirectory());
     }
 
-    protected File getAssemblyRepositoryLocation()
-    {
-        return new File( getBuildDirectory(), "repository" );
+    protected File getAssemblyRepositoryLocation() {
+        return new File(getBuildDirectory(), "repository");
     }
 
     /**
      * Returns the configured environments in a format suitable for the p2 tools facade.
      */
-    private List<TargetEnvironment> getEnvironmentsForFacade()
-    {
+    private List<TargetEnvironment> getEnvironmentsForFacade() {
         // TODO use shared class everywhere?
 
-        List<org.eclipse.tycho.core.TargetEnvironment> original =
-            TychoProjectUtils.getTargetPlatformConfiguration( project ).getEnvironments();
-        List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>( original.size() );
-        for ( org.eclipse.tycho.core.TargetEnvironment env : original )
-        {
-            converted.add( new TargetEnvironment( env.getWs(), env.getOs(), env.getArch() ) );
+        List<org.eclipse.tycho.core.TargetEnvironment> original = TychoProjectUtils.getTargetPlatformConfiguration(
+                project).getEnvironments();
+        List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>(original.size());
+        for (org.eclipse.tycho.core.TargetEnvironment env : original) {
+            converted.add(new TargetEnvironment(env.getWs(), env.getOs(), env.getArch()));
         }
         return converted;
     }

@@ -16,17 +16,13 @@ import org.apache.maven.it.Verifier;
 import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Test;
 
-public class NetworkFailureToleranceTest
-    extends AbstractTychoIntegrationTest
-{
+public class NetworkFailureToleranceTest extends AbstractTychoIntegrationTest {
 
     @Test
-    public void test()
-        throws Exception
-    {
-        Verifier verifier = getVerifier( "/TYCHO357networkFailureTolerance", false );
-        verifier.getSystemProperties().setProperty( "p2.repo", new File( "repositories/e342" ).toURI().toString() );
-        verifier.executeGoal( "integration-test" );
+    public void test() throws Exception {
+        Verifier verifier = getVerifier("/TYCHO357networkFailureTolerance", false);
+        verifier.getSystemProperties().setProperty("p2.repo", new File("repositories/e342").toURI().toString());
+        verifier.executeGoal("integration-test");
         verifier.verifyErrorFreeLog();
     }
 

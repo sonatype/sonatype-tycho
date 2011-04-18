@@ -15,13 +15,13 @@ package org.eclipse.tycho.core;
  */
 public class UnknownEnvironmentException extends Exception {
 
-	private final String environmentName;
+    private final String environmentName;
 
-	public UnknownEnvironmentException(String environmentName) {
-		this.environmentName = environmentName;
-	}
+    public UnknownEnvironmentException(String environmentName) {
+        this.environmentName = environmentName;
+    }
 
-	public String getEnvironmentName() {
-		return environmentName;
-	}
+    public String getEnvironmentName() {
+        return environmentName;
+    }
 }

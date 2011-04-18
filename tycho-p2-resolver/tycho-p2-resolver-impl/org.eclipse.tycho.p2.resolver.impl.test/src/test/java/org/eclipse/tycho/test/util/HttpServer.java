@@ -27,8 +27,7 @@ import org.mortbay.jetty.security.Password;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ServletHolder;
 
-public class HttpServer
-{
+public class HttpServer {
     private static final int BIND_ATTEMPTS = 20;
 
     private static final Random rnd = new Random();
@@ -41,101 +40,82 @@ public class HttpServer
 
     private final Map<String, FileServerServlet> servers = new HashMap<String, FileServerServlet>();
 
-    private HttpServer( int port, Server server, Context context )
-    {
+    private HttpServer(int port, Server server, Context context) {
         this.port = port;
         this.server = server;
         this.context = context;
     }
 
-    public static HttpServer startServer()
-        throws Exception
-    {
-        return startServer( null, null );
+    public static HttpServer startServer() throws Exception {
+        return startServer(null, null);
     }
 
-    public static HttpServer startServer( String username, String password )
-        throws Exception
-    {
+    public static HttpServer startServer(String username, String password) throws Exception {
         int baseport = 1024;
         BindException cause = null;
-        for ( int i = 0; i < BIND_ATTEMPTS; i++ )
-        {
-            int port = baseport + rnd.nextInt( 65534 - baseport );
-            try
-            {
-                return doStartServer( username, password, port );
-            }
-            catch ( BindException e )
-            {
+        for (int i = 0; i < BIND_ATTEMPTS; i++) {
+            int port = baseport + rnd.nextInt(65534 - baseport);
+            try {
+                return doStartServer(username, password, port);
+            } catch (BindException e) {
                 cause = e;
             }
         }
 
-        throw new IllegalStateException( "Could not allocate available port", cause );
+        throw new IllegalStateException("Could not allocate available port", cause);
     }
 
-    private static HttpServer doStartServer( String username, String password, int port )
-        throws Exception
-    {
+    private static HttpServer doStartServer(String username, String password, int port) throws Exception {
         Server server = new Server();
         Connector connector = new SocketConnector();
-        connector.setPort( port );
-        server.addConnector( connector );
+        connector.setPort(port);
+        server.addConnector(connector);
         server.start();
 
         Context context;
-        if ( username != null )
-        {
-            context = new Context( server, "/", Context.SESSIONS | Context.SECURITY );
+        if (username != null) {
+            context = new Context(server, "/", Context.SESSIONS | Context.SECURITY);
 
-            HashUserRealm userRealm = new HashUserRealm( "default" );
-            userRealm.put( username, new Password( password ) );
+            HashUserRealm userRealm = new HashUserRealm("default");
+            userRealm.put(username, new Password(password));
 
-            Constraint constraint = new Constraint( Constraint.__BASIC_AUTH, Constraint.ANY_ROLE );
-            constraint.setAuthenticate( true );
+            Constraint constraint = new Constraint(Constraint.__BASIC_AUTH, Constraint.ANY_ROLE);
+            constraint.setAuthenticate(true);
 
             ConstraintMapping constraintMapping = new ConstraintMapping();
-            constraintMapping.setPathSpec( "/*" );
-            constraintMapping.setConstraint( constraint );
+            constraintMapping.setPathSpec("/*");
+            constraintMapping.setConstraint(constraint);
 
-            context.getSecurityHandler().setUserRealm( userRealm );
-            context.getSecurityHandler().setAuthMethod( Constraint.__BASIC_AUTH );
-            context.getSecurityHandler().setConstraintMappings( new ConstraintMapping[] { constraintMapping } );
-        }
-        else
-        {
-            context = new Context( server, "/", 0 );
+            context.getSecurityHandler().setUserRealm(userRealm);
+            context.getSecurityHandler().setAuthMethod(Constraint.__BASIC_AUTH);
+            context.getSecurityHandler().setConstraintMappings(new ConstraintMapping[] { constraintMapping });
+        } else {
+            context = new Context(server, "/", 0);
         }
         context.start();
 
-        return new HttpServer( port, server, context );
+        return new HttpServer(port, server, context);
     }
 
-    public void stop()
-        throws Exception
-    {
+    public void stop() throws Exception {
         server.stop();
         server.join();
     }
 
-    public String addServer( String contextName, final File content )
-    {
-        FileServerServlet servlet = new FileServerServlet( content );
-        servers.put( contextName, servlet );
-        context.addServlet( new ServletHolder( servlet ), "/" + contextName + "/*" );
-        
-        return getUrl( contextName );
+    public String addServer(String contextName, final File content) {
+        FileServerServlet servlet = new FileServerServlet(content);
+        servers.put(contextName, servlet);
+        context.addServlet(new ServletHolder(servlet), "/" + contextName + "/*");
+
+        return getUrl(contextName);
     }
 
-    public String getUrl( String contextName )
-    {
+    public String getUrl(String contextName) {
         return "http://localhost:" + port + "/" + contextName;
     }
 
-    public List<String> getAccessedUrls( String contextName )
-    {
-        return servers.get( contextName ).getAccessedUrls();
+    public List<String> getAccessedUrls(String contextName) {
+        return servers.get(contextName).getAccessedUrls();
     }
 
 }

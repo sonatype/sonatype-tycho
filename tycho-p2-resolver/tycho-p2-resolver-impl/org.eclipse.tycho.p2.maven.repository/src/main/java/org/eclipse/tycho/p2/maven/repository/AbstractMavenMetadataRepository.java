@@ -33,9 +33,7 @@ import org.eclipse.tycho.p2.repository.RepositoryLayoutHelper;
 import org.eclipse.tycho.p2.repository.RepositoryReader;
 import org.eclipse.tycho.p2.repository.TychoRepositoryIndex;
 
-public abstract class AbstractMavenMetadataRepository
-    extends AbstractMetadataRepository
-{
+public abstract class AbstractMavenMetadataRepository extends AbstractMetadataRepository {
 //    private static final String REPOSITORY_TYPE = AbstractMavenMetadataRepository.class.getName();
 //
 //    private static final String REPOSITORY_VERSION = "1.0.0";
@@ -48,54 +46,42 @@ public abstract class AbstractMavenMetadataRepository
 
     protected Map<GAV, Set<IInstallableUnit>> unitsMap = new LinkedHashMap<GAV, Set<IInstallableUnit>>();
 
-    public AbstractMavenMetadataRepository( URI location, TychoRepositoryIndex projectIndex,
-                                            RepositoryReader contentLocator )
-    {
-        this( Activator.getProvisioningAgent(), location, projectIndex, contentLocator );
+    public AbstractMavenMetadataRepository(URI location, TychoRepositoryIndex projectIndex,
+            RepositoryReader contentLocator) {
+        this(Activator.getProvisioningAgent(), location, projectIndex, contentLocator);
     }
 
-    public AbstractMavenMetadataRepository( IProvisioningAgent agent, URI location, TychoRepositoryIndex projectIndex,
-                                            RepositoryReader contentLocator )
-    {
+    public AbstractMavenMetadataRepository(IProvisioningAgent agent, URI location, TychoRepositoryIndex projectIndex,
+            RepositoryReader contentLocator) {
         // super( location.toString(), REPOSITORY_TYPE, REPOSITORY_VERSION, location, null, null, properties );
-        super( agent );
+        super(agent);
 
-        setLocation( location );
+        setLocation(location);
 
         this.projectIndex = projectIndex;
         this.contentLocator = contentLocator;
 
-        if ( projectIndex != null && contentLocator != null )
-        {
+        if (projectIndex != null && contentLocator != null) {
             load();
         }
     }
 
-    protected void load()
-    {
+    protected void load() {
         MetadataIO io = new MetadataIO();
 
-        for ( GAV gav : projectIndex.getProjectGAVs() )
-        {
-            try
-            {
-                InputStream is =
-                    contentLocator.getContents( gav, RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
-                                                RepositoryLayoutHelper.EXTENSION_P2_METADATA );
-                try
-                {
-                    Set<IInstallableUnit> gavUnits = io.readXML( is );
+        for (GAV gav : projectIndex.getProjectGAVs()) {
+            try {
+                InputStream is = contentLocator.getContents(gav, RepositoryLayoutHelper.CLASSIFIER_P2_METADATA,
+                        RepositoryLayoutHelper.EXTENSION_P2_METADATA);
+                try {
+                    Set<IInstallableUnit> gavUnits = io.readXML(is);
 
-                    unitsMap.put( gav, gavUnits );
-                    units.addAll( gavUnits );
-                }
-                finally
-                {
+                    unitsMap.put(gav, gavUnits);
+                    units.addAll(gavUnits);
+                } finally {
                     is.close();
                 }
-            }
-            catch ( IOException e )
-            {
+            } catch (IOException e) {
                 // TODO throw properly typed exception if repository cannot be loaded
                 e.printStackTrace();
             }
@@ -104,25 +90,21 @@ public abstract class AbstractMavenMetadataRepository
     }
 
     @Override
-    public void initialize( RepositoryState state )
-    {
+    public void initialize(RepositoryState state) {
     }
 
-    public IQueryResult<IInstallableUnit> query( IQuery<IInstallableUnit> query, IProgressMonitor monitor )
-    {
-        return query.perform( units.iterator() );
+    public IQueryResult<IInstallableUnit> query(IQuery<IInstallableUnit> query, IProgressMonitor monitor) {
+        return query.perform(units.iterator());
     }
 
     /**
      * For testing purposes only
      */
-    public Map<GAV, Set<IInstallableUnit>> getGAVs()
-    {
+    public Map<GAV, Set<IInstallableUnit>> getGAVs() {
         return unitsMap;
     }
 
-    public Collection<IRepositoryReference> getReferences()
-    {
+    public Collection<IRepositoryReference> getReferences() {
         return Collections.emptyList();
     }
 }

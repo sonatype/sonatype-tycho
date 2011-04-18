@@ -26,10 +26,8 @@ import org.eclipse.tycho.p2.tools.BuildContext;
 import org.eclipse.tycho.p2.tools.TargetEnvironment;
 
 // TODO share between Maven plug-ins?
-public abstract class AbstractP2Mojo
-    extends AbstractMojo
-{
-    
+public abstract class AbstractP2Mojo extends AbstractMojo {
+
     /** @parameter expression="${session}" */
     private MavenSession session;
 
@@ -43,63 +41,51 @@ public abstract class AbstractP2Mojo
      */
     private String qualifier;
 
-    protected MavenProject getProject()
-    {
+    protected MavenProject getProject() {
         return project;
     }
 
-    protected MavenSession getSession()
-    {
+    protected MavenSession getSession() {
         return session;
     }
 
-    protected String getQualifier()
-    {
+    protected String getQualifier() {
         return qualifier;
     }
 
-    protected File getBuildDirectory()
-    {
-        return new File( getProject().getBuild().getDirectory() );
+    protected File getBuildDirectory() {
+        return new File(getProject().getBuild().getDirectory());
     }
 
-    protected EclipseRepositoryProject getEclipseRepositoryProject()
-    {
-        return (EclipseRepositoryProject) getTychoProjectFacet( ArtifactKey.TYPE_ECLIPSE_REPOSITORY );
+    protected EclipseRepositoryProject getEclipseRepositoryProject() {
+        return (EclipseRepositoryProject) getTychoProjectFacet(ArtifactKey.TYPE_ECLIPSE_REPOSITORY);
     }
 
-    private TychoProject getTychoProjectFacet( String packaging )
-    {
+    private TychoProject getTychoProjectFacet(String packaging) {
         TychoProject facet;
-        try
-        {
-            facet = (TychoProject) session.lookup( TychoProject.class.getName(), packaging );
-        }
-        catch ( ComponentLookupException e )
-        {
-            throw new IllegalStateException( "Could not lookup required component", e );
+        try {
+            facet = (TychoProject) session.lookup(TychoProject.class.getName(), packaging);
+        } catch (ComponentLookupException e) {
+            throw new IllegalStateException("Could not lookup required component", e);
         }
         return facet;
     }
 
-    protected BuildContext getBuildContext()
-    {
-        return new BuildContext( getQualifier(), getEnvironmentsForFacade(), getBuildDirectory() );
+    protected BuildContext getBuildContext() {
+        return new BuildContext(getQualifier(), getEnvironmentsForFacade(), getBuildDirectory());
     }
 
     /**
      * Returns the configured environments in a format suitable for the p2 tools facade.
      */
-    private List<TargetEnvironment> getEnvironmentsForFacade()
-    {
+    private List<TargetEnvironment> getEnvironmentsForFacade() {
         // TODO use shared class everywhere?
 
-        List<org.eclipse.tycho.core.TargetEnvironment> original =
-            TychoProjectUtils.getTargetPlatformConfiguration( project ).getEnvironments();
-        List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>( original.size() );
-        for ( org.eclipse.tycho.core.TargetEnvironment env : original )
-        {
-            converted.add( new TargetEnvironment( env.getWs(), env.getOs(), env.getArch() ) );
+        List<org.eclipse.tycho.core.TargetEnvironment> original = TychoProjectUtils.getTargetPlatformConfiguration(
+                project).getEnvironments();
+        List<TargetEnvironment> converted = new ArrayList<TargetEnvironment>(original.size());
+        for (org.eclipse.tycho.core.TargetEnvironment env : original) {
+            converted.add(new TargetEnvironment(env.getWs(), env.getOs(), env.getArch()));
         }
         return converted;
     }
