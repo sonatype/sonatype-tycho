@@ -18,14 +18,14 @@ import tycho.demo.itp01.actions.SampleAction;
 
 public class ITP01Test {
 
-	@Test
-	public void sampleAction() {
-		IWorkbench workbench = PlatformUI.getWorkbench();
+    @Test
+    public void sampleAction() {
+        IWorkbench workbench = PlatformUI.getWorkbench();
 
-		SampleAction action = new SampleAction();
-		action.init(workbench.getActiveWorkbenchWindow());
+        SampleAction action = new SampleAction();
+        action.init(workbench.getActiveWorkbenchWindow());
 
 //		action.run(null);
-	}
+    }
 
 }
