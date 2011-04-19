@@ -30,7 +30,7 @@ import org.osgi.framework.Version;
 
 public abstract class AbstractTychoIntegrationTest {
 
-    protected File getBasedir(String test) throws IOException {
+    protected static File getBasedir(String test) throws IOException {
         File src = new File("projects", test).getCanonicalFile();
         File dst = new File("target/projects", test).getCanonicalFile();
 
@@ -47,12 +47,12 @@ public abstract class AbstractTychoIntegrationTest {
         return dst;
     }
 
-    protected Verifier getVerifier(String test, boolean setTargetPlatform) throws Exception {
+    protected static Verifier getVerifier(String test, boolean setTargetPlatform) throws Exception {
         return getVerifier(test, setTargetPlatform, new File("settings.xml"));
     }
 
     @SuppressWarnings("unchecked")
-    protected Verifier getVerifier(String test, boolean setTargetPlatform, File userSettings) throws Exception {
+    static protected Verifier getVerifier(String test, boolean setTargetPlatform, File userSettings) throws Exception {
         /*
          * Test JVM can be started in debug mode by passing the following env to execute(...)
          * methods.
@@ -94,19 +94,19 @@ public abstract class AbstractTychoIntegrationTest {
 
     }
 
-    protected Verifier getVerifier(String test) throws Exception {
+    protected static Verifier getVerifier(String test) throws Exception {
         return getVerifier(test, true);
     }
 
-    protected String getTargetPlatforn() {
+    protected static String getTargetPlatforn() {
         return EnvironmentUtil.getTargetPlatforn();
     }
 
-    protected String getMavenHome() {
+    protected static String getMavenHome() {
         return EnvironmentUtil.getMavenHome();
     }
 
-    protected String getTychoVersion() {
+    protected static String getTychoVersion() {
         return EnvironmentUtil.getTychoVersion();
     }
 

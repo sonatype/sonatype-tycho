@@ -12,12 +12,14 @@ package org.eclipse.tycho.p2.facade;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,6 +37,8 @@ import org.apache.maven.artifact.repository.ArtifactRepositoryPolicy;
 import org.apache.maven.artifact.repository.Authentication;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.MultipleArtifactsNotFoundException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
@@ -70,7 +74,11 @@ import org.eclipse.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.eclipse.tycho.p2.facade.internal.P2RepositoryCacheImpl;
 import org.eclipse.tycho.p2.facade.internal.ReactorArtifactFacade;
 import org.eclipse.tycho.p2.metadata.DependencyMetadataGenerator;
+import org.eclipse.tycho.p2.metadata.IArtifactFacade;
+import org.eclipse.tycho.p2.metadata.P2Generator;
 import org.eclipse.tycho.p2.repository.DefaultTychoRepositoryIndex;
+import org.eclipse.tycho.p2.repository.LocalTychoRepositoryIndex;
+import org.eclipse.tycho.p2.repository.RepositoryLayoutHelper;
 import org.eclipse.tycho.p2.repository.TychoRepositoryIndex;
 import org.eclipse.tycho.p2.resolver.P2Logger;
 import org.eclipse.tycho.p2.resolver.P2ResolutionResult;
@@ -106,6 +114,8 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
     private DependencyMetadataGenerator generator;
 
     private DependencyMetadataGenerator sourcesGenerator;
+
+    private P2Generator pomDependenciesGenerator;
 
     private static final ArtifactRepositoryPolicy P2_REPOSITORY_POLICY = new ArtifactRepositoryPolicy(true,
             ArtifactRepositoryPolicy.UPDATE_POLICY_NEVER, ArtifactRepositoryPolicy.CHECKSUM_POLICY_IGNORE);
@@ -239,6 +249,7 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
             } catch (AbstractArtifactResolutionException e) {
                 throw new RuntimeException("Could not resolve project dependencies", e);
             }
+            List<Artifact> externalArtifacts = new ArrayList<Artifact>(artifacts.size());
             for (Artifact artifact : artifacts) {
                 String key = ArtifactUtils.key(artifact.getGroupId(), artifact.getArtifactId(),
                         artifact.getBaseVersion());
@@ -246,6 +257,20 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
                     // resolved to an older snapshot from the repo, we only want the current project in the reactor
                     continue;
                 }
+                externalArtifacts.add(artifact);
+            }
+            addToP2ViewOfLocalRepository(session, externalArtifacts, project);
+            for (Artifact artifact : externalArtifacts) {
+                /*
+                 * TODO This call generates p2 metadata for the POM dependencies. If the artifact
+                 * has an attached p2metadata.xml, we should reuse that metadata.
+                 */
+                /*
+                 * TODO The generated metadata is "depencency only" metadata. (Just by coincidence
+                 * this is currently full metadata.) Since this POM depencency metadata may be
+                 * copied into an eclipse-repository or p2-enabled RCP installation, it shall be
+                 * documented that the generated metadata must be full metadata.
+                 */
                 if (getLogger().isDebugEnabled()) {
                     getLogger().debug("P2resolver.addMavenArtifact " + artifact.toString());
                 }
@@ -425,6 +450,34 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
         return false;
     }
 
+    private void addToP2ViewOfLocalRepository(MavenSession session, Collection<Artifact> artifacts, MavenProject project) {
+        LocalTychoRepositoryIndex artifactsIndex = new LocalTychoRepositoryIndex(new File(session.getLocalRepository()
+                .getBasedir()), LocalTychoRepositoryIndex.ARTIFACTS_INDEX_RELPATH);
+
+        for (Artifact artifact : artifacts) {
+
+            ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+            Artifact p2ArtifactData = repositorySystem.createArtifactWithClassifier(artifact.getGroupId(),
+                    artifact.getArtifactId(), artifact.getVersion(), RepositoryLayoutHelper.EXTENSION_P2_ARTIFACTS,
+                    RepositoryLayoutHelper.CLASSIFIER_P2_ARTIFACTS);
+            request.setArtifact(p2ArtifactData);
+            request.setRemoteRepositories(project.getRemoteArtifactRepositories());
+            ArtifactResolutionResult result = repositorySystem.resolve(request);
+            if (result.isSuccess()) {
+                // add to .meta/localArtifacts.properties
+                artifactsIndex.addProject(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+            } else {
+                // TODO as part of TYCHO-570: generate p2 artifact entry
+            }
+        }
+
+        try {
+            artifactsIndex.save();
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while updating p2 view on local Maven repository", e);
+        }
+    }
+
     protected DefaultTargetPlatform newDefaultTargetPlatform(MavenSession session, Map<File, ReactorProject> projects,
             P2ResolutionResult result) {
         DefaultTargetPlatform platform = new DefaultTargetPlatform();
@@ -494,5 +547,6 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
         this.resolverFactory = equinox.getService(P2ResolverFactory.class);
         this.generator = equinox.getService(DependencyMetadataGenerator.class, "(role-hint=dependency-only)");
         this.sourcesGenerator = equinox.getService(DependencyMetadataGenerator.class, "(role-hint=source-bundle)");
+        this.pomDependenciesGenerator = equinox.getService(P2Generator.class);
     }
 }
