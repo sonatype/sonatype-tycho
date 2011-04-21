@@ -16,7 +16,7 @@
       </plugin>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
-        <artifactId>maven-osgi-source-plugin</artifactId>
+        <artifactId>tycho-source-plugin</artifactId>
         <version>${tycho-version}</version>
         <executions>
           <execution>

@@ -22,7 +22,7 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
-        <artifactId>maven-osgi-compiler-plugin</artifactId>
+        <artifactId>tycho-compiler-plugin</artifactId>
         <version>${tycho-version}</version>
         <configuration>
           <extraClasspathElements>

@@ -135,7 +135,7 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
         // TODO this is a fragile way of checking whether we generate a source bundle
         // should we rather use MavenSession to get the actual configured mojo instance?
         for (Plugin plugin : project.getBuildPlugins()) {
-            if ("org.eclipse.tycho:maven-osgi-source-plugin".equals(plugin.getKey())) {
+            if ("org.eclipse.tycho:tycho-source-plugin".equals(plugin.getKey())) {
                 return true;
             }
         }

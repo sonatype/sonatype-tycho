@@ -10,7 +10,7 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
-        <artifactId>maven-osgi-test-plugin</artifactId>
+        <artifactId>tycho-surefire-plugin</artifactId>
         <version>${tycho-version}</version>
         <configuration>
           <!-- headless harness works better for headless linux builds  -->

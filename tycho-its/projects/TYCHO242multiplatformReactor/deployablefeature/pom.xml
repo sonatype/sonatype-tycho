@@ -13,7 +13,7 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
-        <artifactId>maven-osgi-packaging-plugin</artifactId>
+        <artifactId>tycho-packaging-plugin</artifactId>
         <configuration>
           <deployableFeature>true</deployableFeature>
         </configuration>

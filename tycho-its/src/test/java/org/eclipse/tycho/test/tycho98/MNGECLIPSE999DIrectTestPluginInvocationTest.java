@@ -24,7 +24,7 @@ public class MNGECLIPSE999DIrectTestPluginInvocationTest extends AbstractTychoIn
         Verifier verifier = getVerifier("tycho98");
 
         verifier.executeGoals(Arrays
-                .asList(new String[] { "package", "org.eclipse.tycho:maven-osgi-test-plugin:test" }));
+                .asList(new String[] { "package", "org.eclipse.tycho:tycho-surefire-plugin:test" }));
         verifier.verifyErrorFreeLog();
     }
 

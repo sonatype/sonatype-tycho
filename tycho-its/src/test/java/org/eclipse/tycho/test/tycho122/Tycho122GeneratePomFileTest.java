@@ -24,7 +24,7 @@ public class Tycho122GeneratePomFileTest extends AbstractTychoIntegrationTest {
         Verifier verifier = getVerifier("/tycho122/tycho.demo");
 
         verifier.setAutoclean(false);
-        verifier.executeGoal("org.eclipse.tycho:maven-tycho-plugin:generate-poms");
+        verifier.executeGoal("org.eclipse.tycho:tycho-pomgenerator-plugin:generate-poms");
         verifier.verifyErrorFreeLog();
 
         File pom = new File(verifier.getBasedir(), "pom.xml");

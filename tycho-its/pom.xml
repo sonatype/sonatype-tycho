@@ -150,31 +150,31 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.tycho</groupId>
-      <artifactId>maven-tycho-plugin</artifactId>
+      <artifactId>tycho-pomgenerator-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.eclipse.tycho</groupId>
-      <artifactId>maven-osgi-compiler-plugin</artifactId>
+      <artifactId>tycho-compiler-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.eclipse.tycho</groupId>
-      <artifactId>maven-osgi-packaging-plugin</artifactId>
+      <artifactId>tycho-packaging-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.eclipse.tycho</groupId>
-      <artifactId>maven-osgi-test-plugin</artifactId>
+      <artifactId>tycho-surefire-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>
     <dependency>
       <groupId>org.eclipse.tycho</groupId>
-      <artifactId>maven-osgi-source-plugin</artifactId>
+      <artifactId>tycho-source-plugin</artifactId>
       <version>${tycho-build-version}</version>
       <type>maven-plugin</type>
     </dependency>

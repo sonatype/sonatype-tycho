@@ -51,7 +51,7 @@ public class Tycho46MapfileTestDisabled extends AbstractTychoIntegrationTest {
         verifier.setAutoclean(false);
         verifier.getCliOptions().add("-Dmapfile=directory.txt");
         verifier.getCliOptions().add("-Dmaven.scm.provider.cvs.implementation=cvs_native");
-        verifier.executeGoal("org.eclipse.tycho:maven-tycho-plugin:import-mapfile");
+        verifier.executeGoal("org.eclipse.tycho:tycho-pomgenerator-plugin:import-mapfile");
         verifier.verifyErrorFreeLog();
 
         File directorySrc = new File(verifier.getBasedir(), "directory.src");
