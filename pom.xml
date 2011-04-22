@@ -145,12 +145,12 @@
       </dependency>
 
       <dependency>
-        <groupId>org.sonatype.tycho</groupId>
+        <groupId>org.eclipse.tycho</groupId>
         <artifactId>org.eclipse.osgi</artifactId>
         <version>${equinoxVersion}</version>
       </dependency>
       <dependency>
-        <groupId>org.sonatype.tycho</groupId>
+        <groupId>org.eclipse.tycho</groupId>
         <artifactId>org.eclipse.jdt.core</artifactId>
         <version>${jdtVersion}</version>
       </dependency>

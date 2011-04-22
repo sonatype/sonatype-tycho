@@ -42,7 +42,7 @@
       <artifactId>plexus-compiler-manager</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.sonatype.tycho</groupId>
+      <groupId>org.eclipse.tycho</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
     </dependency>
     <dependency>
