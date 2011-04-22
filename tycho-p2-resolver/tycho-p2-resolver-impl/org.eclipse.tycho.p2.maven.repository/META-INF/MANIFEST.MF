@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: P2 Maven Repository
 Bundle-SymbolicName: org.eclipse.tycho.p2.maven.repository;singleton:=true
-Bundle-Version: 0.12.0.qualifier
+Bundle-Version: 0.12.0
 Bundle-Vendor: %providerName
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy

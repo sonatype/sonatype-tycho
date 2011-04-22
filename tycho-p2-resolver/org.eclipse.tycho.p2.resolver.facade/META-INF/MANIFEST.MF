@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Export-Package: org.eclipse.tycho.p2.metadata,
  org.eclipse.tycho.p2.repository,
  org.eclipse.tycho.p2.resolver
-Bundle-Version: 0.12.0.qualifier
+Bundle-Version: 0.12.0
 Bundle-Name: Tycho P2 dependency resolution API
 Bundle-ManifestVersion: 2
 Bundle-Description: Tycho integrates Maven with Eclipse and OSGi
