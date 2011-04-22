@@ -15,7 +15,7 @@ Contributors:
   <parent>
     <groupId>org.eclipse.tycho</groupId>
     <artifactId>tycho-p2</artifactId>
-    <version>0.12.0</version>
+    <version>0.13.0-SNAPSHOT</version>
   </parent>
   <artifactId>tycho-p2-repository-plugin</artifactId>
   <packaging>maven-plugin</packaging>

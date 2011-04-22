@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Version: 0.12.0
+Bundle-Version: 0.13.0.qualifier
 Bundle-Name: Tycho P2 tools API classes tests
 Bundle-ManifestVersion: 2
 Bundle-Description: Tests of classes in the P2 tools API
