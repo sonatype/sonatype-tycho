@@ -12,6 +12,8 @@
 package org.eclipse.tycho.p2.impl.resolver;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.net.URI;
@@ -45,6 +47,7 @@ import org.eclipse.equinox.p2.metadata.IProvidedCapability;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.metadata.MetadataFactory;
 import org.eclipse.equinox.p2.metadata.VersionRange;
+import org.eclipse.equinox.p2.metadata.VersionedId;
 import org.eclipse.equinox.p2.publisher.PublisherInfo;
 import org.eclipse.equinox.p2.publisher.PublisherResult;
 import org.eclipse.equinox.p2.publisher.actions.JREAction;
@@ -70,8 +73,10 @@ import org.eclipse.tycho.p2.maven.repository.LocalMetadataRepository;
 import org.eclipse.tycho.p2.maven.repository.MavenArtifactRepository;
 import org.eclipse.tycho.p2.maven.repository.MavenMetadataRepository;
 import org.eclipse.tycho.p2.maven.repository.MavenMirrorRequest;
+import org.eclipse.tycho.p2.maven.repository.xmlio.MetadataIO;
 import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 import org.eclipse.tycho.p2.metadata.IReactorArtifactFacade;
+import org.eclipse.tycho.p2.repository.GAV;
 import org.eclipse.tycho.p2.repository.LocalRepositoryReader;
 import org.eclipse.tycho.p2.repository.LocalTychoRepositoryIndex;
 import org.eclipse.tycho.p2.repository.RepositoryReader;
@@ -183,6 +188,24 @@ public class P2ResolverImpl implements P2Resolver {
         addMavenArtifact(artifact, units);
     }
 
+    public void addTychoArtifact(IArtifactFacade artifact, IArtifactFacade p2MetadataData) {
+        try {
+            addMavenArtifact(artifact, readUnits(p2MetadataData));
+        } catch (IOException e) {
+            throw new RuntimeException("failed to read p2 metadata", e);
+        }
+    }
+
+    private Set<IInstallableUnit> readUnits(IArtifactFacade p2MetadataData) throws IOException {
+        FileInputStream inputStream = new FileInputStream(p2MetadataData.getLocation());
+        try {
+            MetadataIO io = new MetadataIO();
+            return io.readXML(inputStream);
+        } finally {
+            inputStream.close();
+        }
+    }
+
     void addMavenArtifact(IArtifactFacade artifact, Set<IInstallableUnit> units) {
         ClassifiedLocation key = new ClassifiedLocation(artifact);
         mavenArtifacts.put(key, artifact);
@@ -190,6 +213,11 @@ public class P2ResolverImpl implements P2Resolver {
 
         for (IInstallableUnit unit : units) {
             mavenInstallableUnits.put(unit, artifact);
+            if (logger.isDebugEnabled()) {
+                logger.debug("P2Resolver: artifact "
+                        + new GAV(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion()).toString()
+                        + " resolves installable unit " + new VersionedId(unit.getId(), unit.getVersion()));
+            }
         }
     }
 
@@ -694,4 +722,5 @@ public class P2ResolverImpl implements P2Resolver {
     public List<IRequirement> getAdditionalRequirements() {
         return additionalRequirements;
     }
+
 }

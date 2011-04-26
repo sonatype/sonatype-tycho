@@ -50,6 +50,8 @@ public interface P2Resolver {
 
     public void addMavenArtifact(IArtifactFacade artifact);
 
+    public void addTychoArtifact(IArtifactFacade artifact, IArtifactFacade p2MetadataData);
+
     public void addP2Repository(URI location);
 
     public void addMavenRepository(URI location, TychoRepositoryIndex projectIndex, RepositoryReader contentLocator);
