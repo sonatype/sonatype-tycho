@@ -20,8 +20,7 @@ public class TychoVersion {
 
     public static String getTychoVersion() {
         ClassLoader cl = TychoVersion.class.getClassLoader();
-        InputStream is = cl
-                .getResourceAsStream("META-INF/maven/org.eclipse.tycho/tycho-osgi-components/pom.properties");
+        InputStream is = cl.getResourceAsStream("META-INF/maven/org.eclipse.tycho/tycho-core/pom.properties");
         String version = DEFAULT_TYCHO_VERSION;
         if (is != null) {
             try {
