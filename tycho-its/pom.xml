@@ -99,8 +99,66 @@
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>
-
 		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!-- Configure lifecycle mapping for m2eclipse -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<!-- Enable integration test execution in Eclipse... -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.sonatype.plugins</groupId>
+										<artifactId>maven-properties-plugin</artifactId>
+										<versionRange>[0.0.2,)</versionRange>
+										<goals>
+											<goal>filter-file</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute />
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[2.1,)</versionRange>
+										<goals>
+											<goal>unpack-dependencies</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute />
+									</action>
+								</pluginExecution>
+
+								<!-- ... but do not download Eclipse installation for -Dtycho.targetPlatform -->
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[2.1,)</versionRange>
+										<goals>
+											<goal>unpack</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<dependencies>
@@ -300,6 +358,7 @@
 				<target.eclipse-basedir>${target.basedir}/tycho-ci/${target.eclipse-classifier}/${target.eclipse-version}</target.eclipse-basedir>
 				<tycho.testTargetPlatform>${target.eclipse-basedir}/eclipse</tycho.testTargetPlatform>
 			</properties>
+
 			<build>
 				<plugins>
 					<plugin>
@@ -342,59 +401,6 @@
 			<properties>
 				<target.eclipse-version>3.5.2</target.eclipse-version>
 			</properties>
-		</profile>
-
-		<profile>
-			<id>m2e</id>
-			<activation>
-				<property>
-					<name>m2e.version</name>
-				</property>
-			</activation>
-			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<groupId>org.eclipse.m2e</groupId>
-							<artifactId>lifecycle-mapping</artifactId>
-							<version>1.0.0</version>
-							<configuration>
-								<lifecycleMappingMetadata>
-									<pluginExecutions>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>org.apache.maven.plugins</groupId>
-												<artifactId>maven-dependency-plugin</artifactId>
-												<versionRange>[2.1,)</versionRange>
-												<goals>
-													<goal>unpack-dependencies</goal>
-													<goal>unpack</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<ignore />
-											</action>
-										</pluginExecution>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>org.sonatype.plugins</groupId>
-												<artifactId>maven-properties-plugin</artifactId>
-												<versionRange>[0.0.2,)</versionRange>
-												<goals>
-													<goal>filter-file</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<ignore />
-											</action>
-										</pluginExecution>
-									</pluginExecutions>
-								</lifecycleMappingMetadata>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-			</build>
 		</profile>
 
 	</profiles>
