@@ -44,13 +44,17 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.1</version>
 			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.eclipse.tycho</groupId>
 			<artifactId>tycho-equinox</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.tycho</groupId>
+			<artifactId>org.eclipse.tycho.p2.resolver.facade</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

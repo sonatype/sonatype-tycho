@@ -17,6 +17,12 @@ import java.util.Properties;
 
 import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 
+/**
+ * Provides system properties and certain properties from the test code build ("outer build"), like
+ * the location of the local Maven repository. For this class to work, the outer build must
+ * configure the <tt>maven-properties-plugin</tt> to capture the values in a file called
+ * baseTest.properties (see tycho-its/pom.xml for an example).
+ */
 public class EnvironmentUtil {
 
     private static final Properties props;

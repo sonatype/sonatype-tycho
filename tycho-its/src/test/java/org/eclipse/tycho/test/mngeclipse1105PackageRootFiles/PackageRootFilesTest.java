@@ -15,9 +15,11 @@ import org.eclipse.tycho.test.AbstractTychoIntegrationTest;
 import org.junit.Test;
 
 public class PackageRootFilesTest extends AbstractTychoIntegrationTest {
+
+    @Override
     @SuppressWarnings("unchecked")
-    private Verifier getVerifierForMac(String test) throws Exception {
-        Verifier verifier = AbstractTychoIntegrationTest.getVerifier(test);
+    protected Verifier getVerifier(String test) throws Exception {
+        Verifier verifier = super.getVerifier(test);
 
         verifier.getCliOptions().add("-Dosgi.os=macosx");
         verifier.getCliOptions().add("-Dosgi.ws=carbon");
@@ -28,7 +30,7 @@ public class PackageRootFilesTest extends AbstractTychoIntegrationTest {
 
     @Test
     public void test() throws Exception {
-        Verifier verifier = getVerifierForMac("MNGECLIPSE1105rootfiles");
+        Verifier verifier = getVerifier("MNGECLIPSE1105rootfiles");
 
         verifier.executeGoal("integration-test");
         verifier.verifyErrorFreeLog();
