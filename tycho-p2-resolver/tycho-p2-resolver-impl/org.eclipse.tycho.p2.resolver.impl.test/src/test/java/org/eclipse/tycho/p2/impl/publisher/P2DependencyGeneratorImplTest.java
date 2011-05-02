@@ -8,7 +8,7 @@
  * Contributors:
  *    Sonatype Inc. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.tycho.p2.impl.test;
+package org.eclipse.tycho.p2.impl.publisher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ import org.eclipse.equinox.internal.p2.metadata.IRequiredCapability;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
-import org.eclipse.tycho.p2.impl.publisher.P2GeneratorImpl;
+import org.eclipse.tycho.p2.impl.test.ArtifactMock;
 import org.eclipse.tycho.p2.resolver.P2Resolver;
 import org.junit.Test;
 
