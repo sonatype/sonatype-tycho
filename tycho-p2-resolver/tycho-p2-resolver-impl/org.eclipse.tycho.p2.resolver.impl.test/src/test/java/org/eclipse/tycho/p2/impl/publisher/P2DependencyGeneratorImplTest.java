@@ -10,15 +10,14 @@
  *******************************************************************************/
 package org.eclipse.tycho.p2.impl.publisher;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import junit.framework.Assert;
 
 import org.eclipse.equinox.internal.p2.metadata.IRequiredCapability;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
@@ -26,143 +25,115 @@ import org.eclipse.equinox.p2.metadata.IRequirement;
 import org.eclipse.equinox.p2.repository.artifact.IArtifactDescriptor;
 import org.eclipse.tycho.p2.impl.test.ArtifactMock;
 import org.eclipse.tycho.p2.resolver.P2Resolver;
+import org.junit.Before;
 import org.junit.Test;
 
 @SuppressWarnings("restriction")
 public class P2DependencyGeneratorImplTest {
+    private static final String DEFAULT_VERSION = "1.0.0-SNAPSHOT";
+    private static final String DEFAULT_GROUP_ID = "org.eclipse.tycho.p2.impl.test";
+    private P2GeneratorImpl subject;
+    private LinkedHashSet<IInstallableUnit> units;
+    private LinkedHashSet<IArtifactDescriptor> artifacts;
+
+    @Before
+    public void resetTestSubjectAndResultFields() {
+        subject = new P2GeneratorImpl(true);
+
+        units = new LinkedHashSet<IInstallableUnit>();
+        artifacts = new LinkedHashSet<IArtifactDescriptor>();
+    }
+
+    private void generateDependencies(String testProjectId, String packagingType) throws IOException {
+        File reactorProjectRoot = new File("resources/generator/" + testProjectId).getCanonicalFile();
+        ArtifactMock reactorProject = new ArtifactMock(reactorProjectRoot, DEFAULT_GROUP_ID, testProjectId,
+                DEFAULT_VERSION, packagingType);
+
+        ArrayList<Map<String, String>> emptyEnvironments = new ArrayList<Map<String, String>>();
+
+        subject.generateMetadata(reactorProject, emptyEnvironments, units, artifacts);
+    }
+
     @Test
     public void bundle() throws Exception {
-        P2GeneratorImpl impl = new P2GeneratorImpl(true);
+        generateDependencies("bundle", P2Resolver.TYPE_ECLIPSE_PLUGIN);
 
-        File location = new File("resources/generator/bundle").getCanonicalFile();
-        String groupId = "org.eclipse.tycho.p2.impl.test";
-        String artifactId = "bundle";
-        String version = "1.0.0-SNAPSHOT";
-        List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-        Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-        Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
-        impl.generateMetadata(new ArtifactMock(location, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_PLUGIN),
-                environments, units, artifacts);
-
-        Assert.assertEquals(1, units.size());
+        assertEquals(1, units.size());
         IInstallableUnit unit = units.iterator().next();
 
-        Assert.assertEquals("org.eclipse.tycho.p2.impl.test.bundle", unit.getId());
-        Assert.assertEquals("1.0.0.qualifier", unit.getVersion().toString());
-        Assert.assertEquals(2, unit.getRequirements().size());
+        assertEquals("org.eclipse.tycho.p2.impl.test.bundle", unit.getId());
+        assertEquals("1.0.0.qualifier", unit.getVersion().toString());
+        assertEquals(2, unit.getRequirements().size());
 
         // not really necessary, but we get this because we reuse standard p2 implementation
-        Assert.assertEquals(1, artifacts.size());
+        assertEquals(1, artifacts.size());
     }
 
     @Test
     public void feature() throws Exception {
-        P2GeneratorImpl impl = new P2GeneratorImpl(true);
-
-        File location = new File("resources/generator/feature").getCanonicalFile();
-        String groupId = "org.eclipse.tycho.p2.impl.test";
-        String artifactId = "feature";
-        String version = "1.0.0-SNAPSHOT";
-        List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-        Set<IInstallableUnit> units = new TreeSet<IInstallableUnit>();
-        Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
-        impl.generateMetadata(
-                new ArtifactMock(location, groupId, artifactId, version, P2Resolver.TYPE_ECLIPSE_FEATURE),
-                environments, units, artifacts);
+        generateDependencies("feature", P2Resolver.TYPE_ECLIPSE_FEATURE);
 
         // no feature.jar IU because dependencyOnly=true
-        Assert.assertEquals(1, units.size());
+        assertEquals(1, units.size());
         IInstallableUnit unit = units.iterator().next();
 
-        Assert.assertEquals("org.eclipse.tycho.p2.impl.test.feature.feature.group", unit.getId());
-        Assert.assertEquals("1.0.0.qualifier", unit.getVersion().toString());
-        Assert.assertEquals(4, unit.getRequirements().size());
+        assertEquals("org.eclipse.tycho.p2.impl.test.feature.feature.group", unit.getId());
+        assertEquals("1.0.0.qualifier", unit.getVersion().toString());
+        assertEquals(4, unit.getRequirements().size());
 
-        Assert.assertEquals(0, artifacts.size());
+        assertEquals(0, artifacts.size());
     }
 
     @Test
     public void site() throws Exception {
-        P2GeneratorImpl impl = new P2GeneratorImpl(true);
+        generateDependencies("site", P2Resolver.TYPE_ECLIPSE_UPDATE_SITE);
 
-        File location = new File("resources/generator/site").getCanonicalFile();
-        String groupId = "org.eclipse.tycho.p2.impl.test";
-        String artifactId = "site";
-        String version = "1.0.0-SNAPSHOT";
-        List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-        Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-        Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
-        impl.generateMetadata(new ArtifactMock(location, groupId, artifactId, version,
-                P2Resolver.TYPE_ECLIPSE_UPDATE_SITE), environments, units, artifacts);
-
-        Assert.assertEquals(1, units.size());
+        assertEquals(1, units.size());
         IInstallableUnit unit = units.iterator().next();
 
-        Assert.assertEquals("site", unit.getId());
-        Assert.assertEquals("raw:1.0.0.'SNAPSHOT'/format(n[.n=0;[.n=0;[-S]]]):1.0.0-SNAPSHOT", unit.getVersion()
-                .toString());
-        Assert.assertEquals(1, unit.getRequirements().size());
+        assertEquals("site", unit.getId());
+        assertEquals("raw:1.0.0.'SNAPSHOT'/format(n[.n=0;[.n=0;[-S]]]):1.0.0-SNAPSHOT", unit.getVersion().toString());
+        assertEquals(1, unit.getRequirements().size());
 
-        Assert.assertEquals(0, artifacts.size());
+        assertEquals(0, artifacts.size());
     }
 
     @Test
     public void rcpBundle() throws Exception {
-        P2GeneratorImpl impl = new P2GeneratorImpl(true);
+        generateDependencies("rcp-bundle", P2Resolver.TYPE_ECLIPSE_APPLICATION);
 
-        File location = new File("resources/generator/rcp-bundle").getCanonicalFile();
-        String groupId = "org.eclipse.tycho.p2.impl.test";
-        String artifactId = "rcp-bundle";
-        String version = "1.0.0-SNAPSHOT";
-        List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-        Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-        Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
-        impl.generateMetadata(new ArtifactMock(location, groupId, artifactId, version,
-                P2Resolver.TYPE_ECLIPSE_APPLICATION), environments, units, artifacts);
-
-        Assert.assertEquals(1, units.size());
+        assertEquals(1, units.size());
         IInstallableUnit unit = units.iterator().next();
 
-        Assert.assertEquals("org.eclipse.tycho.p2.impl.test.rcp-bundle", unit.getId());
-        Assert.assertEquals("1.0.0.qualifier", unit.getVersion().toString());
+        assertEquals("org.eclipse.tycho.p2.impl.test.rcp-bundle", unit.getId());
+        assertEquals("1.0.0.qualifier", unit.getVersion().toString());
 
         List<IRequirement> requirement = new ArrayList<IRequirement>(unit.getRequirements());
 
-        Assert.assertEquals(3, requirement.size());
-        Assert.assertEquals("included.bundle", ((IRequiredCapability) requirement.get(0)).getName());
+        assertEquals(3, requirement.size());
+        assertEquals("included.bundle", ((IRequiredCapability) requirement.get(0)).getName());
 
         // implicit dependencies because includeLaunchers="true"
-        Assert.assertEquals("org.eclipse.equinox.executable.feature.group",
+        assertEquals("org.eclipse.equinox.executable.feature.group",
                 ((IRequiredCapability) requirement.get(1)).getName());
-        Assert.assertEquals("org.eclipse.equinox.launcher", ((IRequiredCapability) requirement.get(2)).getName());
+        assertEquals("org.eclipse.equinox.launcher", ((IRequiredCapability) requirement.get(2)).getName());
 
-        Assert.assertEquals(0, artifacts.size());
+        assertEquals(0, artifacts.size());
     }
 
     @Test
     public void rcpFeature() throws Exception {
-        P2GeneratorImpl impl = new P2GeneratorImpl(true);
+        generateDependencies("rcp-feature", P2Resolver.TYPE_ECLIPSE_APPLICATION);
 
-        File location = new File("resources/generator/rcp-feature").getCanonicalFile();
-        String groupId = "org.eclipse.tycho.p2.impl.test";
-        String artifactId = "rcp-feature";
-        String version = "1.0.0-SNAPSHOT";
-        List<Map<String, String>> environments = new ArrayList<Map<String, String>>();
-        Set<IInstallableUnit> units = new LinkedHashSet<IInstallableUnit>();
-        Set<IArtifactDescriptor> artifacts = new LinkedHashSet<IArtifactDescriptor>();
-        impl.generateMetadata(new ArtifactMock(location, groupId, artifactId, version,
-                P2Resolver.TYPE_ECLIPSE_APPLICATION), environments, units, artifacts);
-
-        Assert.assertEquals(1, units.size());
+        assertEquals(1, units.size());
         IInstallableUnit unit = units.iterator().next();
 
-        Assert.assertEquals("org.eclipse.tycho.p2.impl.test.rcp-feature", unit.getId());
-        Assert.assertEquals("1.0.0.qualifier", unit.getVersion().toString());
+        assertEquals("org.eclipse.tycho.p2.impl.test.rcp-feature", unit.getId());
+        assertEquals("1.0.0.qualifier", unit.getVersion().toString());
 
-        Assert.assertEquals(3, unit.getRequirements().size());
+        assertEquals(3, unit.getRequirements().size());
 
-        Assert.assertEquals(0, artifacts.size());
-
+        assertEquals(0, artifacts.size());
     }
 
     // TODO version ranges in feature, site and rcp apps
