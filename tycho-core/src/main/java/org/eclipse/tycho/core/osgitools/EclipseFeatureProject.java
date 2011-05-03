@@ -12,6 +12,7 @@ package org.eclipse.tycho.core.osgitools;
 
 import java.io.File;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.eclipse.tycho.ArtifactKey;
@@ -41,4 +42,11 @@ public class EclipseFeatureProject extends AbstractArtifactBasedProject {
         return new DefaultArtifactKey(org.eclipse.tycho.ArtifactKey.TYPE_ECLIPSE_FEATURE, feature.getId(),
                 feature.getVersion());
     }
+
+    @Override
+    public void setupProject(MavenSession session, MavenProject project) {
+        // validate feature.xml
+        Feature.loadFeature(project.getBasedir());
+    }
+
 }
