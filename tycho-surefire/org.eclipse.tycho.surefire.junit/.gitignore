@@ -1,3 +1,4 @@
+jars/
 # override global rule
 !/.settings/
 
