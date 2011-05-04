@@ -11,6 +11,7 @@
 package org.eclipse.tycho.test.util;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.tycho.p2.repository.GAV;
 
@@ -39,6 +40,25 @@ public class LocalMavenRepositoryTool {
         String artifactName = artifactId + "-" + version + (classifier == null ? "" : "-" + classifier) + "."
                 + extension;
         return new File(localRepo, artifactPath + '/' + artifactName);
+    }
+
+    /**
+     * Hides all artifacts built and installed by Tycho from future Tycho builds.
+     * <p>
+     * Background: Artifacts built and installed by Tycho are visible to all other Tycho builds in
+     * order to allow re-builds of individual modules. This method allows to prevent this for future
+     * builds.
+     * 
+     * @throws IOException
+     *             if the list of locally built Tycho artifacts cannot be emptied.
+     */
+    public void hideAllLocalTychoArtifacts() throws IOException {
+        File listOfTychoBuiltArtifact = new File(localRepo, ".meta/p2-local-metadata.properties");
+        if (listOfTychoBuiltArtifact.exists()) {
+            boolean success = listOfTychoBuiltArtifact.delete();
+            if (!success)
+                throw new IOException("Could not delete " + listOfTychoBuiltArtifact);
+        }
     }
 
 }
