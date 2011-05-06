@@ -1,7 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: Simplehttp
-Bundle-SymbolicName: com.company.tools.extradirs.libs.simplehttp
-Bundle-Version: 1.0.0
-Export-Package: com.company.tools.libs.simplehttp
-Require-Bundle: com.company.tools.extradirs.libs.simplehttp;bundle-version="1.0.0"
