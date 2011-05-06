@@ -28,7 +28,8 @@
 	<artifactId>tycho</artifactId>
 	<version>0.13.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Tycho</name>
+
+	<name>Tycho (Incubation)</name>
 	<description>Tycho integrates Maven with Eclipse and OSGi</description>
 
 	<properties>

@@ -3,7 +3,7 @@ Export-Package: org.eclipse.tycho.p2.metadata,
  org.eclipse.tycho.p2.repository,
  org.eclipse.tycho.p2.resolver
 Bundle-Version: 0.13.0.qualifier
-Bundle-Name: Tycho P2 dependency resolution API
+Bundle-Name: Tycho p2 Resolver Maven/OSGi Facade (Incubation)
 Bundle-ManifestVersion: 2
 Bundle-Description: Tycho integrates Maven with Eclipse and OSGi
 Bundle-SymbolicName: org.eclipse.tycho.p2.resolver.facade

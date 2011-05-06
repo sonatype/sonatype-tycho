@@ -23,9 +23,7 @@
 	<artifactId>tycho-surefire-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
 
-	<name>Tycho OSGi Test Plugin</name>
-	<description>The tycho-pomgenerator-plugin provides tools for integrating Maven, Eclipse and OSGi.</description>
-
+	<name>Tycho Surefire Plugin (Incubation)</name>
 
 	<dependencies>
 		<dependency>

@@ -23,6 +23,6 @@
 	<artifactId>org.eclipse.tycho.p2.resolver.facade</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
-	<name>Tycho P2 dependency resolution API</name>
+	<name>Tycho p2 Resolver Maven/OSGi Facade (Incubation)</name>
 
 </project>

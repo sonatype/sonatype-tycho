@@ -23,7 +23,7 @@
 	<artifactId>org.eclipse.tycho.surefire.junit4</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
-	<name>Tycho Surefire OSGi JUnit4 Runner</name>
+	<name>Tycho Surefire OSGi JUnit4 Runner (Incubation)</name>
 
 	<profiles>
 		<profile>

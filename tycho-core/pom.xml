@@ -19,11 +19,10 @@
 		<artifactId>tycho</artifactId>
 		<version>0.13.0-SNAPSHOT</version>
 	</parent>
-
 	<artifactId>tycho-core</artifactId>
 
-	<name>Tycho OSGi Components</name>
-	<description>Components for OSGi operations</description>
+	<name>Tycho Core (Incubation)</name>
+	<description>Core Tycho components</description>
 
 	<build>
 		<plugins>

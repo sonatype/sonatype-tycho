@@ -19,11 +19,9 @@
 		<artifactId>tycho</artifactId>
 		<version>0.13.0-SNAPSHOT</version>
 	</parent>
-
-	<groupId>org.eclipse.tycho</groupId>
 	<artifactId>tycho-equinox-launching</artifactId>
-	<name>Tycho Equinox Launching</name>
 
+	<name>Tycho Equinox Launching (Incubation)</name>
 
 	<dependencies>
 		<dependency>

@@ -19,10 +19,9 @@
 		<artifactId>tycho</artifactId>
 		<version>0.13.0-SNAPSHOT</version>
 	</parent>
-
 	<artifactId>tycho-compiler-jdt</artifactId>
 
-	<name>Tycho JDT Compiler Component</name>
+	<name>Tycho JDT Compiler Component (Incubation)</name>
 
 	<build>
 		<plugins>

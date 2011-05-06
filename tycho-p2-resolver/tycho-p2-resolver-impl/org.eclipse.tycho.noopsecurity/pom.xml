@@ -23,6 +23,6 @@
 	<artifactId>org.eclipse.tycho.noopsecurity</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
-	<name>Noop Equinox password provider</name>
+	<name>Tycho Noop Equinox password provider (Incubation)</name>
 
 </project>

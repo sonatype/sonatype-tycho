@@ -23,7 +23,7 @@
 	<artifactId>tycho-surefire</artifactId>
 	<packaging>pom</packaging>
 
-	<name>Tycho Surefire Parent</name>
+	<name>Tycho Surefire Parent (Incubation)</name>
 
 	<properties>
 		<surefire-version>2.4.3</surefire-version>

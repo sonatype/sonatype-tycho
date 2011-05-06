@@ -23,6 +23,6 @@
 	<artifactId>org.eclipse.tycho.p2.resolver.impl</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
-	<name>Tycho P2-based dependency resolver</name>
+	<name>Tycho p2 Resolver Bundle (Incubation)</name>
 
 </project>

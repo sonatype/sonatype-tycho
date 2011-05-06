@@ -23,6 +23,7 @@
 	<artifactId>org.eclipse.tycho.p2.tools.facade.tests</artifactId>
 	<packaging>eclipse-test-plugin</packaging>
 
-	<name>Tycho P2 tools API classes tests</name>
-	<description>Tests of classes in the P2 tools API</description>
+	<name>Tycho p2 Tools Maven/OSGi Facade Tests (Incubation)</name>
+	<description>Tests of classes in the P2 tools facade</description>
+
 </project>
