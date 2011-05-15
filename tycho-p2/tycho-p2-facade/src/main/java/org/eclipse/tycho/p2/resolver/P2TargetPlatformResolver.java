@@ -68,10 +68,12 @@ import org.eclipse.tycho.core.utils.PlatformPropertiesUtils;
 import org.eclipse.tycho.equinox.EquinoxServiceFactory;
 import org.eclipse.tycho.model.Target;
 import org.eclipse.tycho.osgi.adapters.MavenLoggerAdapter;
+import org.eclipse.tycho.p2.facade.internal.DirectoryBundleResolver;
 import org.eclipse.tycho.p2.facade.internal.MavenRepositoryReader;
 import org.eclipse.tycho.p2.facade.internal.P2RepositoryCacheImpl;
 import org.eclipse.tycho.p2.facade.internal.ReactorArtifactFacade;
 import org.eclipse.tycho.p2.metadata.DependencyMetadataGenerator;
+import org.eclipse.tycho.p2.metadata.IArtifactFacade;
 import org.eclipse.tycho.p2.repository.DefaultTychoRepositoryIndex;
 import org.eclipse.tycho.p2.repository.TychoRepositoryIndex;
 import org.eclipse.tycho.p2.resolver.facade.P2ResolutionResult;
@@ -105,6 +107,9 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
 
     @Requirement
     private ProjectDependenciesResolver projectDependenciesResolver;
+
+    @Requirement
+    private DirectoryBundleResolver directoryBundleResolver;
 
     private P2ResolverFactory resolverFactory;
 
@@ -321,63 +326,17 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
         Target target = configuration.getTarget();
 
         if (target != null) {
-            Set<URI> uris = new HashSet<URI>();
+            Set<URI> knownUris = new HashSet<URI>();
 
             for (Target.Location location : target.getLocations()) {
                 String type = location.getType();
-                if (!"InstallableUnit".equalsIgnoreCase(type)) {
+                if ("InstallableUnit".equalsIgnoreCase(type)) {
+                    resolveInstallableUnit(location, session, resolutionContext, resolver, knownUris);
+                } else if ("Directory".equalsIgnoreCase(type)) {
+                    resolveDirectory(location, environments, resolutionContext, resolver);
+                } else {
                     getLogger().warn("Target location type: " + type + " is not supported");
                     continue;
-                }
-                for (Target.Repository repository : location.getRepositories()) {
-
-                    try {
-                        URI uri = new URI(getMirror(repository, session.getRequest().getMirrors()));
-                        if (uris.add(uri)) {
-                            if (session.isOffline()) {
-                                getLogger().debug("Ignored repository " + uri + " while in offline mode");
-                            } else {
-                                String id = repository.getId();
-                                if (id != null) {
-                                    Server server = session.getSettings().getServer(id);
-
-                                    if (server != null) {
-                                        resolutionContext.setCredentials(uri, server.getUsername(),
-                                                server.getPassword());
-                                    } else {
-                                        getLogger().info(
-                                                "Unknown server id=" + id + " for repository location="
-                                                        + repository.getLocation());
-                                    }
-                                }
-
-                                try {
-                                    resolutionContext.addP2Repository(uri);
-                                } catch (Exception e) {
-                                    String msg = "Failed to access p2 repository " + uri
-                                            + ", will try to use local cache. Reason: " + e.getMessage();
-                                    if (getLogger().isDebugEnabled()) {
-                                        getLogger().warn(msg, e);
-                                    } else {
-                                        getLogger().warn(msg);
-                                    }
-                                }
-                            }
-                        }
-                    } catch (URISyntaxException e) {
-                        getLogger().debug("Could not parse repository URL", e);
-                    }
-                }
-
-                for (Target.Unit unit : location.getUnits()) {
-                    String versionRange;
-                    if ("0.0.0".equals(unit.getVersion())) {
-                        versionRange = unit.getVersion();
-                    } else {
-                        // perfect version match
-                        versionRange = "[" + unit.getVersion() + "," + unit.getVersion() + "]";
-                    }
-                    resolver.addDependency(P2Resolver.TYPE_INSTALLABLE_UNIT, unit.getId(), versionRange);
                 }
             }
         }
@@ -405,6 +364,85 @@ public class P2TargetPlatformResolver extends AbstractTargetPlatformResolver imp
 
             return newDefaultTargetPlatform(session, projects, result);
         }
+    }
+
+    private void resolveInstallableUnit(Target.Location location, MavenSession session,
+            ResolutionContext resolutionContext, P2Resolver resolver, Set<URI> knownUris) {
+        for (Target.Repository repository : location.getRepositories()) {
+
+            try {
+                URI uri = new URI(getMirror(repository, session.getRequest().getMirrors()));
+                if (knownUris.add(uri)) {
+                    if (session.isOffline()) {
+                        getLogger().debug("Ignored repository " + uri + " while in offline mode");
+                    } else {
+                        String id = repository.getId();
+                        if (id != null) {
+                            Server server = session.getSettings().getServer(id);
+
+                            if (server != null) {
+                                resolutionContext.setCredentials(uri, server.getUsername(), server.getPassword());
+                            } else {
+                                getLogger().info(
+                                        "Unknown server id=" + id + " for repository location="
+                                                + repository.getLocation());
+                            }
+                        }
+
+                        try {
+                            resolutionContext.addP2Repository(uri);
+                        } catch (Exception e) {
+                            String msg = "Failed to access p2 repository " + uri
+                                    + ", will try to use local cache. Reason: " + e.getMessage();
+                            if (getLogger().isDebugEnabled()) {
+                                getLogger().warn(msg, e);
+                            } else {
+                                getLogger().warn(msg);
+                            }
+                        }
+                    }
+                }
+            } catch (URISyntaxException e) {
+                getLogger().debug("Could not parse repository URL", e);
+            }
+        }
+
+        for (Target.Unit unit : location.getUnits()) {
+            addDependency(resolver, unit.getId(), unit.getVersion());
+        }
+    }
+
+    private void resolveDirectory(Target.Location location, List<Map<String, String>> environments,
+            ResolutionContext resolutionContext, P2Resolver resolver) {
+        String path = location.getPath();
+        File dir = new File(path);
+        if (!dir.exists()) {
+            getLogger().error("Target location does not exist: " + dir);
+            return;
+        }
+        if (!dir.isDirectory()) {
+            getLogger().error("Target location must point to a directory: " + dir);
+            return;
+        }
+
+        getLogger().info("Adding directory " + dir);
+
+        Collection<IArtifactFacade> artifacts = directoryBundleResolver.resolve(dir);
+        for (IArtifactFacade a : artifacts) {
+            resolutionContext.addMavenArtifact(a);
+            addDependency(resolver, a.getArtifactId(), a.getVersion());
+        }
+    }
+
+    private void addDependency(P2Resolver resolver, String id, String version) {
+        String versionRange;
+        if ("0.0.0".equals(version)) {
+            versionRange = version;
+        } else {
+            // perfect version match
+            versionRange = "[" + version + "," + version + "]";
+        }
+        resolver.addDependency(P2Resolver.TYPE_INSTALLABLE_UNIT, id, versionRange);
     }
 
     private boolean isAllowConflictingDependencies(MavenProject project, TargetPlatformConfiguration configuration) {
