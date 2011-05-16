@@ -69,6 +69,10 @@ public class Target {
         public void setType(String type) {
             dom.setAttribute("type", type);
         }
+
+        public String getPath() {
+            return dom.getAttributeValue("path");
+        }
     }
 
     public static final class Repository {
