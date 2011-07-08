@@ -10,10 +10,6 @@
  *******************************************************************************/
 package org.eclipse.tycho.buildversion;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.eclipse.tycho.ArtifactKey;
-
 /**
  * Validates project Maven and OSGi versions. For SNAPSHOT versions, OSGi version qualifier must be
  * ".qualifier" and unqualified Maven and OSGi versions must be equal. For RELEASE versions, OSGi
@@ -55,10 +51,8 @@ public class ValidateVersionMojo extends AbstractVersionMojo {
     }
 
     private String getOSGiMetadataFileName() {
-        // Kinda hack
-
         String packaging = project.getPackaging();
-
+        // TODO this does not belong here, packaging type should know about its metadata file
         if (ArtifactKey.TYPE_ECLIPSE_PLUGIN.equals(packaging) || ArtifactKey.TYPE_ECLIPSE_TEST_PLUGIN.equals(packaging)) {
             return "META-INF/MANIFEST.MF";
         } else if (ArtifactKey.TYPE_ECLIPSE_FEATURE.equals(packaging)) {
