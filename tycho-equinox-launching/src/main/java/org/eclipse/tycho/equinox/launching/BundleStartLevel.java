@@ -17,8 +17,8 @@ public class BundleStartLevel {
     private String id;
 
     /**
-     * Bundle start level. level==-1 is a hack, used to remove org.eclipse.org bundle from
-     * osgi.bundles system property value.
+     * Bundle start level. level==-1 is used to remove org.eclipse.org bundle from osgi.bundles
+     * system property value.
      */
     private int level;
 
