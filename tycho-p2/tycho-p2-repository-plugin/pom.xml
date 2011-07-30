@@ -36,6 +36,17 @@
 			<artifactId>tycho-p2-facade</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.tycho</groupId>
+			<artifactId>tycho-testing-harness</artifactId>
+			<version>0.13.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>

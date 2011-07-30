@@ -300,6 +300,9 @@
               <deploy>
                 org.apache.maven.plugins:maven-deploy-plugin:${deploy-plugin.version}:deploy
               </deploy>
+              <pre-site>
+                org.eclipse.tycho:tycho-p2-repository-plugin:${project.version}:prepare-site-repository
+              </pre-site>
             </phases>
           </lifecycle>
         </lifecycles>
