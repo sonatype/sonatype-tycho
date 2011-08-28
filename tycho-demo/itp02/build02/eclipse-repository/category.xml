@@ -1,0 +1,7 @@
+<site>
+   <category-def name="tycho.demo.itp02.category" label="ITP02 Category"/>
+   <feature url="features/tycho.demo.itp02.feature_1.0.0.qualifier.jar"
+	    id="tycho.demo.itp02.feature" version="1.0.0.qualifier">
+      <category name="tycho.demo.itp02.category"/>
+   </feature>
+</site>
