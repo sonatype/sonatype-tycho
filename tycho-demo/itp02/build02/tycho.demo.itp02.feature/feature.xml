@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="tycho.demo.itp02.feature"
+      label="itp02 feature"
+      version="1.0.0.qualifier"
+      >
+
+   <description>feature</description>
+
+   <plugin
+         id="tycho.demo.itp02.pomfirst-thirdparty"
+         download-size="0"
+         install-size="0"
+         version="1.0.0"
+         unpack="false"/>
+</feature>
