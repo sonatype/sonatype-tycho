@@ -1,5 +1,0 @@
-Bundle-ManifestVersion: 2
-Bundle-SymbolicName: differentSymbolicName;singleton:=true
-Bundle-Version: 0.0.1.qualifier
-Bundle-ClassPath: .
-Bundle-Name: differentName

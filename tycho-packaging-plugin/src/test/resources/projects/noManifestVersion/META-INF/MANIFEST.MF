@@ -1,5 +1,0 @@
-Bundle-ManifestVersion: 2
-Bundle-SymbolicName: bundle;singleton:=true
-Bundle-Version: 0.0.1.qualifier
-Bundle-ClassPath: .
-Bundle-Name: bundle
