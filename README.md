@@ -1,8 +1,8 @@
-Tycho homepage http://www.eclipse.org/tycho/
+REPOSITORY MOVED
+================
 
-Tycho wiki http://wiki.eclipse.org/Category:Tycho
+This repository is outdated and will no longer be maintained.
 
-Tycho bug tracking https://bugs.eclipse.org/bugs/buglist.cgi?product=Tycho
+The tycho git repository was moved to 
+[Eclipse.org](http://git.eclipse.org/c/tycho/org.eclipse.tycho.git/)
 
-Building Tycho from sources: mvn clean install
-- For more details, see http://wiki.eclipse.org/Developing_Tycho
