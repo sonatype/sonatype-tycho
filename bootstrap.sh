@@ -8,7 +8,7 @@ TYCHO_M2_HOME=/opt/maven
 
 export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m"
 
-export MAVEN_PARAMS="-Dmaven.repo.local=/tmp/tycho-bootstrap.localrepo -Dit.cliOptions=-U"
+export MAVEN_PARAMS="-Dmaven.repo.local=/tmp/tycho-0.13-bootstrap.localrepo -Dit.cliOptions=-U"
 
 $TYCHO_M2_HOME/bin/mvn clean install -U -e -V ${MAVEN_PARAMS} || exit
 
