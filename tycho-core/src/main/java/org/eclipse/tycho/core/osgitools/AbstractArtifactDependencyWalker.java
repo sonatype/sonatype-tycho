@@ -114,39 +114,40 @@ public abstract class AbstractArtifactDependencyWalker implements ArtifactDepend
             }
         }
 
-        if (product.includeLaunchers()) {
-            if (!bundles.contains(EQUINOX_LAUNCHER)) {
-                PluginRef ref = new PluginRef("plugin");
-                ref.setId(EQUINOX_LAUNCHER);
-                traversePlugin(ref, visitor, visited);
-            }
+        // RCP apparently implicitly includes equinox.launcher and corresponding native fragments
+        // See also org.eclipse.tycho.p2.ProductDependenciesAction.perform
 
-            if (environments != null) {
-                for (TargetEnvironment environment : environments) {
-                    String os = environment.getOs();
-                    String ws = environment.getWs();
-                    String arch = environment.getArch();
+        if (!bundles.contains(EQUINOX_LAUNCHER)) {
+            PluginRef ref = new PluginRef("plugin");
+            ref.setId(EQUINOX_LAUNCHER);
+            traversePlugin(ref, visitor, visited);
+        }
 
-                    String id;
+        if (environments != null && product.includeLaunchers()) {
+            for (TargetEnvironment environment : environments) {
+                String os = environment.getOs();
+                String ws = environment.getWs();
+                String arch = environment.getArch();
 
-                    // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
-                    // only a org.eclipse.equinox.launcher.carbon.macosx folder.
-                    // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
-                    if (PlatformPropertiesUtils.OS_MACOSX.equals(os) && PlatformPropertiesUtils.ARCH_X86.equals(arch)) {
-                        id = "org.eclipse.equinox.launcher." + ws + "." + os;
-                    } else {
-                        id = "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch;
-                    }
+                String id;
 
-                    if (!bundles.contains(id)) {
-                        PluginRef ref = new PluginRef("plugin");
-                        ref.setId(id);
-                        ref.setOs(os);
-                        ref.setWs(ws);
-                        ref.setArch(arch);
-                        ref.setUnpack(true);
-                        traversePlugin(ref, visitor, visited);
-                    }
+                // for Mac OS X there is no org.eclipse.equinox.launcher.carbon.macosx.x86 folder,
+                // only a org.eclipse.equinox.launcher.carbon.macosx folder.
+                // see http://jira.codehaus.org/browse/MNGECLIPSE-1075
+                if (PlatformPropertiesUtils.OS_MACOSX.equals(os) && PlatformPropertiesUtils.ARCH_X86.equals(arch)) {
+                    id = "org.eclipse.equinox.launcher." + ws + "." + os;
+                } else {
+                    id = "org.eclipse.equinox.launcher." + ws + "." + os + "." + arch;
+                }
+
+                if (!bundles.contains(id)) {
+                    PluginRef ref = new PluginRef("plugin");
+                    ref.setId(id);
+                    ref.setOs(os);
+                    ref.setWs(ws);
+                    ref.setArch(arch);
+                    ref.setUnpack(true);
+                    traversePlugin(ref, visitor, visited);
                 }
             }
         }

@@ -124,9 +124,9 @@ public class P2DependencyGeneratorImplTest {
         assertEquals("included.bundle", ((IRequiredCapability) requirement.get(0)).getName());
 
         // implicit dependencies because includeLaunchers="true"
+        assertEquals("org.eclipse.equinox.launcher", ((IRequiredCapability) requirement.get(1)).getName());
         assertEquals("org.eclipse.equinox.executable.feature.group",
-                ((IRequiredCapability) requirement.get(1)).getName());
-        assertEquals("org.eclipse.equinox.launcher", ((IRequiredCapability) requirement.get(2)).getName());
+                ((IRequiredCapability) requirement.get(2)).getName());
 
         assertEquals(0, artifacts.size());
     }
